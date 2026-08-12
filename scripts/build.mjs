@@ -19,6 +19,30 @@ const API_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/
 const API_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
 const OUT = 'dist';
 
+/* TDX 需要免費金鑰才能給伺服器程式使用（匿名只開放給瀏覽器，機房 IP 會被擋成 401）。
+   金鑰放在 GitHub 的 Settings → Secrets，程式從環境變數讀，不會出現在原始碼裡。 */
+const TDX_ID     = process.env.TDX_ID || '';
+const TDX_SECRET = process.env.TDX_SECRET || '';
+const TOKEN_URL  = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
+
+async function tdxHeaders() {
+  const h = { 'Accept': 'application/json' };
+  if (!TDX_ID || !TDX_SECRET) {
+    console.warn('沒有設定 TDX_ID / TDX_SECRET，改用匿名存取（在 GitHub 上通常會被擋）');
+    return h;
+  }
+  const r = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials', client_id: TDX_ID, client_secret: TDX_SECRET })
+  });
+  if (!r.ok) throw new Error('TDX 認證失敗（' + r.status + '）— 請檢查 TDX_ID / TDX_SECRET 是否正確');
+  const j = await r.json();
+  console.log('TDX 認證成功');
+  return { ...h, Authorization: 'Bearer ' + j.access_token };
+}
+
 /* ★ 要改分點別登機門，只改這兩行 ★
    注意：C5-C10 這種範圍會把 C5R 一起包進去，所以 2153 要寫成 'C5, C6-C10' */
 const SPEC_2153 = 'C5, C6-C10';
@@ -274,9 +298,13 @@ async function main() {
   let flights = [], err = '';
 
   /* 機場中文名對照（TDX 只給 IATA 代碼）。抓不到就退回用代碼顯示，不影響主要功能。 */
+  let AUTH = { 'Accept': 'application/json' };
+  try { AUTH = await tdxHeaders(); }
+  catch (e) { err = e.message; console.error(err); }
+
   let NAMES = {};
   try {
-    const r = await fetch(API_AIRPORT, { headers: { 'Accept': 'application/json' } });
+    const r = await fetch(API_AIRPORT, { headers: AUTH });
     if (r.ok) {
       for (const a of await r.json()) {
         const n = a.AirportName && a.AirportName.Zh_tw;
@@ -290,7 +318,9 @@ async function main() {
   const TRIES = 4;
   for (let i = 1; i <= TRIES; i++) {
     try {
-      const res = await fetch(API_FLIGHT, { headers: { 'Accept': 'application/json' } });
+      const res = await fetch(API_FLIGHT, { headers: AUTH });
+      if (res.status === 401 || res.status === 403)
+        throw new Error('TDX 拒絕存取（' + res.status + '）— 需要在 GitHub Secrets 設定 TDX_ID / TDX_SECRET');
       if (!res.ok) throw new Error('TDX API 回應 ' + res.status);
       const all = await res.json();
       flights = (Array.isArray(all) ? all : [])
