@@ -244,20 +244,42 @@ ${body}
 /* ---------- 主程式 ---------- */
 async function main() {
   let flights = [], err = '';
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ AState: 'A', ODate: today, language: 'ch' })
-    });
-    if (!res.ok) throw new Error('桃機 API 回應 ' + res.status);
-    const all = await res.json();
-    flights = (Array.isArray(all) ? all : [])
-      .filter(f => f.ODate === today || f.RDate === today);
-    console.log(`抓到 ${flights.length} 筆（${today}）`);
-  } catch (e) {
-    err = e.message || String(e);
-    console.error('抓取失敗：', err);
+
+  /* 桃機掛在 Cloudflare 後面，對「看起來不像瀏覽器」的請求會回 403。
+     所以要帶齊瀏覽器標頭，並且失敗時退避重試幾次。 */
+  const HEADERS = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
+                + '(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
+    'Origin': 'https://www.taoyuan-airport.com',
+    'Referer': 'https://www.taoyuan-airport.com/flight_arrival',
+    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Dest': 'empty',
+  };
+
+  const TRIES = 4;
+  for (let i = 1; i <= TRIES; i++) {
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: HEADERS,
+        body: JSON.stringify({ AState: 'A', ODate: today, language: 'ch' })
+      });
+      if (!res.ok) throw new Error('桃機 API 回應 ' + res.status);
+      const all = await res.json();
+      flights = (Array.isArray(all) ? all : [])
+        .filter(f => f.ODate === today || f.RDate === today);
+      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆（${today}）`);
+      err = '';
+      break;
+    } catch (e) {
+      err = e.message || String(e);
+      console.error(`第 ${i}/${TRIES} 次嘗試失敗：${err}`);
+      if (i < TRIES) await new Promise(r => setTimeout(r, i * 3000));
+    }
   }
 
   await mkdir(OUT, { recursive: true });
