@@ -39,6 +39,9 @@ jobs:
 
       - name: 抓桃機資料並產生靜態頁
         run: node scripts/build.mjs
+        env:
+          TDX_ID: ${{ secrets.TDX_ID }}
+          TDX_SECRET: ${{ secrets.TDX_SECRET }}
 
       - name: 設定 Pages
         uses: actions/configure-pages@v5
