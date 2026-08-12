@@ -15,7 +15,15 @@ import { dirname, join } from 'node:path';
 /* 資料來源：桃園國際機場「開放資料平台」即時航班資料集（服務代碼 114002）
    政府資料開放平臺登錄的官方來源，跟桃機官網看板同一份資料、每 5 分鐘更新。
    關鍵是它在 odp 這台獨立主機，不像 www 那台會擋機房 IP。 */
-const API_FLIGHT = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
+const ODP = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
+/* GitHub 的機房 IP 連不到台灣這幾台主機（403 / 連線逾時），
+   所以依序試「直連」與幾個公開中繼站，哪個通就用哪個。 */
+const SOURCES = [
+  { name: '直連 odp', url: ODP },
+  { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ODP) },
+  { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + encodeURIComponent(ODP) },
+  { name: 'codetabs',  url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(ODP) },
+];
 const OUT = 'dist';
 
 /* ★ 要改分點別登機門，只改這兩行 ★
@@ -271,33 +279,35 @@ ${body}
 async function main() {
   let flights = [], err = '';
 
-  /* 診斷用：把底層原因一起帶出來（TLS 憑證鏈不完整 vs 連不到 vs 被擋，處理方式不同） */
   const why = e => {
     const c = e && e.cause;
-    if (!c) return e.message;
-    return e.message + ' ｜ ' + (c.code || '') + ' ' + (c.message || '') +
-           (c.cause ? ' ｜ ' + (c.cause.code || c.cause.message || '') : '');
+    return e.message + (c ? ' ｜ ' + (c.code || '') + ' ' + (c.message || '') : '');
   };
 
-  const TRIES = 4;
-  for (let i = 1; i <= TRIES; i++) {
+  const tried = [];
+  for (const src of SOURCES) {
     try {
-      const res = await fetch(API_FLIGHT, { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) throw new Error('開放資料平台回應 ' + res.status);
-      const all = await res.json();
-      flights = (Array.isArray(all) ? all : [])
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 25000);
+      const res = await fetch(src.url, { headers: { 'Accept': 'application/json' }, signal: ac.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('回應 ' + res.status);
+      const all = JSON.parse(await res.text());
+      const list = (Array.isArray(all) ? all : [])
         .filter(f => f['方向'] === 'A')
         .map(fromODP)
         .filter(f => f.OTime && f.ODate === today);
-      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆到站（${today}）`);
+      if (!list.length) throw new Error('回傳 0 筆今日到站');
+      flights = list;
       err = '';
+      console.log(`✅ 來源「${src.name}」成功，抓到 ${flights.length} 筆到站（${today}）`);
       break;
     } catch (e) {
-      err = why(e);
-      console.error(`第 ${i}/${TRIES} 次嘗試失敗：${err}`);
-      if (i < TRIES) await new Promise(r => setTimeout(r, i * 3000));
+      tried.push(src.name + '=' + why(e));
+      console.error(`❌ 來源「${src.name}」失敗：${why(e)}`);
     }
   }
+  if (!flights.length) err = '所有來源都失敗 ｜ ' + tried.join(' ；ㄍ ');
 
   await mkdir(OUT, { recursive: true });
 
