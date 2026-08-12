@@ -1,0 +1,53 @@
+# 桃機到站看板 — 定時更新　檔案作者：小韋
+name: 更新桃機到站看板
+
+on:
+  schedule:
+    # 每 5 分鐘跑一次（GitHub 實際執行常有延遲，見 README 說明）
+    - cron: '*/5 * * * *'
+  # 讓你可以在 GitHub 網頁或 App 上手動按一下就更新
+  workflow_dispatch:
+  # 每次改程式碼推上來也重新產生一次
+  push:
+    branches: [main]
+
+# 部署到 GitHub Pages 需要的權限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時只跑一個，避免排程重疊
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: 取出程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 抓桃機資料並產生靜態頁
+        run: node scripts/build.mjs
+
+      - name: 設定 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上傳產出
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: 部署到 GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
