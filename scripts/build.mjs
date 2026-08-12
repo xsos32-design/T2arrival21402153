@@ -271,6 +271,14 @@ ${body}
 async function main() {
   let flights = [], err = '';
 
+  /* 診斷用：把底層原因一起帶出來（TLS 憑證鏈不完整 vs 連不到 vs 被擋，處理方式不同） */
+  const why = e => {
+    const c = e && e.cause;
+    if (!c) return e.message;
+    return e.message + ' ｜ ' + (c.code || '') + ' ' + (c.message || '') +
+           (c.cause ? ' ｜ ' + (c.cause.code || c.cause.message || '') : '');
+  };
+
   const TRIES = 4;
   for (let i = 1; i <= TRIES; i++) {
     try {
@@ -285,7 +293,7 @@ async function main() {
       err = '';
       break;
     } catch (e) {
-      err = e.message || String(e);
+      err = why(e);
       console.error(`第 ${i}/${TRIES} 次嘗試失敗：${err}`);
       if (i < TRIES) await new Promise(r => setTimeout(r, i * 3000));
     }
