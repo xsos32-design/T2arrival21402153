@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<!-- 桃機到站 2140 / 2153 分點看板　檔案作者：小韋 -->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d10">
+<title>桃機到站 · 2140 / 2153</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --line:#e3e6ea; --ink:#16181d; --muted:#6b7280; --accent:#1f6feb;
+    --c40:#0f766e; --c40bg:#e6f5f3; --c53:#9a3412; --c53bg:#fdf0e7;
+    --ok:#15803d; --okbg:#e8f5ec; --warn:#b45309; --warnbg:#fdf3e3; --bad:#b91c1c; --badbg:#fdeaea;
+    --none:#4b5563; --nonebg:#eef0f3;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+
+  header{background:#fff;border-bottom:1px solid var(--line);padding:11px 16px;position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  h1{margin:0;font-size:16px;font-weight:650;white-space:nowrap}
+  .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex:none}
+  .dot.on{background:#22c55e} .dot.busy{background:#f59e0b} .dot.err{background:#ef4444}
+
+  .wrap{max-width:940px;margin:0 auto;padding:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .row{display:flex;flex-wrap:wrap;gap:11px;align-items:flex-end}
+  .fld{display:flex;flex-direction:column;gap:4px}
+  label{font-size:11.5px;color:var(--muted);font-weight:600}
+  input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);max-width:100%}
+  input.wide{min-width:230px}
+  button{font:inherit;font-weight:650;padding:8px 20px;border-radius:8px;border:1px solid transparent;cursor:pointer;
+    background:var(--accent);color:#fff}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .chip{font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;
+    cursor:pointer;color:var(--muted);white-space:nowrap;user-select:none}
+  .chip.act{border-color:var(--accent);color:var(--accent);background:#f0f6ff}
+  .chiplabel{font-size:11.5px;color:var(--muted);font-weight:600;margin-right:2px}
+  .chip.shop{font-weight:700;color:#9aa3ae}
+  #s2140.act{border-color:var(--c40);color:var(--c40);background:var(--c40bg)}
+  #s2153.act{border-color:var(--c53);color:var(--c53);background:var(--c53bg)}
+  details.cfg{margin-top:10px;border-top:1px dashed var(--line);padding-top:9px}
+  details.cfg summary{cursor:pointer;font-size:12px;color:var(--muted);font-weight:600}
+  .cfgrow{display:flex;gap:11px;flex-wrap:wrap;margin-top:9px}
+  .status{font-size:12px;color:var(--muted);margin-top:9px}
+
+  .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .r{display:grid;grid-template-columns:112px 1fr 132px 62px 58px 108px;gap:10px;align-items:center;
+     padding:9px 14px;border-top:1px solid var(--line)}
+  .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:600;padding:7px 14px}
+  .r.done{opacity:.45}
+  .r.soon{background:#fffdf3}
+  .c-time b{display:inline-block;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;
+    line-height:1.15;padding:1px 6px;border-radius:7px;letter-spacing:-.01em}
+  .c-time b.t-late {color:#9a3412;background:#fdece0}
+  .c-time b.t-early{color:#075985;background:#e0f2fe}
+  .c-time b.t-same {color:#14532d;background:#e5f5ea}
+  .c-time b.t-plan {color:var(--ink);background:transparent;padding-left:0}
+  .c-time i{display:block;font-style:normal;font-size:11.5px;font-variant-numeric:tabular-nums;
+    color:var(--muted);white-space:nowrap;margin-top:2px}
+  .tm{font-size:10px;font-weight:700;color:var(--muted);margin-left:3px;vertical-align:super}
+  .c-fno b{font-weight:700;font-size:14.5px}
+  .c-fno small{display:block;color:var(--muted);font-size:11.5px}
+  .c-gate{font-weight:800;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px}
+  .t40{background:var(--c40bg);color:var(--c40)} .t53{background:var(--c53bg);color:var(--c53)}
+  .tt1{background:#f1ecfd;color:#6d28d9} .tt2{background:var(--nonebg);color:var(--none)}
+  #st1.act{border-color:#7c3aed;color:#6d28d9;background:#f3ebff}
+  #st2.act{border-color:#64748b;color:#334155;background:#eef2f7}
+  .badge{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .short,.tshort{display:none}
+  .c-time{overflow:hidden}
+  .b-ok{background:var(--okbg);color:var(--ok)} .b-warn{background:var(--warnbg);color:var(--warn)}
+  .b-bad{background:var(--badbg);color:var(--bad)} .b-none{background:var(--nonebg);color:var(--none)}
+  .empty,.pend{padding:14px;color:var(--muted);font-size:13px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+  .pend b{color:var(--ink)}
+  .errbox{background:var(--badbg);border:1px solid #f6c9c9;color:#8a1c1c;border-radius:12px;padding:12px 14px;
+    font-size:13px;line-height:1.65;margin-bottom:14px}
+  .notice{margin-top:14px;padding:11px 14px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;
+    color:#92400e;font-size:12.5px;line-height:1.7;text-align:center}
+  .notice b{color:#78350f}
+  .credit{margin-top:10px;text-align:center;color:#9aa3ae;font-size:11.5px;letter-spacing:.04em}
+
+  /* ===== 版本二：手機版 — 深色大字卡片，跟手錶版同一套視覺 ===== */
+  @media (max-width:640px){
+    body{background:#0b0d10;color:#f2f4f7}
+    header{background:#14171c;border-bottom:1px solid #262b33;padding:10px 13px;position:static}
+    h1{font-size:15px;color:#cbd5e1}
+    .live{font-size:11.5px;color:#7c8593}
+    .dot{background:#3a4250}
+
+    /* 選項在最上面，班機清單接在下面 */
+    .wrap{padding:9px}
+    .credit{color:#5b636e;font-size:10.5px;margin-top:12px;padding-bottom:4px}
+
+    .card{background:#14171c;border-color:#262b33;border-radius:12px;padding:11px;margin:0 0 12px}
+    label,.chiplabel,.status{color:#8b94a1}
+    label{font-size:12.5px}
+    .fld{flex:1 1 100%;gap:4px}
+    input,select{background:#1c2027;border-color:#2e343d;color:#f2f4f7;
+      font-size:16px;padding:11px 10px;min-height:48px;width:100%;border-radius:11px}
+    .row{gap:9px}
+    button{width:100%;padding:15px;font-size:17px;min-height:54px;border-radius:12px}
+
+    .chips{gap:7px;margin-top:11px}
+    .chiplabel{flex:1 1 100%;margin:0 0 2px;font-size:12.5px}
+    .chip{flex:1 1 100%;min-height:50px;padding:9px 6px;font-size:15px;border-radius:12px;border-width:2px;
+      display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25;
+      background:#1c2027;border-color:#2e343d;color:#9aa3b0}
+    .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+    .chip.shop{font-size:17px;font-weight:800;min-height:54px}
+    #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
+    #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
+    #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
+    #st2.act{background:#232a34;border-color:#64748b;color:#cbd5e1}
+    details.cfg{border-top-color:#262b33}
+    details.cfg summary{color:#8b94a1}
+    input.wide{min-width:0}
+
+    /* 班機卡片 */
+    .list{background:transparent;border:none;border-radius:0;overflow:visible}
+    .r.head{display:none}
+    .tfull{display:none} .tshort{display:inline}
+    .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 9px;overflow:hidden;
+       grid-template-areas:"time gate shop" "fno city st";align-items:center;
+       background:#14171c;border:1px solid #262b33;border-radius:12px;padding:10px 12px;margin-bottom:7px}
+    .r.done{opacity:.4}
+    .r.soon{background:#3a2f10;border-color:#a16207}
+    .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
+
+    .c-time{grid-area:time}
+    .c-time b{font-size:25px;color:#fff;line-height:1.05;padding:1px 7px;border-radius:8px}
+    .c-time b.t-late {color:#fcd34d;background:#3f2c08}
+    .c-time b.t-early{color:#7dd3fc;background:#0b2b3c}
+    .c-time b.t-same {color:#6ee7b7;background:#0d2f1e}
+    .c-time b.t-plan {color:#fff;background:transparent;padding-left:0}
+    .c-time i{font-size:11.5px;color:#7c8593;margin-top:2px}
+
+    .c-gate{grid-area:gate;text-align:center;font-size:27px;color:#fff;line-height:1.05;white-space:nowrap}
+    .c-shop{grid-area:shop;text-align:right;white-space:nowrap}
+    .tag{font-size:11px;padding:2px 6px;border-radius:6px}
+    .t40{background:#0d3b36;color:#5eead4} .t53{background:#43200f;color:#fdba74}
+    .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
+
+    .c-fno{grid-area:fno} .c-fno b{font-size:15px;color:#e5e9ef} .c-fno small{display:none}
+    .c-city{grid-area:city;font-size:13px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .badge{font-size:11.5px;padding:2px 7px}
+    .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
+    .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
+
+    .empty,.pend{background:#14171c;border-color:#262b33;color:#8b94a1;font-size:12.5px;padding:11px;border-radius:12px}
+    .pend b{color:#e5e9ef}
+    .errbox{background:#3b1414;border-color:#7f1d1d;color:#fca5a5;font-size:12.5px;padding:11px;border-radius:12px}
+    .notice{background:#2e2408;border-color:#5c4708;color:#fcd34d;font-size:12px;
+      padding:10px 11px;border-radius:12px;margin-top:12px;line-height:1.6}
+    .notice b{color:#fde68a}
+  }
+
+  /* ===== Apple Watch / 極窄螢幕：同一套視覺再縮一號 ===== */
+  @media (max-width:340px){
+    header{padding:6px 8px;gap:6px} h1{font-size:12px}
+    .live{font-size:10px}
+    .wrap{padding:5px}
+    .card{padding:8px;margin:0 0 8px;border-radius:9px}
+    label{font-size:12px}
+    input,select{font-size:16px;padding:10px 9px;min-height:44px;border-radius:10px}
+    .chips{gap:6px;margin-top:9px}
+    .chip{flex:1 1 46%;min-height:46px;font-size:14px;border-radius:11px;padding:8px 4px}
+    .chip.shop{font-size:17px;min-height:52px}
+    button{padding:14px;font-size:17px;min-height:54px}
+    details.cfg{display:none}
+    .full{display:none} .short{display:inline}
+    .r{gap:2px 6px;padding:6px 8px;border-radius:9px;margin-bottom:5px}
+    .c-time b{font-size:20px;padding:0 5px;border-radius:6px}
+    .c-time i{font-size:10px;margin-top:1px}
+    .c-gate{font-size:21px}
+    .tag{font-size:9.5px;padding:1px 4px;border-radius:5px}
+    .c-fno b{font-size:13px}
+    .c-city{font-size:11.5px}
+    .badge{font-size:10px;padding:1px 5px}
+    .empty,.pend,.errbox,.notice{font-size:10.5px;padding:8px;border-radius:9px}
+    .notice{margin-top:8px;line-height:1.55}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>桃機到站 2140 / 2153</h1>
+  <div class="live"><span class="dot" id="dot"></span><span id="live">尚未更新</span></div>
+</header>
+
+<div class="wrap">
+  <div id="errslot"></div>
+
+  <div class="card">
+    <div class="row">
+      <div class="fld"><label>日期</label><input type="date" id="date"></div>
+      <div class="fld"><label>起始</label><input type="time" id="t1" step="60"></div>
+      <div class="fld"><label>結束</label><input type="time" id="t2" step="60"></div>
+      <button id="go">更新班機</button>
+    </div>
+
+    <div class="chips">
+      <span class="chiplabel">分類</span>
+      <span class="chip shop act" id="s2140">✓ 2140</span>
+      <span class="chip shop act" id="s2153">✓ 2153</span>
+      <span class="chip shop act" id="st1">✓ 其他 一航</span>
+      <span class="chip shop act" id="st2">✓ 其他 二航</span>
+    </div>
+
+    <div class="chips">
+      <span class="chip" data-t="00:00" data-e="05:59">00–06</span>
+      <span class="chip" data-t="06:00" data-e="11:59">06–12</span>
+      <span class="chip" data-t="12:00" data-e="17:59">12–18</span>
+      <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
+      <span class="chip" data-t="00:00" data-e="23:59">整天</span>
+    </div>
+
+    <div class="chips">
+      <span class="chip" id="hide">隱藏已抵達：否</span>
+    </div>
+
+    <details class="cfg">
+      <summary>分點別登機門設定（可修改）</summary>
+      <div class="cfgrow">
+        <div class="fld"><label>2140 負責登機門</label><input class="wide" id="cfg2140" value="C1-C4, C5R, B6-B9"></div>
+        <div class="fld"><label>2153 負責登機門</label><input class="wide" id="cfg2153" value="C5, C6-C10"></div>
+      </div>
+      <div class="status">支援範圍（C1-C4）與單一門（C5R、B7），逗號分隔。<b>只有第二航廈</b>的班機才會被歸到 2153／2140；第一航廈以及 T2 其餘登機門一律歸「其他」。目前：C5R 算 2140、C5 算 2153。注意範圍寫成 C5-C10 會把 C5R 一起包進去，所以 2153 用「C5, C6-C10」。</div>
+    </details>
+
+    <div class="status" id="status">按「更新班機」開始。</div>
+  </div>
+
+  <div id="out"></div>
+  <div id="pending"></div>
+
+  <div class="notice">
+    ⚠️ 本頁資料擷取自桃園國際機場公開航班資訊，僅供參考。<br>
+    <b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b>
+  </div>
+
+  <div class="credit">檔案作者：小韋</div>
+</div>
+
+<script>
+var API='https://www.taoyuan-airport.com/api/api/flight/a_flight';
+
+var GATE_ORDER=(function(){
+  var o=[],i;
+  for(i=1;i<=10;i++) o.push('A'+i);
+  ['B1','B1R','B2','B3','B4','B5','B6','B7','B8','B9'].forEach(function(g){o.push(g)});
+  ['C1','C2','C3','C4','C5','C5R','C6','C7','C8','C9','C10'].forEach(function(g){o.push(g)});
+  var d=['D1','D2','D3','D4','D5','D5R'];
+  for(i=6;i<=18;i++) d.push('D'+i);
+  d.forEach(function(g){o.push(g)});
+  return o;
+})();
+
+function expandSpec(spec){
+  var set={};
+  spec.split(/[,，、]/).forEach(function(p){
+    var part=p.trim().toUpperCase(); if(!part) return;
+    var m=part.match(/^([A-D]\d+R?)\s*[-–—~]\s*([A-D]\d+R?)$/);
+    if(m){
+      var a=GATE_ORDER.indexOf(m[1]), b=GATE_ORDER.indexOf(m[2]);
+      if(a>=0&&b>=0){ var lo=Math.min(a,b), hi=Math.max(a,b);
+        for(var i=lo;i<=hi;i++) set[GATE_ORDER[i]]=1; }
+    } else set[part]=1;
+  });
+  return set;
+}
+
+function hhmm(t){ return (t||'').slice(0,5); }
+function pad(x){ return (x<10?'0':'')+x; }
+function mins(t){ var p=hhmm(t).split(':'); return (+p[0])*60+(+p[1]); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]}); }
+
+function statusOf(f){
+  function clean(s){ return String(s||'').replace(/[\s.．、,]+$/,'').replace(/\s+/g,' ').trim(); }
+  var memo=clean(f.Memo).replace('預計時間變更','時間變更'), cur=clean(f.CurrentStatus);
+  var text=[memo,cur].filter(Boolean).join(' · '), cls='b-none', done=false;
+  if(/取消/.test(memo)) cls='b-bad';
+  else if(/延遲|變更/.test(memo)) cls='b-warn';
+  else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; }
+  if(!text) text='預計';
+  var short = /取消/.test(memo) ? '取消'
+            : /延遲/.test(memo) ? '延遲'
+            : /變更/.test(memo) ? '改點'
+            : done ? '已到' : '預計';
+  return {text:text, short:short, cls:cls, done:done};
+}
+
+var lastRows=[], lastPending=[], hideDone=false;
+var show={'2140':true,'2153':true,'t1':true,'t2':true};
+
+/* 四種分類：
+   2140 / 2153 = 第二航廈、登機門符合設定
+   t2          = 第二航廈其餘登機門
+   t1          = 第一航廈全部 */
+function shopOf(f,g53,g40){
+  var g=(f.Gate||'').trim().toUpperCase();
+  if(String(f.BNO)==='1') return 't1';
+  if(g && g40[g]) return '2140';
+  if(g && g53[g]) return '2153';
+  return 't2';
+}
+var TAG={'2140':{txt:'2140',cls:'t40'},'2153':{txt:'2153',cls:'t53'},
+         't1':{txt:'一航',cls:'tt1'},'t2':{txt:'二航',cls:'tt2'}};
+
+/* 實際／預計抵達時間（沒有 RTime 就用表定） */
+function arrAt(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
+
+function setDot(k,msg){
+  document.getElementById('dot').className='dot'+(k?' '+k:'');
+  document.getElementById('live').textContent=msg;
+}
+
+function render(){
+  var g40=expandSpec(document.getElementById('cfg2140').value);
+  var g53=expandSpec(document.getElementById('cfg2153').value);
+  var now=new Date(), nowM=now.getHours()*60+now.getMinutes();
+
+  var rows=[];
+  lastRows.forEach(function(f){
+    var shop=shopOf(f,g53,g40);
+    if(!show[shop]) return;
+    if(hideDone && statusOf(f).done) return;
+    rows.push({f:f, shop:shop});
+  });
+  /* 依「實際／預計抵達時間」排序 — 誰先到誰在前 */
+  rows.sort(function(a,b){
+    return arrAt(a.f).localeCompare(arrAt(b.f))
+        || hhmm(a.f.OTime).localeCompare(hhmm(b.f.OTime));
+  });
+
+  var out=document.getElementById('out');
+  if(!show['2140'] && !show['2153'] && !show['t1'] && !show['t2']){
+    out.innerHTML='<div class="empty">四個分類都沒勾選 — 請至少勾一個。</div>';
+    document.getElementById('pending').innerHTML=''; return;
+  }
+  if(!rows.length){
+    out.innerHTML='<div class="empty">這個區間沒有符合的班機。</div>';
+  } else {
+    var head='<div class="r head"><div>抵達時間</div><div>出發地</div><div>航班</div><div>登機門</div><div>分類</div><div>狀態</div></div>';
+    var body=rows.map(function(x){
+      var f=x.f, st=statusOf(f);
+      var sch=hhmm(f.OTime), act=hhmm(f.RTime);
+      var big, tcls, sub;
+      if(act){
+        var d=mins(f.RTime)-mins(f.OTime);
+        big=act;
+        tcls = d>0?'t-late' : (d<0?'t-early':'t-same');
+        sub='<span class="tfull">表定 '+sch+(d>0?' · 晚'+d+'分':(d<0?' · 早'+(-d)+'分':''))+'</span>'
+           +'<span class="tshort">表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'')+'</span>';
+      } else {
+        big=sch; tcls='t-plan'; sub='表定';
+      }
+      var eta=mins(big)-nowM;
+      var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
+      var tg=TAG[x.shop];
+      var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
+      var main=f.flightCode||((f.ACode||'')+(f.FlightNo||''));
+      var tm='';
+      return '<div class="r '+cls+'">'
+        + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
+        + '<div class="c-city">'+esc(f.CityName)+'</div>'
+        + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
+        + '<div class="c-gate">'+esc(f.Gate)+tm+'</div>'
+        + '<div class="c-shop">'+tags+'</div>'
+        + '<div class="c-st"><span class="badge '+st.cls+'">'
+          + '<span class="full">'+esc(st.text)+'</span>'
+          + '<span class="short">'+esc(st.short)+'</span></span></div>'
+        + '</div>';
+    }).join('');
+    out.innerHTML='<div class="list">'+head+body+'</div>';
+  }
+
+  document.getElementById('pending').innerHTML = lastPending.length
+    ? '<div class="pend"><b>尚未公布登機門：'+lastPending.length+' 班</b> — '
+      + lastPending.map(function(f){
+          return hhmm(f.OTime)+' '+esc(f.flightCode||'')+'（'+esc(f.CityName)+'）';
+        }).join('、') + '</div>'
+    : '';
+}
+
+function run(){
+  var date=document.getElementById('date').value;
+  var t1=document.getElementById('t1').value||'00:00';
+  var t2=document.getElementById('t2').value||'23:59';
+  var st=document.getElementById('status');
+  if(!date){ st.textContent='請先選擇日期。'; return; }
+
+  setDot('busy','更新中…');
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'})})
+  .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+  .then(function(all){
+    var want=date.replace(/-/g,'/');
+    var sel=(all&&all.length?all:[]).filter(function(f){
+      if(f.ODate!==want && f.RDate!==want) return false;
+      var t=hhmm(f.RTime)||hhmm(f.OTime);
+      if(t<t1||t>t2) return false;
+      return true;
+    });
+    sel.sort(function(a,b){
+      return hhmm(a.OTime).localeCompare(hhmm(b.OTime))
+          || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
+    });
+    lastRows=sel.filter(function(f){ return (f.Gate||'').trim(); });
+    lastPending=sel.filter(function(f){ return !(f.Gate||'').trim() && !/取消/.test(f.Memo||''); });
+    document.getElementById('errslot').innerHTML='';
+    render();
+    var n=new Date();
+    setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
+    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班';
+  })
+  .catch(function(e){
+    setDot('err','失敗');
+    document.getElementById('errslot').innerHTML=
+      '<div class="errbox"><b>抓不到資料（'+esc(e.message)+'）</b><br>'
+      +'這頁需要對外網路才能讀桃機即時航班。若是在聊天視窗的預覽框開啟，預覽框會擋掉外部連線 — '
+      +'請用瀏覽器直接開啟這個網址／檔案。</div>';
+  });
+}
+
+document.getElementById('go').addEventListener('click',run);
+document.getElementById('date').addEventListener('change',run);
+['cfg2140','cfg2153'].forEach(function(id){
+  document.getElementById(id).addEventListener('change',render);
+});
+
+[].forEach.call(document.querySelectorAll('.chip[data-t]'),function(c){
+  c.addEventListener('click',function(){
+    document.getElementById('t1').value=c.getAttribute('data-t');
+    document.getElementById('t2').value=c.getAttribute('data-e');
+    run();
+  });
+});
+
+
+[['s2140','2140','2140'],['s2153','2153','2153'],
+ ['st1','t1','其他 一航'],['st2','t2','其他 二航']].forEach(function(p){
+  document.getElementById(p[0]).addEventListener('click',function(){
+    show[p[1]]=!show[p[1]];
+    this.textContent=(show[p[1]]?'✓ ':'　')+p[2];
+    this.className=show[p[1]]?'chip shop act':'chip shop';
+    render();
+  });
+});
+
+document.getElementById('hide').addEventListener('click',function(){
+  hideDone=!hideDone;
+  this.textContent='隱藏已抵達：'+(hideDone?'是':'否');
+  this.className=hideDone?'chip act':'chip';
+  render();
+});
+
+(function(){
+  var n=new Date();
+  document.getElementById('date').value=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
+  var blk=Math.floor(n.getHours()/6)*6;
+  document.getElementById('t1').value=pad(blk)+':00';
+  document.getElementById('t2').value=pad(blk+5)+':59';
+  run();
+})();
+</script>
+</body>
+</html>
