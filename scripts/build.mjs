@@ -12,7 +12,11 @@
 import { mkdir, writeFile, copyFile, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-const API = 'https://www.taoyuan-airport.com/api/api/flight/a_flight';
+/* 資料來源：TDX 交通部運輸資料流通服務（政府官方開放資料）
+   原本是直接打桃機官網的 API，但桃機掛在 Cloudflare 後面、會擋機房 IP，
+   GitHub Actions 一律收到 403。TDX 是給程式介接用的官方平台，不擋。 */
+const API_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON';
+const API_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
 const OUT = 'dist';
 
 /* ★ 要改分點別登機門，只改這兩行 ★
@@ -61,8 +65,32 @@ const nowTPE = new Date(Date.now() + 8 * 3600 * 1000);
 const H = nowTPE.getUTCHours(), M = nowTPE.getUTCMinutes();
 const nowMin = H * 60 + M;
 const stamp  = pad(H) + ':' + pad(M);
-const today  = nowTPE.getUTCFullYear() + '/' + pad(nowTPE.getUTCMonth() + 1) + '/' + pad(nowTPE.getUTCDate());
+const todayISO = nowTPE.getUTCFullYear() + '-' + pad(nowTPE.getUTCMonth() + 1) + '-' + pad(nowTPE.getUTCDate());
+const today  = todayISO.replace(/-/g, '/');
 const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
+
+/* 把 TDX 的欄位轉成本程式內部用的格式 */
+function fromTDX(f, nameOf) {
+  const hm   = s => String(s || '').split('T')[1]?.slice(0, 5) || '';
+  const dt   = s => String(s || '').split('T')[0].replace(/-/g, '/');
+  const sch  = f.ScheduleArrivalTime || '';
+  const act  = f.ActualArrivalTime || f.EstimatedArrivalTime || '';
+  const rm   = f.ArrivalRemark || '';
+  let memo = '';
+  if (/取消|CANCEL/i.test(rm))                    memo = '取消';
+  else if (/已到|ARRIVED|LANDED/i.test(rm))       memo = '已到';
+  else if (/延誤|延遲|DELAY/i.test(rm))           memo = '延遲';
+  else if (/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo = '時間變更';
+  return {
+    BNO: String(f.Terminal || ''),
+    Gate: String(f.Gate || '').trim(),
+    ODate: dt(sch), OTime: hm(sch) ? hm(sch) + ':00' : '',
+    RDate: dt(act), RTime: hm(act) ? hm(act) + ':00' : '',
+    CityName: nameOf(f.DepartureAirportID),
+    flightCode: String(f.AirlineID || '') + String(f.FlightNumber || ''),
+    Memo: memo, CurrentStatus: '',
+  };
+}
 
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
@@ -245,34 +273,31 @@ ${body}
 async function main() {
   let flights = [], err = '';
 
-  /* 桃機掛在 Cloudflare 後面，對「看起來不像瀏覽器」的請求會回 403。
-     所以要帶齊瀏覽器標頭，並且失敗時退避重試幾次。 */
-  const HEADERS = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
-                + '(KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-    'Origin': 'https://www.taoyuan-airport.com',
-    'Referer': 'https://www.taoyuan-airport.com/flight_arrival',
-    'Sec-Fetch-Site': 'same-origin',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Dest': 'empty',
-  };
+  /* 機場中文名對照（TDX 只給 IATA 代碼）。抓不到就退回用代碼顯示，不影響主要功能。 */
+  let NAMES = {};
+  try {
+    const r = await fetch(API_AIRPORT, { headers: { 'Accept': 'application/json' } });
+    if (r.ok) {
+      for (const a of await r.json()) {
+        const n = a.AirportName && a.AirportName.Zh_tw;
+        if (a.AirportID && n) NAMES[a.AirportID] = n.replace(/國際機場$|機場$/, '') || n;
+      }
+      console.log(`機場名稱對照表 ${Object.keys(NAMES).length} 筆`);
+    }
+  } catch (e) { console.warn('機場名稱抓取失敗，改用 IATA 代碼：', e.message); }
+  const nameOf = id => NAMES[id] || id || '';
 
   const TRIES = 4;
   for (let i = 1; i <= TRIES; i++) {
     try {
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: HEADERS,
-        body: JSON.stringify({ AState: 'A', ODate: today, language: 'ch' })
-      });
-      if (!res.ok) throw new Error('桃機 API 回應 ' + res.status);
+      const res = await fetch(API_FLIGHT, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('TDX API 回應 ' + res.status);
       const all = await res.json();
       flights = (Array.isArray(all) ? all : [])
-        .filter(f => f.ODate === today || f.RDate === today);
-      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆（${today}）`);
+        .filter(f => !f.IsCargo && f.FlightDate === todayISO)
+        .map(f => fromTDX(f, nameOf))
+        .filter(f => f.OTime);
+      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆客機到站（${todayISO}）`);
       err = '';
       break;
     } catch (e) {
