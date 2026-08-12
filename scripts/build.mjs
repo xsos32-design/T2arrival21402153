@@ -12,36 +12,11 @@
 import { mkdir, writeFile, copyFile, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-/* 資料來源：TDX 交通部運輸資料流通服務（政府官方開放資料）
-   原本是直接打桃機官網的 API，但桃機掛在 Cloudflare 後面、會擋機房 IP，
-   GitHub Actions 一律收到 403。TDX 是給程式介接用的官方平台，不擋。 */
-const API_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON';
-const API_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
+/* 資料來源：桃園國際機場「開放資料平台」即時航班資料集（服務代碼 114002）
+   政府資料開放平臺登錄的官方來源，跟桃機官網看板同一份資料、每 5 分鐘更新。
+   關鍵是它在 odp 這台獨立主機，不像 www 那台會擋機房 IP。 */
+const API_FLIGHT = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
 const OUT = 'dist';
-
-/* TDX 需要免費金鑰才能給伺服器程式使用（匿名只開放給瀏覽器，機房 IP 會被擋成 401）。
-   金鑰放在 GitHub 的 Settings → Secrets，程式從環境變數讀，不會出現在原始碼裡。 */
-const TDX_ID     = process.env.TDX_ID || '';
-const TDX_SECRET = process.env.TDX_SECRET || '';
-const TOKEN_URL  = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
-
-async function tdxHeaders() {
-  const h = { 'Accept': 'application/json' };
-  if (!TDX_ID || !TDX_SECRET) {
-    console.warn('沒有設定 TDX_ID / TDX_SECRET，改用匿名存取（在 GitHub 上通常會被擋）');
-    return h;
-  }
-  const r = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials', client_id: TDX_ID, client_secret: TDX_SECRET })
-  });
-  if (!r.ok) throw new Error('TDX 認證失敗（' + r.status + '）— 請檢查 TDX_ID / TDX_SECRET 是否正確');
-  const j = await r.json();
-  console.log('TDX 認證成功');
-  return { ...h, Authorization: 'Bearer ' + j.access_token };
-}
 
 /* ★ 要改分點別登機門，只改這兩行 ★
    注意：C5-C10 這種範圍會把 C5R 一起包進去，所以 2153 要寫成 'C5, C6-C10' */
@@ -93,26 +68,25 @@ const todayISO = nowTPE.getUTCFullYear() + '-' + pad(nowTPE.getUTCMonth() + 1) +
 const today  = todayISO.replace(/-/g, '/');
 const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
 
-/* 把 TDX 的欄位轉成本程式內部用的格式 */
-function fromTDX(f, nameOf) {
-  const hm   = s => String(s || '').split('T')[1]?.slice(0, 5) || '';
-  const dt   = s => String(s || '').split('T')[0].replace(/-/g, '/');
-  const sch  = f.ScheduleArrivalTime || '';
-  const act  = f.ActualArrivalTime || f.EstimatedArrivalTime || '';
-  const rm   = f.ArrivalRemark || '';
-  let memo = '';
-  if (/取消|CANCEL/i.test(rm))                    memo = '取消';
-  else if (/已到|ARRIVED|LANDED/i.test(rm))       memo = '已到';
-  else if (/延誤|延遲|DELAY/i.test(rm))           memo = '延遲';
-  else if (/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo = '時間變更';
+/* 把開放資料平台的中文欄位轉成本程式內部用的格式 */
+function fromODP(f) {
+  const day  = s => String(s || '').slice(0, 10).replace(/-/g, '/');
+  const hm   = s => String(s || '').slice(0, 5);
+  const sch  = hm(f['表訂時間']);
+  const est  = hm(f['預計時間']);
+  const memo = String(f['備註'] || '').trim();
+  const cur  = String(f['航班動態中文'] || '').trim();
+  /* 沒有任何異動時，預計時間會等於表訂時間 —— 視為「尚無實際時間」，
+     維持原本的白字「表定」顯示，才不會整排都變綠色 */
+  const hasReal = est && (est !== sch || memo || cur);
   return {
-    BNO: String(f.Terminal || ''),
-    Gate: String(f.Gate || '').trim(),
-    ODate: dt(sch), OTime: hm(sch) ? hm(sch) + ':00' : '',
-    RDate: dt(act), RTime: hm(act) ? hm(act) + ':00' : '',
-    CityName: nameOf(f.DepartureAirportID),
-    flightCode: String(f.AirlineID || '') + String(f.FlightNumber || ''),
-    Memo: memo, CurrentStatus: '',
+    BNO: String(f['航廈'] || '').replace('T', ''),
+    Gate: String(f['機門'] || '').trim(),
+    ODate: day(f['表訂日期']), OTime: sch ? sch + ':00' : '',
+    RDate: day(f['預計日期']), RTime: hasReal ? est + ':00' : '',
+    CityName: String(f['往來地點中文'] || f['往來地點'] || '').trim(),
+    flightCode: String(f['航空公司代碼'] || '').trim() + String(f['班次'] || '').trim(),
+    Memo: memo, CurrentStatus: cur,
   };
 }
 
@@ -297,37 +271,17 @@ ${body}
 async function main() {
   let flights = [], err = '';
 
-  /* 機場中文名對照（TDX 只給 IATA 代碼）。抓不到就退回用代碼顯示，不影響主要功能。 */
-  let AUTH = { 'Accept': 'application/json' };
-  try { AUTH = await tdxHeaders(); }
-  catch (e) { err = e.message; console.error(err); }
-
-  let NAMES = {};
-  try {
-    const r = await fetch(API_AIRPORT, { headers: AUTH });
-    if (r.ok) {
-      for (const a of await r.json()) {
-        const n = a.AirportName && a.AirportName.Zh_tw;
-        if (a.AirportID && n) NAMES[a.AirportID] = n.replace(/國際機場$|機場$/, '') || n;
-      }
-      console.log(`機場名稱對照表 ${Object.keys(NAMES).length} 筆`);
-    }
-  } catch (e) { console.warn('機場名稱抓取失敗，改用 IATA 代碼：', e.message); }
-  const nameOf = id => NAMES[id] || id || '';
-
   const TRIES = 4;
   for (let i = 1; i <= TRIES; i++) {
     try {
-      const res = await fetch(API_FLIGHT, { headers: AUTH });
-      if (res.status === 401 || res.status === 403)
-        throw new Error('TDX 拒絕存取（' + res.status + '）— 需要在 GitHub Secrets 設定 TDX_ID / TDX_SECRET');
-      if (!res.ok) throw new Error('TDX API 回應 ' + res.status);
+      const res = await fetch(API_FLIGHT, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('開放資料平台回應 ' + res.status);
       const all = await res.json();
       flights = (Array.isArray(all) ? all : [])
-        .filter(f => !f.IsCargo && f.FlightDate === todayISO)
-        .map(f => fromTDX(f, nameOf))
-        .filter(f => f.OTime);
-      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆客機到站（${todayISO}）`);
+        .filter(f => f['方向'] === 'A')
+        .map(fromODP)
+        .filter(f => f.OTime && f.ODate === today);
+      console.log(`第 ${i} 次嘗試成功，抓到 ${flights.length} 筆到站（${today}）`);
       err = '';
       break;
     } catch (e) {
