@@ -74,6 +74,20 @@ const todayISO = nowTPE.getUTCFullYear() + '-' + pad(nowTPE.getUTCMonth() + 1) +
 const today  = todayISO.replace(/-/g, '/');
 const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
 
+/* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆。
+   對現場作業來說那是同一班，所以依「時間＋登機門＋航廈＋出發地」合併成一列。 */
+function mergeCodeshare(list) {
+  const map = new Map();
+  for (const f of list) {
+    const key = f.ODate + '|' + f.OTime + '|' + f.Gate + '|' + f.BNO + '|' + f.CityName;
+    if (!map.has(key)) { map.set(key, f); continue; }
+    const m = map.get(key);
+    if (!m.RTime && f.RTime) { m.RTime = f.RTime; m.RDate = f.RDate; }
+    if (!m.Memo && f.Memo) m.Memo = f.Memo;
+  }
+  return [...map.values()];
+}
+
 /* ---------- TDX（主要來源，用你設定的免費金鑰）---------- */
 async function tdxAuth() {
   if (!TDX_ID || !TDX_SECRET) throw new Error('沒有設定 TDX_ID / TDX_SECRET');
@@ -341,7 +355,8 @@ async function main() {
       .map(f => fromTDX(f, nameOf))
       .filter(f => f.OTime && f.ODate === today);
     if (!list.length) throw new Error('TDX 回傳 0 筆今日到站');
-    flights = list;
+    flights = mergeCodeshare(list);
+    console.log(`共掛合併：${list.length} 筆 → ${flights.length} 班`);
     console.log(`✅ TDX 成功，抓到 ${flights.length} 筆到站（${today}）`);
   } catch (e) {
     tried.push('TDX=' + why(e));
