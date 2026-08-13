@@ -16,14 +16,12 @@ import { dirname, join } from 'node:path';
    政府資料開放平臺登錄的官方來源，跟桃機官網看板同一份資料、每 5 分鐘更新。
    關鍵是它在 odp 這台獨立主機，不像 www 那台會擋機房 IP。 */
 const ODP = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
-/* GitHub 的機房 IP 連不到台灣這幾台主機（403 / 連線逾時），
-   所以依序試「直連」與幾個公開中繼站，哪個通就用哪個。 */
-const SOURCES = [
-  { name: '直連 odp', url: ODP },
-  { name: 'allorigins', url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ODP) },
-  { name: 'corsproxy', url: 'https://corsproxy.io/?url=' + encodeURIComponent(ODP) },
-  { name: 'codetabs',  url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(ODP) },
-];
+const TDX_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON';
+const TDX_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
+const TOKEN_URL   = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
+const TDX_ID      = process.env.TDX_ID || '';
+const TDX_SECRET  = process.env.TDX_SECRET || '';
+
 const OUT = 'dist';
 
 /* ★ 要改分點別登機門，只改這兩行 ★
@@ -75,6 +73,56 @@ const stamp  = pad(H) + ':' + pad(M);
 const todayISO = nowTPE.getUTCFullYear() + '-' + pad(nowTPE.getUTCMonth() + 1) + '-' + pad(nowTPE.getUTCDate());
 const today  = todayISO.replace(/-/g, '/');
 const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
+
+/* ---------- TDX（主要來源，用你設定的免費金鑰）---------- */
+async function tdxAuth() {
+  if (!TDX_ID || !TDX_SECRET) throw new Error('沒有設定 TDX_ID / TDX_SECRET');
+  const r = await fetch(TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials', client_id: TDX_ID, client_secret: TDX_SECRET })
+  });
+  if (!r.ok) throw new Error('TDX 認證失敗 ' + r.status + '（金鑰可能填錯）');
+  return 'Bearer ' + (await r.json()).access_token;
+}
+
+async function tdxNames(auth) {
+  try {
+    const r = await fetch(TDX_AIRPORT, { headers: { Accept: 'application/json', Authorization: auth } });
+    if (!r.ok) return {};
+    const m = {};
+    for (const a of await r.json()) {
+      const n = a.AirportName && a.AirportName.Zh_tw;
+      if (a.AirportID && n) m[a.AirportID] = n.replace(/國際機場$|機場$/, '') || n;
+    }
+    return m;
+  } catch { return {}; }
+}
+
+function fromTDX(f, nameOf) {
+  const hm = s => (String(s || '').split('T')[1] || '').slice(0, 5);
+  const dt = s => String(s || '').split('T')[0].replace(/-/g, '/');
+  const sch = f.ScheduleArrivalTime || '';
+  const act = f.ActualArrivalTime || f.EstimatedArrivalTime || '';
+  const rm  = f.ArrivalRemark || '';
+  let memo = '';
+  if (/取消|CANCEL/i.test(rm))                        memo = '取消';
+  else if (/已到|ARRIVED|LANDED/i.test(rm))           memo = '已到';
+  else if (/延誤|延遲|DELAY/i.test(rm))               memo = '延遲';
+  else if (/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo = '時間變更';
+  const schHM = hm(sch), actHM = hm(act);
+  return {
+    BNO: String(f.Terminal || ''),
+    Gate: String(f.Gate || '').trim(),
+    ODate: dt(sch), OTime: schHM ? schHM + ':00' : '',
+    RDate: dt(act),
+    RTime: (actHM && (actHM !== schHM || memo)) ? actHM + ':00' : '',
+    CityName: nameOf(f.DepartureAirportID),
+    flightCode: String(f.AirlineID || '') + String(f.FlightNumber || ''),
+    Memo: memo, CurrentStatus: '',
+  };
+}
 
 /* 把開放資料平台的中文欄位轉成本程式內部用的格式 */
 function fromODP(f) {
@@ -278,36 +326,46 @@ ${body}
 /* ---------- 主程式 ---------- */
 async function main() {
   let flights = [], err = '';
-
-  const why = e => {
-    const c = e && e.cause;
-    return e.message + (c ? ' ｜ ' + (c.code || '') + ' ' + (c.message || '') : '');
-  };
-
   const tried = [];
-  for (const src of SOURCES) {
+  const why = e => { const c = e && e.cause; return e.message + (c ? '｜' + (c.code || c.message || '') : ''); };
+
+  /* ── 主要來源：TDX（政府官方，用金鑰，國外機房連得到）── */
+  try {
+    const auth = await tdxAuth();
+    const names = await tdxNames(auth);
+    const nameOf = id => names[id] || id || '';
+    const res = await fetch(TDX_FLIGHT, { headers: { Accept: 'application/json', Authorization: auth } });
+    if (!res.ok) throw new Error('TDX 回應 ' + res.status);
+    const list = (await res.json())
+      .filter(f => !f.IsCargo)
+      .map(f => fromTDX(f, nameOf))
+      .filter(f => f.OTime && f.ODate === today);
+    if (!list.length) throw new Error('TDX 回傳 0 筆今日到站');
+    flights = list;
+    console.log(`✅ TDX 成功，抓到 ${flights.length} 筆到站（${today}）`);
+  } catch (e) {
+    tried.push('TDX=' + why(e));
+    console.error('❌ TDX 失敗：' + why(e));
+  }
+
+  /* ── 備援：桃機開放資料平台（鎖台灣 IP，國外通常連不到）── */
+  if (!flights.length) {
     try {
       const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), 25000);
-      const res = await fetch(src.url, { headers: { 'Accept': 'application/json' }, signal: ac.signal });
+      const timer = setTimeout(() => ac.abort(), 20000);
+      const res = await fetch(ODP, { headers: { Accept: 'application/json' }, signal: ac.signal });
       clearTimeout(timer);
       if (!res.ok) throw new Error('回應 ' + res.status);
-      const all = JSON.parse(await res.text());
-      const list = (Array.isArray(all) ? all : [])
-        .filter(f => f['方向'] === 'A')
-        .map(fromODP)
+      const list = JSON.parse(await res.text())
+        .filter(f => f['方向'] === 'A').map(fromODP)
         .filter(f => f.OTime && f.ODate === today);
-      if (!list.length) throw new Error('回傳 0 筆今日到站');
+      if (!list.length) throw new Error('0 筆');
       flights = list;
-      err = '';
-      console.log(`✅ 來源「${src.name}」成功，抓到 ${flights.length} 筆到站（${today}）`);
-      break;
-    } catch (e) {
-      tried.push(src.name + '=' + why(e));
-      console.error(`❌ 來源「${src.name}」失敗：${why(e)}`);
-    }
+      console.log('✅ 備援 odp 成功');
+    } catch (e) { tried.push('odp=' + why(e)); }
   }
-  if (!flights.length) err = '所有來源都失敗 ｜ ' + tried.join(' ；ㄍ ');
+
+  if (!flights.length) err = '所有來源都失敗｜' + tried.join('；');
 
   await mkdir(OUT, { recursive: true });
 
