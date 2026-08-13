@@ -290,10 +290,16 @@ function statusOf(f){
   else if(/延遲|變更/.test(memo)) cls='b-warn';
   else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; }
   if(!text) text='預計';
-  var short = /取消/.test(memo) ? '取消'
-            : /延遲/.test(memo) ? '延遲'
-            : /變更/.test(memo) ? '改點'
-            : done ? '已到' : '預計';
+  /* 極窄螢幕用的縮寫，但仍保留「哪一種狀態」的區別 */
+  var short = /取消/.test(memo)     ? '取消'
+            : /抵達機坪/.test(cur)  ? '抵達'
+            : /滑行/.test(cur)      ? '滑行'
+            : /降落/.test(cur)      ? '降落'
+            : /已到/.test(memo)     ? '已到'
+            : /延遲|延誤/.test(memo)? '延誤'
+            : /變更|更改/.test(memo)? '改點'
+            : /準時/.test(memo)     ? '準時'
+            : '預計';
   return {text:text, short:short, cls:cls, done:done};
 }
 
