@@ -124,7 +124,8 @@ function fromTDX(f, nameOf) {
   if (/取消|CANCEL/i.test(rm))                        memo = '取消';
   else if (/已到|ARRIVED|LANDED/i.test(rm))           memo = '已到';
   else if (/延誤|延遲|DELAY/i.test(rm))               memo = '延遲';
-  else if (/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo = '時間變更';
+  else if (/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo = '時間更改';
+  else if (/準時|ON TIME/i.test(rm))                  memo = '準時';
   const schHM = hm(sch), actHM = hm(act);
   return {
     BNO: String(f.Terminal || ''),
@@ -163,10 +164,16 @@ function fromODP(f) {
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
-  if (/取消/.test(memo))        return { txt: '取消', cls: 'bad',  done: false };
-  if (/已到/.test(memo) || cur) return { txt: '已到', cls: 'ok',   done: true  };
-  if (/延遲/.test(memo))        return { txt: '延遲', cls: 'warn', done: false };
-  if (/變更/.test(memo))        return { txt: '改點', cls: 'warn', done: false };
+  /* cur 是桃機原始資料才有的即時動態（地面滑行／抵達機坪）；TDX 沒有這一欄，
+     所以手錶版通常只會落在 memo 那幾種。 */
+  if (/取消/.test(memo))            return { txt: '取消',     cls: 'bad',  done: false };
+  if (/抵達機坪/.test(cur))         return { txt: '抵達機坪', cls: 'ok',   done: true  };
+  if (/滑行/.test(cur))             return { txt: '滑行中',   cls: 'ok',   done: true  };
+  if (/降落/.test(cur))             return { txt: '降落',     cls: 'ok',   done: true  };
+  if (/已到/.test(memo) || cur)     return { txt: '已抵達',   cls: 'ok',   done: true  };
+  if (/延遲|延誤/.test(memo))       return { txt: '延誤',     cls: 'warn', done: false };
+  if (/變更|更改/.test(memo))       return { txt: '時間更改', cls: 'warn', done: false };
+  if (/準時/.test(memo))            return { txt: '準時',     cls: 'info', done: false };
   return { txt: '預計', cls: 'none', done: false };
 }
 
@@ -254,9 +261,10 @@ b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
 .f{font-size:13px;font-weight:700;color:#e5e9ef;white-space:nowrap}
 .c{font-size:11.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.st{font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;text-align:center;white-space:nowrap;align-self:center}
+.st{font-size:10px;font-weight:700;padding:1px 4px;border-radius:5px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
+.b-info{background:#0b2b3c;color:#7dd3fc}
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
@@ -338,6 +346,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
   const presetBtns = PRESETS
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset)).join('\n');
   const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '隱藏已抵達：' + (hide ? '是' : '否'), hide);
+  /* 跟其他按鈕同尺寸的更新鍵（連回自己＝重新載入最新一份） */
+  const reloadBtn = btn(fileFor(preset, idOf(cur), hide), '↻ 立即更新　' + stamp, false);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -356,6 +366,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="grp">${catBtns}</div>
 <div class="grp">${presetBtns}</div>
 <div class="grp">${hideBtn}</div>
+<div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b></div>
