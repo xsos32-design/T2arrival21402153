@@ -201,17 +201,27 @@ const PRESETS = [
 /* 現在落在哪一個六小時區間 —— 給 watch.html 當預設入口 */
 const CURRENT_PRESET = ['h00', 'h06', 'h12', 'h18'][Math.floor(H / 6)];
 
-/* 分類按鈕（用陣列保住順序） */
-const SHOPSETS = [
-  { id: 'all', label: '全部',      codes: ['40','53','t1','t2'] },
-  { id: '40',  label: '2140',      codes: ['40'] },
-  { id: '53',  label: '2153',      codes: ['53'] },
-  { id: 't1',  label: '其他 一航', codes: ['t1'] },
-  { id: 't2',  label: '其他 二航', codes: ['t2'] },
+/* 分類：四種，可任意複選。每個組合都會產生一個獨立的靜態檔。 */
+const CATS = [
+  { id: '40', label: '2140' },
+  { id: '53', label: '2153' },
+  { id: 't1', label: '一航' },
+  { id: 't2', label: '二航' },
 ];
+/* 組合代號：固定順序、每個代號剛好兩個字，串起來不會有歧義（例：4053、40t1t2） */
+const comboId = ids => CATS.filter(c => ids.includes(c.id)).map(c => c.id).join('');
+const ALL_ID  = comboId(CATS.map(c => c.id));
+const MINE_ID = comboId(['40', '53']);
+
+/* 15 種非空組合 */
+const COMBOS = (() => {
+  const out = [];
+  for (let m = 1; m < (1 << CATS.length); m++)
+    out.push(CATS.filter((_, i) => m & (1 << i)).map(c => c.id));
+  return out;
+})();
 
 const presetOf = id => PRESETS.find(p => p.id === id);
-const shopsetOf = id => SHOPSETS.find(s => s.id === id);
 
 /* 檔名規則：w-<時段>-<店別>[-h].html   （-h = 隱藏已抵達） */
 const fileFor = (p, s, hide) => `w-${p}-${s}${hide ? '-h' : ''}.html`;
@@ -268,7 +278,7 @@ b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 
 function renderPage(flights, preset, shopKey, hide, err) {
   const [t1, t2, winLabel] = presetOf(preset).win();
-  const codes = new Set(shopsetOf(shopKey).codes);
+  const codes = new Set(shopKey);
 
   const rows = flights
     .filter(f => {
@@ -308,11 +318,26 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   const btn = (href, label, on) => `<a class="btn${on ? ' on' : ''}" href="${href}">${label}</a>`;
 
-  const shopBtns = SHOPSETS
-    .map(v => btn(fileFor(preset, v.id, hide), v.label, v.id === shopKey)).join('\n');
+  const cur = new Set(shopKey);
+  const idOf = set => comboId(CATS.map(c => c.id).filter(id => set.has(id)));
+
+  /* 捷徑：全部 / 只看我的兩點 */
+  const shortcut =
+      btn(fileFor(preset, ALL_ID,  hide), '全部',      idOf(cur) === ALL_ID)
+    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID);
+
+  /* 複選：點一下加入／移除該分類。只剩一個時不讓取消（連回自己）。 */
+  const catBtns = CATS.map(c => {
+    const on = cur.has(c.id);
+    const next = new Set(cur);
+    if (on) next.delete(c.id); else next.add(c.id);
+    const target = next.size ? idOf(next) : idOf(cur);
+    return btn(fileFor(preset, target, hide), (on ? '✓ ' : '　') + c.label, on);
+  }).join('\n');
+
   const presetBtns = PRESETS
-    .map(p => btn(fileFor(p.id, shopKey, hide), p.label, p.id === preset)).join('\n');
-  const hideBtn = btn(fileFor(preset, shopKey, !hide), '隱藏已抵達：' + (hide ? '是' : '否'), hide);
+    .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset)).join('\n');
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '隱藏已抵達：' + (hide ? '是' : '否'), hide);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -326,8 +351,9 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>桃機到站 ${winLabel}</title>
 <style>${CSS}</style></head><body>
-<a class="hd" href="${fileFor(preset, shopKey, hide)}"><b>桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
-<div class="grp">${shopBtns}</div>
+<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
+<div class="grp">${shortcut}</div>
+<div class="grp">${catBtns}</div>
 <div class="grp">${presetBtns}</div>
 <div class="grp">${hideBtn}</div>
 <div class="sep"></div>
@@ -386,17 +412,17 @@ async function main() {
 
   let n = 0;
   for (const p of PRESETS) {
-    for (const s of SHOPSETS) {
+    for (const ids of COMBOS) {
       for (const hide of [false, true]) {
-        await writeFile(join(OUT, fileFor(p.id, s.id, hide)),
-                        renderPage(flights, p.id, s.id, hide, err), 'utf8');
+        await writeFile(join(OUT, fileFor(p.id, comboId(ids), hide)),
+                        renderPage(flights, p.id, ids, hide, err), 'utf8');
         n++;
       }
     }
   }
   /* 預設入口：自動挑「現在所在的那個六小時區間」＋全部＋不隱藏 */
   await writeFile(join(OUT, 'watch.html'),
-                  renderPage(flights, CURRENT_PRESET, 'all', false, err), 'utf8');
+                  renderPage(flights, CURRENT_PRESET, CATS.map(c => c.id), false, err), 'utf8');
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
