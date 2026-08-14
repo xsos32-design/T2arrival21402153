@@ -170,14 +170,14 @@ function statusOf(f) {
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
   /* cur 是桃機原始資料才有的即時動態（地面滑行／抵達機坪）；TDX 沒有這一欄，
      所以手錶版通常只會落在 memo 那幾種。 */
-  if (/取消/.test(memo))            return { txt: '取消',     cls: 'bad',  done: false };
-  if (/抵達機坪/.test(cur))         return { txt: '抵達機坪', cls: 'ok',   done: true  };
-  if (/滑行/.test(cur))             return { txt: '滑行中',   cls: 'ok',   done: true  };
-  if (/降落/.test(cur))             return { txt: '降落',     cls: 'ok',   done: true  };
-  if (/已到/.test(memo) || cur)     return { txt: '已抵達',   cls: 'ok',   done: true  };
-  if (/延遲|延誤/.test(memo))       return { txt: '延誤',     cls: 'warn', done: false };
-  if (/變更|更改/.test(memo))       return { txt: '時間更改', cls: 'warn', done: false };
-  if (/準時/.test(memo))            return { txt: '準時',     cls: 'info', done: false };
+  if (/取消/.test(memo))            return { txt: '❌ 取消',     cls: 'bad',  done: false };
+  if (/抵達機坪/.test(cur))         return { txt: '🛬 抵達機坪', cls: 'ok',   done: true  };
+  if (/滑行/.test(cur))             return { txt: '🛬 滑行中',   cls: 'ok',   done: true  };
+  if (/降落/.test(cur))             return { txt: '🛬 降落',     cls: 'ok',   done: true  };
+  if (/已到/.test(memo) || cur)     return { txt: '✅ 已抵達',   cls: 'ok',   done: true  };
+  if (/延遲|延誤/.test(memo))       return { txt: '🕐 延誤',     cls: 'warn', done: false };
+  if (/變更|更改/.test(memo))       return { txt: '🔀 時間更改', cls: 'warn', done: false };
+  if (/準時/.test(memo))            return { txt: '🟢 準時',     cls: 'info', done: false };
   return { txt: '預計', cls: 'none', done: false };
 }
 
@@ -241,31 +241,31 @@ const fileFor = (p, s, hide) => `w-${p}-${s}${hide ? '-h' : ''}.html`;
 const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
- font-size:15px;line-height:1.35;padding:5px}
-.hd{display:flex;align-items:center;gap:5px;font-size:10.5px;color:#8b94a1;padding:6px 7px;margin-bottom:6px;
- text-decoration:none;background:#14171c;border:1px solid #262b33;border-radius:9px;min-height:34px;overflow:hidden}
+ font-size:16px;line-height:1.35;padding:6px}
+.hd{display:flex;align-items:center;gap:5px;font-size:12px;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
+ text-decoration:none;background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden}
 .hd>*{white-space:nowrap;flex:0 0 auto}
-.hd b{color:#cbd5e1;font-size:11.5px}
+.hd b{color:#cbd5e1;font-size:13px}
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .old{color:#fbbf24}
-.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 6px;
- background:#14171c;border:1px solid #262b33;border-radius:9px;padding:6px 8px;margin-bottom:5px;overflow:hidden}
+.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 7px;
+ background:#14171c;border:1px solid #262b33;border-radius:11px;padding:8px 9px;margin-bottom:6px;overflow:hidden}
 .r.done{opacity:.38}
 .r.soon{background:#3a2f10;border-color:#a16207}
-b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
- padding:0 5px;border-radius:6px;display:inline-block}
+b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
+ padding:0 6px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
 .t-early{color:#7dd3fc;background:#0b2b3c}
 .t-same{color:#6ee7b7;background:#0d2f1e}
 .t-plan{color:#fff;padding-left:0}
-.g{font-size:21px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
-.tm{font-size:9px;color:#7c8593;vertical-align:super;margin-left:2px}
-.tag{font-size:9.5px;font-weight:800;padding:1px 4px;border-radius:5px;text-align:right;white-space:nowrap;align-self:center}
+.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
+.tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
+.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:right;white-space:nowrap;align-self:center}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{font-size:13px;font-weight:700;color:#e5e9ef;white-space:nowrap}
-.c{font-size:11.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.st{font-size:10px;font-weight:700;padding:1px 4px;border-radius:5px;text-align:center;white-space:nowrap;align-self:center}
+.f{font-size:15px;font-weight:700;color:#e5e9ef;white-space:nowrap}
+.c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
@@ -278,14 +278,14 @@ b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
-.btn{flex:1 1 100%;min-height:46px;display:flex;align-items:center;justify-content:center;
- background:#1c2027;border:2px solid #2e343d;border-radius:11px;color:#9aa3b0;
- font-size:14px;font-weight:600;text-decoration:none;text-align:center;padding:8px 4px}
+.btn{flex:1 1 100%;min-height:50px;display:flex;align-items:center;justify-content:center;
+ background:#1c2027;border:2px solid #2e343d;border-radius:12px;color:#9aa3b0;
+ font-size:16px;font-weight:650;text-decoration:none;text-align:center;padding:9px 4px}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
 .sep{border-top:1px solid #262b33;margin:10px 0}
-.foot{color:#5b636e;font-size:9.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
-.notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:10.5px;
- padding:7px 8px;border-radius:9px;margin:8px 0;line-height:1.55;text-align:center}
+.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
+.notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
+ padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
 .notice b{color:#fde68a}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px}
@@ -355,10 +355,10 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   const presetBtns = PRESETS
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset)).join('\n');
-  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '隱藏已抵達：' + (hide ? '是' : '否'), hide);
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '🙈 隱藏已抵達：' + (hide ? '是' : '否'), hide);
   /* 跟其他按鈕同尺寸的更新鍵（連回自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
-                        '↻ 立即更新　' + stamp + '<i id="age"></i>', false);
+                        '🔄 立即更新　' + stamp + '<i id="age"></i>', false);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -375,7 +375,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta http-equiv="Expires" content="0">
 <title>桃機到站 ${winLabel}</title>
 <style>${CSS}</style></head><body data-b="${buildEpoch}">
-<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
+<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${shortcut}</div>
 <div class="grp">${catBtns}</div>
 <div class="grp">${presetBtns}</div>
