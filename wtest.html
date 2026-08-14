@@ -45,7 +45,7 @@ h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7p
 
 <div class="t" id="t3">
   <div class="n">3. 跨網域讀桃機</div>
-  <div class="d">桃機官方網站。這一項預期會失敗（之前手錶就是卡在這裡）。</div>
+  <div class="d">桃機官方網站。這一項預期會「連不到」（之前手錶就是卡在這裡）。</div>
   <div class="v" id="v3">測試中…</div>
   <div class="e" id="e3"></div>
 </div>
@@ -57,6 +57,9 @@ h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7p
 <script>
 (function(){
   var r = Math.floor(Math.random() * 1e9);
+  var _d = new Date();
+  var _p = function (n) { return (n < 10 ? '0' : '') + n; };
+  var today = _d.getFullYear() + '/' + _p(_d.getMonth() + 1) + '/' + _p(_d.getDate());
   document.getElementById('again').setAttribute('href', 'wtest.html?v=' + r);
   try {
     var m = String(navigator.userAgent || '').match(/Watch|iPhone|Mac|CPU OS [\d_]+/);
@@ -65,7 +68,7 @@ h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7p
 
   function show(i, ok, msg) {
     var v = document.getElementById('v' + i);
-    v.textContent = ok ? '✓ 成功' : '✗ 失敗';
+    v.textContent = ok ? '✓ 連得到' : '✗ 連不到';
     v.className = 'v ' + (ok ? 'ok' : 'no');
     document.getElementById('e' + i).textContent = msg || '';
   }
@@ -81,7 +84,7 @@ h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7p
           if (done) return;
           done = true; clearTimeout(bail);
           return res.text().then(function (txt) {
-            show(i, !!res.ok, 'HTTP ' + res.status + '，收到 ' + txt.length + ' 個字');
+            show(i, true, 'HTTP ' + res.status + '，收到 ' + txt.length + ' 個字');
           });
         })
         .catch(function (err) {
@@ -105,7 +108,7 @@ h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7p
   tryFetch(3, 'https://www.taoyuan-airport.com/api/api/flight/a_flight', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: '{"AState":"A","language":"ch"}'
+    body: JSON.stringify({ AState: 'A', ODate: today, language: 'ch' })
   });
 })();
 </script>
