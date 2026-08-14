@@ -133,6 +133,7 @@ function fromTDX(f, nameOf) {
   const schHM = hm(sch), actHM = hm(act);
   return {
     BNO: String(f.Terminal || ''),
+    Dep: String(f.DepartureAirportID || ''),
     Gate: String(f.Gate || '').trim(),
     ODate: dt(sch), OTime: schHM ? schHM + ':00' : '',
     RDate: dt(act),
