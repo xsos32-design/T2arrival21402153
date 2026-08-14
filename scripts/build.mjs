@@ -108,8 +108,11 @@ async function tdxNames(auth) {
     if (!r.ok) return {};
     const m = {};
     for (const a of await r.json()) {
+      /* 優先用城市名（曼谷），沒有才退回機場名去掉「國際機場」（蘇萬那普） */
+      const c = a.AirportCityName && a.AirportCityName.Zh_tw;
       const n = a.AirportName && a.AirportName.Zh_tw;
-      if (a.AirportID && n) m[a.AirportID] = n.replace(/國際機場$|機場$/, '') || n;
+      const v = c || (n ? (n.replace(/國際機場$|機場$/, '') || n) : '');
+      if (a.AirportID && v) m[a.AirportID] = v;
     }
     return m;
   } catch { return {}; }
