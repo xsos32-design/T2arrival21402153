@@ -269,6 +269,9 @@ b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 #age{font-style:normal;font-weight:700;margin-left:7px;color:#7dd3fc}
 #age.old{color:#fbbf24}
 #age.dead{color:#f87171}
+.tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
+ background:#1c2027;border:1px solid #2e343d;color:#7dd3fc;font-size:11px;
+ font-weight:700;text-decoration:none}
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
@@ -378,7 +381,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="sep"></div>
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b></div>
-<div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br>檔案作者：小韋</div>
+<div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
