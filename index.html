@@ -167,34 +167,34 @@
 
   /* ===== Apple Watch / 極窄螢幕：同一套視覺再縮一號 ===== */
   @media (max-width:340px){
-    header{padding:6px 8px;gap:6px} h1{font-size:12px}
-    .live{font-size:10px}
-    .wrap{padding:5px}
-    .card{padding:8px;margin:0 0 8px;border-radius:9px}
-    label{font-size:12px}
-    input,select{font-size:16px;padding:10px 9px;min-height:44px;border-radius:10px}
-    .chips{gap:6px;margin-top:9px}
-    .chip{flex:1 1 46%;min-height:46px;font-size:14px;border-radius:11px;padding:8px 4px}
-    .chip.shop{font-size:17px;min-height:52px}
-    button{padding:14px;font-size:17px;min-height:54px}
+    header{padding:7px 9px;gap:6px} h1{font-size:14px}
+    .live{font-size:11px}
+    .wrap{padding:6px}
+    .card{padding:9px;margin:0 0 9px;border-radius:10px}
+    label{font-size:13px}
+    input,select{font-size:17px;padding:11px 10px;min-height:48px;border-radius:11px}
+    .chips{gap:7px;margin-top:10px}
+    .chip{flex:1 1 46%;min-height:50px;font-size:16px;border-radius:12px;padding:9px 4px}
+    .chip.shop{font-size:19px;min-height:56px}
+    button{padding:15px;font-size:19px;min-height:58px}
     details.cfg{display:none}
     .full{display:none} .short{display:inline}
-    .r{gap:2px 6px;padding:6px 8px;border-radius:9px;margin-bottom:5px}
-    .c-time b{font-size:20px;padding:0 5px;border-radius:6px}
-    .c-time i{font-size:10px;margin-top:1px}
-    .c-gate{font-size:21px}
-    .tag{font-size:9.5px;padding:1px 4px;border-radius:5px}
-    .c-fno b{font-size:13px}
-    .c-city{font-size:11.5px}
-    .badge{font-size:10px;padding:1px 5px}
-    .empty,.pend,.errbox,.tdxbox,.notice{font-size:10.5px;padding:8px;border-radius:9px}
-    .notice{margin-top:8px;line-height:1.55}
+    .r{gap:3px 7px;padding:8px 9px;border-radius:11px;margin-bottom:6px}
+    .c-time b{font-size:24px;padding:0 6px;border-radius:7px}
+    .c-time i{font-size:11.5px;margin-top:1px}
+    .c-gate{font-size:25px}
+    .tag{font-size:11px;padding:2px 5px;border-radius:6px}
+    .c-fno b{font-size:15px}
+    .c-city{font-size:13.5px}
+    .badge{font-size:11.5px;padding:2px 6px}
+    .empty,.pend,.errbox,.tdxbox,.notice{font-size:11.5px;padding:9px;border-radius:10px}
+    .notice{margin-top:9px;line-height:1.6}
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>桃機到站 2140 / 2153</h1>
+  <h1>✈️ 桃機到站 2140 / 2153</h1>
   <div class="live"><span class="dot" id="dot"></span><span id="live">尚未更新</span></div>
 </header>
 
@@ -206,7 +206,7 @@
       <div class="fld"><label>日期</label><input type="date" id="date"></div>
       <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="06:00">06 時</option><option value="07:00">07 時</option><option value="08:00">08 時</option><option value="09:00">09 時</option><option value="10:00">10 時</option><option value="11:00">11 時</option><option value="12:00">12 時</option><option value="13:00">13 時</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
       <div class="fld"><label>結束</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="06:59">07 時</option><option value="07:59">08 時</option><option value="08:59">09 時</option><option value="09:59">10 時</option><option value="10:59">11 時</option><option value="11:59">12 時</option><option value="12:59">13 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
-      <button id="go">更新班機</button>
+      <button id="go">🔄 更新班機</button>
     </div>
 
     <div class="chips">
@@ -226,7 +226,7 @@
     </div>
 
     <div class="chips">
-      <span class="chip" id="hide">隱藏已抵達：否</span>
+      <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
     </div>
 
     <details class="cfg">
@@ -243,6 +243,7 @@
 
   <div id="out"></div>
   <div id="pending"></div>
+  <div id="srcslot"></div>
 
   <div class="notice">
     ⚠️ 本頁資料擷取自桃園國際機場公開航班資訊，僅供參考。<br>
@@ -303,6 +304,17 @@ function statusOf(f){
             : /變更|更改/.test(memo)? '改點'
             : /準時/.test(memo)     ? '準時'
             : '預計';
+  /* 狀態表情符號：一眼掃過去就知道好壞 */
+  var emo = /取消/.test(memo)      ? '❌'
+          : /抵達機坪/.test(cur)   ? '🛬'
+          : /滑行/.test(cur)       ? '🛬'
+          : /降落/.test(cur)       ? '🛬'
+          : /已到/.test(memo)      ? '✅'
+          : /延遲|延誤/.test(memo) ? '🕐'
+          : /變更|更改/.test(memo) ? '🔀'
+          : /準時/.test(memo)      ? '🟢'
+          : '';
+  if(emo){ text=emo+' '+text; short=emo+short; }
   return {text:text, short:short, cls:cls, done:done};
 }
 
@@ -506,14 +518,15 @@ function run(){
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
     st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
-    document.getElementById('errslot').innerHTML=
+    document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
-        ? '<div class="tdxbox">讀不到桃機，已自動改用 <b>TDX 交通部資料</b>（一樣是當下的即時資料）。'
+        ? '<div class="tdxbox">📡 讀不到桃機，已自動改用 <b>TDX 交通部資料</b>（一樣是當下的即時資料）。'
           +'<br>這個來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示「已抵達」。</div>'
         : '';
   })
   ['catch'](function(e){
     setDot('err','失敗');
+    document.getElementById('srcslot').innerHTML='';
     document.getElementById('errslot').innerHTML=
       '<div class="errbox"><b>兩個資料源都抓不到（'+esc(e.message)+'）</b><br>'
       +'這頁需要對外網路才能讀即時航班。若是在聊天視窗的預覽框開啟，預覽框會擋掉外部連線 — '
@@ -551,7 +564,7 @@ document.getElementById('date').addEventListener('change',run);
 
 document.getElementById('hide').addEventListener('click',function(){
   hideDone=!hideDone;
-  this.textContent='隱藏已抵達：'+(hideDone?'是':'否');
+  this.textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
   this.className=hideDone?'chip act':'chip';
   render();
 });
