@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<!-- 桃機到站 · 手錶 TDX 連線版（即時）　檔案作者：小韋 -->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>桃機到站 · TDX 即時</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+ font-size:16px;line-height:1.35;padding:6px}
+.hd{display:flex;align-items:center;gap:5px;font-size:12px;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
+ background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden;cursor:pointer}
+.hd>*{white-space:nowrap;flex:0 0 auto}
+.hd b{color:#cbd5e1;font-size:13px}
+.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
+.hd .u.busy{color:#fbbf24}
+.hd .u.err{color:#f87171}
+.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 7px;
+ background:#14171c;border:1px solid #262b33;border-radius:11px;padding:8px 9px;margin-bottom:6px;overflow:hidden}
+.r.done{opacity:.38}
+.r.soon{background:#3a2f10;border-color:#a16207}
+b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
+ padding:0 6px;border-radius:7px;display:inline-block}
+.t-late{color:#fcd34d;background:#3f2c08}
+.t-early{color:#7dd3fc;background:#0b2b3c}
+.t-same{color:#6ee7b7;background:#0d2f1e}
+.t-plan{color:#fff;padding-left:0}
+.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
+.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:right;white-space:nowrap;align-self:center}
+.s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
+.st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
+.f{font-size:15px;font-weight:700;color:#e5e9ef;white-space:nowrap}
+.c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
+.b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
+.b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
+.b-info{background:#0b2b3c;color:#7dd3fc}
+.msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
+.msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
+.grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.btn{flex:1 1 100%;min-height:50px;display:flex;align-items:center;justify-content:center;
+ background:#1c2027;border:2px solid #2e343d;border-radius:12px;color:#9aa3b0;
+ font-size:16px;font-weight:650;text-decoration:none;text-align:center;padding:9px 4px;cursor:pointer;user-select:none}
+.btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.sep{border-top:1px solid #262b33;margin:10px 0}
+.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
+.notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
+ padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
+.notice b{color:#fde68a}
+@media(min-width:420px){
+ body{max-width:680px;margin:0 auto;padding:14px}
+ .r{grid-template-columns:auto auto auto auto 1fr auto;align-items:center;gap:4px 12px;padding:8px 12px}
+ .g{min-width:52px} .tag{text-align:center}
+ .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
+}
+</style>
+</head>
+<body>
+
+<div class="hd" id="hd"><b>✈️ 桃機到站</b><span id="hdate">—</span><span>TDX 即時</span><span class="u" id="hstamp">載入中…</span></div>
+
+<div class="grp">
+  <span class="btn" id="ball">全部</span>
+  <span class="btn" id="bmine">2140+2153</span>
+</div>
+<div class="grp">
+  <span class="btn cat" data-c="40">　2140</span>
+  <span class="btn cat" data-c="53">　2153</span>
+  <span class="btn cat" data-c="t1">　一航</span>
+  <span class="btn cat" data-c="t2">　二航</span>
+</div>
+<div class="grp">
+  <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
+  <span class="btn pre" data-t="06:00" data-e="11:59">06–12</span>
+  <span class="btn pre" data-t="12:00" data-e="17:59">12–18</span>
+  <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
+</div>
+<div class="grp"><span class="btn" id="bhide">🙈 隱藏已抵達：否</span></div>
+<div class="grp"><span class="btn" id="breload">🔄 立即更新</span></div>
+
+<div class="sep"></div>
+<div id="list"><div class="msg">載入中…</div></div>
+
+<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。</div>
+<div class="foot">按 🔄 或點最上面那條即可重抓當下資料。<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+
+<script>
+/* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
+var SPEC_2140='C1-C4, C5R, B6-B9';
+var SPEC_2153='C5, C6-C10';
+
+var GATE_ORDER=(function(){
+  var o=[],i;
+  for(i=1;i<=10;i++) o.push('A'+i);
+  ['B1','B1R','B2','B3','B4','B5','B6','B7','B8','B9'].forEach(function(g){o.push(g)});
+  ['C1','C2','C3','C4','C5','C5R','C6','C7','C8','C9','C10'].forEach(function(g){o.push(g)});
+  var d=['D1','D2','D3','D4','D5','D5R'];
+  for(i=6;i<=18;i++) d.push('D'+i);
+  d.forEach(function(g){o.push(g)});
+  return o;
+})();
+function expandSpec(spec){
+  var set={};
+  spec.split(/[,，、]/).forEach(function(p){
+    var part=p.trim().toUpperCase(); if(!part) return;
+    var m=part.match(/^([A-D]\d+R?)\s*[-–—~]\s*([A-D]\d+R?)$/);
+    if(m){
+      var a=GATE_ORDER.indexOf(m[1]), b=GATE_ORDER.indexOf(m[2]);
+      if(a>=0&&b>=0){ var lo=Math.min(a,b), hi=Math.max(a,b);
+        for(var i=lo;i<=hi;i++) set[GATE_ORDER[i]]=1; }
+    } else set[part]=1;
+  });
+  return set;
+}
+var G40=expandSpec(SPEC_2140), G53=expandSpec(SPEC_2153);
+
+/* ── 小工具 ── */
+function hhmm(t){ return (t||'').slice(0,5); }
+function pad(x){ return (x<10?'0':'')+x; }
+function mins(t){ var p=hhmm(t).split(':'); return (+p[0])*60+(+p[1]); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]}); }
+
+/* ── TDX ── */
+var TDX_ARR='https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+  +'?%24select=FlightDate,FlightNumber,AirlineID,DepartureAirportID,ScheduleArrivalTime,'
+  +'EstimatedArrivalTime,ActualArrivalTime,Terminal,Gate,ArrivalRemark&%24format=JSON';
+var TDX_AP='https://tdx.transportdata.tw/api/basic/v2/Air/Airport'
+  +'?%24select=AirportID,AirportName,AirportCityName&%24format=JSON';
+
+var NAMES=null;
+function tdxNames(){
+  if(NAMES) return Promise.resolve(NAMES);
+  return fetch(TDX_AP).then(function(r){ return r.ok?r.json():[]; }).then(function(list){
+    var m={};
+    (list||[]).forEach(function(a){
+      var c=a.AirportCityName&&a.AirportCityName.Zh_tw;
+      var n=a.AirportName&&a.AirportName.Zh_tw;
+      var v=c||(n?n.replace(/國際機場$|機場$/,'')||n:'');
+      if(a.AirportID&&v) m[a.AirportID]=v;
+    });
+    NAMES=m; return m;
+  })['catch'](function(){ return {}; });
+}
+function fromTDX(f,names){
+  var hm=function(s){ return (String(s||'').split('T')[1]||'').slice(0,5); };
+  var dt=function(s){ return String(s||'').split('T')[0].replace(/-/g,'/'); };
+  var sch=f.ScheduleArrivalTime||'', act=f.ActualArrivalTime||f.EstimatedArrivalTime||'';
+  var rm=f.ArrivalRemark||'', memo='';
+  if(/取消|CANCEL/i.test(rm))                        memo='取消';
+  else if(/已到|ARRIVED|LANDED/i.test(rm))           memo='已到';
+  else if(/延誤|延遲|DELAY/i.test(rm))               memo='延遲';
+  else if(/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo='時間更改';
+  else if(/準時|ON TIME/i.test(rm))                  memo='準時';
+  var s=hm(sch), a=hm(act);
+  return {
+    BNO:String(f.Terminal||''), Gate:String(f.Gate||'').trim(),
+    ODate:dt(sch), OTime:s?s+':00':'',
+    RDate:dt(act), RTime:(a&&(a!==s||memo))?a+':00':'',
+    CityName:names[f.DepartureAirportID]||f.DepartureAirportID||'',
+    flightCode:String(f.AirlineID||'')+String(f.FlightNumber||''),
+    Memo:memo
+  };
+}
+function mergeCodeshare(list){
+  var keys=[], map={};
+  list.forEach(function(f){
+    var k=f.ODate+'|'+f.OTime+'|'+f.Gate+'|'+f.BNO+'|'+f.CityName;
+    if(!map.hasOwnProperty(k)){ map[k]=f; keys.push(k); return; }
+    var m=map[k];
+    if(!m.RTime && f.RTime){ m.RTime=f.RTime; m.RDate=f.RDate; }
+    if(!m.Memo && f.Memo) m.Memo=f.Memo;
+  });
+  return keys.map(function(k){ return map[k]; });
+}
+
+/* ── 狀態（含表情符號）── */
+function statusOf(f){
+  var memo=f.Memo||'';
+  if(/取消/.test(memo)) return {txt:'❌ 取消',    cls:'bad', done:false};
+  if(/已到/.test(memo)) return {txt:'✅ 已抵達',  cls:'ok',  done:true };
+  if(/延遲|延誤/.test(memo)) return {txt:'🕐 延誤', cls:'warn',done:false};
+  if(/更改|變更/.test(memo)) return {txt:'🔀 更改', cls:'warn',done:false};
+  if(/準時/.test(memo)) return {txt:'🟢 準時',   cls:'info',done:false};
+  return {txt:'預計', cls:'none', done:false};
+}
+function shopOf(f){
+  var g=(f.Gate||'').trim().toUpperCase();
+  if(String(f.BNO)==='1') return 't1';
+  if(g && G40[g]) return '40';
+  if(g && G53[g]) return '53';
+  return 't2';
+}
+var TAG={'40':{txt:'2140',cls:'s40'},'53':{txt:'2153',cls:'s53'},
+         't1':{txt:'一航',cls:'st1'},'t2':{txt:'二航',cls:'st2'}};
+
+/* ── 畫面狀態 ── */
+var cats={'40':true,'53':true,'t1':true,'t2':true};
+var win=['00:00','23:59'];
+var hideDone=false;
+var DATA=[];
+
+function allOn(){ return cats['40']&&cats['53']&&cats['t1']&&cats['t2']; }
+function mineOn(){ return cats['40']&&cats['53']&&!cats['t1']&&!cats['t2']; }
+
+function paintBtns(){
+  document.getElementById('ball').className='btn'+(allOn()?' on':'');
+  document.getElementById('bmine').className='btn'+(mineOn()?' on':'');
+  [].forEach.call(document.querySelectorAll('.cat'),function(b){
+    var on=cats[b.getAttribute('data-c')];
+    b.className='btn cat'+(on?' on':'');
+    b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
+  });
+  [].forEach.call(document.querySelectorAll('.pre'),function(b){
+    b.className='btn pre'+((b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
+  });
+  document.getElementById('bhide').className='btn'+(hideDone?' on':'');
+  document.getElementById('bhide').textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
+}
+
+function render(){
+  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
+  var rows=DATA.filter(function(f){
+    if(!f.Gate) return false;
+    var t=hhmm(f.RTime)||hhmm(f.OTime);
+    if(t<win[0]||t>win[1]) return false;
+    if(!cats[shopOf(f)]) return false;
+    if(hideDone&&statusOf(f).done) return false;
+    return true;
+  }).sort(function(a,b){
+    var ta=hhmm(a.RTime)||hhmm(a.OTime), tb=hhmm(b.RTime)||hhmm(b.OTime);
+    return ta.localeCompare(tb)||hhmm(a.OTime).localeCompare(hhmm(b.OTime));
+  });
+  var html=rows.map(function(f){
+    var st=statusOf(f);
+    var sch=hhmm(f.OTime), act=hhmm(f.RTime);
+    var big,tc,sub;
+    if(act){
+      var d=mins(f.RTime)-mins(f.OTime);
+      big=act; tc=d>0?'late':(d<0?'early':'same');
+      sub='表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'');
+    } else { big=sch; tc='plan'; sub='表定'; }
+    var eta=mins(big)-nowMin;
+    var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
+    var tg=TAG[shopOf(f)];
+    return '<div class="r '+cls+'">'
+      +'<b class="t t-'+tc+'">'+big+'</b><span class="g">'+esc(f.Gate)+'</span><span class="tag '+tg.cls+'">'+tg.txt+'</span>'
+      +'<span class="f">'+esc(f.flightCode)+'</span><span class="c">'+esc(f.CityName)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+      +'</div>';
+  }).join('');
+  document.getElementById('list').innerHTML =
+    html || '<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+'</div>';
+  paintBtns();
+}
+
+function load(){
+  var el=document.getElementById('hstamp');
+  el.textContent='更新中…'; el.className='u busy';
+  Promise.all([
+    fetch(TDX_ARR+'&nc='+Date.now()).then(function(r){
+      if(!r.ok) throw new Error('TDX '+r.status); return r.json(); }),
+    tdxNames()
+  ]).then(function(res){
+    var n=new Date();
+    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+    DATA=mergeCodeshare((res[0]||[]).map(function(f){ return fromTDX(f,res[1]); }))
+         .filter(function(f){ return f.ODate===today||f.RDate===today; });
+    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+    el.textContent=pad(n.getHours())+':'+pad(n.getMinutes())+' ↻'; el.className='u';
+    render();
+  })['catch'](function(e){
+    el.textContent='失敗 ↻'; el.className='u err';
+    document.getElementById('list').innerHTML=
+      '<div class="msg err">抓不到 TDX 資料（'+esc(e.message)+'）<br>點上面標題或 🔄 再試一次</div>';
+  });
+}
+
+/* ── 事件 ── */
+document.getElementById('hd').addEventListener('click',load);
+document.getElementById('breload').addEventListener('click',load);
+document.getElementById('ball').addEventListener('click',function(){
+  cats={'40':true,'53':true,'t1':true,'t2':true}; render();
+});
+document.getElementById('bmine').addEventListener('click',function(){
+  cats={'40':true,'53':true,'t1':false,'t2':false}; render();
+});
+[].forEach.call(document.querySelectorAll('.cat'),function(b){
+  b.addEventListener('click',function(){
+    var c=b.getAttribute('data-c');
+    var onCount=Object.keys(cats).filter(function(k){return cats[k];}).length;
+    if(cats[c]&&onCount<=1) return;      /* 至少留一類 */
+    cats[c]=!cats[c]; render();
+  });
+});
+[].forEach.call(document.querySelectorAll('.pre'),function(b){
+  b.addEventListener('click',function(){
+    win=[b.getAttribute('data-t'),b.getAttribute('data-e')]; render();
+  });
+});
+document.getElementById('bhide').addEventListener('click',function(){
+  hideDone=!hideDone; render();
+});
+
+/* 開頁：自動落在現在的六小時區間，然後抓資料 */
+(function(){
+  var blk=Math.floor(new Date().getHours()/6)*6;
+  win=[pad(blk)+':00',pad(blk+5)+':59'];
+  load();
+})();
+</script>
+</body>
+</html>
