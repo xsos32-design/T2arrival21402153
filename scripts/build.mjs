@@ -66,6 +66,7 @@ const esc   = s => String(s ?? '').replace(/[&<>"]/g,
   c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
 
 /* 台北時間（Actions runner 跑 UTC，台灣固定 +8，沒有日光節約問題） */
+const buildEpoch = Date.now();          // 產生這份靜態頁的真實時刻（給頁面算「幾分鐘前」用）
 const nowTPE = new Date(Date.now() + 8 * 3600 * 1000);
 const H = nowTPE.getUTCHours(), M = nowTPE.getUTCMinutes();
 const nowMin = H * 60 + M;
@@ -265,6 +266,9 @@ b.t{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
+#age{font-style:normal;font-weight:700;margin-left:7px;color:#7dd3fc}
+#age.old{color:#fbbf24}
+#age.dead{color:#f87171}
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
@@ -347,7 +351,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset)).join('\n');
   const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '隱藏已抵達：' + (hide ? '是' : '否'), hide);
   /* 跟其他按鈕同尺寸的更新鍵（連回自己＝重新載入最新一份） */
-  const reloadBtn = btn(fileFor(preset, idOf(cur), hide), '↻ 立即更新　' + stamp, false);
+  const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
+                        '↻ 立即更新　' + stamp + '<i id="age"></i>', false);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -359,8 +364,11 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <html lang="zh-Hant"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>桃機到站 ${winLabel}</title>
-<style>${CSS}</style></head><body>
+<style>${CSS}</style></head><body data-b="${buildEpoch}">
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${shortcut}</div>
 <div class="grp">${catBtns}</div>
@@ -371,6 +379,31 @@ function renderPage(flights, preset, shopKey, hide, err) {
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b></div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br>檔案作者：小韋</div>
+<script>
+/* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
+   1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
+   2. 算這份資料放了幾分鐘，超過就變色警告                              */
+(function(){
+  try{
+    var now = Date.now();
+    var v = '?v=' + now;
+    var a = document.getElementsByTagName('a');
+    for (var i = 0; i < a.length; i++){
+      var h = a[i].getAttribute('href') || '';
+      if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
+    }
+    var b = +(document.body.getAttribute('data-b') || 0);
+    var el = document.getElementById('age');
+    if (b && el){
+      var m = Math.floor((now - b) / 60000);
+      if (m < 0) m = 0;
+      el.textContent = m < 1 ? '（剛更新）' : '（' + m + ' 分前）';
+      if (m >= 45) el.className = 'dead';
+      else if (m >= 20) el.className = 'old';
+    }
+  }catch(e){}
+})();
+</script>
 </body></html>`;
 }
 
@@ -437,7 +470,7 @@ async function main() {
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html']) {
+  for (const f of ['index.html', 'wtest.html']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
