@@ -475,6 +475,11 @@ async function main() {
                   renderPage(flights, CURRENT_PRESET, CATS.map(c => c.id), false, err), 'utf8');
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
+  /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
+  const snap = flights.filter(f => f.ODate === today || f.RDate === today);
+  await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
+  console.log(`data.json 快照 ${snap.length} 筆`);
+
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
   for (const f of ['index.html', 'wtest.html', 'wtdx.html']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
