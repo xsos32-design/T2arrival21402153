@@ -82,6 +82,8 @@
   .pend b{color:var(--ink)}
   .errbox{background:var(--badbg);border:1px solid #f6c9c9;color:#8a1c1c;border-radius:12px;padding:12px 14px;
     font-size:13px;line-height:1.65;margin-bottom:14px}
+  .tdxbox{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:10px 13px;
+    font-size:12.5px;line-height:1.6;margin-bottom:14px}
   .notice{margin-top:14px;padding:11px 14px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;
     color:#92400e;font-size:12.5px;line-height:1.7;text-align:center}
   .notice b{color:#78350f}
@@ -157,6 +159,7 @@
     .empty,.pend{background:#14171c;border-color:#262b33;color:#8b94a1;font-size:12.5px;padding:11px;border-radius:12px}
     .pend b{color:#e5e9ef}
     .errbox{background:#3b1414;border-color:#7f1d1d;color:#fca5a5;font-size:12.5px;padding:11px;border-radius:12px}
+    .tdxbox{background:#2e2408;border-color:#5c4708;color:#fcd34d;font-size:11.5px;padding:9px;border-radius:11px}
     .notice{background:#2e2408;border-color:#5c4708;color:#fcd34d;font-size:12px;
       padding:10px 11px;border-radius:12px;margin-top:12px;line-height:1.6}
     .notice b{color:#fde68a}
@@ -184,7 +187,7 @@
     .c-fno b{font-size:13px}
     .c-city{font-size:11.5px}
     .badge{font-size:10px;padding:1px 5px}
-    .empty,.pend,.errbox,.notice{font-size:10.5px;padding:8px;border-radius:9px}
+    .empty,.pend,.errbox,.tdxbox,.notice{font-size:10.5px;padding:8px;border-radius:9px}
     .notice{margin-top:8px;line-height:1.55}
   }
 </style>
@@ -396,6 +399,84 @@ function render(){
     : '';
 }
 
+/* ── 備援資料源：TDX（交通部運輸資料流通服務）─────────────────────
+   Apple Watch 的瀏覽器會擋掉桃機那支 API，但 TDX 這支讀得到。
+   所以桃機失敗時自動改用 TDX：時間、登機門、航廈、狀態都有，
+   只有「滑行中／抵達機坪」這種地面即時動態 TDX 沒有提供。        */
+var TDX_ARR='https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+  +'?%24select=FlightDate,FlightNumber,AirlineID,DepartureAirportID,ScheduleArrivalTime,'
+  +'EstimatedArrivalTime,ActualArrivalTime,Terminal,Gate,ArrivalRemark&%24format=JSON';
+var TDX_AP='https://tdx.transportdata.tw/api/basic/v2/Air/Airport'
+  +'?%24select=AirportID,AirportName,AirportCityName&%24format=JSON';
+var srcLabel='';
+
+function tdxNames(){
+  return fetch(TDX_AP).then(function(r){ return r.ok?r.json():[]; }).then(function(list){
+    var m={};
+    (list||[]).forEach(function(a){
+      /* 優先用城市名（曼谷），沒有才退回機場名去掉「國際機場」（蘇萬那普） */
+      var c=a.AirportCityName&&a.AirportCityName.Zh_tw;
+      var n=a.AirportName&&a.AirportName.Zh_tw;
+      var v=c||(n?n.replace(/國際機場$|機場$/,'')||n:'');
+      if(a.AirportID&&v) m[a.AirportID]=v;
+    });
+    return m;
+  })['catch'](function(){ return {}; });
+}
+
+function fromTDX(f,names){
+  var hm=function(s){ return (String(s||'').split('T')[1]||'').slice(0,5); };
+  var dt=function(s){ return String(s||'').split('T')[0].replace(/-/g,'/'); };
+  var sch=f.ScheduleArrivalTime||'', act=f.ActualArrivalTime||f.EstimatedArrivalTime||'';
+  var rm=f.ArrivalRemark||'', memo='';
+  if(/取消|CANCEL/i.test(rm))                        memo='取消';
+  else if(/已到|ARRIVED|LANDED/i.test(rm))           memo='已到';
+  else if(/延誤|延遲|DELAY/i.test(rm))               memo='延遲';
+  else if(/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo='時間更改';
+  else if(/準時|ON TIME/i.test(rm))                  memo='準時';
+  var s=hm(sch), a=hm(act);
+  return {
+    BNO:String(f.Terminal||''), Gate:String(f.Gate||'').trim(),
+    ODate:dt(sch), OTime:s?s+':00':'',
+    RDate:dt(act), RTime:(a&&(a!==s||memo))?a+':00':'',
+    CityName:names[f.DepartureAirportID]||f.DepartureAirportID||'',
+    flightCode:String(f.AirlineID||'')+String(f.FlightNumber||''),
+    Memo:memo, CurrentStatus:''
+  };
+}
+
+/* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆，
+   對現場作業來說是同一班，依「時間＋登機門＋航廈＋出發地」合併成一列 */
+function mergeCodeshare(list){
+  var keys=[], map={};
+  list.forEach(function(f){
+    var k=f.ODate+'|'+f.OTime+'|'+f.Gate+'|'+f.BNO+'|'+f.CityName;
+    if(!map.hasOwnProperty(k)){ map[k]=f; keys.push(k); return; }
+    var m=map[k];
+    if(!m.RTime && f.RTime){ m.RTime=f.RTime; m.RDate=f.RDate; }
+    if(!m.Memo && f.Memo) m.Memo=f.Memo;
+  });
+  return keys.map(function(k){ return map[k]; });
+}
+
+/* 先試桃機（資料最完整），失敗就換 TDX（手錶走這條） */
+function getFlights(date){
+  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'})})
+  .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+  .then(function(all){ srcLabel='桃機'; return all||[]; })
+  ['catch'](function(){
+    return Promise.all([
+      fetch(TDX_ARR).then(function(r){
+        if(!r.ok) throw new Error('TDX '+r.status); return r.json(); }),
+      tdxNames()
+    ]).then(function(res){
+      srcLabel='TDX';
+      return mergeCodeshare((res[0]||[]).map(function(f){ return fromTDX(f,res[1]); }));
+    });
+  });
+}
+
 function run(){
   var date=document.getElementById('date').value;
   var t1=document.getElementById('t1').value||'00:00';
@@ -404,9 +485,7 @@ function run(){
   if(!date){ st.textContent='請先選擇日期。'; return; }
 
   setDot('busy','更新中…');
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'})})
-  .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+  getFlights(date)
   .then(function(all){
     var want=date.replace(/-/g,'/');
     var sel=(all&&all.length?all:[]).filter(function(f){
@@ -425,13 +504,19 @@ function run(){
     render();
     var n=new Date();
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
-    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班';
+    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班'
+                +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
+    document.getElementById('errslot').innerHTML=
+      srcLabel==='TDX'
+        ? '<div class="tdxbox">讀不到桃機，已自動改用 <b>TDX 交通部資料</b>（一樣是當下的即時資料）。'
+          +'<br>這個來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示「已抵達」。</div>'
+        : '';
   })
-  .catch(function(e){
+  ['catch'](function(e){
     setDot('err','失敗');
     document.getElementById('errslot').innerHTML=
-      '<div class="errbox"><b>抓不到資料（'+esc(e.message)+'）</b><br>'
-      +'這頁需要對外網路才能讀桃機即時航班。若是在聊天視窗的預覽框開啟，預覽框會擋掉外部連線 — '
+      '<div class="errbox"><b>兩個資料源都抓不到（'+esc(e.message)+'）</b><br>'
+      +'這頁需要對外網路才能讀即時航班。若是在聊天視窗的預覽框開啟，預覽框會擋掉外部連線 — '
       +'請用瀏覽器直接開啟這個網址／檔案。</div>';
   });
 }
