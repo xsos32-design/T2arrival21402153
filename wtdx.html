@@ -49,6 +49,8 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
  padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
 .notice b{color:#fde68a}
+#fb .fbx{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
+ padding:8px 9px;border-radius:10px;margin-bottom:6px;line-height:1.5;text-align:center}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px}
  .r{grid-template-columns:auto auto auto auto 1fr auto;align-items:center;gap:4px 12px;padding:8px 12px}
@@ -81,6 +83,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 <div class="grp"><span class="btn" id="breload">🔄 立即更新</span></div>
 
 <div class="sep"></div>
+<div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
 <div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。</div>
@@ -273,17 +276,61 @@ function load(){
          .filter(function(f){ return f.ODate===today||f.RDate===today; });
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
     el.textContent=pad(n.getHours())+':'+pad(n.getMinutes())+' ↻'; el.className='u';
+    document.getElementById('fb').innerHTML='';
     render();   /* 班機先上畫面（出發地暫時顯示代碼） */
     tdxNames().then(function(nm){   /* 城市中文名背景補上，抓不到也不影響 */
       if(!nm) return;
       DATA.forEach(function(f){ if(f.Dep&&nm[f.Dep]) f.CityName=nm[f.Dep]; });
       render();
     });
-  })['catch'](function(e){
+  })['catch'](function(e){ fallback(e); });
+}
+
+/* TDX 直連失敗 → 改抓同網域的 GitHub 快照（手錶一定讀得到，只是非即時） */
+function fallback(err){
+  var el=document.getElementById('hstamp');
+  fetch('data.json?nc='+Date.now())
+  .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); })
+  .then(function(j){
+    var n=new Date();
+    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+    DATA=(j.d||[]).filter(function(f){ return f.ODate===today||f.RDate===today; });
+    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+    el.textContent=j.t+' 快照'; el.className='u busy';
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx">📡 即時連線失敗（'+esc(err&&err.message||err)+'）<br>'
+      +'已改用 GitHub 於 <b>'+esc(j.t)+'</b> 抓的快照，非即時。按 🔄 可再試即時連線。</div>';
+    render();
+  })
+  ['catch'](function(e2){
     el.textContent='失敗 ↻'; el.className='u err';
     document.getElementById('list').innerHTML=
-      '<div class="msg err">抓不到 TDX 資料（'+esc(e.message)+'）<br>訊號不穩或 TDX 暫時忙碌，點上面標題或 🔄 再試一次</div>';
+      '<div class="msg err">即時（'+esc(err&&err.message||err)+'）和快照（'+esc(e2&&e2.message||e2)
+      +'）都抓不到<br>正在自我診斷…</div>';
+    diag(function(out){
+      document.getElementById('list').innerHTML=
+        '<div class="msg err">即時連線失敗：'+esc(err&&err.message||err)
+        +'<br><br>診斷結果<br>同網域讀檔：'+esc(out.same)
+        +'<br>TDX 小請求：'+esc(out.tdx)
+        +'<br><br>把上面兩行抄給小韋的助手就能對症下藥。點 🔄 重試</div>';
+    });
   });
+}
+
+/* 兩關都倒才會跑：測「同網域」和「TDX 小請求」各自通不通 */
+function diag(cb){
+  var out={}, c=0;
+  function done(){ if(++c===2) cb(out); }
+  function t(key,url){
+    var f=false;
+    var to=setTimeout(function(){ if(!f){ f=true; out[key]='逾時'; done(); } },8000);
+    try{
+      fetch(url).then(function(r){ if(f)return; f=true; clearTimeout(to); out[key]='通（HTTP '+r.status+'）'; done(); })
+      ['catch'](function(er){ if(f)return; f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); });
+    }catch(er){ if(!f){ f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); } }
+  }
+  t('same','watch.html?nc='+Date.now());
+  t('tdx','https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24top=1&%24format=JSON&nc='+Date.now());
 }
 
 /* ── 事件 ── */
