@@ -135,13 +135,12 @@ var TDX_AP='https://tdx.transportdata.tw/api/basic/v2/Air/Airport'
 var NAMES=null;
 function tdxNames(){
   if(NAMES) return Promise.resolve(NAMES);
-  return fetch(TDX_AP).then(function(r){ return r.ok?r.json():[]; }).then(function(list){
+  /* 城市中文名改從同網域快照撈（同網域不吃 TDX 額度）：
+     快照是 GitHub 用金鑰抓的，名字齊全。這樣每次更新只打 1 次 TDX，額度省一半 */
+  return fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():{d:[]}; }).then(function(j){
     var m={};
-    (list||[]).forEach(function(a){
-      var c=a.AirportCityName&&a.AirportCityName.Zh_tw;
-      var n=a.AirportName&&a.AirportName.Zh_tw;
-      var v=c||(n?n.replace(/國際機場$|機場$/,'')||n:'');
-      if(a.AirportID&&v) m[a.AirportID]=v;
+    ((j&&j.d)||[]).forEach(function(f){
+      if(f.Dep&&f.CityName&&f.CityName!==f.Dep) m[f.Dep]=f.CityName;
     });
     NAMES=m; return m;
   })['catch'](function(){ return {}; });
