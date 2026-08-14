@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!-- 手錶連線能力測試　檔案作者：小韋 -->
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>手錶連線測試</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0d10;color:#f2f4f7;padding:6px;
+ font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;font-size:14px;line-height:1.35}
+h1{font-size:13px;color:#8b94a1;font-weight:600;padding:6px 7px;margin-bottom:7px;
+ background:#14171c;border:1px solid #262b33;border-radius:9px}
+.t{background:#14171c;border:1px solid #262b33;border-radius:11px;padding:9px 10px;margin-bottom:6px}
+.n{font-size:13px;font-weight:700;color:#e5e9ef;margin-bottom:5px}
+.d{font-size:10.5px;color:#7c8593;margin-bottom:6px;line-height:1.45}
+.v{font-size:17px;font-weight:800;padding:6px 8px;border-radius:8px;text-align:center;
+ background:#232830;color:#8b94a1}
+.v.ok{background:#0e2f1b;color:#4ade80}
+.v.no{background:#3b1414;color:#f87171}
+.e{font-size:9.5px;color:#8b94a1;margin-top:5px;word-break:break-all;line-height:1.4}
+.big{display:block;width:100%;min-height:48px;margin:9px 0 4px;
+ background:#16324f;border:2px solid #3b82f6;border-radius:11px;color:#bfdbfe;
+ font:inherit;font-size:15px;font-weight:700;text-align:center;text-decoration:none;
+ display:flex;align-items:center;justify-content:center}
+.foot{color:#5b636e;font-size:9.5px;text-align:center;padding:8px 4px;line-height:1.6}
+@media(min-width:420px){body{max-width:560px;margin:0 auto;padding:14px}}
+</style></head><body>
+
+<h1>手錶連線測試 · <span id="ua">—</span></h1>
+
+<div class="t" id="t1">
+  <div class="n">1. 同網域讀資料</div>
+  <div class="d">跟這一頁同一個網址底下的檔案。<b>這一項成功，搬到 Cloudflare 的方案就可行。</b></div>
+  <div class="v" id="v1">測試中…</div>
+  <div class="e" id="e1"></div>
+</div>
+
+<div class="t" id="t2">
+  <div class="n">2. 跨網域讀 TDX</div>
+  <div class="d">政府交通資料平台。成功的話手錶可以直接抓，連搬家都不用。</div>
+  <div class="v" id="v2">測試中…</div>
+  <div class="e" id="e2"></div>
+</div>
+
+<div class="t" id="t3">
+  <div class="n">3. 跨網域讀桃機</div>
+  <div class="d">桃機官方網站。這一項預期會失敗（之前手錶就是卡在這裡）。</div>
+  <div class="v" id="v3">測試中…</div>
+  <div class="e" id="e3"></div>
+</div>
+
+<a class="big" href="wtest.html" id="again">↻ 重跑一次</a>
+
+<div class="foot">把三項的結果告訴我就好<br><br>檔案作者：小韋</div>
+
+<script>
+(function(){
+  var r = Math.floor(Math.random() * 1e9);
+  document.getElementById('again').setAttribute('href', 'wtest.html?v=' + r);
+  try {
+    var m = String(navigator.userAgent || '').match(/Watch|iPhone|Mac|CPU OS [\d_]+/);
+    document.getElementById('ua').textContent = m ? m[0] : '未知裝置';
+  } catch (e) {}
+
+  function show(i, ok, msg) {
+    var v = document.getElementById('v' + i);
+    v.textContent = ok ? '✓ 成功' : '✗ 失敗';
+    v.className = 'v ' + (ok ? 'ok' : 'no');
+    document.getElementById('e' + i).textContent = msg || '';
+  }
+
+  function tryFetch(i, url, opt) {
+    var done = false;
+    var bail = setTimeout(function () {
+      if (!done) { done = true; show(i, false, '逾時（超過 12 秒沒有回應）'); }
+    }, 12000);
+    try {
+      fetch(url, opt || {})
+        .then(function (res) {
+          if (done) return;
+          done = true; clearTimeout(bail);
+          return res.text().then(function (txt) {
+            show(i, !!res.ok, 'HTTP ' + res.status + '，收到 ' + txt.length + ' 個字');
+          });
+        })
+        .catch(function (err) {
+          if (done) return;
+          done = true; clearTimeout(bail);
+          show(i, false, String((err && err.message) || err));
+        });
+    } catch (err) {
+      done = true; clearTimeout(bail);
+      show(i, false, '連 fetch 都叫不動：' + String((err && err.message) || err));
+    }
+  }
+
+  /* 1. 同網域 —— 直接讀這一頁旁邊的 watch.html */
+  tryFetch(1, 'watch.html?v=' + r);
+
+  /* 2. 跨網域 —— TDX 公開端點 */
+  tryFetch(2, 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24top=1&%24format=JSON');
+
+  /* 3. 跨網域 —— 桃機官方 */
+  tryFetch(3, 'https://www.taoyuan-airport.com/api/api/flight/a_flight', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"AState":"A","language":"ch"}'
+  });
+})();
+</script>
+</body></html>
