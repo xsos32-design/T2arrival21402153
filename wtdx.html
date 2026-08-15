@@ -37,6 +37,8 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
+.day{background:#16233c;border:1px solid #2e4a7a;color:#93c5fd;font-size:13.5px;font-weight:800;
+ border-radius:10px;padding:7px 8px;margin:9px 0 6px;text-align:center}
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
@@ -79,6 +81,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn pre" data-t="12:00" data-e="17:59">12–18</span>
   <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
 </div>
+<div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
 <div class="grp"><span class="btn" id="bhide">🙈 隱藏已抵達：否</span></div>
 <div class="grp"><span class="btn" id="breload">🔄 立即更新</span></div>
 
@@ -201,8 +204,10 @@ var TAG={'40':{txt:'2140',cls:'s40'},'53':{txt:'2153',cls:'s53'},
 /* ── 畫面狀態 ── */
 var cats={'40':true,'53':true,'t1':true,'t2':true};
 var win=['00:00','23:59'];
+var mode='win';      /* 'win'=固定時段  'now6'=現在起6小時 */
 var hideDone=false;
 var DATA=[];
+var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
 
 function allOn(){ return cats['40']&&cats['53']&&cats['t1']&&cats['t2']; }
 function mineOn(){ return cats['40']&&cats['53']&&!cats['t1']&&!cats['t2']; }
@@ -216,18 +221,18 @@ function paintBtns(){
     b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
   });
   [].forEach.call(document.querySelectorAll('.pre'),function(b){
-    b.className='btn pre'+((b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
+    b.className='btn pre'+((mode==='win'&&b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
   });
+  document.getElementById('bnow').className='btn'+(mode==='now6'?' on':'');
   document.getElementById('bhide').className='btn'+(hideDone?' on':'');
   document.getElementById('bhide').textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
 }
 
-function render(){
-  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
-  var rows=DATA.filter(function(f){
+function rowsFor(list,lo,hi){
+  return (list||[]).filter(function(f){
     if(!f.Gate) return false;
     var t=hhmm(f.RTime)||hhmm(f.OTime);
-    if(t<win[0]||t>win[1]) return false;
+    if(t<lo||t>hi) return false;
     if(!cats[shopOf(f)]) return false;
     if(hideDone&&statusOf(f).done) return false;
     return true;
@@ -235,26 +240,72 @@ function render(){
     var ta=hhmm(a.RTime)||hhmm(a.OTime), tb=hhmm(b.RTime)||hhmm(b.OTime);
     return ta.localeCompare(tb)||hhmm(a.OTime).localeCompare(hhmm(b.OTime));
   });
-  var html=rows.map(function(f){
-    var st=statusOf(f);
-    var sch=hhmm(f.OTime), act=hhmm(f.RTime);
-    var big,tc,sub;
-    if(act){
-      var d=mins(f.RTime)-mins(f.OTime);
-      big=act; tc=d>0?'late':(d<0?'early':'same');
-      sub='表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'');
-    } else { big=sch; tc='plan'; sub='表定'; }
-    var eta=mins(big)-nowMin;
-    var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
-    var tg=TAG[shopOf(f)];
-    return '<div class="r '+cls+'">'
-      +'<b class="t t-'+tc+'">'+big+'</b><span class="g">'+esc(f.Gate)+'</span><span class="tag '+tg.cls+'">'+tg.txt+'</span>'
-      +'<span class="f">'+esc(f.flightCode)+'</span><span class="c">'+esc(f.CityName)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
-      +'</div>';
-  }).join('');
-  document.getElementById('list').innerHTML =
-    html || '<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+'</div>';
+}
+function rowHtml(f,nowMin){
+  var st=statusOf(f);
+  var sch=hhmm(f.OTime), act=hhmm(f.RTime);
+  var big,tc,sub;
+  if(act){
+    var d=mins(f.RTime)-mins(f.OTime);
+    big=act; tc=d>0?'late':(d<0?'early':'same');
+    sub='表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'');
+  } else { big=sch; tc='plan'; sub='表定'; }
+  var eta=mins(big)-nowMin;
+  var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
+  var tg=TAG[shopOf(f)];
+  return '<div class="r '+cls+'">'
+    +'<b class="t t-'+tc+'">'+big+'</b><span class="g">'+esc(f.Gate)+'</span><span class="tag '+tg.cls+'">'+tg.txt+'</span>'
+    +'<span class="f">'+esc(f.flightCode)+'</span><span class="c">'+esc(f.CityName)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'</div>';
+}
+function render(){
+  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
+  var html='';
+  if(mode==='now6'){
+    /* 現在起 6 小時：今天 now→(now+6h)，跨日就分兩段，中間插日期分隔列 */
+    var lo=pad(n.getHours())+':'+pad(n.getMinutes());
+    var endRaw=nowMin+360, cross=endRaw>=1440;
+    var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
+    html=rowsFor(DATA,lo,hi).map(function(f){ return rowHtml(f,nowMin); }).join('');
+    if(!html) html='<div class="msg">今天接下來這段沒有符合的班機</div>';
+    if(cross){
+      var m2=new Date(n.getTime()+86400000);
+      var hi2=pad(Math.floor((endRaw-1440)/60))+':'+pad((endRaw-1440)%60);
+      html+='<div class="day">📅 '+(m2.getMonth()+1)+'/'+m2.getDate()+' 班機</div>';
+      if(DATA2===null){
+        html+='<div class="msg">隔日資料載入中…</div>';
+      } else {
+        var part2=rowsFor(DATA2,'00:00',hi2).map(function(f){ return rowHtml(f,-1); }).join('');
+        html+=part2||'<div class="msg">隔日這段沒有符合的班機'+(DATA2.length?'':'（或資料還抓不到，按 🔄 再試）')+'</div>';
+      }
+    }
+  } else {
+    html=rowsFor(DATA,win[0],win[1]).map(function(f){ return rowHtml(f,nowMin); }).join('');
+    if(!html) html='<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+'</div>';
+  }
+  document.getElementById('list').innerHTML=html;
   paintBtns();
+}
+/* 跨日時把隔日班機抓回來（即時失敗就退快照；只在需要時才多打這 1 次） */
+function ensureTomorrow(){
+  var n=new Date();
+  if(n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
+  if(DATA2!==null) return;
+  var m2=new Date(n.getTime()+86400000);
+  var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
+  var day=iso.replace(/-/g,'/');
+  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+Date.now();
+  fetch(url).then(function(r){ if(!r.ok) throw new Error('TDX '+r.status); return r.json(); })
+  .then(function(list){
+    DATA2=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
+          .filter(function(f){ return f.ODate===day||f.RDate===day; });
+    render();
+  })['catch'](function(){
+    fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():{d:[]}; }).then(function(j){
+      DATA2=((j&&j.d)||[]).filter(function(f){ return f.ODate===day||f.RDate===day; });
+      render();
+    })['catch'](function(){ DATA2=[]; render(); });
+  });
 }
 
 function load(){
@@ -276,6 +327,8 @@ function load(){
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
     el.textContent=pad(n.getHours())+':'+pad(n.getMinutes())+' ↻'; el.className='u';
     document.getElementById('fb').innerHTML='';
+    DATA2=null;                       /* 重新整理後隔日資料也重抓 */
+    if(mode==='now6') ensureTomorrow();
     render();   /* 班機先上畫面（出發地暫時顯示代碼） */
     tdxNames().then(function(nm){   /* 城市中文名背景補上，抓不到也不影響 */
       if(!nm) return;
@@ -294,6 +347,9 @@ function fallback(err){
     var n=new Date();
     var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
     DATA=(j.d||[]).filter(function(f){ return f.ODate===today||f.RDate===today; });
+    var m2=new Date(n.getTime()+86400000);
+    var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
+    DATA2=(j.d||[]).filter(function(f){ return f.ODate===tm; });
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
     el.textContent=j.t+' 快照'; el.className='u busy';
     document.getElementById('fb').innerHTML=
@@ -351,8 +407,11 @@ document.getElementById('bmine').addEventListener('click',function(){
 });
 [].forEach.call(document.querySelectorAll('.pre'),function(b){
   b.addEventListener('click',function(){
-    win=[b.getAttribute('data-t'),b.getAttribute('data-e')]; render();
+    mode='win'; win=[b.getAttribute('data-t'),b.getAttribute('data-e')]; render();
   });
+});
+document.getElementById('bnow').addEventListener('click',function(){
+  mode='now6'; ensureTomorrow(); render();
 });
 document.getElementById('bhide').addEventListener('click',function(){
   hideDone=!hideDone; render();
