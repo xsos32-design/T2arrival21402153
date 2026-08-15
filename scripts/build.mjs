@@ -477,7 +477,9 @@ async function main() {
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
-  const snap = flights.filter(f => f.ODate === today || f.RDate === today);
+  const tmD = new Date(nowTPE.getTime() + 86400000);
+  const tomorrow = tmD.getUTCFullYear() + '/' + pad(tmD.getUTCMonth() + 1) + '/' + pad(tmD.getUTCDate());
+  const snap = flights.filter(f => f.ODate === today || f.RDate === today || f.ODate === tomorrow);
   await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
   console.log(`data.json 快照 ${snap.length} 筆`);
 
