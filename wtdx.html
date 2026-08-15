@@ -223,7 +223,17 @@ function paintBtns(){
   [].forEach.call(document.querySelectorAll('.pre'),function(b){
     b.className='btn pre'+((mode==='win'&&b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
   });
-  document.getElementById('bnow').className='btn'+(mode==='now6'?' on':'');
+  var bn=document.getElementById('bnow');
+  bn.className='btn'+(mode==='now6'?' on':'');
+  if(mode==='now6'){
+    /* 按鈕直接顯示目前套用的區間 */
+    var nb=new Date(), nm=nb.getHours()*60+nb.getMinutes();
+    var s0=nm-30; if(s0<0) s0=0;
+    var e0=nm+360;
+    var loL=pad(Math.floor(s0/60))+':'+pad(s0%60);
+    var hiL=e0>=1440?pad(Math.floor((e0-1440)/60))+':'+pad((e0-1440)%60):pad(Math.floor(e0/60))+':'+pad(e0%60);
+    bn.textContent='⏱ '+pad(nb.getHours())+':'+pad(nb.getMinutes())+' 按下　'+loL+'–'+(e0>=1440?'隔日':'')+hiL;
+  } else bn.textContent='⏱ 現在起 6 小時';
   document.getElementById('bhide').className='btn'+(hideDone?' on':'');
   document.getElementById('bhide').textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
 }
@@ -262,8 +272,9 @@ function render(){
   var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
   var html='';
   if(mode==='now6'){
-    /* 現在起 6 小時：今天 now→(now+6h)，跨日就分兩段，中間插日期分隔列 */
-    var lo=pad(n.getHours())+':'+pad(n.getMinutes());
+    /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00）；跨日分兩段插日期分隔列 */
+    var startMin=nowMin-30; if(startMin<0) startMin=0;   /* 凌晨半小時內就從 00:00 起 */
+    var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
     var endRaw=nowMin+360, cross=endRaw>=1440;
     var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
     html=rowsFor(DATA,lo,hi).map(function(f){ return rowHtml(f,nowMin); }).join('');

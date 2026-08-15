@@ -511,7 +511,10 @@ function setNow6(on){
 function runNow6(){
   var n=new Date();
   var tIso=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
-  var lo=pad(n.getHours())+':'+pad(n.getMinutes());
+  var press=pad(n.getHours())+':'+pad(n.getMinutes());
+  /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00） */
+  var startMin=n.getHours()*60+n.getMinutes()-30; if(startMin<0) startMin=0;
+  var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
   var endRaw=n.getHours()*60+n.getMinutes()+360, cross=endRaw>=1440;
   var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
   var m2=new Date(n.getTime()+86400000);
@@ -542,7 +545,7 @@ function runNow6(){
     render();
     var n2=new Date();
     setDot('on',pad(n2.getHours())+':'+pad(n2.getMinutes()));
-    st.innerHTML='⏱ 現在起 6 小時　'+lo+'–'+(cross?'(隔日)':'')+(cross?hi2:hi)
+    st.innerHTML='⏱ 現在 <b>'+press+'</b> 按下　範圍 '+lo+'–'+(cross?'(隔日)':'')+(cross?hi2:hi)
                 +'　·　符合 <b>'+sel.length+'</b> 班'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
