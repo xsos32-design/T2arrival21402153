@@ -374,9 +374,9 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>桃機到站 ${winLabel}</title>
+<title>班機手錶版 ${winLabel}</title>
 <style>${CSS}</style></head><body data-b="${buildEpoch}">
-<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 桃機到站</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
+<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${shortcut}</div>
 <div class="grp">${catBtns}</div>
 <div class="grp">${presetBtns}</div>
