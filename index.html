@@ -106,7 +106,8 @@
     .card{background:#14171c;border-color:#262b33;border-radius:12px;padding:11px;margin:0 0 12px}
     label,.chiplabel,.status{color:#8b94a1}
     label{font-size:12.5px}
-    .fld{flex:1 1 100%;gap:4px}
+    .fld{flex:1 1 47%;gap:4px}
+    .row .fld:first-child{flex:1 1 100%}   /* 日期整行，起始／結束並排 */
     input,select{background:#1c2027;border-color:#2e343d;color:#f2f4f7;
       font-size:16px;padding:11px 10px;min-height:48px;width:100%;border-radius:11px}
     .row{gap:9px}
@@ -114,12 +115,13 @@
 
     .chips{gap:7px;margin-top:11px}
     .chiplabel{flex:1 1 100%;margin:0 0 2px;font-size:12.5px}
-    .chip{flex:1 1 100%;min-height:50px;padding:9px 6px;font-size:15px;border-radius:12px;border-width:2px;
+    .chip{flex:1 1 47%;min-height:48px;padding:9px 4px;font-size:14.5px;border-radius:12px;border-width:2px;
       display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25;
       background:#1c2027;border-color:#2e343d;color:#9aa3b0}
     .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
-    .chip.shop{font-size:17px;font-weight:800;min-height:54px}
-    .chip.zone{flex:1 1 46%}
+    .chip.shop{font-size:16px;font-weight:800;min-height:52px}
+    .chip.zone{flex:1 1 22%;font-size:14px;padding:9px 2px}
+    #hide{flex:1 1 100%}
     #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
     #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
     #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
@@ -178,8 +180,9 @@
     label{font-size:13px}
     input,select{font-size:17px;padding:11px 10px;min-height:48px;border-radius:11px}
     .chips{gap:7px;margin-top:10px}
-    .chip{flex:1 1 46%;min-height:50px;font-size:16px;border-radius:12px;padding:9px 4px}
-    .chip.shop{font-size:19px;min-height:56px}
+    .chip{flex:1 1 46%;min-height:48px;font-size:14.5px;border-radius:12px;padding:9px 3px}
+    .chip.shop{font-size:16px;min-height:52px}
+    .chip.zone{flex:1 1 46%}
     button{padding:15px;font-size:19px;min-height:58px}
     details.cfg{display:none}
     .full{display:none} .short{display:inline}
