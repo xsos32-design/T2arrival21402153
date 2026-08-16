@@ -119,6 +119,7 @@
       background:#1c2027;border-color:#2e343d;color:#9aa3b0}
     .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
     .chip.shop{font-size:17px;font-weight:800;min-height:54px}
+    .chip.zone{flex:1 1 46%}
     #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
     #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
     #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
@@ -219,6 +220,14 @@
       <span class="chip shop act" id="s2153">✓ 2153</span>
       <span class="chip shop act" id="st1">✓ 其他 一航</span>
       <span class="chip shop act" id="st2">✓ 其他 二航</span>
+    </div>
+
+    <div class="chips">
+      <span class="chiplabel">區域</span>
+      <span class="chip zone act" id="zA">✓ A區</span>
+      <span class="chip zone act" id="zB">✓ B區</span>
+      <span class="chip zone act" id="zC">✓ C區</span>
+      <span class="chip zone act" id="zD">✓ D區</span>
     </div>
 
     <div class="chips">
@@ -325,6 +334,7 @@ function statusOf(f){
 
 var lastRows=[], lastPending=[], hideDone=false;
 var show={'2140':true,'2153':true,'t1':true,'t2':true};
+var zoneShow={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（無字母的一律顯示） */
 
 /* 四種分類：
    2140 / 2153 = 第二航廈、登機門符合設定
@@ -357,6 +367,8 @@ function render(){
   lastRows.forEach(function(f){
     var shop=shopOf(f,g53,g40);
     if(!show[shop]) return;
+    var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
+    if(/[A-D]/.test(zg)&&!zoneShow[zg]) return;
     if(hideDone && statusOf(f).done) return;
     rows.push({f:f, shop:shop});
   });
@@ -636,6 +648,15 @@ document.getElementById('date').addEventListener('change',function(){ setNow6(fa
     show[p[1]]=!show[p[1]];
     this.textContent=(show[p[1]]?'✓ ':'　')+p[2];
     this.className=show[p[1]]?'chip shop act':'chip shop';
+    render();
+  });
+});
+
+[['zA','A'],['zB','B'],['zC','C'],['zD','D']].forEach(function(p){
+  document.getElementById(p[0]).addEventListener('click',function(){
+    zoneShow[p[1]]=!zoneShow[p[1]];
+    this.textContent=(zoneShow[p[1]]?'✓ ':'　')+p[1]+'區';
+    this.className=zoneShow[p[1]]?'chip zone act':'chip zone';
     render();
   });
 });

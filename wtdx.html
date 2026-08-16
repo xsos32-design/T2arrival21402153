@@ -46,6 +46,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  background:#1c2027;border:2px solid #2e343d;border-radius:12px;color:#9aa3b0;
  font-size:16px;font-weight:650;text-decoration:none;text-align:center;padding:9px 4px;cursor:pointer;user-select:none}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.btn.zone{flex:1 1 46%}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
@@ -74,6 +75,12 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn cat" data-c="53">　2153</span>
   <span class="btn cat" data-c="t1">　一航</span>
   <span class="btn cat" data-c="t2">　二航</span>
+</div>
+<div class="grp">
+  <span class="btn zone" data-z="A">　A區</span>
+  <span class="btn zone" data-z="B">　B區</span>
+  <span class="btn zone" data-z="C">　C區</span>
+  <span class="btn zone" data-z="D">　D區</span>
 </div>
 <div class="grp">
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
@@ -203,6 +210,7 @@ var TAG={'40':{txt:'2140',cls:'s40'},'53':{txt:'2153',cls:'s53'},
 
 /* ── 畫面狀態 ── */
 var cats={'40':true,'53':true,'t1':true,'t2':true};
+var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
 var win=['00:00','23:59'];
 var mode='win';      /* 'win'=固定時段  'now6'=現在起6小時 */
 var hideDone=false;
@@ -218,6 +226,11 @@ function paintBtns(){
   [].forEach.call(document.querySelectorAll('.cat'),function(b){
     var on=cats[b.getAttribute('data-c')];
     b.className='btn cat'+(on?' on':'');
+    b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
+  });
+  [].forEach.call(document.querySelectorAll('.zone'),function(b){
+    var on=zones[b.getAttribute('data-z')];
+    b.className='btn zone'+(on?' on':'');
     b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
   });
   [].forEach.call(document.querySelectorAll('.pre'),function(b){
@@ -244,6 +257,8 @@ function rowsFor(list,lo,hi){
     var t=hhmm(f.RTime)||hhmm(f.OTime);
     if(t<lo||t>hi) return false;
     if(!cats[shopOf(f)]) return false;
+    var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
+    if(/[A-D]/.test(zg)&&!zones[zg]) return false;
     if(hideDone&&statusOf(f).done) return false;
     return true;
   }).sort(function(a,b){
@@ -403,7 +418,16 @@ function diag(cb){
 document.getElementById('hd').addEventListener('click',load);
 document.getElementById('breload').addEventListener('click',load);
 document.getElementById('ball').addEventListener('click',function(){
-  cats={'40':true,'53':true,'t1':true,'t2':true}; render();
+  cats={'40':true,'53':true,'t1':true,'t2':true};
+  zones={'A':true,'B':true,'C':true,'D':true}; render();
+});
+[].forEach.call(document.querySelectorAll('.zone'),function(b){
+  b.addEventListener('click',function(){
+    var z=b.getAttribute('data-z');
+    var onCount=Object.keys(zones).filter(function(k){return zones[k];}).length;
+    if(zones[z]&&onCount<=1) return;      /* 至少留一區 */
+    zones[z]=!zones[z]; render();
+  });
 });
 document.getElementById('bmine').addEventListener('click',function(){
   cats={'40':true,'53':true,'t1':false,'t2':false}; render();
