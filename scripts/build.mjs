@@ -169,7 +169,7 @@ function fromODP(f) {
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
-  /* cur 是桃機原始資料才有的即時動態（地面滑行／抵達機坪）；TDX 沒有這一欄，
+  /* cur 是桃機原始資料才有的即時動態（地面滑行／抵達機坪），TDX 沒有這欄，
      所以手錶版通常只會落在 memo 那幾種。 */
   if (/取消/.test(memo))            return { txt: '❌ 取消',     cls: 'bad',  done: false };
   if (/抵達機坪/.test(cur))         return { txt: '🛬 抵達機坪', cls: 'ok',   done: true  };
@@ -181,6 +181,7 @@ function statusOf(f) {
   if (/準時/.test(memo))            return { txt: '🟢 準時',     cls: 'info', done: false };
   return { txt: '預計', cls: 'none', done: false };
 }
+
 
 /* 四種分類：
    40 = 第二航廈、登機門屬 2140
@@ -279,10 +280,16 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
-.btn{flex:1 1 100%;min-height:50px;display:flex;align-items:center;justify-content:center;
- background:#1c2027;border:2px solid #2e343d;border-radius:12px;color:#9aa3b0;
- font-size:16px;font-weight:650;text-decoration:none;text-align:center;padding:9px 4px}
+.btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
+ background:#1c2027;border:2px solid #2e343d;border-radius:11px;color:#9aa3b0;
+ font-size:14.5px;font-weight:650;text-decoration:none;text-align:center;padding:8px 4px}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.btn.half{flex:1 1 46%}
+.btn.pre{flex:1 1 22%;font-size:13.5px;padding:8px 2px}
+.btn.c40.on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
+.btn.c53.on{background:#43200f;border-color:#f97316;color:#fdba74}
+.btn.ct1.on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
+.btn.ct2.on{background:#232a34;border-color:#64748b;color:#cbd5e1}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
@@ -335,15 +342,15 @@ function renderPage(flights, preset, shopKey, hide, err) {
 </div>`;
   }).join('');
 
-  const btn = (href, label, on) => `<a class="btn${on ? ' on' : ''}" href="${href}">${label}</a>`;
+  const btn = (href, label, on, cls) => `<a class="btn${cls ? ' ' + cls : ''}${on ? ' on' : ''}" href="${href}">${label}</a>`;
 
   const cur = new Set(shopKey);
   const idOf = set => comboId(CATS.map(c => c.id).filter(id => set.has(id)));
 
   /* 捷徑：全部 / 只看我的兩點 */
   const shortcut =
-      btn(fileFor(preset, ALL_ID,  hide), '全部',      idOf(cur) === ALL_ID)
-    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID);
+      btn(fileFor(preset, ALL_ID,  hide), '全部',      idOf(cur) === ALL_ID,  'half')
+    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID, 'half');
 
   /* 複選：點一下加入／移除該分類。只剩一個時不讓取消（連回自己）。 */
   const catBtns = CATS.map(c => {
@@ -351,13 +358,13 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const next = new Set(cur);
     if (on) next.delete(c.id); else next.add(c.id);
     const target = next.size ? idOf(next) : idOf(cur);
-    return btn(fileFor(preset, target, hide), (on ? '✓ ' : '　') + c.label, on);
+    return btn(fileFor(preset, target, hide), (on ? '✓ ' : '　') + c.label, on, 'half c' + c.id);
   }).join('\n');
 
   const presetBtns = PRESETS
-    .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset)).join('\n');
+    .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset, 'pre')).join('\n');
   const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '🙈 隱藏已抵達：' + (hide ? '是' : '否'), hide);
-  /* 跟其他按鈕同尺寸的更新鍵（連回自己＝重新載入最新一份） */
+  /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
                         '🔄 立即更新　' + stamp + '<i id="age"></i>', false);
 
