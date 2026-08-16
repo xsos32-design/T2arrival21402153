@@ -47,6 +47,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  font-size:16px;font-weight:650;text-decoration:none;text-align:center;padding:9px 4px;cursor:pointer;user-select:none}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
 .btn.zone{flex:1 1 46%}
+.btn.half{flex:1 1 46%}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
@@ -67,7 +68,10 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 <div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>即時</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp">
-  <span class="btn" id="ball">全部</span>
+  <span class="btn half" id="ball">全部</span>
+  <span class="btn half" id="bnone">全不要</span>
+</div>
+<div class="grp">
   <span class="btn" id="bmine">2140+2153</span>
 </div>
 <div class="grp">
@@ -309,6 +313,8 @@ function render(){
     html=rowsFor(DATA,win[0],win[1]).map(function(f){ return rowHtml(f,nowMin); }).join('');
     if(!html) html='<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+'</div>';
   }
+  if(!cats['40']&&!cats['53']&&!cats['t1']&&!cats['t2'])
+    html='<div class="msg">分類全部關掉了<br>點上面 2140／2153／一航／二航 選要看的</div>';
   document.getElementById('list').innerHTML=html;
   paintBtns();
 }
@@ -420,6 +426,9 @@ document.getElementById('breload').addEventListener('click',load);
 document.getElementById('ball').addEventListener('click',function(){
   cats={'40':true,'53':true,'t1':true,'t2':true};
   zones={'A':true,'B':true,'C':true,'D':true}; render();
+});
+document.getElementById('bnone').addEventListener('click',function(){
+  cats={'40':false,'53':false,'t1':false,'t2':false}; render();
 });
 [].forEach.call(document.querySelectorAll('.zone'),function(b){
   b.addEventListener('click',function(){

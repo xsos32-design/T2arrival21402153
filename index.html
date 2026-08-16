@@ -216,6 +216,8 @@
 
     <div class="chips">
       <span class="chiplabel">分類</span>
+      <span class="chip" id="sall">全部</span>
+      <span class="chip" id="snone">全不要</span>
       <span class="chip shop act" id="s2140">✓ 2140</span>
       <span class="chip shop act" id="s2153">✓ 2153</span>
       <span class="chip shop act" id="st1">✓ 其他 一航</span>
@@ -642,8 +644,24 @@ document.getElementById('date').addEventListener('change',function(){ setNow6(fa
 });
 
 
-[['s2140','2140','2140'],['s2153','2153','2153'],
- ['st1','t1','其他 一航'],['st2','t2','其他 二航']].forEach(function(p){
+var SHOPBTNS=[['s2140','2140','2140'],['s2153','2153','2153'],
+ ['st1','t1','其他 一航'],['st2','t2','其他 二航']];
+function paintShops(){
+  SHOPBTNS.forEach(function(p){
+    var el=document.getElementById(p[0]);
+    el.textContent=(show[p[1]]?'✓ ':'　')+p[2];
+    el.className=show[p[1]]?'chip shop act':'chip shop';
+  });
+}
+document.getElementById('sall').addEventListener('click',function(){
+  show={'2140':true,'2153':true,'t1':true,'t2':true};
+  paintShops(); render();
+});
+document.getElementById('snone').addEventListener('click',function(){
+  show={'2140':false,'2153':false,'t1':false,'t2':false};
+  paintShops(); render();
+});
+SHOPBTNS.forEach(function(p){
   document.getElementById(p[0]).addEventListener('click',function(){
     show[p[1]]=!show[p[1]];
     this.textContent=(show[p[1]]?'✓ ':'　')+p[2];
