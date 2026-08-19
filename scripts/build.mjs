@@ -202,6 +202,21 @@ const TAG = {
   't2': { txt: '二航',  cls: 'st2' },
 };
 
+/* ── 預估下機人數（TDX 沒機型欄位，用航線推估；誤差約 ±15%）──
+   燈號：🟢<150　🟡150–250　🔴>250 */
+const LONGHAUL = new Set(['LAX','SFO','SEA','JFK','EWR','ORD','DFW','IAH','IAD','BOS','ATL','MSP','ONT',
+  'YVR','YYZ','CDG','AMS','LHR','FRA','MXP','VIE','MUC','IST','PRG','BCN','SYD','BNE','MEL','AKL']);
+const MIDHAUL = new Set(['BKK','DMK','SIN','KUL','PEN','CGK','DPS','MNL','SGN','HAN','PNH','KTI','REP',
+  'RGN','VTE','DAD','CEB','CRK','DEL','BOM']);
+const LCC = new Set(['BX','LJ','7C','TW','RS','ZE','VJ','VZ','AK','5J','DG','Z2','IT','MM','SL','OD','JQ','3K','TR','TT','IX']);
+function paxOf(f) {
+  const dep = String(f.Dep || '').toUpperCase();
+  const al  = String(f.flightCode || '').slice(0, 2).toUpperCase();
+  const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 300 : 250));
+  const est = Math.round(seats * (LONGHAUL.has(dep) ? 0.85 : 0.80) / 5) * 5;
+  return { est, dot: est > 250 ? '🔴' : (est >= 150 ? '🟡' : '🟢') };
+}
+
 /* ---------- 時段 ----------
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
    這種看起來像整數的 key 自動排到最前面並依數值排序，用物件的話按鈕順序會亂掉。 */
@@ -267,6 +282,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
 .f{font-size:15px;font-weight:700;color:#e5e9ef;white-space:nowrap}
 .c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
 .st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
@@ -338,7 +354,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
     return `<div class="r ${cls}">
 <b class="t t-${tc}">${big}</b><span class="g">${esc(f.Gate)}</span><span class="tag ${tg.cls}">${tg.txt}</span>
-<span class="f">${esc(f.flightCode || '')}</span><span class="c">${esc(f.CityName)}</span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="f">${esc(f.flightCode || '')}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i></span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -391,7 +407,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
 ${body}
-<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b></div>
+<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
