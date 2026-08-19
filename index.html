@@ -157,6 +157,7 @@
 
     .c-fno{grid-area:fno} .c-fno b{font-size:15px;color:#e5e9ef} .c-fno small{display:none}
     .c-city{grid-area:city;font-size:13px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
     .badge{font-size:11.5px;padding:2px 7px}
     .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
     .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
@@ -266,7 +267,8 @@
 
   <div class="notice">
     ⚠️ 本頁資料擷取自桃園國際機場公開航班資訊，僅供參考。<br>
-    <b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b>
+    <b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>
+    👥 人數為「機型座位 × 平均載客率」推估的下機人數，誤差約 ±15%：🟢少於150　🟡150–250　🔴超過250
   </div>
 
   <div class="credit">檔案作者：小韋</div>
@@ -304,6 +306,36 @@ function hhmm(t){ return (t||'').slice(0,5); }
 function pad(x){ return (x<10?'0':'')+x; }
 function mins(t){ var p=hhmm(t).split(':'); return (+p[0])*60+(+p[1]); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]}); }
+
+/* ── 預估下機人數 ─────────────────────────────────────────────
+   航空公司不公開真實載客數，這裡用「機型座位數 × 航線平均載客率」推估：
+   桃機 API 有機型（PlaneNo）最準；TDX 沒機型就用航線推估，粗一點。
+   燈號：🟢<150　🟡150–250　🔴>250　（僅供參考，誤差約 ±15%） */
+var SEAT_RULES=[[/77W|777/,333],[/787-10|78J|781/,342],[/787|789|788/,300],
+  [/A350|A?35\d/,306],[/A330|A?33\d/,297],[/A380|A?38\d/,495],[/A321|32Q|32[1N]/,194],
+  [/A320|32[0AS]/,174],[/737|73[89H]/,189],[/767/,270],[/747|744/,370],[/A319/,134],[/ATR|AT7/,70],[/E19|E7[05]/,104]];
+function seatsByPlane(p){ p=String(p||'').toUpperCase(); if(!p) return 0;
+  for(var i=0;i<SEAT_RULES.length;i++) if(SEAT_RULES[i][0].test(p)) return SEAT_RULES[i][1];
+  return 250; }
+var LONGHAUL={LAX:1,SFO:1,SEA:1,JFK:1,EWR:1,ORD:1,DFW:1,IAH:1,IAD:1,BOS:1,ATL:1,MSP:1,ONT:1,
+  YVR:1,YYZ:1,CDG:1,AMS:1,LHR:1,FRA:1,MXP:1,VIE:1,MUC:1,IST:1,PRG:1,BCN:1,SYD:1,BNE:1,MEL:1,AKL:1};
+var MIDHAUL={BKK:1,DMK:1,SIN:1,KUL:1,PEN:1,CGK:1,DPS:1,MNL:1,SGN:1,HAN:1,PNH:1,KTI:1,REP:1,
+  RGN:1,VTE:1,DAD:1,CEB:1,CRK:1,DEL:1,BOM:1,OKA:0};
+var LCC={BX:1,LJ:1,'7C':1,TW:1,RS:1,ZE:1,VJ:1,VZ:1,AK:1,'5J':1,DG:1,Z2:1,IT:1,MM:1,SL:1,OD:1,JQ:1,'3K':1,TR:1,TT:1,IX:1};
+function seatsByRoute(dep,code){
+  dep=String(dep||'').toUpperCase();
+  var al=String(code||'').slice(0,2).toUpperCase();
+  if(LONGHAUL[dep]) return 333;          /* 長程幾乎都是 777/A350 級 */
+  if(LCC[al]) return 189;                /* 廉航窄體 */
+  if(MIDHAUL[dep]) return 300;           /* 東南亞多寬體 */
+  return 250;                            /* 日韓港澳大小機都有，取中間值 */
+}
+function paxOf(f){
+  var dep=String(f.Dep||f.CityCode||'').toUpperCase();
+  var seats=seatsByPlane(f.PlaneNo)||seatsByRoute(dep,f.flightCode);
+  var est=Math.round(seats*(LONGHAUL[dep]?0.85:0.80)/5)*5;
+  return {est:est,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
+}
 
 function statusOf(f){
   function clean(s){ return String(s||'').replace(/[\s.．、,]+$/,'').replace(/\s+/g,' ').trim(); }
@@ -421,7 +453,7 @@ function render(){
       var tm='';
       return lead+'<div class="r '+cls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
-        + '<div class="c-city">'+esc(f.CityName)+'</div>'
+        + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i></div>'
         + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+esc(f.Gate)+tm+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
@@ -478,6 +510,7 @@ function fromTDX(f,names){
     BNO:String(f.Terminal||''), Gate:String(f.Gate||'').trim(),
     ODate:dt(sch), OTime:s?s+':00':'',
     RDate:dt(act), RTime:(a&&(a!==s||memo))?a+':00':'',
+    Dep:String(f.DepartureAirportID||''),
     CityName:names[f.DepartureAirportID]||f.DepartureAirportID||'',
     flightCode:String(f.AirlineID||'')+String(f.FlightNumber||''),
     Memo:memo, CurrentStatus:''
