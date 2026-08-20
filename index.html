@@ -54,6 +54,10 @@
   .r{display:grid;grid-template-columns:112px 1fr 132px 62px 58px 108px;gap:10px;align-items:center;
      padding:9px 14px;border-top:1px solid var(--line)}
   .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:600;padding:7px 14px}
+  .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
+  .r.r53{background:#fff4ea;box-shadow:inset 5px 0 0 #ea580c}
+  .r.r40 .c-gate{color:#0f766e}
+  .r.r53 .c-gate{color:#9a3412}
   .r.done{opacity:.45}
   .r.soon{background:#fffdf3}
   .c-time b{display:inline-block;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;
@@ -94,6 +98,7 @@
   #cptxt{width:100%;font:13px/1.7 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);
     border-radius:10px;padding:10px;color:var(--ink);resize:none;box-sizing:border-box}
   .cprow{display:flex;gap:10px;align-items:center;margin-top:8px}
+  .cprow .cpx{background:transparent;border:1px solid var(--line);color:var(--muted)}
   #cpmsg{font-size:12.5px;color:var(--muted)}
 
   /* ===== 版本二：手機版 — 深色大字卡片，跟手錶版同一套視覺 ===== */
@@ -128,6 +133,7 @@
     .chip.zone{flex:1 1 22%;font-size:14px;padding:9px 2px}
     #hide{flex:1 1 100%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
+    .cprow .cpx{border-color:#2e343d;color:#8b94a1}
     #cpmsg{color:#8b94a1}
     #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
     #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
@@ -144,6 +150,10 @@
     .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 9px;overflow:hidden;
        grid-template-areas:"time gate shop" "fno city st";align-items:center;
        background:#14171c;border:1px solid #262b33;border-radius:12px;padding:10px 12px;margin-bottom:7px}
+    .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 5px 0 0 #14b8a6}
+    .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 5px 0 0 #f97316}
+    .r.r40 .c-gate{color:#5eead4}
+    .r.r53 .c-gate{color:#fdba74}
     .r.done{opacity:.4}
     .r.soon{background:#3a2f10;border-color:#a16207}
     .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
@@ -465,7 +475,8 @@ function render(){
       var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
       var main=f.flightCode||((f.ACode||'')+(f.FlightNo||''));
       var tm='';
-      return lead+'<div class="r '+cls+'">'
+      var shopCls=x.shop==='2140'?' r40':(x.shop==='2153'?' r53':'');
+      return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
         + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i></div>'
         + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
@@ -663,7 +674,9 @@ function reportText(kind){
 function showCopy(txt){
   var box=document.getElementById('copybox');
   box.innerHTML='<div class="cpwrap"><textarea id="cptxt" readonly rows="3"></textarea>'
-    +'<div class="cprow"><button id="cpgo" type="button">📋 複製</button><span id="cpmsg">按「複製」後直接到群組貼上</span></div></div>';
+    +'<div class="cprow"><button id="cpgo" type="button">📋 複製</button>'
+    +'<button id="cpclose" type="button" class="cpx">✕ 收合</button>'
+    +'<span id="cpmsg">按「複製」後直接到群組貼上</span></div></div>';
   var ta=document.getElementById('cptxt');
   ta.value=txt;
   ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px';
@@ -678,8 +691,16 @@ function showCopy(txt){
     }
     document.getElementById('cpmsg').textContent=ok?'✅ 已複製，去群組貼上就行':'複製不了的話請長按文字手動複製';
   });
+  document.getElementById('cpclose').addEventListener('click',function(){
+    box.innerHTML=''; cpKind=null;
+  });
 }
+var cpKind=null;
 function makeReport(kind,chip){
+  var box=document.getElementById('copybox');
+  /* 同一顆再按一次＝收合 */
+  if(cpKind===kind && box.innerHTML){ box.innerHTML=''; cpKind=null; return; }
+  cpKind=kind;
   var old=chip.textContent;
   chip.textContent='⏳ 產生中…';
   reportText(kind).then(function(txt){
