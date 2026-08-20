@@ -90,6 +90,11 @@
     color:#92400e;font-size:12.5px;line-height:1.7;text-align:center}
   .notice b{color:#78350f}
   .credit{margin-top:10px;text-align:center;color:#9aa3ae;font-size:11.5px;letter-spacing:.04em}
+  .cpwrap{margin-top:12px}
+  #cptxt{width:100%;font:13px/1.7 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:10px;color:var(--ink);resize:none;box-sizing:border-box}
+  .cprow{display:flex;gap:10px;align-items:center;margin-top:8px}
+  #cpmsg{font-size:12.5px;color:var(--muted)}
 
   /* ===== 版本二：手機版 — 深色大字卡片，跟手錶版同一套視覺 ===== */
   @media (max-width:640px){
@@ -122,6 +127,8 @@
     .chip.shop{font-size:16px;font-weight:800;min-height:52px}
     .chip.zone{flex:1 1 22%;font-size:14px;padding:9px 2px}
     #hide{flex:1 1 100%}
+    #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
+    #cpmsg{color:#8b94a1}
     #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
     #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
     #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
@@ -248,6 +255,13 @@
     <div class="chips">
       <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
     </div>
+
+    <div class="chips">
+      <span class="chiplabel">群組回報（今天 22:30 後）</span>
+      <span class="chip" id="cpD">📋 兆豐D區</span>
+      <span class="chip" id="cpS">📋 2140+2153</span>
+    </div>
+    <div id="copybox"></div>
 
     <details class="cfg">
       <summary>分點別登機門設定（可修改）</summary>
@@ -611,6 +625,74 @@ function runNow6(){
       '<div class="errbox"><b>抓不到資料（'+esc(e.message)+'）</b><br>請稍後再按一次。</div>';
   });
 }
+
+/* ── 群組回報產生器：今天 22:30 後的班機，一鍵複製 ──────────
+   兆豐D區＝二航 D 開頭登機門；2140+2153＝分點別登機門設定那兩組 */
+function fwColon(t){ return t.replace(':','：'); }
+function reportText(kind){
+  var d=new Date();
+  var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  return getFlights(date).then(function(all){
+    var want=date.replace(/-/g,'/');
+    var seen={}, list=[];
+    (all||[]).forEach(function(f){
+      if(f.ODate!==want&&f.RDate!==want) return;
+      var g=(f.Gate||'').trim().toUpperCase(); if(!g) return;
+      if(String(f.BNO)!=='2') return;
+      if(/取消/.test(f.Memo||'')) return;
+      var t=arrAt(f); if(t<'22:30') return;
+      var k=hhmm(f.OTime)+'|'+g+'|'+(f.CityName||'');
+      if(seen[k]) return; seen[k]=1;
+      list.push({t:t,no:String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))),
+                 city:String(f.CityName||'').replace(/市$/,''),g:g});
+    });
+    var g53=expandSpec(document.getElementById('cfg2153').value);
+    var g40=expandSpec(document.getElementById('cfg2140').value);
+    var rows=list.filter(function(x){
+      return kind==='D' ? x.g.charAt(0)==='D' : !!(g40[x.g]||g53[x.g]);
+    });
+    rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
+    var lines = kind==='D'
+      ? ['@All ',md+'兆豐後續班機'].concat(rows.map(function(x){ return fwColon(x.t)+' '+x.no+' '+x.city+' '+x.g; }))
+      : [md+' ','22:30後班機'].concat(rows.map(function(x){ return x.t+' '+x.no+' '+x.g; }));
+    if(!rows.length) lines.push('（22:30 後沒有符合的班機）');
+    return lines.join('\n');
+  });
+}
+function showCopy(txt){
+  var box=document.getElementById('copybox');
+  box.innerHTML='<div class="cpwrap"><textarea id="cptxt" readonly rows="3"></textarea>'
+    +'<div class="cprow"><button id="cpgo" type="button">📋 複製</button><span id="cpmsg">按「複製」後直接到群組貼上</span></div></div>';
+  var ta=document.getElementById('cptxt');
+  ta.value=txt;
+  ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px';
+  document.getElementById('cpgo').addEventListener('click',function(){
+    ta.focus(); ta.select(); ta.setSelectionRange(0,999999);
+    var ok=false;
+    try{ ok=document.execCommand('copy'); }catch(e){}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){
+        document.getElementById('cpmsg').textContent='✅ 已複製，去群組貼上就行';
+      })['catch'](function(){});
+    }
+    document.getElementById('cpmsg').textContent=ok?'✅ 已複製，去群組貼上就行':'複製不了的話請長按文字手動複製';
+  });
+}
+function makeReport(kind,chip){
+  var old=chip.textContent;
+  chip.textContent='⏳ 產生中…';
+  reportText(kind).then(function(txt){
+    chip.textContent=old;
+    showCopy(txt);
+    document.getElementById('copybox').scrollIntoView({behavior:'smooth',block:'nearest'});
+  })['catch'](function(e){
+    chip.textContent=old;
+    showCopy('抓不到資料（'+(e&&e.message||e)+'），請稍後再試');
+  });
+}
+document.getElementById('cpD').addEventListener('click',function(){ makeReport('D',this); });
+document.getElementById('cpS').addEventListener('click',function(){ makeReport('S',this); });
 
 function run(){
   if(now6Mode){ runNow6(); return; }
