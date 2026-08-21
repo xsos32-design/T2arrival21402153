@@ -270,6 +270,7 @@
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
       <span class="chip" id="cpD">📋 兆豐D區</span>
       <span class="chip" id="cpS">📋 2140+2153</span>
+      <span class="chip" id="cpM">🕐 開會空檔</span>
     </div>
     <div id="copybox"></div>
 
@@ -605,6 +606,7 @@ function runNow6(){
       return (all&&all.length?all:[]).filter(function(f){
         if(f.ODate!==want&&f.RDate!==want) return false;
         var t=hhmm(f.RTime)||hhmm(f.OTime);
+        if(t>='06:30'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
         return t>=loT&&t<=hiT;
       }).map(function(f){ f._day=dayFlag; return f; });
     }
@@ -621,7 +623,7 @@ function runNow6(){
     var n2=new Date();
     setDot('on',pad(n2.getHours())+':'+pad(n2.getMinutes()));
     st.innerHTML='⏱ 現在 <b>'+press+'</b> 按下　範圍 '+lo+'–'+(cross?'(隔日)':'')+(cross?hi2:hi)
-                +'　·　符合 <b>'+sel.length+'</b> 班'
+                +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:30–13:30'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
@@ -644,6 +646,7 @@ function reportText(kind){
   var d=new Date();
   var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var md=(d.getMonth()+1)+'/'+d.getDate();
+  var cut = kind==='M' ? '19:00' : '22:30';
   return getFlights(date).then(function(all){
     var want=date.replace(/-/g,'/');
     var seen={}, list=[];
@@ -652,14 +655,50 @@ function reportText(kind){
       var g=(f.Gate||'').trim().toUpperCase(); if(!g) return;
       if(String(f.BNO)!=='2') return;
       if(/取消/.test(f.Memo||'')) return;
-      var t=arrAt(f); if(t<'22:30') return;
+      var t=arrAt(f); if(t<cut) return;
       var k=hhmm(f.OTime)+'|'+g+'|'+(f.CityName||'');
       if(seen[k]) return; seen[k]=1;
+      /* （M＝開會空檔用 19:00 起；D/S 回報維持 22:30 起，見上面 cut） */
       list.push({t:t,no:String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))),
                  city:String(f.CityName||'').replace(/市$/,''),g:g});
     });
     var g53=expandSpec(document.getElementById('cfg2153').value);
     var g40=expandSpec(document.getElementById('cfg2140').value);
+
+    /* ── 開會空檔：19:00–20:30 之間 2140+2153 沒班機的最大縫隙 ── */
+    if(kind==='M'){
+      var LO='19:00', HI='20:30';
+      var toMin2=function(t){var p=t.split(':');return (+p[0])*60+(+p[1]);};
+      var toT=function(m){return pad(Math.floor(m/60))+':'+pad(m%60);};
+      var mrows=list.filter(function(x){
+        return (g40[x.g]||g53[x.g]) && x.t>=LO && x.t<=HI;
+      }).sort(function(a,b){ return a.t.localeCompare(b.t); });
+      var lines=[md+' 開會空檔（'+LO+'–'+HI+'，2140+2153）'];
+      if(!mrows.length){
+        lines.push('✅ 這段完全沒有 2140/2153 班機，整段 90 分鐘都能開會');
+      } else {
+        var pts=[toMin2(LO)].concat(mrows.map(function(x){return toMin2(x.t);})).concat([toMin2(HI)]);
+        var best={len:-1,i:0}, gaps=[];
+        for(var gi=1;gi<pts.length;gi++){
+          var glen=pts[gi]-pts[gi-1];
+          gaps.push({s:pts[gi-1],e:pts[gi],len:glen,i:gi});
+          if(glen>best.len) best={len:glen,s:pts[gi-1],e:pts[gi],i:gi};
+        }
+        lines.push('🏆 最大空檔 '+toT(best.s)+'–'+toT(best.e)+'（'+best.len+' 分鐘）');
+        var nM=mrows.length;
+        var pre = best.i>=2 ? mrows[best.i-2] : null;
+        var post= best.i<=nM ? mrows[best.i-1] : null;
+        lines.push(pre ?'前一班 '+pre.t+' '+pre.no+' '+pre.g :'（19:00 起就是空檔）');
+        lines.push(post?'後一班 '+post.t+' '+post.no+' '+post.g:'（之後一路空到 20:30）');
+        var others=gaps.filter(function(x){return x.i!==best.i && x.len>=10;})
+                       .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';});
+        if(others.length) lines.push('其他空檔：'+others.join('、'));
+        lines.push('');
+        lines.push('這段班機：'+mrows.map(function(x){return x.t+' '+x.no+' '+x.g;}).join('、'));
+      }
+      return lines.join('\n');
+    }
+
     var rows=list.filter(function(x){
       return kind==='D' ? x.g.charAt(0)==='D' : !!(g40[x.g]||g53[x.g]);
     });
@@ -714,6 +753,7 @@ function makeReport(kind,chip){
 }
 document.getElementById('cpD').addEventListener('click',function(){ makeReport('D',this); });
 document.getElementById('cpS').addEventListener('click',function(){ makeReport('S',this); });
+document.getElementById('cpM').addEventListener('click',function(){ makeReport('M',this); });
 
 function run(){
   if(now6Mode){ runNow6(); return; }
@@ -731,6 +771,7 @@ function run(){
       if(f.ODate!==want && f.RDate!==want) return false;
       var t=hhmm(f.RTime)||hhmm(f.OTime);
       if(t<t1||t>t2) return false;
+      if(t>='06:30'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
       return true;
     });
     sel.sort(function(a,b){
@@ -743,7 +784,7 @@ function run(){
     render();
     var n=new Date();
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
-    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班'
+    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:30–13:30'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
