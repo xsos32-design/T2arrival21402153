@@ -98,8 +98,16 @@
   #cptxt{width:100%;font:13px/1.7 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);
     border-radius:10px;padding:10px;color:var(--ink);resize:none;box-sizing:border-box}
   .cprow{display:flex;gap:10px;align-items:center;margin-top:8px}
-  .cprow .cpx{background:transparent;border:1px solid var(--line);color:var(--muted)}
   #cpmsg{font-size:12.5px;color:var(--muted)}
+  .mth{font-size:13px;font-weight:800;color:var(--ink);margin-top:12px}
+  .mt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:7px;background:#fff}
+  .mt th,.mt td{border:1px solid var(--line);padding:7px 6px;text-align:center;line-height:1.45}
+  .mt th{background:#fafbfc;color:var(--muted);font-size:11px;font-weight:700}
+  .mt td b{font-size:14px}
+  .mt td small{color:var(--muted)}
+  .mt .g40 .lb{background:var(--c40bg);color:var(--c40);font-weight:800}
+  .mt .g53 .lb{background:var(--c53bg);color:var(--c53);font-weight:800}
+  .mt .sub td{font-size:11.5px;color:var(--muted);background:#fafbfc;text-align:left;padding:5px 8px}
 
   /* ===== 版本二：手機版 — 深色大字卡片，跟手錶版同一套視覺 ===== */
   @media (max-width:640px){
@@ -131,10 +139,17 @@
     .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
     .chip.shop{font-size:16px;font-weight:800;min-height:52px}
     .chip.zone{flex:1 1 22%;font-size:14px;padding:9px 2px}
-    #hide{flex:1 1 100%}
+    #cpM{flex:1 1 100%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
-    .cprow .cpx{border-color:#2e343d;color:#8b94a1}
     #cpmsg{color:#8b94a1}
+    .mth{color:#e5e9ef}
+    .mt{background:#14171c}
+    .mt th,.mt td{border-color:#2e343d}
+    .mt th{background:#1c2027;color:#8b94a1}
+    .mt td small{color:#8b94a1}
+    .mt .g40 .lb{background:#0d3b36;color:#5eead4}
+    .mt .g53 .lb{background:#43200f;color:#fdba74}
+    .mt .sub td{background:#181c22;color:#8b94a1}
     #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
     #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
     #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
@@ -258,10 +273,10 @@
       <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>
       <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
       <span class="chip" data-t="00:00" data-e="23:59">整天</span>
-      <span class="chip" id="now6">⏱ 現在6小時</span>
     </div>
 
     <div class="chips">
+      <span class="chip" id="now6">⏱ 現在6小時</span>
       <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
     </div>
 
@@ -269,7 +284,7 @@
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
       <span class="chip" id="cpD">📋 兆豐D區</span>
       <span class="chip" id="cpS">📋 2140+2153</span>
-      <span class="chip" id="cpM">🕐 開會空檔</span>
+      <span class="chip" id="cpM">🕐 開會空檔 19:00–20:30</span>
     </div>
     <div id="copybox"></div>
 
@@ -664,19 +679,15 @@ function reportText(kind){
     var g53=expandSpec(document.getElementById('cfg2153').value);
     var g40=expandSpec(document.getElementById('cfg2140').value);
 
-    /* ── 開會空檔：19:00–20:30，2140 / 2153 分開算各自的最大縫隙 ── */
+    /* ── 開會空檔：19:00–20:30，2140 / 2153 分開算，輸出表格 ── */
     if(kind==='M'){
       var LO='19:00', HI='20:30';
       var toMin2=function(t){var p=t.split(':');return (+p[0])*60+(+p[1]);};
       var toT=function(m){return pad(Math.floor(m/60))+':'+pad(m%60);};
       var inWin=list.filter(function(x){ return x.t>=LO && x.t<=HI; });
-      function gapReport(label,rowsG){
+      function calc(label,cls,rowsG){
         rowsG.sort(function(a,b){ return a.t.localeCompare(b.t); });
-        var out=[];
-        if(!rowsG.length){
-          out.push('【'+label+'】✅ 整段 '+LO+'–'+HI+' 都沒班機，隨時可開會');
-          return out;
-        }
+        if(!rowsG.length) return {label:label,cls:cls,empty:true,rows:rowsG,others:[]};
         var pts=[toMin2(LO)].concat(rowsG.map(function(x){return toMin2(x.t);})).concat([toMin2(HI)]);
         var best={len:-1,i:0}, gaps=[];
         for(var gi=1;gi<pts.length;gi++){
@@ -684,23 +695,38 @@ function reportText(kind){
           gaps.push({s:pts[gi-1],e:pts[gi],len:glen,i:gi});
           if(glen>best.len) best={len:glen,s:pts[gi-1],e:pts[gi],i:gi};
         }
-        out.push('【'+label+'】🏆 最大空檔 '+toT(best.s)+'–'+toT(best.e)+'（'+best.len+' 分鐘）');
         var nG=rowsG.length;
-        var pre = best.i>=2 ? rowsG[best.i-2] : null;
-        var post= best.i<=nG ? rowsG[best.i-1] : null;
-        out.push((pre ?'前一班 '+pre.t+' '+pre.no+' '+pre.g :'19:00 起即空檔')
-                +'｜'+(post?'後一班 '+post.t+' '+post.no+' '+post.g:'空到 20:30'));
-        var others=gaps.filter(function(x){return x.i!==best.i && x.len>=10;})
-                       .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';});
-        if(others.length) out.push('其他空檔：'+others.join('、'));
-        out.push('班機：'+rowsG.map(function(x){return x.t+' '+x.no+' '+x.g;}).join('、'));
-        return out;
+        return {label:label,cls:cls,empty:false,rows:rowsG,
+          best:best,
+          pre : best.i>=2 ? rowsG[best.i-2] : null,
+          post: best.i<=nG ? rowsG[best.i-1] : null,
+          others:gaps.filter(function(x){return x.i!==best.i && x.len>=10;})
+                     .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';})};
       }
-      var lines=[md+' 開會空檔（'+LO+'–'+HI+'）']
-        .concat(gapReport('2140',inWin.filter(function(x){ return !!g40[x.g]; })))
-        .concat([''])
-        .concat(gapReport('2153',inWin.filter(function(x){ return !!g53[x.g]; })));
-      return lines.join('\n');
+      var G=[calc('2140','g40',inWin.filter(function(x){ return !!g40[x.g]; })),
+             calc('2153','g53',inWin.filter(function(x){ return !!g53[x.g]; }))];
+      /* 純文字版（複製到群組用） */
+      var lines=[md+' 開會空檔（'+LO+'–'+HI+'）'];
+      G.forEach(function(r){
+        if(r.empty){ lines.push('【'+r.label+'】整段沒班機，隨時可開會'); return; }
+        lines.push('【'+r.label+'】最大空檔 '+toT(r.best.s)+'–'+toT(r.best.e)+'（'+r.best.len+'分）'
+          +'｜'+(r.pre ?'前 '+r.pre.t+' '+r.pre.no+' '+r.pre.g :'19:00 起即空')
+          +'｜'+(r.post?'後 '+r.post.t+' '+r.post.no+' '+r.post.g:'空到 20:30'));
+        if(r.others.length) lines.push('　其他：'+r.others.join('、'));
+      });
+      /* 表格版（畫面顯示用） */
+      var h='<div class="mth">🕐 '+md+' 開會空檔（'+LO+'–'+HI+'）</div><table class="mt">'
+        +'<tr><th>分點</th><th>最大空檔</th><th>前一班</th><th>後一班</th></tr>';
+      G.forEach(function(r){
+        h+='<tr class="'+r.cls+'"><td class="lb">'+r.label+'</td>';
+        if(r.empty){ h+='<td colspan="3">✅ 整段沒班機，隨時可開會</td></tr>'; return; }
+        h+='<td><b>'+toT(r.best.s)+'–'+toT(r.best.e)+'</b><br><small>'+r.best.len+' 分鐘</small></td>'
+          +'<td>'+(r.pre ?r.pre.t+' '+esc(r.pre.no)+'<br><small>'+esc(r.pre.g)+'</small>':'—')+'</td>'
+          +'<td>'+(r.post?r.post.t+' '+esc(r.post.no)+'<br><small>'+esc(r.post.g)+'</small>':'—')+'</td></tr>';
+        if(r.others.length) h+='<tr class="'+r.cls+' sub"><td></td><td colspan="3">其他空檔：'+r.others.join('、')+'</td></tr>';
+      });
+      h+='</table>';
+      return {text:lines.join('\n'), html:h};
     }
 
     var rows=list.filter(function(x){
@@ -714,28 +740,28 @@ function reportText(kind){
     return lines.join('\n');
   });
 }
-function showCopy(txt){
+function showCopy(txt,html){
   var box=document.getElementById('copybox');
-  box.innerHTML='<div class="cpwrap"><textarea id="cptxt" readonly rows="3"></textarea>'
+  box.innerHTML='<div class="cpwrap">'
+    +(html ? html : '<textarea id="cptxt" readonly rows="3"></textarea>')
     +'<div class="cprow"><button id="cpgo" type="button">📋 複製</button>'
-    +'<button id="cpclose" type="button" class="cpx">✕ 收合</button>'
-    +'<span id="cpmsg">按「複製」後直接到群組貼上</span></div></div>';
-  var ta=document.getElementById('cptxt');
-  ta.value=txt;
-  ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px';
+    +'<span id="cpmsg">按「複製」後直接到群組貼上；再按一次上面的按鈕即收合</span></div></div>';
+  if(!html){
+    var ta=document.getElementById('cptxt');
+    ta.value=txt;
+    ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px';
+  }
   document.getElementById('cpgo').addEventListener('click',function(){
-    ta.focus(); ta.select(); ta.setSelectionRange(0,999999);
-    var ok=false;
-    try{ ok=document.execCommand('copy'); }catch(e){}
+    var done=function(ok){
+      document.getElementById('cpmsg').textContent=ok?'✅ 已複製，去群組貼上就行':'複製不了的話請長按文字手動複製';
+    };
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(function(){
-        document.getElementById('cpmsg').textContent='✅ 已複製，去群組貼上就行';
-      })['catch'](function(){});
+      navigator.clipboard.writeText(txt).then(function(){done(true);},function(){done(false);});
+    } else {
+      var tmp=document.createElement('textarea'); tmp.value=txt; document.body.appendChild(tmp);
+      tmp.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(tmp); done(ok);
     }
-    document.getElementById('cpmsg').textContent=ok?'✅ 已複製，去群組貼上就行':'複製不了的話請長按文字手動複製';
-  });
-  document.getElementById('cpclose').addEventListener('click',function(){
-    box.innerHTML=''; cpKind=null;
   });
 }
 var cpKind=null;
@@ -746,9 +772,9 @@ function makeReport(kind,chip){
   cpKind=kind;
   var old=chip.textContent;
   chip.textContent='⏳ 產生中…';
-  reportText(kind).then(function(txt){
+  reportText(kind).then(function(r){
     chip.textContent=old;
-    showCopy(txt);
+    if(typeof r==='string') showCopy(r); else showCopy(r.text,r.html);
     document.getElementById('copybox').scrollIntoView({behavior:'smooth',block:'nearest'});
   })['catch'](function(e){
     chip.textContent=old;
