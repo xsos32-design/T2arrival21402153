@@ -230,8 +230,8 @@
   <div class="card">
     <div class="row">
       <div class="fld"><label>日期</label><input type="date" id="date"></div>
-      <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="06:00">06 時</option><option value="07:00">07 時</option><option value="08:00">08 時</option><option value="09:00">09 時</option><option value="10:00">10 時</option><option value="11:00">11 時</option><option value="12:00">12 時</option><option value="13:00">13 時</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
-      <div class="fld"><label>結束</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="06:59">07 時</option><option value="07:59">08 時</option><option value="08:59">09 時</option><option value="09:59">10 時</option><option value="10:59">11 時</option><option value="11:59">12 時</option><option value="12:59">13 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
+      <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
+      <div class="fld"><label>結束</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
       <button id="go">🔄 更新班機</button>
     </div>
 
@@ -255,8 +255,7 @@
 
     <div class="chips">
       <span class="chip" data-t="00:00" data-e="05:59">00–06</span>
-      <span class="chip" data-t="06:00" data-e="11:59">06–12</span>
-      <span class="chip" data-t="12:00" data-e="17:59">12–18</span>
+      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>
       <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
       <span class="chip" data-t="00:00" data-e="23:59">整天</span>
       <span class="chip" id="now6">⏱ 現在6小時</span>
@@ -606,7 +605,7 @@ function runNow6(){
       return (all&&all.length?all:[]).filter(function(f){
         if(f.ODate!==want&&f.RDate!==want) return false;
         var t=hhmm(f.RTime)||hhmm(f.OTime);
-        if(t>='06:30'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
+        if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
         return t>=loT&&t<=hiT;
       }).map(function(f){ f._day=dayFlag; return f; });
     }
@@ -623,7 +622,7 @@ function runNow6(){
     var n2=new Date();
     setDot('on',pad(n2.getHours())+':'+pad(n2.getMinutes()));
     st.innerHTML='⏱ 現在 <b>'+press+'</b> 按下　範圍 '+lo+'–'+(cross?'(隔日)':'')+(cross?hi2:hi)
-                +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:30–13:30'
+                +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
@@ -665,37 +664,42 @@ function reportText(kind){
     var g53=expandSpec(document.getElementById('cfg2153').value);
     var g40=expandSpec(document.getElementById('cfg2140').value);
 
-    /* ── 開會空檔：19:00–20:30 之間 2140+2153 沒班機的最大縫隙 ── */
+    /* ── 開會空檔：19:00–20:30，2140 / 2153 分開算各自的最大縫隙 ── */
     if(kind==='M'){
       var LO='19:00', HI='20:30';
       var toMin2=function(t){var p=t.split(':');return (+p[0])*60+(+p[1]);};
       var toT=function(m){return pad(Math.floor(m/60))+':'+pad(m%60);};
-      var mrows=list.filter(function(x){
-        return (g40[x.g]||g53[x.g]) && x.t>=LO && x.t<=HI;
-      }).sort(function(a,b){ return a.t.localeCompare(b.t); });
-      var lines=[md+' 開會空檔（'+LO+'–'+HI+'，2140+2153）'];
-      if(!mrows.length){
-        lines.push('✅ 這段完全沒有 2140/2153 班機，整段 90 分鐘都能開會');
-      } else {
-        var pts=[toMin2(LO)].concat(mrows.map(function(x){return toMin2(x.t);})).concat([toMin2(HI)]);
+      var inWin=list.filter(function(x){ return x.t>=LO && x.t<=HI; });
+      function gapReport(label,rowsG){
+        rowsG.sort(function(a,b){ return a.t.localeCompare(b.t); });
+        var out=[];
+        if(!rowsG.length){
+          out.push('【'+label+'】✅ 整段 '+LO+'–'+HI+' 都沒班機，隨時可開會');
+          return out;
+        }
+        var pts=[toMin2(LO)].concat(rowsG.map(function(x){return toMin2(x.t);})).concat([toMin2(HI)]);
         var best={len:-1,i:0}, gaps=[];
         for(var gi=1;gi<pts.length;gi++){
           var glen=pts[gi]-pts[gi-1];
           gaps.push({s:pts[gi-1],e:pts[gi],len:glen,i:gi});
           if(glen>best.len) best={len:glen,s:pts[gi-1],e:pts[gi],i:gi};
         }
-        lines.push('🏆 最大空檔 '+toT(best.s)+'–'+toT(best.e)+'（'+best.len+' 分鐘）');
-        var nM=mrows.length;
-        var pre = best.i>=2 ? mrows[best.i-2] : null;
-        var post= best.i<=nM ? mrows[best.i-1] : null;
-        lines.push(pre ?'前一班 '+pre.t+' '+pre.no+' '+pre.g :'（19:00 起就是空檔）');
-        lines.push(post?'後一班 '+post.t+' '+post.no+' '+post.g:'（之後一路空到 20:30）');
+        out.push('【'+label+'】🏆 最大空檔 '+toT(best.s)+'–'+toT(best.e)+'（'+best.len+' 分鐘）');
+        var nG=rowsG.length;
+        var pre = best.i>=2 ? rowsG[best.i-2] : null;
+        var post= best.i<=nG ? rowsG[best.i-1] : null;
+        out.push((pre ?'前一班 '+pre.t+' '+pre.no+' '+pre.g :'19:00 起即空檔')
+                +'｜'+(post?'後一班 '+post.t+' '+post.no+' '+post.g:'空到 20:30'));
         var others=gaps.filter(function(x){return x.i!==best.i && x.len>=10;})
                        .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';});
-        if(others.length) lines.push('其他空檔：'+others.join('、'));
-        lines.push('');
-        lines.push('這段班機：'+mrows.map(function(x){return x.t+' '+x.no+' '+x.g;}).join('、'));
+        if(others.length) out.push('其他空檔：'+others.join('、'));
+        out.push('班機：'+rowsG.map(function(x){return x.t+' '+x.no+' '+x.g;}).join('、'));
+        return out;
       }
+      var lines=[md+' 開會空檔（'+LO+'–'+HI+'）']
+        .concat(gapReport('2140',inWin.filter(function(x){ return !!g40[x.g]; })))
+        .concat([''])
+        .concat(gapReport('2153',inWin.filter(function(x){ return !!g53[x.g]; })));
       return lines.join('\n');
     }
 
@@ -771,7 +775,7 @@ function run(){
       if(f.ODate!==want && f.RDate!==want) return false;
       var t=hhmm(f.RTime)||hhmm(f.OTime);
       if(t<t1||t>t2) return false;
-      if(t>='06:30'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
+      if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
       return true;
     });
     sel.sort(function(a,b){
@@ -784,7 +788,7 @@ function run(){
     render();
     var n=new Date();
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
-    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:30–13:30'
+    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'

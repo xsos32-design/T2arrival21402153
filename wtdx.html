@@ -93,8 +93,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 </div>
 <div class="grp">
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
-  <span class="btn pre" data-t="06:00" data-e="11:59">06–12</span>
-  <span class="btn pre" data-t="12:00" data-e="17:59">12–18</span>
+  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
   <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
 </div>
 <div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
@@ -107,7 +106,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 人數為依航線推估的下機人數（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250</div>
+<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 人數為依航線推估的下機人數（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機。</div>
 <div class="foot">按 🔄 或點最上面那條即可重抓當下資料。<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 
 <script>
@@ -280,6 +279,7 @@ function rowsFor(list,lo,hi){
   return (list||[]).filter(function(f){
     if(!f.Gate) return false;
     var t=hhmm(f.RTime)||hhmm(f.OTime);
+    if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */
     if(t<lo||t>hi) return false;
     if(!cats[shopOf(f)]) return false;
     var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
@@ -484,8 +484,8 @@ document.getElementById('bhide').addEventListener('click',function(){
 
 /* 開頁：自動落在現在的六小時區間，然後抓資料 */
 (function(){
-  var blk=Math.floor(new Date().getHours()/6)*6;
-  win=[pad(blk)+':00',pad(blk+5)+':59'];
+  var h=new Date().getHours();
+  win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
   load();
 })();
 </script>
