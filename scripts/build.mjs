@@ -221,13 +221,12 @@ function paxOf(f) {
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
    這種看起來像整數的 key 自動排到最前面並依數值排序，用物件的話按鈕順序會亂掉。 */
 const PRESETS = [
-  { id: 'h00', label: '00–06', win: () => ['00:00', '05:59', '00:00–06:00'] },
-  { id: 'h06', label: '06–12', win: () => ['06:00', '11:59', '06:00–12:00'] },
-  { id: 'h12', label: '12–18', win: () => ['12:00', '17:59', '12:00–18:00'] },
-  { id: 'h18', label: '18–24', win: () => ['18:00', '23:59', '18:00–24:00'] },
+  { id: 'h00', label: '00–06',    win: () => ['00:00', '05:59', '00:00–06:00'] },
+  { id: 'h13', label: '13:30–18', win: () => ['13:30', '17:59', '13:30–18:00'] },
+  { id: 'h18', label: '18–24',    win: () => ['18:00', '23:59', '18:00–24:00'] },
 ];
-/* 現在落在哪一個六小時區間 —— 給 watch.html 當預設入口 */
-const CURRENT_PRESET = ['h00', 'h06', 'h12', 'h18'][Math.floor(H / 6)];
+/* 現在該看哪個時段 —— 給 watch.html 當預設入口（06:00–13:30 固定排除） */
+const CURRENT_PRESET = H < 6 ? 'h00' : (H < 18 ? 'h13' : 'h18');
 
 /* 分類：四種，可任意複選。每個組合都會產生一個獨立的靜態檔。 */
 const CATS = [
@@ -326,6 +325,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     .filter(f => {
       if (!String(f.Gate || '').trim()) return false;
       const t = hhmm(f.RTime) || hhmm(f.OTime);
+      if (t >= '06:00' && t <= '13:30') return false;   /* 固定排除 06:00–13:30 */
       if (t < t1 || t > t2) return false;
       if (!codes.has(shopOf(f))) return false;
       if (hide && statusOf(f).done) return false;
@@ -407,7 +407,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
 ${body}
-<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250</div>
+<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
