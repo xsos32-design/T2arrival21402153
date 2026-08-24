@@ -305,6 +305,20 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .btn.c53.on{background:#43200f;border-color:#f97316;color:#fdba74}
 .btn.ct1.on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
 .btn.ct2.on{background:#232a34;border-color:#64748b;color:#cbd5e1}
+.r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 4px 0 0 #14b8a6}
+.r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 4px 0 0 #f97316}
+.r.r40 .g{color:#5eead4}
+.r.r53 .g{color:#fdba74}
+.btn.zone{flex:1 1 22%;font-size:13.5px;padding:8px 2px;cursor:pointer;user-select:none}
+.mth{font-size:13px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
+.mt{width:100%;border-collapse:collapse;font-size:12px;background:#14171c;margin-bottom:9px}
+.mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
+.mt th{background:#1c2027;color:#8b94a1;font-size:10.5px;font-weight:700}
+.mt td b{font-size:13.5px}
+.mt td small{color:#8b94a1}
+.mt .g40 .lb{background:#0d3b36;color:#5eead4;font-weight:800}
+.mt .g53 .lb{background:#43200f;color:#fdba74;font-weight:800}
+.mt .sub td{font-size:10.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
@@ -316,6 +330,43 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  .g{min-width:52px} .tag{text-align:center}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
+
+/* 開會空檔（19:00–20:30，2140／2153 分開）—— 以「抓取時刻」的資料算好內嵌 */
+function meetTable(flights) {
+  const LO = '19:00', HI = '20:30';
+  const toMin2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
+  const toT = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  const inWin = flights.filter(f => {
+    if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
+    const t = hhmm(f.RTime) || hhmm(f.OTime);
+    return t >= LO && t <= HI;
+  });
+  const calc = (label, cls, rows) => {
+    rows.sort((a, b) => (hhmm(a.RTime) || hhmm(a.OTime)).localeCompare(hhmm(b.RTime) || hhmm(b.OTime)));
+    let h = `<tr class="${cls}"><td class="lb">${label}</td>`;
+    if (!rows.length) return h + '<td colspan="3">✅ 整段沒班機</td></tr>';
+    const pts = [toMin2(LO), ...rows.map(f => toMin2(hhmm(f.RTime) || hhmm(f.OTime))), toMin2(HI)];
+    let best = { len: -1, i: 0 }; const gaps = [];
+    for (let gi = 1; gi < pts.length; gi++) {
+      const glen = pts[gi] - pts[gi - 1];
+      gaps.push({ s: pts[gi - 1], e: pts[gi], len: glen, i: gi });
+      if (glen > best.len) best = { len: glen, s: pts[gi - 1], e: pts[gi], i: gi };
+    }
+    const pre = best.i >= 2 ? rows[best.i - 2] : null;
+    const post = best.i <= rows.length ? rows[best.i - 1] : null;
+    const cell = f => f ? (hhmm(f.RTime) || hhmm(f.OTime)) + ' ' + esc(f.flightCode) + '<br><small>' + esc(f.Gate) + '</small>' : '—';
+    h += `<td><b>${toT(best.s)}–${toT(best.e)}</b><br><small>${best.len} 分鐘</small></td>`
+       + `<td>${cell(pre)}</td><td>${cell(post)}</td></tr>`;
+    const others = gaps.filter(x => x.i !== best.i && x.len >= 10).map(x => toT(x.s) + '–' + toT(x.e) + '（' + x.len + '分）');
+    if (others.length) h += `<tr class="${cls} sub"><td></td><td colspan="3">其他空檔：${others.join('、')}</td></tr>`;
+    return h;
+  };
+  return `<div class="mth">🕐 ${todayLabel} 開會空檔（${LO}–${HI}）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
+    + '<table class="mt"><tr><th>分點</th><th>最大空檔</th><th>前一班</th><th>後一班</th></tr>'
+    + calc('2140', 'g40', inWin.filter(f => shopOf(f) === '40'))
+    + calc('2153', 'g53', inWin.filter(f => shopOf(f) === '53'))
+    + '</table>';
+}
 
 function renderPage(flights, preset, shopKey, hide, err) {
   const [t1, t2, winLabel] = presetOf(preset).win();
@@ -352,7 +403,9 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const cls  = st.done ? 'done' : ((eta >= 0 && eta <= 45) ? 'soon' : '');
     const tg   = TAG[shop];
 
-    return `<div class="r ${cls}">
+    const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
+    const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
+    return `<div class="r ${cls}${rowCls}" data-z="${zg}">
 <b class="t t-${tc}">${big}</b><span class="g">${esc(f.Gate)}</span><span class="tag ${tg.cls}">${tg.txt}</span>
 <span class="f">${esc(f.flightCode || '')}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i></span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
@@ -379,7 +432,9 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   const presetBtns = PRESETS
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset, 'pre')).join('\n');
-  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '🙈 隱藏已抵達：' + (hide ? '是' : '否'), hide);
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '🙈 隱藏已抵達：' + (hide ? '是' : '否'), hide, 'half');
+  const meetBtn = `<span class="btn half" id="bmeet">🕐 開會空檔</span>`;
+  const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
                         '🔄 立即更新　' + stamp + '<i id="age"></i>', false);
@@ -402,10 +457,12 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${shortcut}</div>
 <div class="grp">${catBtns}</div>
+<div class="grp">${zoneBtns}</div>
 <div class="grp">${presetBtns}</div>
-<div class="grp">${hideBtn}</div>
+<div class="grp">${hideBtn}${meetBtn}</div>
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
+<div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
@@ -422,6 +479,37 @@ ${body}
       var h = a[i].getAttribute('href') || '';
       if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
     }
+    /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會空檔開關 */
+    var zs={A:1,B:1,C:1,D:1};
+    function zApply(){
+      var rs=document.querySelectorAll('.r[data-z]');
+      for(var i=0;i<rs.length;i++){
+        var z=rs[i].getAttribute('data-z');
+        rs[i].style.display=(/[A-D]/.test(z)&&!zs[z])?'none':'';
+      }
+      var bs=document.querySelectorAll('.btn.zone');
+      for(var j=0;j<bs.length;j++){
+        var zz=bs[j].getAttribute('data-z');
+        bs[j].className='btn zone'+(zs[zz]?' on':'');
+        bs[j].textContent=(zs[zz]?'✓ ':'　')+zz+'區';
+      }
+    }
+    var zbs=document.querySelectorAll('.btn.zone');
+    for(var k=0;k<zbs.length;k++){
+      (function(el){
+        el.addEventListener('click',function(){
+          var z=el.getAttribute('data-z'), cnt=0;
+          for(var key in zs) if(zs[key]) cnt++;
+          if(zs[z]&&cnt<=1) return;
+          zs[z]=!zs[z]; zApply();
+        });
+      })(zbs[k]);
+    }
+    var bm=document.getElementById('bmeet'), mbx=document.getElementById('meetbox');
+    if(bm&&mbx) bm.addEventListener('click',function(){
+      mbx.hidden=!mbx.hidden;
+      bm.className='btn half'+(mbx.hidden?'':' on');
+    });
     var b = +(document.body.getAttribute('data-b') || 0);
     var el = document.getElementById('age');
     if (b && el){
