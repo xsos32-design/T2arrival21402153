@@ -87,13 +87,16 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 
 <div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>即時</span><span class="u" id="hstamp">載入中…</span></div>
 
+<div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
 <div class="grp">
-  <span class="btn half" id="ball">全部</span>
-  <span class="btn half" id="bnone">全不要</span>
+  <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
+  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
+  <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
 </div>
 <div class="grp">
-  <span class="btn half" id="bmine">2140+2153</span>
-  <span class="btn half" id="bmeet">🕐 開會空檔</span>
+  <span class="btn nav" id="dPrev">◀</span>
+  <span class="btn mid" id="dMid">📅 今天</span>
+  <span class="btn nav" id="dNext">▶</span>
 </div>
 <div class="grp">
   <span class="btn cat" data-c="40">　2140</span>
@@ -108,16 +111,13 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn zone" data-z="D">　D區</span>
 </div>
 <div class="grp">
-  <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
-  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
-  <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
+  <span class="btn half" id="ball">全部</span>
+  <span class="btn half" id="bnone">全不要</span>
 </div>
 <div class="grp">
-  <span class="btn nav" id="dPrev">◀</span>
-  <span class="btn mid" id="dMid">📅 今天</span>
-  <span class="btn nav" id="dNext">▶</span>
+  <span class="btn half" id="bmine">2140+2153</span>
+  <span class="btn half" id="bmeet">🕐 開會空檔</span>
 </div>
-<div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
 <div class="grp">
   <span class="btn half" id="bhide">🙈 隱藏已抵達：否</span>
   <span class="btn half" id="breload">🔄 立即更新</span>

@@ -37,7 +37,9 @@
   input.wide{min-width:230px}
   button{font:inherit;font-weight:650;padding:8px 20px;border-radius:8px;border:1px solid transparent;cursor:pointer;
     background:var(--accent);color:#fff}
+  #go{display:block;width:100%;margin-bottom:2px}
   .dq{display:flex;gap:6px;align-items:stretch}
+  .dqb{flex:0 0 auto}
   .dq input{flex:1;min-width:0}
   .dqb{font:inherit;font-weight:650;padding:7px 12px;border-radius:8px;cursor:pointer;
     background:#fff;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
@@ -250,11 +252,18 @@
   <div id="errslot"></div>
 
   <div class="card">
-    <div class="row">
-      <div class="fld"><label>日期</label><div class="dq"><input type="date" id="date"><button type="button" class="dqb" id="dToday">今天</button><button type="button" class="dqb" id="dTom">明天</button></div></div>
-      <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
-      <div class="fld"><label>結束（比起始早＝跨到隔日）</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
-      <button id="go">🔄 更新班機</button>
+    <button id="go">🔄 更新班機</button>
+
+    <div class="chips">
+      <span class="chip" data-t="00:00" data-e="05:59">00–06</span>
+      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>
+      <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
+      <span class="chip" data-t="00:00" data-e="23:59">整天</span>
+    </div>
+
+    <div class="chips">
+      <span class="chip" id="now6">⏱ 現在6小時</span>
+      <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
     </div>
 
     <div class="chips">
@@ -276,24 +285,21 @@
     </div>
 
     <div class="chips">
-      <span class="chip" data-t="00:00" data-e="05:59">00–06</span>
-      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>
-      <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
-      <span class="chip" data-t="00:00" data-e="23:59">整天</span>
-    </div>
-
-    <div class="chips">
-      <span class="chip" id="now6">⏱ 現在6小時</span>
-      <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
-    </div>
-
-    <div class="chips">
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
       <span class="chip" id="cpD">📋 兆豐D區</span>
       <span class="chip" id="cpS">📋 2140+2153</span>
       <span class="chip" id="cpM">🕐 開會空檔 19:00–20:30</span>
     </div>
     <div id="copybox"></div>
+
+    <details class="cfg">
+      <summary>📅 進階：選日期／跨日區間（結束比起始早＝跨到隔日）</summary>
+      <div class="row" style="margin-top:9px">
+        <div class="fld"><label>日期</label><div class="dq"><input type="date" id="date"><button type="button" class="dqb" id="dToday">今天</button><button type="button" class="dqb" id="dTom">明天</button></div></div>
+        <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
+        <div class="fld"><label>結束（比起始早＝跨到隔日）</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
+      </div>
+    </details>
 
     <details class="cfg">
       <summary>分點別登機門設定（可修改）</summary>
