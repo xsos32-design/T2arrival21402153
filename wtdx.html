@@ -350,6 +350,33 @@ function render(){
     html=rowsFor(DATA,win[0],win[1]).map(function(f){ return rowHtml(f,nowMin); }).join('');
     if(!html) html='<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+'</div>';
   }
+  /* 尚未公布登機門的班機（跟網頁版一樣列出來 —— 隔日凌晨的班常常還沒派門，不列會整批看不到） */
+  var pend=[];
+  function pushPend(list2,lo2,hi2b,dayTag){
+    (list2||[]).forEach(function(f){
+      if((f.Gate||'').trim()) return;
+      if(/取消/.test(f.Memo||'')) return;
+      var t=hhmm(f.RTime)||hhmm(f.OTime);
+      if(!t) return;
+      if(t>='06:00'&&t<='13:30') return;
+      if(t<lo2||t>hi2b) return;
+      pend.push({t:t,d:dayTag?1:0,txt:(dayTag?dayTag+' ':'')+t+' '+esc(f.flightCode)+'（'+esc(f.CityName)+'）'});
+    });
+  }
+  if(mode==='now6'){
+    var sMin=nowMin-30; if(sMin<0) sMin=0;
+    var lo3=pad(Math.floor(sMin/60))+':'+pad(sMin%60);
+    var eRaw=nowMin+360, cr=eRaw>=1440;
+    pushPend(DATA,lo3,cr?'23:59':pad(Math.floor(eRaw/60))+':'+pad(eRaw%60),'');
+    if(cr&&DATA2) pushPend(DATA2,'00:00',pad(Math.floor((eRaw-1440)/60))+':'+pad((eRaw-1440)%60),'隔日');
+  } else {
+    pushPend(DATA,win[0],win[1],'');
+  }
+  if(pend.length){
+    pend.sort(function(a,b){ return (a.d-b.d)||a.t.localeCompare(b.t); });
+    html+='<div class="msg" style="text-align:left;line-height:1.7">🕓 <b style="color:#cbd5e1">尚未公布登機門：'+pend.length+' 班</b>（門一派好就會自動變成上面的大字卡）<br>'
+      +pend.map(function(p){ return p.txt; }).join('、')+'</div>';
+  }
   if(!cats['40']&&!cats['53']&&!cats['t1']&&!cats['t2'])
     html='<div class="msg">分類全部關掉了<br>點上面 2140／2153／一航／二航 選要看的</div>';
   document.getElementById('list').innerHTML=html;
