@@ -527,7 +527,7 @@ ${body}
 
 /* ---------- 主程式 ---------- */
 async function main() {
-  let flights = [], err = '';
+  let flights = [], tomorrowSnap = [], err = '';
   const tried = [];
   const why = e => { const c = e && e.cause; return e.message + (c ? '｜' + (c.code || c.message || '') : ''); };
 
@@ -538,12 +538,17 @@ async function main() {
     const nameOf = id => names[id] || id || '';
     const res = await fetch(TDX_FLIGHT, { headers: { Accept: 'application/json', Authorization: auth } });
     if (!res.ok) throw new Error('TDX 回應 ' + res.status);
-    const list = (await res.json())
+    const tmD0 = new Date(nowTPE.getTime() + 86400000);
+    const tomorrow0 = tmD0.getUTCFullYear() + '/' + pad(tmD0.getUTCMonth() + 1) + '/' + pad(tmD0.getUTCDate());
+    const listAll = (await res.json())
       .filter(f => !f.IsCargo)
       .map(f => fromTDX(f, nameOf))
-      .filter(f => f.OTime && f.ODate === today);
+      .filter(f => f.OTime);
+    const list = listAll.filter(f => f.ODate === today);
     if (!list.length) throw new Error('TDX 回傳 0 筆今日到站');
     flights = mergeCodeshare(list);
+    /* 隔日班機留一份給 data.json 快照 —— wtdx 的「現在起6小時」跨日備援要用 */
+    tomorrowSnap = mergeCodeshare(listAll.filter(f => f.ODate === tomorrow0));
     console.log(`共掛合併：${list.length} 筆 → ${flights.length} 班`);
     console.log(`✅ TDX 成功，抓到 ${flights.length} 筆到站（${today}）`);
   } catch (e) {
@@ -588,11 +593,9 @@ async function main() {
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
-  const tmD = new Date(nowTPE.getTime() + 86400000);
-  const tomorrow = tmD.getUTCFullYear() + '/' + pad(tmD.getUTCMonth() + 1) + '/' + pad(tmD.getUTCDate());
-  const snap = flights.filter(f => f.ODate === today || f.RDate === today || f.ODate === tomorrow);
+  const snap = flights.concat(tomorrowSnap);
   await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
-  console.log(`data.json 快照 ${snap.length} 筆`);
+  console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
   for (const f of ['index.html', 'wtest.html', 'wtdx.html']) {
