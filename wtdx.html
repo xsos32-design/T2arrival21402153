@@ -340,7 +340,7 @@ function render(){
       var hi2=pad(Math.floor((endRaw-1440)/60))+':'+pad((endRaw-1440)%60);
       html+='<div class="day">📅 '+(m2.getMonth()+1)+'/'+m2.getDate()+' 班機</div>';
       if(DATA2===null){
-        html+='<div class="msg">隔日資料載入中…</div>';
+        html+='<div class="msg">隔日資料載入中…（TDX 抓隔日約要 10 秒，好了會自己出現）</div>';
       } else {
         var part2=rowsFor(DATA2,'00:00',hi2).map(function(f){ return rowHtml(f,-1); }).join('');
         html+=part2||'<div class="msg">隔日這段沒有符合的班機'+(DATA2.length?'':'（或資料還抓不到，按 🔄 再試）')+'</div>';
@@ -364,7 +364,10 @@ function ensureTomorrow(){
   var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
   var day=iso.replace(/-/g,'/');
   var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+Date.now();
-  fetch(url).then(function(r){ if(!r.ok) throw new Error('TDX '+r.status); return r.json(); })
+  var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('逾時')); },25000); });
+  Promise.race([bail,
+    fetch(url).then(function(r){ if(!r.ok) throw new Error('TDX '+r.status); return r.json(); })
+  ])
   .then(function(list){
     DATA2=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
           .filter(function(f){ return f.ODate===day||f.RDate===day; });
