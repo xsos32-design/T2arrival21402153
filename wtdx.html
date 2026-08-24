@@ -109,6 +109,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
   <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
   <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
+  <span class="btn pre" id="bday2">明日</span>
 </div>
 <div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
 <div class="grp">
@@ -275,6 +276,7 @@ function paintBtns(){
   [].forEach.call(document.querySelectorAll('.pre'),function(b){
     b.className='btn pre'+((mode==='win'&&b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
   });
+  document.getElementById('bday2').className='btn pre'+(mode==='tm'?' on':'');
   var bn=document.getElementById('bnow');
   bn.className='btn'+(mode==='now6'?' on':'');
   if(mode==='now6'){
@@ -327,7 +329,17 @@ function rowHtml(f,nowMin){
 function render(){
   var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
   var html='';
-  if(mode==='now6'){
+  if(mode==='tm'){
+    /* 明日整天（同樣排除 06:00–13:30；沒派門的列在下方清單） */
+    var mt=new Date(n.getTime()+86400000);
+    html='<div class="day">📅 '+(mt.getMonth()+1)+'/'+mt.getDate()+' 明日班機</div>';
+    if(DATA2===null){
+      html+='<div class="msg">明日資料載入中…（TDX 約要 10 秒，好了會自己出現）</div>';
+    } else {
+      var pt=rowsFor(DATA2,'00:00','23:59').map(function(f){ return rowHtml(f,-1); }).join('');
+      html+=pt||'<div class="msg">明日沒有符合的班機（沒派門的看下面清單）</div>';
+    }
+  } else if(mode==='now6'){
     /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00）；跨日分兩段插日期分隔列 */
     var startMin=nowMin-30; if(startMin<0) startMin=0;   /* 凌晨半小時內就從 00:00 起 */
     var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
@@ -369,6 +381,8 @@ function render(){
     var eRaw=nowMin+360, cr=eRaw>=1440;
     pushPend(DATA,lo3,cr?'23:59':pad(Math.floor(eRaw/60))+':'+pad(eRaw%60),'');
     if(cr&&DATA2) pushPend(DATA2,'00:00',pad(Math.floor((eRaw-1440)/60))+':'+pad((eRaw-1440)%60),'隔日');
+  } else if(mode==='tm'){
+    if(DATA2) pushPend(DATA2,'00:00','23:59','');
   } else {
     pushPend(DATA,win[0],win[1],'');
   }
@@ -383,9 +397,9 @@ function render(){
   paintBtns();
 }
 /* 跨日時把隔日班機抓回來（即時失敗就退快照；只在需要時才多打這 1 次） */
-function ensureTomorrow(){
+function ensureTomorrow(force){
   var n=new Date();
-  if(n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
+  if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
   if(DATA2!==null) return;
   var m2=new Date(n.getTime()+86400000);
   var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
@@ -428,6 +442,7 @@ function load(){
     document.getElementById('fb').innerHTML='';
     DATA2=null;                       /* 重新整理後隔日資料也重抓 */
     if(mode==='now6') ensureTomorrow();
+    if(mode==='tm') ensureTomorrow(true);
     render();   /* 班機先上畫面（出發地暫時顯示代碼） */
     tdxNames().then(function(nm){   /* 城市中文名背景補上，抓不到也不影響 */
       if(!nm) return;
@@ -561,9 +576,15 @@ document.getElementById('bmine').addEventListener('click',function(){
   });
 });
 [].forEach.call(document.querySelectorAll('.pre'),function(b){
+  if(!b.getAttribute('data-t')) return;   /* 明日鍵另外處理 */
   b.addEventListener('click',function(){
     mode='win'; win=[b.getAttribute('data-t'),b.getAttribute('data-e')]; render();
   });
+});
+document.getElementById('bday2').addEventListener('click',function(){
+  mode='tm';
+  if(DATA2===null) ensureTomorrow(true);
+  render();
 });
 document.getElementById('bnow').addEventListener('click',function(){
   mode='now6'; ensureTomorrow(); render();

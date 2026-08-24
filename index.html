@@ -37,6 +37,10 @@
   input.wide{min-width:230px}
   button{font:inherit;font-weight:650;padding:8px 20px;border-radius:8px;border:1px solid transparent;cursor:pointer;
     background:var(--accent);color:#fff}
+  .dq{display:flex;gap:6px;align-items:stretch}
+  .dq input{flex:1;min-width:0}
+  .dqb{font:inherit;font-weight:650;padding:7px 12px;border-radius:8px;cursor:pointer;
+    background:#fff;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
   .chip{font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;
     cursor:pointer;color:var(--muted);white-space:nowrap;user-select:none}
@@ -128,6 +132,9 @@
     .row .fld:first-child{flex:1 1 100%}   /* 日期整行，起始／結束並排 */
     input,select{background:#1c2027;border-color:#2e343d;color:#f2f4f7;
       font-size:16px;padding:11px 10px;min-height:48px;width:100%;border-radius:11px}
+    .dq input{width:auto}
+    .dqb{background:#1c2027;border-color:#2e343d;color:#9aa3b0;min-height:48px;
+      padding:0 14px;border-radius:11px;border-width:2px}
     .row{gap:9px}
     button{width:100%;padding:15px;font-size:17px;min-height:54px;border-radius:12px}
 
@@ -244,7 +251,7 @@
 
   <div class="card">
     <div class="row">
-      <div class="fld"><label>日期</label><input type="date" id="date"></div>
+      <div class="fld"><label>日期</label><div class="dq"><input type="date" id="date"><button type="button" class="dqb" id="dToday">今天</button><button type="button" class="dqb" id="dTom">明天</button></div></div>
       <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
       <div class="fld"><label>結束</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
       <button id="go">🔄 更新班機</button>
@@ -441,12 +448,19 @@ function render(){
 
   var rows=[];
   lastRows.forEach(function(f){
-    var shop=shopOf(f,g53,g40);
-    if(!show[shop]) return;
-    var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
-    if(/[A-D]/.test(zg)&&!zoneShow[zg]) return;
-    if(hideDone && statusOf(f).done) return;
-    rows.push({f:f, shop:shop});
+    var hasGate=(f.Gate||'').trim();
+    if(hasGate){
+      var shop=shopOf(f,g53,g40);
+      if(!show[shop]) return;
+      var zg=hasGate.charAt(0).toUpperCase();
+      if(/[A-D]/.test(zg)&&!zoneShow[zg]) return;
+      if(hideDone && statusOf(f).done) return;
+      rows.push({f:f, shop:shop});
+    } else {
+      /* 還沒派登機門（隔日班機幾乎都是）：照樣顯示，分類標「待定」，不吃分類／區域篩選 */
+      if(hideDone && statusOf(f).done) return;
+      rows.push({f:f, shop:null});
+    }
   });
   /* 依「實際／預計抵達時間」排序 — 誰先到誰在前 */
   rows.sort(function(a,b){
@@ -486,16 +500,17 @@ function render(){
       }
       var eta=mins(big)-nowM;
       var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
-      var tg=TAG[x.shop];
+      var tg=x.shop?TAG[x.shop]:{txt:'待定',cls:'tt2'};
       var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
       var main=f.flightCode||((f.ACode||'')+(f.FlightNo||''));
       var tm='';
       var shopCls=x.shop==='2140'?' r40':(x.shop==='2153'?' r53':'');
+      /* 待定班機（無門）不上色 */
       return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
         + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i></div>'
         + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
-        + '<div class="c-gate">'+esc(f.Gate)+tm+'</div>'
+        + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
         + '<div class="c-st"><span class="badge '+st.cls+'">'
           + '<span class="full">'+esc(st.text)+'</span>'
@@ -630,8 +645,8 @@ function runNow6(){
           || hhmm(a.OTime).localeCompare(hhmm(b.OTime))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
-    lastRows=sel.filter(function(f){ return (f.Gate||'').trim(); });
-    lastPending=sel.filter(function(f){ return !(f.Gate||'').trim() && !/取消/.test(f.Memo||''); });
+    lastRows=sel.filter(function(f){ return (f.Gate||'').trim() || !/取消/.test(f.Memo||''); });
+    lastPending=[];
     document.getElementById('errslot').innerHTML='';
     render();
     var n2=new Date();
@@ -808,8 +823,8 @@ function run(){
       return hhmm(a.OTime).localeCompare(hhmm(b.OTime))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
-    lastRows=sel.filter(function(f){ return (f.Gate||'').trim(); });
-    lastPending=sel.filter(function(f){ return !(f.Gate||'').trim() && !/取消/.test(f.Memo||''); });
+    lastRows=sel.filter(function(f){ return (f.Gate||'').trim() || !/取消/.test(f.Memo||''); });
+    lastPending=[];
     document.getElementById('errslot').innerHTML='';
     render();
     var n=new Date();
@@ -843,6 +858,14 @@ document.getElementById('date').addEventListener('change',function(){ setNow6(fa
 ['cfg2140','cfg2153'].forEach(function(id){
   document.getElementById(id).addEventListener('change',render);
 });
+
+function setDay(off){
+  var d=new Date(Date.now()+off*86400000);
+  document.getElementById('date').value=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  setNow6(false); run();
+}
+document.getElementById('dToday').addEventListener('click',function(){ setDay(0); });
+document.getElementById('dTom').addEventListener('click',function(){ setDay(1); });
 
 [].forEach.call(document.querySelectorAll('.chip[data-t]'),function(c){
   c.addEventListener('click',function(){
