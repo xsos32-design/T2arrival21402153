@@ -455,10 +455,10 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <title>班機手錶版 ${winLabel}</title>
 <style>${CSS}</style></head><body data-b="${buildEpoch}">
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
-<div class="grp">${shortcut}</div>
+<div class="grp">${presetBtns}</div>
 <div class="grp">${catBtns}</div>
 <div class="grp">${zoneBtns}</div>
-<div class="grp">${presetBtns}</div>
+<div class="grp">${shortcut}</div>
 <div class="grp">${hideBtn}${meetBtn}</div>
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
