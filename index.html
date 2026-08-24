@@ -253,7 +253,7 @@
     <div class="row">
       <div class="fld"><label>日期</label><div class="dq"><input type="date" id="date"><button type="button" class="dqb" id="dToday">今天</button><button type="button" class="dqb" id="dTom">明天</button></div></div>
       <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
-      <div class="fld"><label>結束</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
+      <div class="fld"><label>結束（比起始早＝跨到隔日）</label><select id="t2"><option value="00:59">01 時</option><option value="01:59">02 時</option><option value="02:59">03 時</option><option value="03:59">04 時</option><option value="04:59">05 時</option><option value="05:59">06 時</option><option value="13:59">14 時</option><option value="14:59">15 時</option><option value="15:59">16 時</option><option value="16:59">17 時</option><option value="17:59">18 時</option><option value="18:59">19 時</option><option value="19:59">20 時</option><option value="20:59">21 時</option><option value="21:59">22 時</option><option value="22:59">23 時</option><option value="23:59">24 時</option></select></div>
       <button id="go">🔄 更新班機</button>
     </div>
 
@@ -417,7 +417,8 @@ function statusOf(f){
 
 var lastRows=[], lastPending=[], hideDone=false;
 var show={'2140':true,'2153':true,'t1':true,'t2':true};
-var zoneShow={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（無字母的一律顯示） */
+var zoneShow={'A':true,'B':true,'C':true,'D':true};
+var dayBreakMD='';   /* 跨日分隔列顯示的日期（run/runNow6 會設定） */   /* 登機門開頭字母（無字母的一律顯示） */
 
 /* 四種分類：
    2140 / 2153 = 第二航廈、登機門符合設定
@@ -485,7 +486,8 @@ function render(){
       if((f._day||0)===1&&!dayShown){
         dayShown=true;
         var nd=new Date(Date.now()+86400000);
-        lead='<div class="daybreak">📅 '+(nd.getMonth()+1)+'/'+nd.getDate()+' 班機</div>';
+        var ndMD=dayBreakMD||((nd.getMonth()+1)+'/'+nd.getDate());
+        lead='<div class="daybreak">📅 '+ndMD+' 班機</div>';
       }
       var sch=hhmm(f.OTime), act=hhmm(f.RTime);
       var big, tcls, sub;
@@ -808,19 +810,31 @@ function run(){
   var st=document.getElementById('status');
   if(!date){ st.textContent='請先選擇日期。'; return; }
 
+  /* 結束比起始早 ＝ 跨到隔日（例：起始 22 時、結束 03 時 → 8/25 22:00 ～ 8/26 02:59） */
+  var cross = t2 < t1;
+  var d2=new Date(date+'T12:00:00'); d2=new Date(d2.getTime()+86400000);
+  var date2=d2.getFullYear()+'-'+pad(d2.getMonth()+1)+'-'+pad(d2.getDate());
+  dayBreakMD = cross ? (d2.getMonth()+1)+'/'+d2.getDate() : '';
+
   setDot('busy','更新中…');
-  getFlights(date)
-  .then(function(all){
-    var want=date.replace(/-/g,'/');
-    var sel=(all&&all.length?all:[]).filter(function(f){
-      if(f.ODate!==want && f.RDate!==want) return false;
-      var t=hhmm(f.RTime)||hhmm(f.OTime);
-      if(t<t1||t>t2) return false;
-      if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
-      return true;
-    });
+  Promise.all([ getFlights(date), cross?getFlights(date2):Promise.resolve(null) ])
+  .then(function(res){
+    function pick2(all,wantIso,loT,hiT,dayFlag){
+      var want=wantIso.replace(/-/g,'/');
+      return (all&&all.length?all:[]).filter(function(f){
+        if(f.ODate!==want && f.RDate!==want) return false;
+        var t=hhmm(f.RTime)||hhmm(f.OTime);
+        if(t<loT||t>hiT) return false;
+        if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */
+        return true;
+      }).map(function(f){ f._day=dayFlag; return f; });
+    }
+    var sel = cross
+      ? pick2(res[0],date,t1,'23:59',0).concat(pick2(res[1],date2,'00:00',t2,1))
+      : pick2(res[0],date,t1,t2,0);
     sel.sort(function(a,b){
-      return hhmm(a.OTime).localeCompare(hhmm(b.OTime))
+      return ((a._day||0)-(b._day||0))
+          || hhmm(a.OTime).localeCompare(hhmm(b.OTime))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
     lastRows=sel.filter(function(f){ return (f.Gate||'').trim() || !/取消/.test(f.Memo||''); });
@@ -829,8 +843,11 @@ function run(){
     render();
     var n=new Date();
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
-    st.innerHTML=date+'　'+t1+'–'+t2+'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
-                +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
+    st.innerHTML=(cross
+        ? date.slice(5).replace('-','/')+' '+t1+' – <b>'+date2.slice(5).replace('-','/')+' '+t2+'</b>（跨日）'
+        : date+'　'+t1+'–'+t2)
+      +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
+      +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
         ? '<div class="tdxbox">📡 讀不到桃機，已自動改用 <b>TDX 交通部資料</b>（一樣是當下的即時資料）。'
