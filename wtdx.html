@@ -19,6 +19,10 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd .u.err{color:#f87171}
 .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 7px;
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:8px 9px;margin-bottom:6px;overflow:hidden}
+.r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 4px 0 0 #14b8a6}
+.r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 4px 0 0 #f97316}
+.r.r40 .g{color:#5eead4}
+.r.r53 .g{color:#fdba74}
 .r.done{opacity:.38}
 .r.soon{background:#3a2f10;border-color:#a16207}
 b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
@@ -40,6 +44,15 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .b-info{background:#0b2b3c;color:#7dd3fc}
 .day{background:#16233c;border:1px solid #2e4a7a;color:#93c5fd;font-size:13.5px;font-weight:800;
  border-radius:10px;padding:7px 8px;margin:9px 0 6px;text-align:center}
+.mth{font-size:13px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
+.mt{width:100%;border-collapse:collapse;font-size:12px;background:#14171c;margin-bottom:9px}
+.mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
+.mt th{background:#1c2027;color:#8b94a1;font-size:10.5px;font-weight:700}
+.mt td b{font-size:13.5px}
+.mt td small{color:#8b94a1}
+.mt .g40 .lb{background:#0d3b36;color:#5eead4;font-weight:800}
+.mt .g53 .lb{background:#43200f;color:#fdba74;font-weight:800}
+.mt .sub td{font-size:10.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
 .msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:12px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
@@ -77,7 +90,8 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn half" id="bnone">全不要</span>
 </div>
 <div class="grp">
-  <span class="btn" id="bmine">2140+2153</span>
+  <span class="btn half" id="bmine">2140+2153</span>
+  <span class="btn half" id="bmeet">🕐 開會空檔</span>
 </div>
 <div class="grp">
   <span class="btn cat" data-c="40">　2140</span>
@@ -103,6 +117,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 </div>
 
 <div class="sep"></div>
+<div id="mb"></div>
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
@@ -246,7 +261,7 @@ function mineOn(){ return cats['40']&&cats['53']&&!cats['t1']&&!cats['t2']; }
 
 function paintBtns(){
   document.getElementById('ball').className='btn half'+(allOn()?' on':'');
-  document.getElementById('bmine').className='btn'+(mineOn()?' on':'');
+  document.getElementById('bmine').className='btn half'+(mineOn()?' on':'');
   [].forEach.call(document.querySelectorAll('.cat'),function(b){
     var on=cats[b.getAttribute('data-c')];
     b.className='btn cat'+(on?' on':'');
@@ -302,8 +317,9 @@ function rowHtml(f,nowMin){
   } else { big=sch; tc='plan'; sub='表定'; }
   var eta=mins(big)-nowMin;
   var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
-  var tg=TAG[shopOf(f)];
-  return '<div class="r '+cls+'">'
+  var shop=shopOf(f);
+  var tg=TAG[shop];
+  return '<div class="r '+cls+(shop==='40'?' r40':shop==='53'?' r53':'')+'">'
     +'<b class="t t-'+tc+'">'+big+'</b><span class="g">'+esc(f.Gate)+'</span><span class="tag '+tg.cls+'">'+tg.txt+'</span>'
     +'<span class="f">'+esc(f.flightCode)+'</span><span class="c">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est;})()+'</i></span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
@@ -458,6 +474,50 @@ document.getElementById('bnone').addEventListener('click',function(){
     if(zones[z]&&onCount<=1) return;      /* 至少留一區 */
     zones[z]=!zones[z]; render();
   });
+});
+/* ── 開會空檔（19:00–20:30，2140／2153 分開）── */
+function meetTable(){
+  var LO='19:00', HI='20:30';
+  function toMin2(t){var p=t.split(':');return (+p[0])*60+(+p[1]);}
+  function toT(m){return pad(Math.floor(m/60))+':'+pad(m%60);}
+  function calc(label,cls,rows){
+    rows.sort(function(a,b){var ta=hhmm(a.RTime)||hhmm(a.OTime),tb=hhmm(b.RTime)||hhmm(b.OTime);return ta.localeCompare(tb);});
+    var h='<tr class="'+cls+'"><td class="lb">'+label+'</td>';
+    if(!rows.length) return h+'<td colspan="3">✅ 整段沒班機</td></tr>';
+    var pts=[toMin2(LO)].concat(rows.map(function(f){return toMin2(hhmm(f.RTime)||hhmm(f.OTime));})).concat([toMin2(HI)]);
+    var best={len:-1,i:0}, gaps=[];
+    for(var gi=1;gi<pts.length;gi++){
+      var glen=pts[gi]-pts[gi-1];
+      gaps.push({s:pts[gi-1],e:pts[gi],len:glen,i:gi});
+      if(glen>best.len) best={len:glen,s:pts[gi-1],e:pts[gi],i:gi};
+    }
+    var n=rows.length;
+    var pre = best.i>=2 ? rows[best.i-2] : null;
+    var post= best.i<=n ? rows[best.i-1] : null;
+    var cell=function(f){ return f?(hhmm(f.RTime)||hhmm(f.OTime))+' '+esc(f.flightCode)+'<br><small>'+esc(f.Gate)+'</small>':'—'; };
+    h+='<td><b>'+toT(best.s)+'–'+toT(best.e)+'</b><br><small>'+best.len+' 分鐘</small></td>'
+      +'<td>'+cell(pre)+'</td><td>'+cell(post)+'</td></tr>';
+    var others=gaps.filter(function(x){return x.i!==best.i&&x.len>=10;})
+                   .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';});
+    if(others.length) h+='<tr class="'+cls+' sub"><td></td><td colspan="3">其他空檔：'+others.join('、')+'</td></tr>';
+    return h;
+  }
+  var inWin=(DATA||[]).filter(function(f){
+    if(!f.Gate||/取消/.test(f.Memo||'')) return false;
+    var t=hhmm(f.RTime)||hhmm(f.OTime);
+    return t>=LO&&t<=HI;
+  });
+  var n=new Date();
+  return '<div class="mth">🕐 '+(n.getMonth()+1)+'/'+n.getDate()+' 開會空檔（'+LO+'–'+HI+'）</div>'
+    +'<table class="mt"><tr><th>分點</th><th>最大空檔</th><th>前一班</th><th>後一班</th></tr>'
+    +calc('2140','g40',inWin.filter(function(f){return shopOf(f)==='40';}))
+    +calc('2153','g53',inWin.filter(function(f){return shopOf(f)==='53';}))
+    +'</table>';
+}
+document.getElementById('bmeet').addEventListener('click',function(){
+  var mb=document.getElementById('mb');
+  if(mb.innerHTML){ mb.innerHTML=''; this.className='btn half'; return; }
+  mb.innerHTML=meetTable(); this.className='btn half on';
 });
 document.getElementById('bmine').addEventListener('click',function(){
   cats={'40':true,'53':true,'t1':false,'t2':false}; render();
