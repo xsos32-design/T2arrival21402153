@@ -276,10 +276,10 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .t-plan{color:#fff;padding-left:0}
 .g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
 .tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
-.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:right;white-space:nowrap;align-self:center}
+.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{font-size:15px;font-weight:700;color:#e5e9ef;white-space:nowrap}
+.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
 .c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
 .st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
@@ -406,8 +406,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
-<b class="t t-${tc}">${big}</b><span class="g">${esc(f.Gate)}</span><span class="tag ${tg.cls}">${tg.txt}</span>
-<span class="f">${esc(f.flightCode || '')}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i></span><span class="st b-${st.cls}">${st.txt}</span>
+<b class="t t-${tc}">${big}</b><span class="f">${esc(f.flightCode || '')}</span><span class="g">${esc(f.Gate)}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i></span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
