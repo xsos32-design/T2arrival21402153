@@ -19,7 +19,7 @@
   html,body{margin:0;padding:0}
   body{background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-    font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
+    font-size:15px;line-height:1.45;font-weight:600;-webkit-text-size-adjust:100%}
 
   header{background:#fff;border-bottom:1px solid var(--line);padding:11px 16px;position:sticky;top:0;z-index:20;
     display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -32,7 +32,7 @@
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
   .row{display:flex;flex-wrap:wrap;gap:11px;align-items:flex-end}
   .fld{display:flex;flex-direction:column;gap:4px}
-  label{font-size:11.5px;color:var(--muted);font-weight:600}
+  label{font-size:11.5px;color:var(--muted);font-weight:700}
   input,select{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);max-width:100%}
   input.wide{min-width:230px}
   button{font:inherit;font-weight:650;padding:8px 20px;border-radius:8px;border:1px solid transparent;cursor:pointer;
@@ -44,7 +44,7 @@
   .dqb{font:inherit;font-weight:650;padding:7px 12px;border-radius:8px;cursor:pointer;
     background:#fff;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
-  .chip{font-size:12.5px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;
+  .chip{font-size:12.5px;font-weight:700;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;
     cursor:pointer;color:var(--muted);white-space:nowrap;user-select:none}
   .chip.act{border-color:var(--accent);color:var(--accent);background:#f0f6ff}
   .chiplabel{font-size:11.5px;color:var(--muted);font-weight:600;margin-right:2px}
@@ -57,7 +57,7 @@
   .status{font-size:12px;color:var(--muted);margin-top:9px}
 
   .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .r{display:grid;grid-template-columns:112px 1fr 132px 62px 58px 108px;gap:10px;align-items:center;
+  .r{display:grid;grid-template-columns:112px 138px 66px 1fr 58px 108px;gap:10px;align-items:center;
      padding:9px 14px;border-top:1px solid var(--line)}
   .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:600;padding:7px 14px}
   .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
@@ -75,9 +75,9 @@
   .c-time i{display:block;font-style:normal;font-size:11.5px;font-variant-numeric:tabular-nums;
     color:var(--muted);white-space:nowrap;margin-top:2px}
   .tm{font-size:10px;font-weight:700;color:var(--muted);margin-left:3px;vertical-align:super}
-  .c-fno b{font-weight:700;font-size:14.5px}
+  .c-fno b{font-weight:800;font-size:16.5px}
   .c-fno small{display:block;color:var(--muted);font-size:11.5px}
-  .c-gate{font-weight:800;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .c-gate{font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px}
   .t40{background:var(--c40bg);color:var(--c40)} .t53{background:var(--c53bg);color:var(--c53)}
   .tt1{background:#f1ecfd;color:#6d28d9} .tt2{background:var(--nonebg);color:var(--none)}
@@ -134,9 +134,10 @@
     .row .fld:first-child{flex:1 1 100%}   /* 日期整行，起始／結束並排 */
     input,select{background:#1c2027;border-color:#2e343d;color:#f2f4f7;
       font-size:16px;padding:11px 10px;min-height:48px;width:100%;border-radius:11px}
-    .dq input{width:auto}
+    .dq input{width:auto;flex:1;min-width:0}
     .dqb{background:#1c2027;border-color:#2e343d;color:#9aa3b0;min-height:48px;
-      padding:0 14px;border-radius:11px;border-width:2px}
+      padding:0 14px;border-radius:11px;border-width:2px;width:auto;flex:0 0 auto}
+    .fld,.dq{min-width:0;max-width:100%}
     .row{gap:9px}
     button{width:100%;padding:15px;font-size:17px;min-height:54px;border-radius:12px}
 
@@ -172,7 +173,7 @@
     .r.head{display:none}
     .tfull{display:none} .tshort{display:inline}
     .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 9px;overflow:hidden;
-       grid-template-areas:"time gate shop" "fno city st";align-items:center;
+       grid-template-areas:"time fno gate" "shop city st";align-items:center;
        background:#14171c;border:1px solid #262b33;border-radius:12px;padding:10px 12px;margin-bottom:7px}
     .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 5px 0 0 #14b8a6}
     .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 5px 0 0 #f97316}
@@ -191,12 +192,12 @@
     .c-time i{font-size:11.5px;color:#7c8593;margin-top:2px}
 
     .c-gate{grid-area:gate;text-align:center;font-size:27px;color:#fff;line-height:1.05;white-space:nowrap}
-    .c-shop{grid-area:shop;text-align:right;white-space:nowrap}
+    .c-shop{grid-area:shop;text-align:left;white-space:nowrap}
     .tag{font-size:11px;padding:2px 6px;border-radius:6px}
     .t40{background:#0d3b36;color:#5eead4} .t53{background:#43200f;color:#fdba74}
     .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
 
-    .c-fno{grid-area:fno} .c-fno b{font-size:15px;color:#e5e9ef} .c-fno small{display:none}
+    .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:19px;color:#fff} .c-fno small{display:none}
     .c-city{grid-area:city;font-size:13px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
     .badge{font-size:11.5px;padding:2px 7px}
@@ -306,6 +307,8 @@
       <div class="cfgrow">
         <div class="fld"><label>2140 負責登機門</label><input class="wide" id="cfg2140" value="C1-C4, C5R, B6-B9"></div>
         <div class="fld"><label>2153 負責登機門</label><input class="wide" id="cfg2153" value="C5, C6-C10"></div>
+        <div class="fld"><label>其他一航 加選登機門（可留空）</label><input class="wide" id="cfgT1" value=""></div>
+        <div class="fld"><label>其他二航 加選登機門（可留空）</label><input class="wide" id="cfgT2" value=""></div>
       </div>
       <div class="status">支援範圍（C1-C4）與單一門（C5R、B7），逗號分隔。<b>只有第二航廈</b>的班機才會被歸到 2153／2140；第一航廈以及 T2 其餘登機門一律歸「其他」。目前：C5R 算 2140、C5 算 2153。注意範圍寫成 C5-C10 會把 C5R 一起包進去，所以 2153 用「C5, C6-C10」。</div>
     </details>
@@ -430,11 +433,13 @@ var dayBreakMD='';   /* 跨日分隔列顯示的日期（run/runNow6 會設定�
    2140 / 2153 = 第二航廈、登機門符合設定
    t2          = 第二航廈其餘登機門
    t1          = 第一航廈全部 */
-function shopOf(f,g53,g40){
+function shopOf(f,g53,g40,gt1,gt2){
   var g=(f.Gate||'').trim().toUpperCase();
   if(String(f.BNO)==='1') return 't1';
   if(g && g40[g]) return '2140';
   if(g && g53[g]) return '2153';
+  if(gt1 && g && gt1[g]) return 't1';   /* 使用者自訂：這些門算「其他一航」 */
+  if(gt2 && g && gt2[g]) return 't2';
   return 't2';
 }
 var TAG={'2140':{txt:'2140',cls:'t40'},'2153':{txt:'2153',cls:'t53'},
@@ -451,13 +456,15 @@ function setDot(k,msg){
 function render(){
   var g40=expandSpec(document.getElementById('cfg2140').value);
   var g53=expandSpec(document.getElementById('cfg2153').value);
+  var gt1=expandSpec(document.getElementById('cfgT1').value);
+  var gt2=expandSpec(document.getElementById('cfgT2').value);
   var now=new Date(), nowM=now.getHours()*60+now.getMinutes();
 
   var rows=[];
   lastRows.forEach(function(f){
     var hasGate=(f.Gate||'').trim();
     if(hasGate){
-      var shop=shopOf(f,g53,g40);
+      var shop=shopOf(f,g53,g40,gt1,gt2);
       if(!show[shop]) return;
       var zg=hasGate.charAt(0).toUpperCase();
       if(/[A-D]/.test(zg)&&!zoneShow[zg]) return;
@@ -484,7 +491,7 @@ function render(){
   if(!rows.length){
     out.innerHTML='<div class="empty">這個區間沒有符合的班機。</div>';
   } else {
-    var head='<div class="r head"><div>抵達時間</div><div>出發地</div><div>航班</div><div>登機門</div><div>分類</div><div>狀態</div></div>';
+    var head='<div class="r head"><div>抵達時間</div><div>航班</div><div>登機門</div><div>出發地</div><div>分類</div><div>狀態</div></div>';
     var dayShown=false;
     var body=rows.map(function(x){
       var f=x.f, st=statusOf(f);
@@ -516,9 +523,9 @@ function render(){
       /* 待定班機（無門）不上色 */
       return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
-        + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i></div>'
         + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
+        + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i></div>'
         + '<div class="c-shop">'+tags+'</div>'
         + '<div class="c-st"><span class="badge '+st.cls+'">'
           + '<span class="full">'+esc(st.text)+'</span>'
@@ -878,7 +885,7 @@ document.getElementById('date').addEventListener('change',function(){ setNow6(fa
 ['t1','t2'].forEach(function(id){
   document.getElementById(id).addEventListener('change',function(){ setNow6(false); run(); });
 });
-['cfg2140','cfg2153'].forEach(function(id){
+['cfg2140','cfg2153','cfgT1','cfgT2'].forEach(function(id){
   document.getElementById(id).addEventListener('change',render);
 });
 
