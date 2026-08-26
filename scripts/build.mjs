@@ -166,6 +166,21 @@ function fromODP(f) {
   };
 }
 
+/* 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 */
+const TXHUB = new Set(['BR','CI','JX']);
+const TXSEA = new Set(['BKK','DMK','SIN','KUL','PEN','CGK','DPS','MNL','CEB','CRK','SGN','HAN','DAD','PNH','REP','KTI','RGN','VTE']);
+const TXFAR = new Set(['LAX','SFO','SEA','JFK','EWR','ORD','DFW','IAH','IAD','BOS','ATL','MSP','ONT','YVR','YYZ',
+  'CDG','AMS','LHR','FRA','MXP','VIE','MUC','PRG','BCN','IST']);
+function txOf(f) {
+  const al = String(f.flightCode || '').slice(0, 2).toUpperCase();
+  if (!TXHUB.has(al)) return false;
+  const dep = String(f.Dep || '').toUpperCase();
+  const t = hhmm(f.RTime) || hhmm(f.OTime);
+  if (TXSEA.has(dep) && t >= '16:00') return true;
+  if (TXFAR.has(dep) && t <= '09:00') return true;
+  return false;
+}
+
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
@@ -282,6 +297,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
 .c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
+.tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
 .st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
@@ -407,7 +423,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
 <b class="t t-${tc}">${big}</b><span class="f">${esc(f.flightCode || '')}</span><span class="g">${esc(f.Gate)}</span>
-<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i></span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i>${txOf(f) ? ' <i class="tx">🔄轉</i>' : ''}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -464,7 +480,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="sep"></div>
 <div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
-<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機</div>
+<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄轉＝轉機客多（推估）</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
