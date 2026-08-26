@@ -38,6 +38,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
 .c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
+.tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
 .st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
@@ -128,7 +129,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 人數為依航線推估的下機人數（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機。</div>
+<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 人數為依航線推估的下機人數（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機。<br>🔄轉＝轉機客多（長榮/華航/星宇 東南亞晚班、清晨歐美班，推估）</div>
 <div class="foot">按 🔄 或點最上面那條即可重抓當下資料。<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 
 <script>
@@ -218,6 +219,21 @@ function mergeCodeshare(list){
     if(!m.Memo && f.Memo) m.Memo=f.Memo;
   });
   return keys.map(function(k){ return map[k]; });
+}
+
+/* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
+var TXHUB={BR:1,CI:1,JX:1};
+var TXSEA={BKK:1,DMK:1,SIN:1,KUL:1,PEN:1,CGK:1,DPS:1,MNL:1,CEB:1,CRK:1,SGN:1,HAN:1,DAD:1,PNH:1,REP:1,KTI:1,RGN:1,VTE:1};
+var TXFAR={LAX:1,SFO:1,SEA:1,JFK:1,EWR:1,ORD:1,DFW:1,IAH:1,IAD:1,BOS:1,ATL:1,MSP:1,ONT:1,YVR:1,YYZ:1,
+  CDG:1,AMS:1,LHR:1,FRA:1,MXP:1,VIE:1,MUC:1,PRG:1,BCN:1,IST:1};
+function txOf(f){
+  var al=String(f.flightCode||'').slice(0,2).toUpperCase();
+  if(!TXHUB[al]) return false;
+  var dep=String(f.Dep||f.CityCode||'').toUpperCase();
+  var t=hhmm(f.RTime)||hhmm(f.OTime);
+  if(TXSEA[dep]&&t>='16:00') return true;   /* 東南亞晚班 → 接深夜歐美紅眼 */
+  if(TXFAR[dep]&&t<='09:00') return true;   /* 清晨歐美班 → 接早上東南亞/日韓 */
+  return false;
 }
 
 /* ── 狀態（含表情符號）── */
@@ -332,7 +348,7 @@ function rowHtml(f,nowMin){
   var tg=TAG[shop];
   return '<div class="r '+cls+(shop==='40'?' r40':shop==='53'?' r53':'')+'">'
     +'<b class="t t-'+tc+'">'+big+'</b><span class="f">'+esc(f.flightCode)+'</span><span class="g">'+esc(f.Gate)+'</span>'
-    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est;})()+'</i></span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est;})()+'</i>'+(txOf(f)?' <i class="tx">🔄轉</i>':'')+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
 function render(){
