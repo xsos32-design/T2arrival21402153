@@ -228,9 +228,13 @@ function paxOf(f) {
   const dep = String(f.Dep || '').toUpperCase();
   const al  = String(f.flightCode || '').slice(0, 2).toUpperCase();
   const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 300 : 250));
-  const est = Math.round(seats * (LONGHAUL.has(dep) ? 0.85 : 0.80) / 5) * 5;
-  return { est, dot: est > 250 ? '🔴' : (est >= 150 ? '🟡' : '🟢') };
+  let est = Math.round(seats * (LONGHAUL.has(dep) ? 0.85 : 0.80) / 5) * 5;
+  const tx = txOf(f);
+  if (tx) est = Math.round(est * 0.75 / 5) * 5;   /* 轉機客不走入境 */
+  return { est, tx, dot: est > 250 ? '🔴' : (est >= 150 ? '🟡' : '🟢') };
 }
+function paxHtml(f) { const p = paxOf(f);
+  return ` <i class="px">${p.dot}${p.est}</i>` + (p.tx ? '<i class="tx">🔄</i>' : ''); }
 
 /* ---------- 時段 ----------
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
@@ -295,7 +299,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
 .f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
-.c{font-size:13.5px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.c{font-size:13.5px;color:#8b94a1;white-space:normal;word-break:break-word;line-height:1.45;min-width:0}
 .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
 .tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
 .st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
@@ -423,7 +427,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
 <b class="t t-${tc}">${big}</b><span class="f">${esc(f.flightCode || '')}</span><span class="g">${esc(f.Gate)}</span>
-<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)} <i class="px">${(() => { const p = paxOf(f); return p.dot + '約' + p.est; })()}</i>${txOf(f) ? ' <i class="tx">🔄轉</i>' : ''}</span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -480,7 +484,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="sep"></div>
 <div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
-<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 人數為航線推估（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄轉＝轉機客多（推估）</div>
+<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄＝轉機客多，已扣掉0.75</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
