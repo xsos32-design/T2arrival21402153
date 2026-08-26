@@ -84,6 +84,8 @@
   #st1.act{border-color:#7c3aed;color:#6d28d9;background:#f3ebff}
   #st2.act{border-color:#64748b;color:#334155;background:#eef2f7}
   .badge{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .px{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .tx{font-style:normal;font-size:12px;font-weight:800;color:#b45309;white-space:nowrap}
   .short,.tshort{display:none}
   .c-time{overflow:hidden}
   .b-ok{background:var(--okbg);color:var(--ok)} .b-warn{background:var(--warnbg);color:var(--warn)}
@@ -198,10 +200,9 @@
     .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
 
     .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:19px;color:#fff} .c-fno small{display:none}
-    .c-city{grid-area:city;font-size:13px;color:#8b94a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .c-city{grid-area:city;font-size:13px;color:#8b94a1;white-space:normal;word-break:break-word;line-height:1.5}
     .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
-    .tx{color:#fbbf24}
-  .tx{font-style:normal;font-size:11px;font-weight:800;color:#b45309;white-space:nowrap}
+    .tx{font-size:11px;color:#fbbf24}
     .badge{font-size:11.5px;padding:2px 7px}
     .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
     .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
@@ -325,7 +326,7 @@
   <div class="notice">
     ⚠️ 本頁資料擷取自桃園國際機場公開航班資訊，僅供參考。<br>
     <b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>
-    👥 人數為「機型座位 × 平均載客率」推估的下機人數，誤差約 ±15%：🟢少於150　🟡150–250　🔴超過250<br>🔄 轉機多＝長榮／華航／星宇的東南亞晚班（16時後）與清晨歐美班（9時前），依航網結構推估
+    👥 人數＝推估走入境的人（機型座位×載客率），誤差約±15%：🟢&lt;150　🟡150–250　🔴&gt;250<br>🔄＝轉機客多（長榮／華航／星宇東南亞16時後、歐美9時前），人數已扣掉0.75
   </div>
 
   <div class="credit">檔案作者：小韋</div>
@@ -391,8 +392,12 @@ function paxOf(f){
   var dep=String(f.Dep||f.CityCode||'').toUpperCase();
   var seats=seatsByPlane(f.PlaneNo)||seatsByRoute(dep,f.flightCode);
   var est=Math.round(seats*(LONGHAUL[dep]?0.85:0.80)/5)*5;
-  return {est:est,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
+  var tx=txOf(f);
+  if(tx) est=Math.round(est*0.75/5)*5;   /* 轉機客不走入境，扣約四成一 */
+  return {est:est,tx:tx,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
 }
+function paxHtml(f){ var p=paxOf(f);
+  return ' <i class="px">'+p.dot+p.est+'人</i>'+(p.tx?' <i class="tx">🔄</i>':''); }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
 var TXHUB={BR:1,CI:1,JX:1};
@@ -542,7 +547,7 @@ function render(){
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
         + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
-        + '<div class="c-city">'+esc(f.CityName)+' <i class="px">'+(function(){var p=paxOf(f);return p.dot+'約'+p.est+'人';})()+'</i>'+(txOf(f)?' <i class="tx">🔄轉機多</i>':'')+'</div>'
+        + '<div class="c-city">'+esc(f.CityName)+paxHtml(f)+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
         + '<div class="c-st"><span class="badge '+st.cls+'">'
           + '<span class="full">'+esc(st.text)+'</span>'
