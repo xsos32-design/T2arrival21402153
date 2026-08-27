@@ -276,7 +276,16 @@ const fileFor = (p, s, hide) => `w-${p}-${s}${hide ? '-h' : ''}.html`;
 const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
- font-size:16px;line-height:1.35;padding:6px}
+ font-size:16px;line-height:1.35;padding:6px;padding-bottom:52px}
+/* 浮動快捷鍵：置頂／現在時段／更新 */
+#fab{position:fixed;left:5px;right:5px;bottom:5px;bottom:calc(5px + env(safe-area-inset-bottom));
+ z-index:60;display:flex;gap:5px}
+.fabb{flex:1 1 0;min-width:0;min-height:36px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;
+ border-radius:11px;background:rgba(24,28,34,.96);border:2px solid #3a4250;color:#e5e9ef;cursor:pointer;
+ white-space:nowrap;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;
+ box-shadow:0 -2px 14px rgba(0,0,0,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.fabb:active{opacity:.7}
 .hd{display:flex;align-items:center;gap:5px;font-size:12px;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
  text-decoration:none;background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden}
 .hd>*{white-space:nowrap;flex:0 0 auto}
@@ -345,7 +354,9 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
 .notice b{color:#fde68a}
 @media(min-width:420px){
- body{max-width:680px;margin:0 auto;padding:14px}
+ body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
+ #fab{left:auto;right:16px;bottom:16px;flex-direction:column;gap:8px}
+ .fabb{flex:0 0 auto;min-height:44px;padding:0 16px;font-size:14px;border-radius:999px}
  .r{grid-template-columns:auto auto auto auto 1fr auto;align-items:center;gap:4px 12px;padding:8px 12px}
  .g{min-width:52px} .tag{text-align:center}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
@@ -473,7 +484,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>班機手錶版 ${winLabel}</title>
-<style>${CSS}</style></head><body data-b="${buildEpoch}">
+<style>${CSS}</style></head><body data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}">
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
 <div class="grp">${catBtns}</div>
@@ -486,6 +497,12 @@ function renderPage(flights, preset, shopKey, hide, err) {
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄＝轉機客多，已扣掉0.75</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+<div id="fab">
+  <button class="fabb" id="fTop">⬆</button>
+  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide)}">⏱ 現在</a>
+  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide)}">🔄</a>
+</div>
+
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
@@ -499,6 +516,21 @@ ${body}
       var h = a[i].getAttribute('href') || '';
       if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
     }
+    /* 浮動快捷鍵：⬆ 置頂／⏱ 跳到現在的時段／🔄 重新載入 */
+    var bd=document.body, cid=bd.getAttribute('data-c')||'', hid=bd.getAttribute('data-h')?'-h':'',
+        cp=bd.getAttribute('data-p')||'';
+    var hh=new Date().getHours();
+    var np=hh<6?'h00':(hh<18?'h13':'h18');
+    var fN=document.getElementById('fNow');
+    if(fN){
+      fN.setAttribute('href','w-'+np+'-'+cid+hid+'.html'+v);
+      if(np===cp) fN.className='fabb on';
+    }
+    var fT=document.getElementById('fTop');
+    if(fT) fT.addEventListener('click',function(){
+      try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
+    });
+
     /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會空檔開關 */
     var zs={A:1,B:1,C:1,D:1};
     function zApply(){
