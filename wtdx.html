@@ -39,6 +39,8 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .t-early{color:#7dd3fc;background:#0b2b3c}
 .t-same{color:#6ee7b7;background:#0d2f1e}
 .t-plan{color:#fff;padding-left:0}
+.nd{font-style:normal;font-size:9.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
+ border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
 .tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
@@ -391,7 +393,7 @@ function rowHtml(f,nowMin){
   var shop=shopOf(f);
   var tg=TAG[shop];
   return '<div class="r '+cls+(shop==='40'?' r40':shop==='53'?' r53':'')+'">'
-    +'<b class="t t-'+tc+'">'+big+'</b><span class="f">'+esc(f.flightCode)+'</span><span class="g">'+esc(f.Gate)+'</span>'
+    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(f.flightCode)+'</span><span class="g">'+esc(f.Gate)+'</span>'
     +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
@@ -426,7 +428,11 @@ function render(){
       html+='<div class="msg">資料載入中…（TDX 約要 10 秒，好了會自己出現）</div>';
     } else {
       var src=(dayOff===0||(dayOff===1&&DATA2!==null))?poolFor(dayOff):dd;
-      var part1=rowsFor(src,win[0],win[1]).map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
+      var list1=rowsFor(src,win[0],win[1]);
+      if(win[1]>='23:00'){   /* 晚班時段：把延誤跨過午夜的班機接在最後，不然整班消失 */
+        list1=list1.concat(rowsFor(poolFor(dayOff+1).filter(isNextDay),'00:00','05:59'));
+      }
+      var part1=list1.map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
       html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
     }
   }

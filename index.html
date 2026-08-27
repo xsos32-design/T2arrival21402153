@@ -530,6 +530,7 @@ function render(){
   /* 依「實際／預計抵達時間」排序 — 誰先到誰在前 */
   rows.sort(function(a,b){
     return ((a.f._day||0)-(b.f._day||0))
+        || ((a.f._nd||0)-(b.f._nd||0))          /* 延誤跨過午夜的排在當天最後 */
         || arrAt(a.f).localeCompare(arrAt(b.f))
         || hhmm(a.f.OTime).localeCompare(hhmm(b.f.OTime));
   });
@@ -560,8 +561,8 @@ function render(){
         if(isNextDay(f)) d+=1440;               /* 延誤跨過午夜：00:05 − 23:25 要算成晚 40 分 */
         big=act;
         tcls = d>0?'t-late' : (d<0?'t-early':'t-same');
-        sub='<span class="tfull">表定 '+sch+(d>0?' · 晚'+d+'分':(d<0?' · 早'+(-d)+'分':''))+'</span>'
-           +'<span class="tshort">表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'')+'</span>';
+        sub='<span class="tfull">'+(isNextDay(f)?'隔日 · ':'')+'表定 '+sch+(d>0?' · 晚'+d+'分':(d<0?' · 早'+(-d)+'分':''))+'</span>'
+           +'<span class="tshort">'+(isNextDay(f)?'隔日 ':'')+'表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'')+'</span>';
       } else {
         big=sch; tcls='t-plan'; sub='表定';
       }
@@ -899,13 +900,18 @@ function run(){
       var t=effTime(f); if(!t) return;
       if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */
       var d=effDate(f), day;
-      if(d===wantA) day=0; else if(cross&&d===wantB) day=1; else return;
+      if(d===wantA) day=0; else if(d===wantB) day=1; else return;
       if(day===0){ if(t<t1||t>(cross?'23:59':t2)) return; }
-      else { if(t<'00:00'||t>t2) return; }
+      else if(cross){ if(t<'00:00'||t>t2) return; }
+      else { /* 晚班時段：延誤跨過午夜的班機接在最後，不然整班消失 */
+        if(t2<'23:00'||!isNextDay(f)||t>='06:00') return;
+        f._nd=1; day=0;
+      }
       seen2[key]=1; f._day=day; sel.push(f);
     });
     sel.sort(function(a,b){
       return ((a._day||0)-(b._day||0))
+          || ((a._nd||0)-(b._nd||0))
           || effTime(a).localeCompare(effTime(b))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
