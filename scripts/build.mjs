@@ -399,6 +399,12 @@ function meetTable(flights) {
     + '</table>';
 }
 
+/* 表定今天、但延誤到隔天才會落地 */
+function isNextDay(f) {
+  const rd = hhmm(f.RTime) ? (f.RDate || f.ODate) : f.ODate;
+  return !!(f.ODate && rd && rd > f.ODate);
+}
+
 function renderPage(flights, preset, shopKey, hide, err) {
   const [t1, t2, winLabel] = presetOf(preset).win();
   const codes = new Set(shopKey);
@@ -408,14 +414,17 @@ function renderPage(flights, preset, shopKey, hide, err) {
       if (!String(f.Gate || '').trim()) return false;
       const t = hhmm(f.RTime) || hhmm(f.OTime);
       if (t >= '06:00' && t <= '13:30') return false;   /* 固定排除 06:00–13:30 */
-      if (t < t1 || t > t2) return false;
+      /* 延誤跨過午夜的班機（表定今天、實際落到隔天）掛在當天最後一段，不然會整班消失 */
+      if (isNextDay(f)) { if (preset !== 'h18') return false; }
+      else if (t < t1 || t > t2) return false;
       if (!codes.has(shopOf(f))) return false;
       if (hide && statusOf(f).done) return false;
       return true;
     })
     .sort((a, b) => {
       const ta = hhmm(a.RTime) || hhmm(a.OTime), tb = hhmm(b.RTime) || hhmm(b.OTime);
-      return ta.localeCompare(tb) || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
+      return (isNextDay(a) ? 1 : 0) - (isNextDay(b) ? 1 : 0)
+          || ta.localeCompare(tb) || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
     });
 
   const cards = rows.map(f => {
@@ -423,11 +432,12 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const sch = hhmm(f.OTime), act = hhmm(f.RTime);
     let big, tc, sub;
     if (act) {
-      const d = toMin(f.RTime) - toMin(f.OTime);
+      const d = toMin(f.RTime) - toMin(f.OTime) + (isNextDay(f) ? 1440 : 0);
       big = act;
       tc  = d > 0 ? 'late' : (d < 0 ? 'early' : 'same');
       sub = '表定' + sch + (d ? (d > 0 ? ' +' : ' −') + Math.abs(d) : '');
     } else { big = sch; tc = 'plan'; sub = '表定'; }
+    if (isNextDay(f)) sub = '隔日 · ' + sub;
 
     const shop = shopOf(f);
     const eta  = toMin(big) - nowMin;
