@@ -339,10 +339,31 @@ function paintBtns(){
   document.getElementById('bhide').textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
 }
 
+/* 班機「實際」抵達的日期／時間：有預計（延誤）時間就用預計的，否則用表定 */
+function effTime(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
+/* 表定當天、實際落到隔天（延誤跨過午夜） */
+function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !!(f.ODate&&rd&&rd>f.ODate); }
+function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate||''; }
+function dayStr(off){
+  var d=new Date(Date.now()+off*86400000);
+  return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());
+}
+/* 依「實際抵達日」重新分桶：延誤跨過午夜的班機才不會今天、明天兩邊都掉 */
+function poolFor(off){
+  var want=dayStr(off), seen={}, out=[];
+  [DATA,DATA2,DAYS[off]].forEach(function(L){
+    (L||[]).forEach(function(f){
+      if(effDate(f)!==want) return;
+      var k=String(f.flightCode||'')+'|'+f.ODate+'|'+f.OTime;
+      if(seen[k]) return; seen[k]=1; out.push(f);
+    });
+  });
+  return out;
+}
 function rowsFor(list,lo,hi){
   return (list||[]).filter(function(f){
     if(!f.Gate) return false;
-    var t=hhmm(f.RTime)||hhmm(f.OTime);
+    var t=effTime(f);
     if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */
     if(t<lo||t>hi) return false;
     if(!cats[shopOf(f)]) return false;
@@ -361,6 +382,7 @@ function rowHtml(f,nowMin){
   var big,tc,sub;
   if(act){
     var d=mins(f.RTime)-mins(f.OTime);
+    if(isNextDay(f)) d+=1440;                   /* 延誤跨過午夜：00:05 − 23:25 ＝ 晚 40 分 */
     big=act; tc=d>0?'late':(d<0?'early':'same');
     sub='表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'');
   } else { big=sch; tc='plan'; sub='表定'; }
@@ -382,7 +404,7 @@ function render(){
     var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
     var endRaw=nowMin+360, cross=endRaw>=1440;
     var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
-    html=rowsFor(DATA,lo,hi).map(function(f){ return rowHtml(f,nowMin); }).join('');
+    html=rowsFor(poolFor(0),lo,hi).map(function(f){ return rowHtml(f,nowMin); }).join('');
     if(!html) html='<div class="msg">今天接下來這段沒有符合的班機</div>';
     if(cross){
       var m2=new Date(n.getTime()+86400000);
@@ -391,7 +413,7 @@ function render(){
       if(DATA2===null){
         html+='<div class="msg">隔日資料載入中…（TDX 抓隔日約要 10 秒，好了會自己出現）</div>';
       } else {
-        var part2=rowsFor(DATA2,'00:00',hi2).map(function(f){ return rowHtml(f,-1); }).join('');
+        var part2=rowsFor(poolFor(1),'00:00',hi2).map(function(f){ return rowHtml(f,-1); }).join('');
         html+=part2||'<div class="msg">隔日這段沒有符合的班機'+(DATA2.length?'':'（或資料還抓不到，按 🔄 再試）')+'</div>';
       }
     }
@@ -403,7 +425,8 @@ function render(){
     } else if(dayOff!==0&&dd===null){
       html+='<div class="msg">資料載入中…（TDX 約要 10 秒，好了會自己出現）</div>';
     } else {
-      var part1=rowsFor(dd,win[0],win[1]).map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
+      var src=(dayOff===0||(dayOff===1&&DATA2!==null))?poolFor(dayOff):dd;
+      var part1=rowsFor(src,win[0],win[1]).map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
       html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
     }
   }
@@ -424,8 +447,8 @@ function render(){
     var sMin=nowMin-30; if(sMin<0) sMin=0;
     var lo3=pad(Math.floor(sMin/60))+':'+pad(sMin%60);
     var eRaw=nowMin+360, cr=eRaw>=1440;
-    pushPend(DATA,lo3,cr?'23:59':pad(Math.floor(eRaw/60))+':'+pad(eRaw%60),'');
-    if(cr&&DATA2) pushPend(DATA2,'00:00',pad(Math.floor((eRaw-1440)/60))+':'+pad((eRaw-1440)%60),'隔日');
+    pushPend(poolFor(0),lo3,cr?'23:59':pad(Math.floor(eRaw/60))+':'+pad(eRaw%60),'');
+    if(cr&&DATA2) pushPend(poolFor(1),'00:00',pad(Math.floor((eRaw-1440)/60))+':'+pad((eRaw-1440)%60),'隔日');
   } else {
     var pdd=dataFor(dayOff);
     if(pdd) pushPend(pdd,win[0],win[1],'');

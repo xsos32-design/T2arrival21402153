@@ -437,6 +437,12 @@ function txOf(f){
   return false;
 }
 
+/* 班機「實際」抵達的日期／時間：有預計（延誤）時間就用預計的，否則用表定 */
+function effTime(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
+/* 表定當天、實際落到隔天（延誤跨過午夜） */
+function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !!(f.ODate&&rd&&rd>f.ODate); }
+function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate||''; }
+
 function statusOf(f){
   function clean(s){ return String(s||'').replace(/[\s.．、,]+$/,'').replace(/\s+/g,' ').trim(); }
   var memo=clean(f.Memo).replace('預計時間變更','時間變更'), cur=clean(f.CurrentStatus);
@@ -551,6 +557,7 @@ function render(){
       var big, tcls, sub;
       if(act){
         var d=mins(f.RTime)-mins(f.OTime);
+        if(isNextDay(f)) d+=1440;               /* 延誤跨過午夜：00:05 − 23:25 要算成晚 40 分 */
         big=act;
         tcls = d>0?'t-late' : (d<0?'t-early':'t-same');
         sub='<span class="tfull">表定 '+sch+(d>0?' · 晚'+d+'分':(d<0?' · 早'+(-d)+'分':''))+'</span>'
@@ -692,19 +699,23 @@ function runNow6(){
   setDot('busy','更新中…');
   Promise.all([ getFlights(tIso), cross?getFlights(t2Iso):Promise.resolve([]) ])
   .then(function(res){
-    function pick(all,wantIso,loT,hiT,dayFlag){
-      var want=wantIso.replace(/-/g,'/');
-      return (all&&all.length?all:[]).filter(function(f){
-        if(f.ODate!==want&&f.RDate!==want) return false;
-        var t=hhmm(f.RTime)||hhmm(f.OTime);
-        if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:30–13:30 */
-        return t>=loT&&t<=hiT;
-      }).map(function(f){ f._day=dayFlag; return f; });
-    }
-    var sel=pick(res[0],tIso,lo,hi,0).concat(cross?pick(res[1],t2Iso,'00:00',hi2,1):[]);
+    /* 以「實際（延誤後）抵達的那一天」歸日，延誤跨過午夜的班機才不會兩邊都漏掉 */
+    var wantD0=tIso.replace(/-/g,'/'), wantD1=t2Iso.replace(/-/g,'/');
+    var pool=(res[0]||[]).concat(res[1]||[]), seen={}, sel=[];
+    pool.forEach(function(f){
+      var key=f.id||(String(f.flightCode||'')+'|'+f.ODate+'|'+f.OTime);
+      if(seen[key]) return;
+      var t=effTime(f); if(!t) return;
+      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */
+      var d=effDate(f), day;
+      if(d===wantD0) day=0; else if(d===wantD1) day=1; else return;
+      if(day===0){ if(t<lo||t>hi) return; }
+      else { if(!cross||t<'00:00'||t>hi2) return; }
+      seen[key]=1; f._day=day; sel.push(f);
+    });
     sel.sort(function(a,b){
       return ((a._day||0)-(b._day||0))
-          || hhmm(a.OTime).localeCompare(hhmm(b.OTime))
+          || effTime(a).localeCompare(effTime(b))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
     lastRows=sel.filter(function(f){ return (f.Gate||'').trim() || !/取消/.test(f.Memo||''); });
@@ -879,22 +890,23 @@ function run(){
   setDot('busy','更新中…');
   Promise.all([ getFlights(date), cross?getFlights(date2):Promise.resolve(null) ])
   .then(function(res){
-    function pick2(all,wantIso,loT,hiT,dayFlag){
-      var want=wantIso.replace(/-/g,'/');
-      return (all&&all.length?all:[]).filter(function(f){
-        if(f.ODate!==want && f.RDate!==want) return false;
-        var t=hhmm(f.RTime)||hhmm(f.OTime);
-        if(t<loT||t>hiT) return false;
-        if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */
-        return true;
-      }).map(function(f){ f._day=dayFlag; return f; });
-    }
-    var sel = cross
-      ? pick2(res[0],date,t1,'23:59',0).concat(pick2(res[1],date2,'00:00',t2,1))
-      : pick2(res[0],date,t1,t2,0);
+    /* 同樣以「實際抵達日」歸日：延誤跨過午夜的班機不會兩邊都漏掉 */
+    var wantA=date.replace(/-/g,'/'), wantB=date2.replace(/-/g,'/');
+    var pool2=(res[0]||[]).concat(res[1]||[]), seen2={}, sel=[];
+    pool2.forEach(function(f){
+      var key=f.id||(String(f.flightCode||'')+'|'+f.ODate+'|'+f.OTime);
+      if(seen2[key]) return;
+      var t=effTime(f); if(!t) return;
+      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */
+      var d=effDate(f), day;
+      if(d===wantA) day=0; else if(cross&&d===wantB) day=1; else return;
+      if(day===0){ if(t<t1||t>(cross?'23:59':t2)) return; }
+      else { if(t<'00:00'||t>t2) return; }
+      seen2[key]=1; f._day=day; sel.push(f);
+    });
     sel.sort(function(a,b){
       return ((a._day||0)-(b._day||0))
-          || hhmm(a.OTime).localeCompare(hhmm(b.OTime))
+          || effTime(a).localeCompare(effTime(b))
           || String(a.flightCode||'').localeCompare(String(b.flightCode||''));
     });
     lastRows=sel.filter(function(f){ return (f.Gate||'').trim() || !/取消/.test(f.Memo||''); });
