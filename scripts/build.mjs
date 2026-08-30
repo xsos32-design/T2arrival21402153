@@ -205,9 +205,10 @@ function statusOf(f) {
    t1 = 第一航廈全部 */
 function shopOf(f) {
   const g = String(f.Gate || '').trim().toUpperCase();
-  if (String(f.BNO) === '1') return 't1';
+  /* 登機門設定優先，不看航廈欄（B6 是二航入境口，資料卻標成一航） */
   if (g && G40.has(g)) return '40';
   if (g && G53.has(g)) return '53';
+  if (String(f.BNO) === '1') return 't1';
   return 't2';
 }
 const TAG = {
