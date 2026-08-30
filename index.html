@@ -330,7 +330,7 @@
         <div class="fld"><label>其他一航 加選登機門（可留空）</label><input class="wide" id="cfgT1" value=""></div>
         <div class="fld"><label>其他二航 加選登機門（可留空）</label><input class="wide" id="cfgT2" value=""></div>
       </div>
-      <div class="status">支援範圍（C1-C4）與單一門（C5R、B7），逗號分隔。<b>只有第二航廈</b>的班機才會被歸到 2153／2140；第一航廈以及 T2 其餘登機門一律歸「其他」。目前：C5R 算 2140、C5 與 B6 算 2153。注意範圍寫成 C5-C10 會把 C5R 一起包進去，所以 2153 用「C5, C6-C10」。</div>
+      <div class="status">支援範圍（C1-C4）與單一門（C5R、B7），逗號分隔。<b>有列在這四欄的登機門最優先</b>，不看資料裡的航廈欄（B6 這種二航入境口被標成一航也能正確歸類）；沒列到的才依航廈歸「其他一航／其他二航」。目前：C5R 算 2140、C5 與 B6 算 2153。注意範圍寫成 C5-C10 會把 C5R 一起包進去，所以 2153 用「C5, C6-C10」。</div>
     </details>
 
     <div class="status" id="status">按「更新班機」開始。</div>
@@ -486,11 +486,13 @@ var dayBreakMD='';   /* 跨日分隔列顯示的日期（run/runNow6 會設定�
    t1          = 第一航廈全部 */
 function shopOf(f,g53,g40,gt1,gt2){
   var g=(f.Gate||'').trim().toUpperCase();
-  if(String(f.BNO)==='1') return 't1';
+  /* 登機門設定優先：只要這個門有列在下面四欄，就照設定歸類，不看資料裡的航廈欄。
+     （桃機資料的航廈欄跟入境登機口不一定一致，例如 B6 是二航入境口卻標成一航） */
   if(g && g40[g]) return '2140';
   if(g && g53[g]) return '2153';
   if(gt1 && g && gt1[g]) return 't1';   /* 使用者自訂：這些門算「其他一航」 */
   if(gt2 && g && gt2[g]) return 't2';
+  if(String(f.BNO)==='1') return 't1';
   return 't2';
 }
 var TAG={'2140':{txt:'2140',cls:'t40'},'2153':{txt:'2153',cls:'t53'},
