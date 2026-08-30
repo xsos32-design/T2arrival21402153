@@ -266,10 +266,10 @@ function statusOf(f){
 }
 function shopOf(f){
   var g=(f.Gate||'').trim().toUpperCase();
-  /* 登機門設定優先，不看航廈欄（B6 是二航入境口，資料卻標成一航） */
+  /* B6～B9 一航二航都有同名登機門，先以航班資訊的航廈為準，再依登機門歸分點 */
+  if(String(f.BNO)==='1') return 't1';
   if(g && G40[g]) return '40';
   if(g && G53[g]) return '53';
-  if(String(f.BNO)==='1') return 't1';
   return 't2';
 }
 var TAG={'40':{txt:'2140',cls:'s40'},'53':{txt:'2153',cls:'s53'},
