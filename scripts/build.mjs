@@ -26,8 +26,8 @@ const OUT = 'dist';
 
 /* ★ 要改分點別登機門，只改這兩行 ★
    注意：C5-C10 這種範圍會把 C5R 一起包進去，所以 2153 要寫成 'C5, C6-C10' */
-const SPEC_2153 = 'C5, C6-C10';
-const SPEC_2140 = 'C1-C4, C5R, B6-B9';
+const SPEC_2153 = 'B6, C5, C6-C10';
+const SPEC_2140 = 'C1-C4, C5R, B7-B9';
 
 /* ---------- 登機門排序基準 ---------- */
 const GATE_ORDER = (() => {
