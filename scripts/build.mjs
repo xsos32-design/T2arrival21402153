@@ -277,11 +277,13 @@ const fileFor = (p, s, hide) => `w-${p}-${s}${hide ? '-h' : ''}.html`;
 const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
- font-size:16px;line-height:1.35;padding:6px}
+ font-size:16px;line-height:1.35;padding:6px;padding-bottom:47px}
 /* 浮動快捷鍵：置頂／現在時段／更新 */
-/* 手錶版：按鈕排在最上面跟著內容捲（手錶的瀏覽器一固定就會擋住滑動）。
-   300px 以上（手機／電腦）才浮動固定在畫面下方。 */
-#fab{display:flex;gap:5px;padding:0;margin-bottom:6px;background:none;border:0}
+/* 三顆快捷鍵固定浮在畫面「下方」。手錶的瀏覽器對下方的固定定位沒問題，
+   放上方才會擋住滑動，所以一律靠下。 */
+#fab{position:fixed;bottom:5px;bottom:calc(5px + env(safe-area-inset-bottom));top:auto;
+ left:5px;right:5px;z-index:70;display:flex;gap:5px;padding:0;margin:0;
+ background:none;border:0;pointer-events:none}
 .fabb{flex:1 1 0;min-width:0;min-height:36px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;
  border-radius:11px;background:rgba(24,28,34,.96);border:2px solid #3a4250;color:#e5e9ef;cursor:pointer;
  white-space:nowrap;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;
@@ -357,13 +359,6 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
  padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
 .notice b{color:#fde68a}
-/* 300px 以上（手機／電腦）才開浮動固定；手錶約 184–224px，維持一般排版才滑得動 */
-@media(min-width:300px){
- body{padding-bottom:47px}
- #fab{position:fixed;bottom:5px;bottom:calc(5px + env(safe-area-inset-bottom));top:auto;
-   left:5px;right:5px;z-index:70;margin:0;pointer-events:none}
- .fabb{pointer-events:auto}
-}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
