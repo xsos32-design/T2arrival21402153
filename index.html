@@ -103,17 +103,19 @@
   .notice b{color:#78350f}
   .credit{margin-top:10px;text-align:center;color:#9aa3ae;font-size:11.5px;letter-spacing:.04em}
   /* ── 浮動快捷鍵：置頂／現在起6小時／更新 ── */
-  #fab{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;gap:8px;justify-content:flex-end;
-    padding:8px 16px;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);
-    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  .fabb{width:auto;min-width:0;font:inherit;font-size:13px;font-weight:800;padding:9px 15px;border-radius:999px;
-    border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;
-    box-shadow:0 1px 3px rgba(15,23,42,.10)}
+  /* 浮在視窗上方的快捷鍵：本身沒有底色，三顆按鈕像卡片一樣飄著，
+     內容從按鈕之間的縫隙滑過去。容器不吃點擊，只有按鈕本身可以按。 */
+  #fab{position:fixed;top:11px;right:16px;left:auto;z-index:70;display:flex;gap:8px;
+    padding:0;background:none;border:0;pointer-events:none}
+  .fabb{pointer-events:auto;width:auto;min-width:0;font:inherit;font-size:13px;font-weight:800;
+    padding:9px 15px;border-radius:999px;border:1px solid var(--line);color:var(--ink);cursor:pointer;
+    white-space:nowrap;background:rgba(255,255,255,.94);
+    box-shadow:0 4px 14px rgba(15,23,42,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   .fabb:active{transform:translateY(1px)}
   .fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
-  /* 內容整體往下讓開浮動列，標題列也黏在浮動列下面，不會互相蓋住 */
-  body{padding-top:56px}
-  header{top:56px}
+  /* 內容整體讓開浮動鍵佔的高度，標題列也黏在它下面，資料不會被蓋到 */
+  body{padding-top:62px}
+  header{top:62px}
   .cpwrap{margin-top:12px}
   #cptxt{width:100%;font:13px/1.7 ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);
     border-radius:10px;padding:10px;color:var(--ink);resize:none;box-sizing:border-box}
@@ -258,10 +260,10 @@
   }
   @media (max-width:640px){
     body{padding-top:68px;padding-bottom:0}
-    #fab{top:0;left:0;right:0;padding:9px;gap:7px;justify-content:stretch;
-      background:rgba(11,13,16,.98);border-bottom:1px solid #262b33}
+    #fab{top:9px;left:9px;right:9px;padding:0;gap:7px;background:none;border:0}
     .fabb{flex:1 1 0;min-height:48px;padding:0 6px;font-size:14px;border-radius:13px;
-      background:#1c2027;border:2px solid #3a4250;color:#e5e9ef;box-shadow:none}
+      background:rgba(28,32,39,.95);border:2px solid #3a4250;color:#e5e9ef;
+      box-shadow:0 4px 14px rgba(0,0,0,.5)}
     .fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
   }
 </style>
