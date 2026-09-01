@@ -498,6 +498,12 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta http-equiv="Expires" content="0">
 <title>班機手錶版 ${winLabel}</title>
 <style>${CSS}</style></head><body data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}">
+<div id="fab">
+  <button class="fabb" id="fTop">⬆</button>
+  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide)}">⏱ 現在</a>
+  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide)}">🔄</a>
+</div>
+
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
 <div class="grp">${catBtns}</div>
@@ -510,12 +516,6 @@ function renderPage(flights, preset, shopKey, hide, err) {
 ${body}
 <div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄＝轉機客多，已扣掉0.75</div>
 <div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
-<div id="fab">
-  <button class="fabb" id="fTop">⬆</button>
-  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide)}">⏱ 現在</a>
-  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide)}">🔄</a>
-</div>
-
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
@@ -530,6 +530,7 @@ ${body}
       if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
     }
     /* 浮動快捷鍵：⬆ 置頂／⏱ 跳到現在的時段／🔄 重新載入 */
+    var fab=document.getElementById('fab');
     var bd=document.body, cid=bd.getAttribute('data-c')||'', hid=bd.getAttribute('data-h')?'-h':'',
         cp=bd.getAttribute('data-p')||'';
     var hh=new Date().getHours();
@@ -543,6 +544,30 @@ ${body}
     if(fT) fT.addEventListener('click',function(){
       try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
     });
+
+    /* 保險：手錶版 WebKit 有時不吃 position:fixed，捲動時按鈕會跑掉。
+       偵測到就改用 absolute + 每次捲動重新定位，讓按鈕還是黏在畫面上方。 */
+    (function(){
+      if(!fab) return;
+      var OFF=parseInt(getComputedStyle(fab).top,10); if(isNaN(OFF)) OFF=5;
+      var mode='fixed', bad=0;
+      function sy(){ return window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0; }
+      function place(){ if(mode==='abs') fab.style.top=(sy()+OFF)+'px'; }
+      function chk(){
+        if(mode==='abs') return;
+        if(sy()<=6){ bad=0; return; }
+        if(Math.abs(fab.getBoundingClientRect().top-OFF)>6){
+          if(++bad>=2){ mode='abs'; fab.style.position='absolute'; place(); }
+        } else bad=0;
+      }
+      function tick(){ chk(); place(); }
+      window.addEventListener('scroll',tick,false);
+      window.addEventListener('resize',function(){
+        if(mode==='fixed'){ var v=parseInt(getComputedStyle(fab).top,10); if(!isNaN(v)) OFF=v; }
+        tick();
+      },false);
+      setInterval(tick,120);
+    })();
 
     /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會空檔開關 */
     var zs={A:1,B:1,C:1,D:1};
