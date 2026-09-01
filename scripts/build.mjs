@@ -279,12 +279,12 @@ const CSS = `
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
  font-size:16px;line-height:1.35;padding:6px;padding-top:52px}
 /* 浮動快捷鍵：置頂／現在時段／更新 */
-#fab{position:fixed;top:0;left:0;right:0;z-index:70;display:flex;gap:5px;padding:5px;
- background:#0b0d10;border-bottom:1px solid #262b33}
+#fab{position:fixed;top:5px;left:5px;right:5px;z-index:70;display:flex;gap:5px;padding:0;
+ background:none;border:0;pointer-events:none}
 .fabb{flex:1 1 0;min-width:0;min-height:36px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;
  border-radius:11px;background:rgba(24,28,34,.96);border:2px solid #3a4250;color:#e5e9ef;cursor:pointer;
  white-space:nowrap;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;
- box-shadow:none}
+ pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
 .fabb:active{opacity:.7}
 .hd{display:flex;align-items:center;gap:5px;font-size:12px;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
@@ -358,7 +358,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .notice b{color:#fde68a}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-top:70px}
- #fab{padding:9px 14px;gap:8px;justify-content:flex-end}
+ #fab{top:12px;right:16px;left:auto;padding:0;gap:8px;justify-content:flex-end}
  .fabb{flex:0 0 auto;min-height:42px;padding:0 18px;font-size:14px;border-radius:999px}
  .r{grid-template-columns:auto auto auto auto 1fr auto;align-items:center;gap:4px 12px;padding:8px 12px}
  .g{min-width:52px} .tag{text-align:center}
