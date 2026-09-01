@@ -545,30 +545,6 @@ ${body}
       try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
     });
 
-    /* 保險：手錶版 WebKit 有時不吃 position:fixed，捲動時按鈕會跑掉。
-       偵測到就改用 absolute + 每次捲動重新定位，讓按鈕還是黏在畫面上方。 */
-    (function(){
-      if(!fab) return;
-      var OFF=parseInt(getComputedStyle(fab).top,10); if(isNaN(OFF)) OFF=5;
-      var mode='fixed', bad=0;
-      function sy(){ return window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0; }
-      function place(){ if(mode==='abs') fab.style.top=(sy()+OFF)+'px'; }
-      function chk(){
-        if(mode==='abs') return;
-        if(sy()<=6){ bad=0; return; }
-        if(Math.abs(fab.getBoundingClientRect().top-OFF)>6){
-          if(++bad>=2){ mode='abs'; fab.style.position='absolute'; place(); }
-        } else bad=0;
-      }
-      function tick(){ chk(); place(); }
-      window.addEventListener('scroll',tick,false);
-      window.addEventListener('resize',function(){
-        if(mode==='fixed'){ var v=parseInt(getComputedStyle(fab).top,10); if(!isNaN(v)) OFF=v; }
-        tick();
-      },false);
-      setInterval(tick,120);
-    })();
-
     /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會空檔開關 */
     var zs={A:1,B:1,C:1,D:1};
     function zApply(){
