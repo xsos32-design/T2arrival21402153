@@ -269,6 +269,11 @@
 </style>
 </head>
 <body>
+<div id="fab">
+  <button class="fabb" id="fTop" title="回到最上面">⬆ 置頂</button>
+  <button class="fabb" id="fNow">⏱ 6小時</button>
+  <button class="fabb" id="fGo">🔄 更新</button>
+</div>
 <header>
   <h1>✈️ 班機網頁版 2140 / 2153</h1>
   <div class="live"><span class="dot" id="dot"></span><span id="live">尚未更新</span></div>
@@ -354,11 +359,6 @@
   <div class="credit">檔案作者：小韋</div>
 </div>
 
-<div id="fab">
-  <button class="fabb" id="fTop" title="回到最上面">⬆ 置頂</button>
-  <button class="fabb" id="fNow">⏱ 6小時</button>
-  <button class="fabb" id="fGo">🔄 更新</button>
-</div>
 
 <script>
 var API='https://www.taoyuan-airport.com/api/api/flight/a_flight';
@@ -967,6 +967,31 @@ document.getElementById('fGo').addEventListener('click',function(){
   Promise.resolve(now6Mode?runNow6():run())['catch'](function(){})
     ['then'](function(){ setTimeout(function(){ b.textContent='🔄 更新'; },600); });
 });
+
+/* ── 保險：有些瀏覽器（手錶版 WebKit）不吃 position:fixed，捲動時按鈕會跟著跑掉。
+   偵測到就自動改用 absolute + 每次捲動重新定位，讓按鈕還是黏在畫面上方。 ── */
+(function(){
+  var fab=document.getElementById('fab'); if(!fab) return;
+  var OFF=parseInt(getComputedStyle(fab).top,10); if(isNaN(OFF)) OFF=5;
+  var mode='fixed', bad=0;
+  function sy(){ return window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0; }
+  function place(){ if(mode==='abs') fab.style.top=(sy()+OFF)+'px'; }
+  function check(){
+    if(mode==='abs') return;
+    if(sy()<=6){ bad=0; return; }
+    if(Math.abs(fab.getBoundingClientRect().top-OFF)>6){
+      if(++bad>=2){ mode='abs'; fab.style.position='absolute'; place(); }
+    } else bad=0;
+  }
+  function tick(){ check(); place(); }
+  window.addEventListener('scroll',tick,false);
+  window.addEventListener('resize',function(){
+    if(mode==='fixed'){ var v=parseInt(getComputedStyle(fab).top,10); if(!isNaN(v)) OFF=v; }
+    tick();
+  },false);
+  setInterval(tick,120);
+})();
+
 document.getElementById('date').addEventListener('change',function(){ setNow6(false); run(); });
 ['t1','t2'].forEach(function(id){
   document.getElementById(id).addEventListener('change',function(){ setNow6(false); run(); });

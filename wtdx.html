@@ -98,6 +98,12 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 </style>
 </head>
 <body>
+<div id="fab">
+  <button class="fabb" id="fTop">⬆</button>
+  <button class="fabb" id="fNow">⏱ 6H</button>
+  <button class="fabb" id="fGo">🔄</button>
+</div>
+
 
 <div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>即時</span><span class="u" id="hstamp">載入中…</span></div>
 
@@ -144,12 +150,6 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 
 <div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機。<br>🔄＝轉機客多（長榮/華航/星宇 東南亞晚班、清晨歐美班），已扣掉0.75</div>
 <div class="foot">按 🔄 或點最上面那條即可重抓當下資料。<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
-
-<div id="fab">
-  <button class="fabb" id="fTop">⬆</button>
-  <button class="fabb" id="fNow">⏱ 6H</button>
-  <button class="fabb" id="fGo">🔄</button>
-</div>
 
 <script>
 /* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
@@ -725,6 +725,31 @@ document.getElementById('fGo').addEventListener('click',function(){
   setTimeout(function(){ b.textContent='🔄'; },1200);
   load();
 });
+
+/* ── 保險：有些瀏覽器（手錶版 WebKit）不吃 position:fixed，捲動時按鈕會跟著跑掉。
+   偵測到就自動改用 absolute + 每次捲動重新定位，讓按鈕還是黏在畫面上方。 ── */
+(function(){
+  var fab=document.getElementById('fab'); if(!fab) return;
+  var OFF=parseInt(getComputedStyle(fab).top,10); if(isNaN(OFF)) OFF=5;
+  var mode='fixed', bad=0;
+  function sy(){ return window.pageYOffset||document.documentElement.scrollTop||document.body.scrollTop||0; }
+  function place(){ if(mode==='abs') fab.style.top=(sy()+OFF)+'px'; }
+  function check(){
+    if(mode==='abs') return;
+    if(sy()<=6){ bad=0; return; }
+    if(Math.abs(fab.getBoundingClientRect().top-OFF)>6){
+      if(++bad>=2){ mode='abs'; fab.style.position='absolute'; place(); }
+    } else bad=0;
+  }
+  function tick(){ check(); place(); }
+  window.addEventListener('scroll',tick,false);
+  window.addEventListener('resize',function(){
+    if(mode==='fixed'){ var v=parseInt(getComputedStyle(fab).top,10); if(!isNaN(v)) OFF=v; }
+    tick();
+  },false);
+  setInterval(tick,120);
+})();
+
 document.getElementById('bhide').addEventListener('click',function(){
   hideDone=!hideDone; render();
 });
