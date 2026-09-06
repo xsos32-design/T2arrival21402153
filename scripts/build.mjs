@@ -214,8 +214,8 @@ function shopOf(f) {
 const TAG = {
   '40': { txt: '2140',  cls: 's40' },
   '53': { txt: '2153',  cls: 's53' },
-  't1': { txt: '一航',  cls: 'st1' },
-  't2': { txt: '二航',  cls: 'st2' },
+  't1': { txt: '其他一航',  cls: 'st1' },
+  't2': { txt: '其他二航',  cls: 'st2' },
 };
 
 /* ── 預估下機人數（TDX 沒機型欄位，用航線推估；誤差約 ±15%）──
@@ -252,8 +252,8 @@ const CURRENT_PRESET = H < 6 ? 'h00' : (H < 18 ? 'h13' : 'h18');
 const CATS = [
   { id: '40', label: '2140' },
   { id: '53', label: '2153' },
-  { id: 't1', label: '一航' },
-  { id: 't2', label: '二航' },
+  { id: 't1', label: '其他一航' },
+  { id: 't2', label: '其他二航' },
 ];
 /* 組合代號：固定順序、每個代號剛好兩個字，串起來不會有歧義（例：4053、40t1t2） */
 const comboId = ids => CATS.filter(c => ids.includes(c.id)).map(c => c.id).join('');
