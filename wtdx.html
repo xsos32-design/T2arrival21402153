@@ -79,10 +79,18 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .btn.zone,.btn.pre{flex:1 1 22%;font-size:13.5px;padding:8px 2px}
 .btn.nav{flex:1 1 18%;font-size:17px;padding:8px 2px}
 .btn.mid{flex:1 1 56%;font-size:13.5px;padding:8px 2px}
-.cat[data-c="40"].on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
-.cat[data-c="53"].on{background:#43200f;border-color:#f97316;color:#fdba74}
-.cat[data-c="t1"].on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
-.cat[data-c="t2"].on{background:#232a34;border-color:#64748b;color:#cbd5e1}
+#catslot{display:contents}
+.cat.cs0.on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
+.cat.cs1.on{background:#43200f;border-color:#f97316;color:#fdba74}
+.cat.cs2.on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
+.cat.cs3.on{background:#232a34;border-color:#64748b;color:#cbd5e1}
+/* 分類設定編輯器 */
+.cfgbox{background:#14171c;border:1px solid #262b33;border-radius:11px;padding:9px;margin-bottom:6px}
+.cfgbox h4{font-size:12.5px;color:#8b94a1;font-weight:800;margin-bottom:6px}
+.catrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.catrow input,.catrow select{font:inherit;font-size:14px;background:#1c2027;border:1px solid #2e343d;
+ color:#f2f4f7;border-radius:9px;padding:8px 9px;min-height:40px;min-width:0}
+.catrow .cname{flex:1 1 38%} .catrow .cspec{flex:1 1 100%} .catrow .cterm{flex:1 1 38%}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
@@ -123,10 +131,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn nav" id="dNext">▶</span>
 </div>
 <div class="grp">
-  <span class="btn cat" data-c="40">　2140</span>
-  <span class="btn cat" data-c="53">　2153</span>
-  <span class="btn cat" data-c="t1">　一航</span>
-  <span class="btn cat" data-c="t2">　二航</span>
+  <span id="catslot"></span>
 </div>
 <div class="grp">
   <span class="btn zone" data-z="A">　A區</span>
@@ -146,6 +151,12 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn half" id="bhide">🙈 隱藏已抵達：否</span>
   <span class="btn half" id="breload">🔄 立即更新</span>
 </div>
+<div class="grp"><span class="btn" id="bcfg">⚙️ 分類設定</span></div>
+<div class="cfgbox" id="cfgbox" hidden>
+  <h4>名稱／登機門／航廈（留空＝該航廈其餘）</h4>
+  <div id="catbox"></div>
+  <span class="btn" id="catReset" style="min-height:40px;font-size:13px">↺ 恢復預設</span>
+</div>
 
 <div class="sep"></div>
 <div id="mb"></div>
@@ -157,8 +168,15 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 
 <script>
 /* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
-var SPEC_2140='C1-C4, C5R, B7-B9';
-var SPEC_2153='B6, C5, C6-C10';
+/* ── 四個分類：名稱／登機門／航廈都可以自己改，存在這台裝置（跟網頁版同一套） ── */
+var CAT_DEFAULT=[
+  {name:'2140', spec:'C1-C4, C5R, B7-B9', term:'2'},
+  {name:'2153', spec:'B6, C5, C6-C10',    term:'2'},
+  {name:'其他一航', spec:'',                term:'1'},
+  {name:'其他二航', spec:'',                term:'2'}
+];
+var CAT_CLS=['s40','s53','st1','st2'];
+var CAT_KEY='tpeCats1';
 
 var GATE_ORDER=(function(){
   var o=[],i;
@@ -183,7 +201,27 @@ function expandSpec(spec){
   });
   return set;
 }
-var G40=expandSpec(SPEC_2140), G53=expandSpec(SPEC_2153);
+function catsLoad(){
+  try{
+    var raw=localStorage.getItem(CAT_KEY);
+    if(raw){ var a=JSON.parse(raw);
+      if(a&&a.length===4) return a.map(function(c,i){
+        return {name:String(c.name||CAT_DEFAULT[i].name).slice(0,12),
+                spec:String(c.spec||''),
+                term:(c.term==='1'||c.term==='any')?c.term:'2'};
+      }); }
+  }catch(e){}
+  return CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+}
+function catsSave(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(CATS)); }catch(e){} }
+var CATS=catsLoad(), EX=[];
+function catsExpand(){
+  EX=CATS.map(function(c,i){
+    var sp=String(c.spec||'').trim();
+    return {id:'c'+i, name:c.name, term:c.term, hasSpec:!!sp, set:expandSpec(sp)};
+  });
+}
+catsExpand();
 
 /* ── 小工具 ── */
 function hhmm(t){ return (t||'').slice(0,5); }
@@ -269,16 +307,27 @@ function statusOf(f){
   if(/準時/.test(memo)) return {txt:'🟢 準時',   cls:'info',done:false};
   return {txt:'預計', cls:'none', done:false};
 }
+/* 先比「有填登機門」的格子（航廈也要對），再比「留空」的格子（只看航廈）。
+   B6～B9 一航二航都有同名登機門，所以航廈欄一定要一起比。 */
 function shopOf(f){
   var g=(f.Gate||'').trim().toUpperCase();
-  /* B6～B9 一航二航都有同名登機門，先以航班資訊的航廈為準，再依登機門歸分點 */
-  if(String(f.BNO)==='1') return 't1';
-  if(g && G40[g]) return '40';
-  if(g && G53[g]) return '53';
-  return 't2';
+  var bno=(String(f.BNO)==='1')?'1':'2', i, c;
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(!c.hasSpec) continue;
+    if(c.term!=='any' && c.term!==bno) continue;
+    if(g && c.set[g]) return c.id;
+  }
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(c.hasSpec) continue;
+    if(c.term==='any' || c.term===bno) return c.id;
+  }
+  return 'c'+(EX.length-1);
 }
-var TAG={'40':{txt:'2140',cls:'s40'},'53':{txt:'2153',cls:'s53'},
-         't1':{txt:'一航',cls:'st1'},'t2':{txt:'二航',cls:'st2'}};
+function tagOf(id){
+  var i=+String(id).slice(1);
+  if(isNaN(i)||!CATS[i]) return {txt:'其他',cls:'st2'};
+  return {txt:CATS[i].name, cls:CAT_CLS[i]};
+}
 
 /* ── 預估下機人數（TDX 沒機型，用航線推估；誤差約 ±15%）── */
 var LONGHAUL={LAX:1,SFO:1,SEA:1,JFK:1,EWR:1,ORD:1,DFW:1,IAH:1,IAD:1,BOS:1,ATL:1,MSP:1,ONT:1,
@@ -299,7 +348,7 @@ function paxHtml(f){ var p=paxOf(f);
   return ' <i class="px">'+p.dot+p.est+'</i>'+(p.tx?'<i class="tx">🔄</i>':''); }
 
 /* ── 畫面狀態 ── */
-var cats={'40':true,'53':true,'t1':true,'t2':true};
+var cats={c0:true,c1:true,c2:true,c3:true};
 var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
 var win=['00:00','23:59'];
 var mode='win';      /* 'win'=固定時段  'now6'=現在起6小時 */
@@ -309,16 +358,25 @@ var hideDone=false;
 var DATA=[];
 var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
 
-function allOn(){ return cats['40']&&cats['53']&&cats['t1']&&cats['t2']; }
-function mineOn(){ return cats['40']&&cats['53']&&!cats['t1']&&!cats['t2']; }
+function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
+function mineOn(){ return cats.c0&&cats.c1&&!cats.c2&&!cats.c3; }
 
 function paintBtns(){
   document.getElementById('ball').className='btn half'+(allOn()?' on':'');
   document.getElementById('bmine').className='btn half'+(mineOn()?' on':'');
-  [].forEach.call(document.querySelectorAll('.cat'),function(b){
-    var on=cats[b.getAttribute('data-c')];
-    b.className='btn cat'+(on?' on':'');
-    b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
+  var slot=document.getElementById('catslot'), h='';
+  CATS.forEach(function(c,i){
+    h+='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
+      +(cats['c'+i]?'✓ ':'　')+esc(c.name)+'</span>';
+  });
+  slot.innerHTML=h;
+  [].forEach.call(slot.querySelectorAll('.cat'),function(b){
+    b.addEventListener('click',function(){
+      var i=b.getAttribute('data-i'), on=0, k;
+      for(k in cats) if(cats[k]) on++;
+      if(cats['c'+i]&&on<=1) return;         /* 至少留一類 */
+      cats['c'+i]=!cats['c'+i]; render();
+    });
   });
   [].forEach.call(document.querySelectorAll('.zone'),function(b){
     var on=zones[b.getAttribute('data-z')];
@@ -397,8 +455,8 @@ function rowHtml(f,nowMin){
   var eta=mins(big)-nowMin;
   var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
   var shop=shopOf(f);
-  var tg=TAG[shop];
-  return '<div class="r '+cls+(shop==='40'?' r40':shop==='53'?' r53':'')+'">'
+  var tg=tagOf(shop);
+  return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
     +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(f.flightCode)+'</span><span class="g">'+esc(f.Gate)+'</span>'
     +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
@@ -470,8 +528,8 @@ function render(){
     html+='<div class="msg" style="text-align:left;line-height:1.7">🕓 <b style="color:#cbd5e1">尚未公布登機門：'+pend.length+' 班</b>（門一派好就會自動變成上面的大字卡）<br>'
       +pend.map(function(p){ return p.txt; }).join('、')+'</div>';
   }
-  if(!cats['40']&&!cats['53']&&!cats['t1']&&!cats['t2'])
-    html='<div class="msg">分類全部關掉了<br>點上面 2140／2153／一航／二航 選要看的</div>';
+  if(!cats.c0&&!cats.c1&&!cats.c2&&!cats.c3)
+    html='<div class="msg">分類全部關掉了<br>點上面的分類鍵選要看的</div>';
   document.getElementById('list').innerHTML=html;
   paintBtns();
 }
@@ -669,8 +727,8 @@ function meetTable(){
   var n=new Date();
   return '<div class="mth">🕐 '+(n.getMonth()+1)+'/'+n.getDate()+' 開會空檔（'+LO+'–'+HI+'）</div>'
     +'<table class="mt"><tr><th>分點</th><th>最大空檔</th><th>前一班</th><th>後一班</th></tr>'
-    +calc('2140','g40',inWin.filter(function(f){return shopOf(f)==='40';}))
-    +calc('2153','g53',inWin.filter(function(f){return shopOf(f)==='53';}))
+    +calc(CATS[0].name,'g40',inWin.filter(function(f){return shopOf(f)==='c0';}))
+    +calc(CATS[1].name,'g53',inWin.filter(function(f){return shopOf(f)==='c1';}))
     +'</table>';
 }
 document.getElementById('bmeet').addEventListener('click',function(){
@@ -679,16 +737,46 @@ document.getElementById('bmeet').addEventListener('click',function(){
   mb.innerHTML=meetTable(); this.className='btn half on';
 });
 document.getElementById('bmine').addEventListener('click',function(){
-  cats={'40':true,'53':true,'t1':false,'t2':false}; render();
+  cats={c0:true,c1:true,c2:false,c3:false}; render();
 });
-[].forEach.call(document.querySelectorAll('.cat'),function(b){
-  b.addEventListener('click',function(){
-    var c=b.getAttribute('data-c');
-    var onCount=Object.keys(cats).filter(function(k){return cats[k];}).length;
-    if(cats[c]&&onCount<=1) return;      /* 至少留一類 */
-    cats[c]=!cats[c]; render();
+/* ── 分類設定編輯器 ── */
+function paintCatBox(){
+  var box=document.getElementById('catbox'), h='';
+  CATS.forEach(function(c,i){
+    h+='<div class="catrow">'
+     + '<input class="cname" data-i="'+i+'" maxlength="12" placeholder="名稱" value="'+esc(c.name)+'">'
+     + '<select class="cterm" data-i="'+i+'">'
+       + '<option value="2"'+(c.term==='2'?' selected':'')+'>二航</option>'
+       + '<option value="1"'+(c.term==='1'?' selected':'')+'>一航</option>'
+       + '<option value="any"'+(c.term==='any'?' selected':'')+'>不分</option>'
+     + '</select>'
+     + '<input class="cspec" data-i="'+i+'" placeholder="登機門，留空＝該航廈其餘" value="'+esc(c.spec)+'">'
+     + '</div>';
   });
+  box.innerHTML=h;
+  function touch(){ catsSave(); catsExpand(); render(); }
+  [].forEach.call(box.querySelectorAll('.cname'),function(el){
+    el.addEventListener('input',function(){
+      CATS[+el.getAttribute('data-i')].name=el.value.trim()||('分類'+(1+ +el.getAttribute('data-i'))); touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cspec'),function(el){
+    el.addEventListener('input',function(){ CATS[+el.getAttribute('data-i')].spec=el.value; touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cterm'),function(el){
+    el.addEventListener('change',function(){ CATS[+el.getAttribute('data-i')].term=el.value; touch(); });
+  });
+}
+document.getElementById('bcfg').addEventListener('click',function(){
+  var b=document.getElementById('cfgbox');
+  b.hidden=!b.hidden;
+  this.className='btn'+(b.hidden?'':' on');
 });
+document.getElementById('catReset').addEventListener('click',function(){
+  CATS=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  catsSave(); catsExpand(); paintCatBox(); render();
+});
+paintCatBox();
+paintBtns();
 [].forEach.call(document.querySelectorAll('.pre'),function(b){
   if(!b.getAttribute('data-t')) return;   /* 明日鍵另外處理 */
   b.addEventListener('click',function(){

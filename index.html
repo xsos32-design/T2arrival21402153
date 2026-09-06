@@ -49,15 +49,16 @@
   .chip.act{border-color:var(--accent);color:var(--accent);background:#f0f6ff}
   .chiplabel{font-size:11.5px;color:var(--muted);font-weight:600;margin-right:2px}
   .chip.shop{font-weight:700;color:#9aa3ae}
-  #s2140.act{border-color:var(--c40);color:var(--c40);background:var(--c40bg)}
-  #s2153.act{border-color:var(--c53);color:var(--c53);background:var(--c53bg)}
+  #shopslot{display:contents}
+  .cs0.act{border-color:var(--c40);color:var(--c40);background:var(--c40bg)}
+  .cs1.act{border-color:var(--c53);color:var(--c53);background:var(--c53bg)}
   details.cfg{margin-top:10px;border-top:1px dashed var(--line);padding-top:9px}
   details.cfg summary{cursor:pointer;font-size:12px;color:var(--muted);font-weight:600}
   .cfgrow{display:flex;gap:11px;flex-wrap:wrap;margin-top:9px}
   .status{font-size:12px;color:var(--muted);margin-top:9px}
 
   .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .r{display:grid;grid-template-columns:112px 138px 66px 1fr 58px 108px;gap:10px;align-items:center;
+  .r{display:grid;grid-template-columns:112px 138px 66px 1fr 92px 108px;gap:10px;align-items:center;
      padding:9px 14px;border-top:1px solid var(--line)}
   .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:600;padding:7px 14px}
   .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
@@ -78,11 +79,22 @@
   .c-fno b{font-weight:800;font-size:16.5px}
   .c-fno small{display:block;color:var(--muted);font-size:11.5px}
   .c-gate{font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px}
+  .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
   .t40{background:var(--c40bg);color:var(--c40)} .t53{background:var(--c53bg);color:var(--c53)}
   .tt1{background:#f1ecfd;color:#6d28d9} .tt2{background:var(--nonebg);color:var(--none)}
-  #st1.act{border-color:#7c3aed;color:#6d28d9;background:#f3ebff}
-  #st2.act{border-color:#64748b;color:#334155;background:#eef2f7}
+  .cs2.act{border-color:#7c3aed;color:#6d28d9;background:#f3ebff}
+  .cs3.act{border-color:#64748b;color:#334155;background:#eef2f7}
+  /* 分類設定編輯器 */
+  .catrow{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .catno{flex:0 0 auto;width:24px;height:24px;border-radius:7px;font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;background:var(--nonebg);color:var(--none)}
+  .catno.cs0{background:var(--c40bg);color:var(--c40)} .catno.cs1{background:var(--c53bg);color:var(--c53)}
+  .catno.cs2{background:#f1ecfd;color:#6d28d9}
+  .catrow .cname{flex:0 0 108px;min-width:0} .catrow .cspec{flex:1 1 auto;min-width:0}
+  .catrow .cterm{flex:0 0 auto}
+  .btn2{font:inherit;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;width:auto}
+  #catmsg{font-size:12px;color:var(--muted)}
   .badge{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;white-space:nowrap}
   .px{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
   .tx{font-style:normal;font-size:12px;font-weight:800;color:#b45309;white-space:nowrap}
@@ -175,10 +187,16 @@
     .mt .g40 .lb{background:#0d3b36;color:#5eead4}
     .mt .g53 .lb{background:#43200f;color:#fdba74}
     .mt .sub td{background:#181c22;color:#8b94a1}
-    #s2140.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
-    #s2153.act{background:#43200f;border-color:#f97316;color:#fdba74}
-    #st1.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
-    #st2.act{background:#232a34;border-color:#64748b;color:#cbd5e1}
+    .cs0.act{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
+    .cs1.act{background:#43200f;border-color:#f97316;color:#fdba74}
+    .cs2.act{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
+    .cs3.act{background:#232a34;border-color:#64748b;color:#cbd5e1}
+    .catrow{flex-wrap:wrap;gap:6px}
+    .catno{width:100%;height:auto;justify-content:flex-start;background:none;padding:2px 0;font-size:11.5px}
+    .catno.cs0{background:none;color:#5eead4} .catno.cs1{background:none;color:#fdba74}
+    .catno.cs2{background:none;color:#c4b5fd} .catno.cs3{background:none;color:#9aa3b0}
+    .catrow .cname{flex:1 1 40%} .catrow .cspec{flex:1 1 100%} .catrow .cterm{flex:1 1 40%;width:auto}
+    .btn2{background:#1c2027;border-color:#2e343d;color:#cbd5e1;min-height:44px;padding:0 16px}
     details.cfg{border-top-color:#262b33}
     details.cfg summary{color:#8b94a1}
     input.wide{min-width:0}
@@ -301,10 +319,7 @@
       <span class="chiplabel">分類</span>
       <span class="chip" id="sall">全部</span>
       <span class="chip" id="snone">全不要</span>
-      <span class="chip shop act" id="s2140">✓ 2140</span>
-      <span class="chip shop act" id="s2153">✓ 2153</span>
-      <span class="chip shop act" id="st1">✓ 其他 一航</span>
-      <span class="chip shop act" id="st2">✓ 其他 二航</span>
+      <span id="shopslot"></span>
     </div>
 
     <div class="chips">
@@ -333,14 +348,16 @@
     </details>
 
     <details class="cfg">
-      <summary>分點別登機門設定（可修改）</summary>
-      <div class="cfgrow">
-        <div class="fld"><label>2140 負責登機門</label><input class="wide" id="cfg2140" value="C1-C4, C5R, B7-B9"></div>
-        <div class="fld"><label>2153 負責登機門</label><input class="wide" id="cfg2153" value="B6, C5, C6-C10"></div>
-        <div class="fld"><label>其他一航 加選登機門（可留空）</label><input class="wide" id="cfgT1" value=""></div>
-        <div class="fld"><label>其他二航 加選登機門（可留空）</label><input class="wide" id="cfgT2" value=""></div>
+      <summary>分類設定：名稱／登機門／航廈（可修改）</summary>
+      <div id="catbox"></div>
+      <div class="cprow" style="margin-top:9px">
+        <button class="btn2" id="catReset">↺ 恢復預設</button>
+        <span id="catmsg"></span>
       </div>
-      <div class="status">支援範圍（C1-C4）與單一門（C5R、B7），逗號分隔。<b>只有第二航廈</b>的班機才會被歸到 2153／2140；第一航廈以及 T2 其餘登機門一律歸「其他」。B6～B9 一航二航都有同名登機門，以航班資訊上的航廈為準。目前：C5R 算 2140、二航的 C5 與 B6 算 2153。注意範圍寫成 C5-C10 會把 C5R 一起包進去，所以 2153 用「C5, C6-C10」。</div>
+      <div class="status">登機門可寫範圍（C1-C4）或單一門（C5R），逗號分隔；<b>留空＝該航廈剩下的班機全歸這一類</b>。
+        比對順序是「有填登機門的先比，再比留空的」，所以前兩格填你負責的門、後兩格留空當作其他即可。
+        B6～B9 一航二航都有同名登機門，靠「航廈」欄才分得開。
+        注意 C5-C10 會把 C5R 一起包進去，所以 2153 要寫「C5, C6-C10」。設定會存在這台裝置。</div>
     </details>
 
     <div class="status" id="status">按「更新班機」開始。</div>
@@ -481,27 +498,63 @@ function statusOf(f){
 }
 
 var lastRows=[], lastPending=[], hideDone=false;
-var show={'2140':true,'2153':true,'t1':true,'t2':true};
+/* ── 四個分類：名稱／登機門／航廈都可以自己改，存在這台裝置 ── */
+var CAT_DEFAULT=[
+  {name:'2140',     spec:'C1-C4, C5R, B7-B9', term:'2'},
+  {name:'2153',     spec:'B6, C5, C6-C10',    term:'2'},
+  {name:'其他一航', spec:'',                  term:'1'},
+  {name:'其他二航', spec:'',                  term:'2'}
+];
+var CAT_CLS=['t40','t53','tt1','tt2'];     /* 顏色固定跟著格子，改名字不會變色 */
+var CAT_KEY='tpeCats1';
+function catsLoad(){
+  try{
+    var raw=localStorage.getItem(CAT_KEY);
+    if(raw){
+      var a=JSON.parse(raw);
+      if(a&&a.length===4) return a.map(function(c,i){
+        return {name:String(c.name||CAT_DEFAULT[i].name).slice(0,12),
+                spec:String(c.spec||''),
+                term:(c.term==='1'||c.term==='any')?c.term:'2'};
+      });
+    }
+  }catch(e){}
+  return CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+}
+function catsSave(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(CATS)); }catch(e){} }
+var CATS=catsLoad();
+var show={c0:true,c1:true,c2:true,c3:true};
+/* 把設定展開成比對用的樣子 */
+function catsExpand(){
+  return CATS.map(function(c,i){
+    var sp=String(c.spec||'').trim();
+    return {id:'c'+i, name:c.name, term:c.term, hasSpec:!!sp, set:expandSpec(sp)};
+  });
+}
 var zoneShow={'A':true,'B':true,'C':true,'D':true};
 var dayBreakMD='';   /* 跨日分隔列顯示的日期（run/runNow6 會設定） */   /* 登機門開頭字母（無字母的一律顯示） */
 
-/* 四種分類：
-   2140 / 2153 = 第二航廈、登機門符合設定
-   t2          = 第二航廈其餘登機門
-   t1          = 第一航廈全部 */
-function shopOf(f,g53,g40,gt1,gt2){
+/* 分類判斷：先比「有填登機門」的格子（航廈也要對），再比「留空」的格子（只看航廈）。
+   B6～B9 一航二航都有同名登機門，所以航廈欄一定要一起比。 */
+function shopOf(f,EX){
   var g=(f.Gate||'').trim().toUpperCase();
-  /* 先看航班資訊上的航廈：B6～B9 一航、二航都有，同名登機門要靠航廈才分得出來。
-     標成第一航廈的一律歸「一航」，只有第二航廈的班機才會再依登機門歸 2140／2153。 */
-  if(String(f.BNO)==='1') return 't1';
-  if(g && g40[g]) return '2140';
-  if(g && g53[g]) return '2153';
-  if(gt1 && g && gt1[g]) return 't1';   /* 使用者自訂：這些門算「其他一航」 */
-  if(gt2 && g && gt2[g]) return 't2';
-  return 't2';
+  var bno=(String(f.BNO)==='1')?'1':'2', i, c;
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(!c.hasSpec) continue;
+    if(c.term!=='any' && c.term!==bno) continue;
+    if(g && c.set[g]) return c.id;
+  }
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(c.hasSpec) continue;
+    if(c.term==='any' || c.term===bno) return c.id;
+  }
+  return 'c'+(EX.length-1);
 }
-var TAG={'2140':{txt:'2140',cls:'t40'},'2153':{txt:'2153',cls:'t53'},
-         't1':{txt:'一航',cls:'tt1'},'t2':{txt:'二航',cls:'tt2'}};
+function tagOf(id){
+  var i=+String(id).slice(1);
+  if(isNaN(i)||!CATS[i]) return {txt:'其他',cls:'tt2'};
+  return {txt:CATS[i].name, cls:CAT_CLS[i]};
+}
 
 /* 實際／預計抵達時間（沒有 RTime 就用表定） */
 function arrAt(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
@@ -512,17 +565,14 @@ function setDot(k,msg){
 }
 
 function render(){
-  var g40=expandSpec(document.getElementById('cfg2140').value);
-  var g53=expandSpec(document.getElementById('cfg2153').value);
-  var gt1=expandSpec(document.getElementById('cfgT1').value);
-  var gt2=expandSpec(document.getElementById('cfgT2').value);
+  var EX=catsExpand();
   var now=new Date(), nowM=now.getHours()*60+now.getMinutes();
 
   var rows=[];
   lastRows.forEach(function(f){
     var hasGate=(f.Gate||'').trim();
     if(hasGate){
-      var shop=shopOf(f,g53,g40,gt1,gt2);
+      var shop=shopOf(f,EX);
       if(!show[shop]) return;
       var zg=hasGate.charAt(0).toUpperCase();
       if(/[A-D]/.test(zg)&&!zoneShow[zg]) return;
@@ -543,7 +593,7 @@ function render(){
   });
 
   var out=document.getElementById('out');
-  if(!show['2140'] && !show['2153'] && !show['t1'] && !show['t2']){
+  if(!show.c0 && !show.c1 && !show.c2 && !show.c3){
     out.innerHTML='<div class="empty">四個分類都沒勾選 — 請至少勾一個。</div>';
     document.getElementById('pending').innerHTML=''; return;
   }
@@ -575,11 +625,11 @@ function render(){
       }
       var eta=mins(big)-nowM;
       var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
-      var tg=x.shop?TAG[x.shop]:{txt:'待定',cls:'tt2'};
+      var tg=x.shop?tagOf(x.shop):{txt:'待定',cls:'tt2'};
       var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
       var main=f.flightCode||((f.ACode||'')+(f.FlightNo||''));
       var tm='';
-      var shopCls=x.shop==='2140'?' r40':(x.shop==='2153'?' r53':'');
+      var shopCls=x.shop==='c0'?' r40':(x.shop==='c1'?' r53':'');
       /* 待定班機（無門）不上色 */
       return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
@@ -772,8 +822,8 @@ function reportText(kind){
       list.push({t:t,no:String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))),
                  city:String(f.CityName||'').replace(/市$/,''),g:g});
     });
-    var g53=expandSpec(document.getElementById('cfg2153').value);
-    var g40=expandSpec(document.getElementById('cfg2140').value);
+    var EXr=catsExpand();
+    var g40=EXr[0].set, g53=EXr[1].set;
 
     /* ── 開會空檔：19:00–20:30，2140 / 2153 分開算，輸出表格 ── */
     if(kind==='M'){
@@ -799,8 +849,8 @@ function reportText(kind){
           others:gaps.filter(function(x){return x.i!==best.i && x.len>=10;})
                      .map(function(x){return toT(x.s)+'–'+toT(x.e)+'（'+x.len+'分）';})};
       }
-      var G=[calc('2140','g40',inWin.filter(function(x){ return !!g40[x.g]; })),
-             calc('2153','g53',inWin.filter(function(x){ return !!g53[x.g]; }))];
+      var G=[calc(CATS[0].name,'g40',inWin.filter(function(x){ return !!g40[x.g]; })),
+             calc(CATS[1].name,'g53',inWin.filter(function(x){ return !!g53[x.g]; }))];
       /* 純文字版（複製到群組用） */
       var lines=[md+' 開會空檔（'+LO+'–'+HI+'）'];
       G.forEach(function(r){
@@ -972,9 +1022,6 @@ document.getElementById('date').addEventListener('change',function(){ setNow6(fa
 ['t1','t2'].forEach(function(id){
   document.getElementById(id).addEventListener('change',function(){ setNow6(false); run(); });
 });
-['cfg2140','cfg2153','cfgT1','cfgT2'].forEach(function(id){
-  document.getElementById(id).addEventListener('change',render);
-});
 
 function setDay(off){
   var d=new Date(Date.now()+off*86400000);
@@ -994,31 +1041,64 @@ document.getElementById('dTom').addEventListener('click',function(){ setDay(1); 
 });
 
 
-var SHOPBTNS=[['s2140','2140','2140'],['s2153','2153','2153'],
- ['st1','t1','其他 一航'],['st2','t2','其他 二航']];
+/* ── 分類按鈕：名稱直接取自設定，改名字按鈕就跟著變 ── */
 function paintShops(){
-  SHOPBTNS.forEach(function(p){
-    var el=document.getElementById(p[0]);
-    el.textContent=(show[p[1]]?'✓ ':'　')+p[2];
-    el.className=show[p[1]]?'chip shop act':'chip shop';
+  var slot=document.getElementById('shopslot'), html='';
+  CATS.forEach(function(c,i){
+    var on=show['c'+i];
+    html+='<span class="chip shop cs'+i+(on?' act':'')+'" data-i="'+i+'">'
+        + (on?'✓ ':'　')+esc(c.name)+'</span>';
+  });
+  slot.innerHTML=html;
+  [].forEach.call(slot.querySelectorAll('.chip.shop'),function(el){
+    el.addEventListener('click',function(){
+      var i=+el.getAttribute('data-i');
+      show['c'+i]=!show['c'+i];
+      paintShops(); render();
+    });
   });
 }
 document.getElementById('sall').addEventListener('click',function(){
-  show={'2140':true,'2153':true,'t1':true,'t2':true};
-  paintShops(); render();
+  show={c0:true,c1:true,c2:true,c3:true}; paintShops(); render();
 });
 document.getElementById('snone').addEventListener('click',function(){
-  show={'2140':false,'2153':false,'t1':false,'t2':false};
-  paintShops(); render();
+  show={c0:false,c1:false,c2:false,c3:false}; paintShops(); render();
 });
-SHOPBTNS.forEach(function(p){
-  document.getElementById(p[0]).addEventListener('click',function(){
-    show[p[1]]=!show[p[1]];
-    this.textContent=(show[p[1]]?'✓ ':'　')+p[2];
-    this.className=show[p[1]]?'chip shop act':'chip shop';
-    render();
+
+/* ── 分類設定編輯器 ── */
+function paintCatBox(){
+  var box=document.getElementById('catbox'), html='';
+  CATS.forEach(function(c,i){
+    html+='<div class="catrow">'
+      + '<span class="catno cs'+i+'">'+(i+1)+'</span>'
+      + '<input class="cname" data-i="'+i+'" maxlength="12" placeholder="名稱" value="'+esc(c.name)+'">'
+      + '<input class="cspec" data-i="'+i+'" placeholder="登機門（留空＝該航廈其餘）" value="'+esc(c.spec)+'">'
+      + '<select class="cterm" data-i="'+i+'">'
+        + '<option value="2"'+(c.term==='2'?' selected':'')+'>二航</option>'
+        + '<option value="1"'+(c.term==='1'?' selected':'')+'>一航</option>'
+        + '<option value="any"'+(c.term==='any'?' selected':'')+'>不分</option>'
+      + '</select></div>';
   });
+  box.innerHTML=html;
+  function touch(){ catsSave(); paintShops(); render();
+    var m=document.getElementById('catmsg'); m.textContent='已儲存';
+    clearTimeout(touch._t); touch._t=setTimeout(function(){ m.textContent=''; },1500); }
+  [].forEach.call(box.querySelectorAll('.cname'),function(el){
+    el.addEventListener('input',function(){ CATS[+el.getAttribute('data-i')].name=el.value.trim()||('分類'+(1+ +el.getAttribute('data-i'))); touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cspec'),function(el){
+    el.addEventListener('input',function(){ CATS[+el.getAttribute('data-i')].spec=el.value; touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cterm'),function(el){
+    el.addEventListener('change',function(){ CATS[+el.getAttribute('data-i')].term=el.value; touch(); });
+  });
+}
+document.getElementById('catReset').addEventListener('click',function(){
+  CATS=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  catsSave(); paintCatBox(); paintShops(); render();
 });
+paintCatBox();
+paintShops();
 
 [['zA','A'],['zB','B'],['zC','C'],['zD','D']].forEach(function(p){
   document.getElementById(p[0]).addEventListener('click',function(){
