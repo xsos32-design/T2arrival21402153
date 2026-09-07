@@ -903,10 +903,14 @@ function reportText(kind){
       return kind==='D' ? x.g.charAt(0)==='D' : !!(g40[x.g]||g53[x.g]);
     });
     rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
-    var lines = kind==='D'
-      ? ['@All ',md+'兆豐後續班機'].concat(rows.map(function(x){ return fwColon(x.t)+' '+x.no+' '+x.city+' '+x.g; }))
-      : [md+' ','22:30後班機'].concat(rows.map(function(x){ return x.t+' '+x.no+' '+x.g; }));
+    /* 兩種回報用同一套格式：@All／日期＋標題／時間 班號 出發地 登機門／署名 */
+    var title = kind==='D' ? '兆豐後續班機' : (CATS[0].name+'、'+CATS[1].name+' 後續班機');
+    var lines = ['@All ', md+' '+title]
+      .concat(rows.map(function(x){
+        return fwColon(x.t)+' '+fno4(x.no)+' '+x.city+' '+x.g;
+      }));
     if(!rows.length) lines.push('（22:30 後沒有符合的班機）');
+    lines.push('wei');
     return lines.join('\n');
   });
 }
