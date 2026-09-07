@@ -308,20 +308,21 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .t-plan{color:#fff;padding-left:0}
 .nd{font-style:normal;font-size:9.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
-.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
+.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05;
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
-.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start}
+.tag{font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start;letter-spacing:.02em}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
-.c{font-size:13.5px;color:#8b94a1;white-space:normal;word-break:break-word;line-height:1.45;min-width:0}
-.px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
+.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center;letter-spacing:-.01em}
+.c{font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.5;min-width:0}
+.px{font-style:normal;font-size:11.5px;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:2px}
 .tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
-.st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
+.st{font-size:11.5px;font-weight:700;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
-#age{font-style:normal;font-weight:700;margin-left:7px;color:#7dd3fc}
+#age{font-style:normal;font-weight:700;margin-left:6px;color:#7dd3fc;font-size:12.5px}
 #age.old{color:#fbbf24}
 #age.dead{color:#f87171}
 .tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
@@ -332,10 +333,11 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
 .btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
  background:#1c2027;border:2px solid #2e343d;border-radius:11px;color:#9aa3b0;
- font-size:14.5px;font-weight:650;text-decoration:none;text-align:center;padding:8px 4px}
+ font-size:14.5px;font-weight:700;text-decoration:none;text-align:center;padding:8px 4px;
+ white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
-.btn.half{flex:1 1 46%}
-.btn.pre{flex:1 1 22%;font-size:13.5px;padding:8px 2px}
+.btn.half{flex:1 1 46%;font-size:13.5px}
+.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
 .btn.c40.on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
 .btn.c53.on{background:#43200f;border-color:#f97316;color:#fdba74}
 .btn.ct1.on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
@@ -344,7 +346,7 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 4px 0 0 #f97316}
 .r.r40 .g{color:#5eead4}
 .r.r53 .g{color:#fdba74}
-.btn.zone{flex:1 1 22%;font-size:13.5px;padding:8px 2px;cursor:pointer;user-select:none}
+.btn.zone{flex:1 1 22%;font-size:12.5px;padding:8px 1px;cursor:pointer;user-select:none;letter-spacing:-.03em}
 .mth{font-size:13px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
 .mt{width:100%;border-collapse:collapse;font-size:12px;background:#14171c;margin-bottom:9px}
 .mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
@@ -355,9 +357,9 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .mt .g53 .lb{background:#43200f;color:#fdba74;font-weight:800}
 .mt .sub td{font-size:10.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
 .sep{border-top:1px solid #262b33;margin:10px 0}
-.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
+.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
- padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
+ padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
 .notice b{color:#fde68a}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
@@ -480,12 +482,12 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   const presetBtns = PRESETS
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset, 'pre')).join('\n');
-  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), '🙈 隱藏已抵達：' + (hide ? '是' : '否'), hide, 'half');
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), hide ? '👁 全部顯示' : '🙈 隱藏抵達', hide, 'half');
   const meetBtn = `<span class="btn half" id="bmeet">🕐 開會空檔</span>`;
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
-                        '🔄 立即更新　' + stamp + '<i id="age"></i>', false);
+                        '🔄 更新 ' + stamp + '<i id="age"></i>', false);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -518,8 +520,10 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <div class="sep"></div>
 <div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
-<div class="notice">⚠️ 僅供參考<br><b>實際以現場班機營運為主</b><br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機<br>🔄＝轉機客多，已扣掉0.75</div>
-<div class="foot">資料由 GitHub 定時抓取並預先產生，非即時。<br>上方時間 ${stamp} 為抓取時刻，點標題可重新載入最新一份。<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+<div class="notice">⚠️ 僅供參考，<b>一律以現場為準</b><br>
+👥 數字＝推估走入境的人數（±15%）<br>🟢 未滿150　🟡 150–250　🔴 超過250<br>
+🔄 轉機客多，人數已打75折<br>本頁固定不顯示 06:00–13:30 的班機</div>
+<div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
@@ -585,7 +589,7 @@ ${body}
     if (b && el){
       var m = Math.floor((now - b) / 60000);
       if (m < 0) m = 0;
-      el.textContent = m < 1 ? '（剛更新）' : '（' + m + ' 分前）';
+      el.textContent = m < 1 ? '· 剛更新' : '· ' + m + '分前';
       if (m >= 45) el.className = 'dead';
       else if (m >= 20) el.className = 'old';
     }
