@@ -25,7 +25,7 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd{display:flex;align-items:center;gap:5px;font-size:12px;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
  background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden;cursor:pointer}
 .hd>*{white-space:nowrap;flex:0 0 auto}
-.hd b{color:#cbd5e1;font-size:13px}
+.hd b{color:#cbd5e1;font-size:13px;white-space:nowrap}
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .u.busy{color:#fbbf24}
 .hd .u.err{color:#f87171}
@@ -45,15 +45,16 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .t-plan{color:#fff;padding-left:0}
 .nd{font-style:normal;font-size:9.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
-.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05}
-.tag{font-size:11px;font-weight:800;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start}
+.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05;
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tag{font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start;letter-spacing:.02em}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center}
-.c{font-size:13.5px;color:#8b94a1;white-space:normal;word-break:break-word;line-height:1.45;min-width:0}
-.px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
+.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center;letter-spacing:-.01em}
+.c{font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.5;min-width:0}
+.px{font-style:normal;font-size:11.5px;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:2px}
 .tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
-.st{font-size:11.5px;font-weight:700;padding:2px 5px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
+.st{font-size:11.5px;font-weight:700;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
@@ -73,10 +74,11 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
 .btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
  background:#1c2027;border:2px solid #2e343d;border-radius:11px;color:#9aa3b0;
- font-size:14.5px;font-weight:650;text-decoration:none;text-align:center;padding:8px 4px;cursor:pointer;user-select:none}
+ font-size:14.5px;font-weight:700;text-decoration:none;text-align:center;padding:8px 4px;
+ white-space:nowrap;overflow:hidden;letter-spacing:-.01em;cursor:pointer;user-select:none}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
-.btn.half,.btn.cat{flex:1 1 46%}
-.btn.zone,.btn.pre{flex:1 1 22%;font-size:13.5px;padding:8px 2px}
+.btn.half,.btn.cat{flex:1 1 46%;font-size:13.5px}
+.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
 .btn.nav{flex:1 1 18%;font-size:17px;padding:8px 2px}
 .btn.mid{flex:1 1 56%;font-size:13.5px;padding:8px 2px}
 #catslot{display:contents}
@@ -92,9 +94,9 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  color:#f2f4f7;border-radius:9px;padding:8px 9px;min-height:40px;min-width:0}
 .catrow .cname{flex:1 1 38%} .catrow .cspec{flex:1 1 100%} .catrow .cterm{flex:1 1 38%}
 .sep{border-top:1px solid #262b33;margin:10px 0}
-.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:8px 4px 2px;line-height:1.6}
+.foot{color:#5b636e;font-size:10.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
- padding:8px 9px;border-radius:10px;margin:9px 0;line-height:1.55;text-align:center}
+ padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
 .notice b{color:#fde68a}
 #fb .fbx{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
  padding:8px 9px;border-radius:10px;margin-bottom:6px;line-height:1.5;text-align:center}
@@ -148,12 +150,12 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
   <span class="btn half" id="bmeet">🕐 開會空檔</span>
 </div>
 <div class="grp">
-  <span class="btn half" id="bhide">🙈 隱藏已抵達：否</span>
-  <span class="btn half" id="breload">🔄 立即更新</span>
+  <span class="btn half" id="bhide">🙈 隱藏抵達</span>
+  <span class="btn half" id="breload">🔄 更新</span>
 </div>
 <div class="grp"><span class="btn" id="bcfg">⚙️ 分類設定</span></div>
 <div class="cfgbox" id="cfgbox" hidden>
-  <h4>名稱／登機門／航廈（留空＝該航廈其餘）</h4>
+  <h4>名稱／航廈／登機門（留空＝該航廈其餘）</h4>
   <div id="catbox"></div>
   <span class="btn" id="catReset" style="min-height:40px;font-size:13px">↺ 恢復預設</span>
 </div>
@@ -163,8 +165,12 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice">⚠️ 本頁資料為 TDX 交通部即時資料，僅供參考。<br><b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達。<br>👥 數字＝推估走入境的人（±15%）：🟢&lt;150　🟡150–250　🔴&gt;250<br>本頁固定不顯示 06:00–13:30 的班機。<br>🔄＝轉機客多（長榮/華航/星宇 東南亞晚班、清晨歐美班），已扣掉0.75</div>
-<div class="foot">按 🔄 或點最上面那條即可重抓當下資料。<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+<div class="notice">⚠️ TDX 交通部即時資料，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
+👥 數字＝推估走入境的人數（±15%）　🟢 未滿150　🟡 150–250　🔴 超過250<br>
+🔄 轉機客多（長榮／華航／星宇：東南亞16時後、歐美9時前），人數已打75折<br>
+本頁固定不顯示 06:00–13:30 的班機<br>
+此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已抵達</div>
+<div class="foot">按 🔄 或點最上面那條即可重抓當下資料<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
 
 <script>
 /* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
@@ -402,7 +408,7 @@ function paintBtns(){
     bn.textContent='⏱ '+pad(nb.getHours())+':'+pad(nb.getMinutes())+' 按下　'+loL+'–'+(e0>=1440?'隔日':'')+hiL;
   } else bn.textContent='⏱ 現在起 6 小時';
   document.getElementById('bhide').className='btn half'+(hideDone?' on':'');
-  document.getElementById('bhide').textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
+  document.getElementById('bhide').textContent=hideDone?'👁 全部顯示':'🙈 隱藏抵達';
 }
 
 /* 班機「實際」抵達的日期／時間：有預計（延誤）時間就用預計的，否則用表定 */

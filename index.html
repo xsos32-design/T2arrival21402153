@@ -47,7 +47,7 @@
   .chip{font-size:12.5px;font-weight:700;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;
     cursor:pointer;color:var(--muted);white-space:nowrap;user-select:none}
   .chip.act{border-color:var(--accent);color:var(--accent);background:#f0f6ff}
-  .chiplabel{font-size:11.5px;color:var(--muted);font-weight:600;margin-right:2px}
+  .chiplabel{font-size:11.5px;color:var(--muted);font-weight:700;margin-right:3px;letter-spacing:.03em}
   .chip.shop{font-weight:700;color:#9aa3ae}
   #shopslot{display:contents}
   .cs0.act{border-color:var(--c40);color:var(--c40);background:var(--c40bg)}
@@ -59,8 +59,9 @@
 
   .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
   .r{display:grid;grid-template-columns:112px 138px 66px 1fr 92px 108px;gap:10px;align-items:center;
-     padding:9px 14px;border-top:1px solid var(--line)}
-  .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:600;padding:7px 14px}
+     padding:10px 14px;border-top:1px solid var(--line)}
+  .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:700;
+     letter-spacing:.06em;padding:8px 14px}
   .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
   .r.r53{background:#fff4ea;box-shadow:inset 5px 0 0 #ea580c}
   .r.r40 .c-gate{color:#0f766e}
@@ -73,11 +74,11 @@
   .c-time b.t-early{color:#075985;background:#e0f2fe}
   .c-time b.t-same {color:#14532d;background:#e5f5ea}
   .c-time b.t-plan {color:var(--ink);background:transparent;padding-left:0}
-  .c-time i{display:block;font-style:normal;font-size:11.5px;font-variant-numeric:tabular-nums;
-    color:var(--muted);white-space:nowrap;margin-top:2px}
+  .c-time i{display:block;font-style:normal;font-size:12px;font-variant-numeric:tabular-nums;
+    color:var(--muted);white-space:nowrap;margin-top:3px;letter-spacing:-.01em}
   .tm{font-size:10px;font-weight:700;color:var(--muted);margin-left:3px;vertical-align:super}
   .c-fno b{font-weight:800;font-size:16.5px}
-  .c-fno small{display:block;color:var(--muted);font-size:11.5px}
+  .c-fno small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;letter-spacing:.01em}
   .c-gate{font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
   .t40{background:var(--c40bg);color:var(--c40)} .t53{background:var(--c53bg);color:var(--c53)}
@@ -96,7 +97,8 @@
     border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;width:auto}
   #catmsg{font-size:12px;color:var(--muted)}
   .badge{display:inline-block;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:6px;white-space:nowrap}
-  .px{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .px{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;
+    font-variant-numeric:tabular-nums;margin-left:2px}
   .tx{font-style:normal;font-size:12px;font-weight:800;color:#b45309;white-space:nowrap}
   .short,.tshort{display:none}
   .c-time{overflow:hidden}
@@ -110,8 +112,8 @@
     font-size:12.5px;line-height:1.6;margin-bottom:14px}
   .daybreak{margin:10px 0 4px;padding:8px 10px;border-radius:10px;background:#eef4ff;border:1px solid #c7dcff;
     color:#1d4ed8;font-weight:800;font-size:13px;text-align:center}
-  .notice{margin-top:14px;padding:11px 14px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;
-    color:#92400e;font-size:12.5px;line-height:1.7;text-align:center}
+  .notice{margin-top:14px;padding:12px 15px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;
+    color:#92400e;font-size:12.5px;line-height:1.85;text-align:center;letter-spacing:.01em}
   .notice b{color:#78350f}
   .credit{margin-top:10px;text-align:center;color:#9aa3ae;font-size:11.5px;letter-spacing:.04em}
   /* ── 浮動快捷鍵：置頂／現在起6小時／更新 ── */
@@ -222,7 +224,7 @@
     .c-time b.t-early{color:#7dd3fc;background:#0b2b3c}
     .c-time b.t-same {color:#6ee7b7;background:#0d2f1e}
     .c-time b.t-plan {color:#fff;background:transparent;padding-left:0}
-    .c-time i{font-size:11.5px;color:#7c8593;margin-top:2px}
+    .c-time i{font-size:12px;color:#8b94a1;margin-top:3px}
 
     .c-gate{grid-area:gate;text-align:center;font-size:27px;color:#fff;line-height:1.05;white-space:nowrap}
     .c-shop{grid-area:shop;text-align:left;white-space:nowrap}
@@ -231,8 +233,8 @@
     .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
 
     .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:19px;color:#fff} .c-fno small{display:none}
-    .c-city{grid-area:city;font-size:13px;color:#8b94a1;white-space:normal;word-break:break-word;line-height:1.5}
-    .px{font-style:normal;font-size:11px;color:#7c8593;white-space:nowrap}
+    .c-city{grid-area:city;font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.55}
+    .px{font-style:normal;font-size:11.5px;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums}
     .tx{font-size:11px;color:#fbbf24}
     .badge{font-size:11.5px;padding:2px 7px}
     .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
@@ -244,7 +246,7 @@
     .tdxbox{background:#2e2408;border-color:#5c4708;color:#fcd34d;font-size:11.5px;padding:9px;border-radius:11px}
     .daybreak{background:#16233c;border-color:#2e4a7a;color:#93c5fd;font-size:13px;padding:8px;border-radius:11px}
     .notice{background:#2e2408;border-color:#5c4708;color:#fcd34d;font-size:12px;
-      padding:10px 11px;border-radius:12px;margin-top:12px;line-height:1.6}
+      padding:11px 12px;border-radius:12px;margin-top:12px;line-height:1.85}
     .notice b{color:#fde68a}
   }
 
@@ -339,7 +341,7 @@
     <div id="copybox"></div>
 
     <details class="cfg">
-      <summary>📅 進階：選日期／跨日區間（結束比起始早＝跨到隔日）</summary>
+      <summary>📅 選日期／跨日區間（結束比起始早＝跨到隔日）</summary>
       <div class="row" style="margin-top:9px">
         <div class="fld"><label>日期</label><div class="dq"><input type="date" id="date"><button type="button" class="dqb" id="dToday">今天</button><button type="button" class="dqb" id="dTom">明天</button></div></div>
         <div class="fld"><label>起始</label><select id="t1"><option value="00:00">00 時</option><option value="01:00">01 時</option><option value="02:00">02 時</option><option value="03:00">03 時</option><option value="04:00">04 時</option><option value="05:00">05 時</option><option value="13:30">13:30</option><option value="14:00">14 時</option><option value="15:00">15 時</option><option value="16:00">16 時</option><option value="17:00">17 時</option><option value="18:00">18 時</option><option value="19:00">19 時</option><option value="20:00">20 時</option><option value="21:00">21 時</option><option value="22:00">22 時</option><option value="23:00">23 時</option></select></div>
@@ -348,19 +350,19 @@
     </details>
 
     <details class="cfg">
-      <summary>分類設定：名稱／登機門／航廈（可修改）</summary>
+      <summary>⚙️ 分類設定：名稱／登機門／航廈</summary>
       <div id="catbox"></div>
       <div class="cprow" style="margin-top:9px">
         <button class="btn2" id="catReset">↺ 恢復預設</button>
         <span id="catmsg"></span>
       </div>
-      <div class="status">登機門可寫範圍（C1-C4）或單一門（C5R），逗號分隔；<b>留空＝該航廈剩下的班機全歸這一類</b>。
-        比對順序是「有填登機門的先比，再比留空的」，所以前兩格填你負責的門、後兩格留空當作其他即可。
-        B6～B9 一航二航都有同名登機門，靠「航廈」欄才分得開。
-        注意 C5-C10 會把 C5R 一起包進去，所以 2153 要寫「C5, C6-C10」。設定會存在這台裝置。</div>
+      <div class="status">登機門寫範圍 <b>C1-C4</b> 或單一門 <b>C5R</b>，逗號分隔；<b>留空＝該航廈其餘班機全歸這格</b>。<br>
+        先比有填登機門的格子，再比留空的——前兩格填你負責的門、後兩格留空即可。<br>
+        B6～B9 一航二航同名，靠「航廈」欄才分得開。C5-C10 會包含 C5R，所以 2153 要寫 C5, C6-C10。<br>
+        改完立即生效，存在這台裝置。</div>
     </details>
 
-    <div class="status" id="status">按「更新班機」開始。</div>
+    <div class="status" id="status">按上面的「更新班機」開始。</div>
   </div>
 
   <div id="out"></div>
@@ -368,9 +370,10 @@
   <div id="srcslot"></div>
 
   <div class="notice">
-    ⚠️ 本頁資料擷取自桃園國際機場公開航班資訊，僅供參考。<br>
-    <b>實際登機門、時間與班機狀態，一律以現場班機營運為主。</b><br>
-    👥 人數＝推估走入境的人（機型座位×載客率），誤差約±15%：🟢&lt;150　🟡150–250　🔴&gt;250<br>🔄＝轉機客多（長榮／華航／星宇東南亞16時後、歐美9時前），人數已扣掉0.75
+    ⚠️ 資料擷取自桃園機場公開航班資訊，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
+    👥 數字＝推估走入境的人數（±15%）　🟢 未滿150　🟡 150–250　🔴 超過250<br>
+    🔄 轉機客多（長榮／華航／星宇：東南亞16時後、歐美9時前），人數已打75折<br>
+    本頁固定不顯示 06:00–13:30 的班機
   </div>
 
   <div class="credit">檔案作者：小韋</div>
