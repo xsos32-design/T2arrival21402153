@@ -58,7 +58,7 @@
   .status{font-size:12px;color:var(--muted);margin-top:9px}
 
   .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .r{display:grid;grid-template-columns:112px 138px 66px 1fr 92px 108px;gap:10px;align-items:center;
+  .r{display:grid;grid-template-columns:112px 182px 66px 1fr 92px 108px;gap:10px;align-items:center;
      padding:10px 14px;border-top:1px solid var(--line)}
   .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:11px;font-weight:700;
      letter-spacing:.06em;padding:8px 14px}
@@ -77,7 +77,9 @@
   .c-time i{display:block;font-style:normal;font-size:12px;font-variant-numeric:tabular-nums;
     color:var(--muted);white-space:nowrap;margin-top:3px;letter-spacing:-.01em}
   .tm{font-size:10px;font-weight:700;color:var(--muted);margin-left:3px;vertical-align:super}
-  .c-fno b{font-weight:800;font-size:16.5px}
+  .c-fno b{font-weight:800;font-size:19px;letter-spacing:-.01em}
+  .cty{font-style:normal;font-size:12.5px;font-weight:700;color:var(--ink);
+    white-space:nowrap;margin-left:7px}
   .c-fno small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;letter-spacing:.01em}
   .c-gate{font-weight:800;font-size:21px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .tag{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
@@ -232,7 +234,8 @@
     .t40{background:#0d3b36;color:#5eead4} .t53{background:#43200f;color:#fdba74}
     .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
 
-    .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:19px;color:#fff} .c-fno small{display:none}
+    .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:21px;color:#fff} .c-fno small{display:none}
+    .cty{display:block;margin:2px 0 0;font-size:12px;color:#cbd5e1}
     .c-city{grid-area:city;font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.55}
     .px{font-style:normal;font-size:11.5px;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums}
     .tx{font-size:11px;color:#fbbf24}
@@ -559,6 +562,22 @@ function tagOf(id){
   return {txt:CATS[i].name, cls:CAT_CLS[i]};
 }
 
+/* ── 出發國家對照（IATA 機場代碼 → 國家）＋ 航班號碼補滿四碼 ── */
+var CTRY=(function(){var o={},a='ADL:澳洲,AKL:紐西蘭,AMS:荷蘭,AOJ:日本,ARN:瑞典,ATH:希臘,ATL:美國,AUH:阿聯,BCN:西班牙,BER:德國,BKI:馬來西亞,BKK:泰國,BLR:印度,BNE:澳洲,BOM:印度,BOS:美國,BRU:比利時,BUD:匈牙利,BWN:汶萊,CAN:中國,CDG:法國,CEB:菲律賓,CGK:印尼,CGO:中國,CHC:紐西蘭,CJJ:韓國,CJU:韓國,CKG:中國,CMB:斯里蘭卡,CNX:泰國,CPH:丹麥,CPT:南非,CRK:菲律賓,CSX:中國,CTS:日本,CTU:中國,CXR:越南,DAC:孟加拉,DAD:越南,DEL:印度,DFW:美國,DLC:中國,DMK:泰國,DOH:卡達,DPS:印尼,DTW:美國,DVO:菲律賓,DXB:阿聯,EWR:美國,FCO:義大利,FKS:日本,FOC:中國,FRA:德國,FSZ:日本,FUK:日本,GMP:韓國,GUM:關島,GUM2:美國,GVA:瑞士,HAK:中國,HAN:越南,HEL:芬蘭,HFE:中國,HGH:中國,HIJ:日本,HKD:日本,HKG:香港,HKT:泰國,HND:日本,HNL:美國,HPH:越南,HRB:中國,HSG:日本,IAD:美國,IAH:美國,ICN:韓國,ISG:日本,IST:土耳其,ITM:日本,IWJ:日本,JED:沙烏地,JFK:美國,JHB:馬來西亞,JJN:中國,JKT:印尼,JNB:南非,KBV:泰國,KCH:馬來西亞,KHN:中國,KIJ:日本,KIX:日本,KKJ:日本,KLO:菲律賓,KMG:中國,KMI:日本,KMJ:日本,KMQ:日本,KOJ:日本,KOS:柬埔寨,KTI:柬埔寨,KTM:尼泊爾,KUL:馬來西亞,KWJ:韓國,LAS:美國,LAX:美國,LGK:馬來西亞,LGW:英國,LHR:英國,LIS:葡萄牙,LPQ:寮國,MAA:印度,MAD:西班牙,MAN:英國,MDL:緬甸,MEL:澳洲,MFM:澳門,MLE:馬爾地夫,MNL:菲律賓,MSP:美國,MUC:德國,MXP:義大利,MYJ:日本,NGB:中國,NGO:日本,NKG:中國,NNG:中國,NRT:日本,OKA:日本,OKJ:日本,ONT:美國,OOL:澳洲,ORD:美國,ORY:法國,OSL:挪威,PEK:中國,PEN:馬來西亞,PER:澳洲,PHX:美國,PKX:中國,PNH:柬埔寨,PPS:菲律賓,PQC:越南,PRG:捷克,PUS:韓國,PVG:中國,REP:柬埔寨,RGN:緬甸,ROR:帛琉,RSU:韓國,RUH:沙烏地,SAN:美國,SAW:土耳其,SDJ:日本,SEA:美國,SFO:美國,SGN:越南,SHA:中國,SHE:中國,SHI:日本,SIN:新加坡,SPK:日本,SPN:塞班,SUB:印尼,SVO:俄羅斯,SYD:澳洲,SYX:中國,SZX:中國,TAE:韓國,TAK:日本,TAO:中國,TLV:以色列,TNA:中國,TOY:日本,TSN:中國,TTJ:日本,UKB:日本,ULN:蒙古,USM:泰國,USN:韓國,UTP:泰國,VCA:越南,VCE:義大利,VIE:奧地利,VTE:寮國,VVO:俄羅斯,WAW:波蘭,WNZ:中國,WUH:中國,XMN:中國,YGJ:日本,YNT:中國,YUL:加拿大,YVR:加拿大,YYC:加拿大,YYZ:加拿大,ZRH:瑞士,ZUH:中國'.split(',');
+  for(var i=0;i<a.length;i++){var p=a[i].split(':');o[p[0]]=p[1];} return o;})();
+function ctryOf(f){
+  var c=String(f.CityCode||f.Dep||'').trim().toUpperCase();
+  return CTRY[c]||'';
+}
+/* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
+function fno4(code){
+  var s=String(code||'').trim().toUpperCase();
+  var m=s.match(/^(.*?)(\d{1,4})$/);
+  if(!m) return s;
+  var d=m[2]; while(d.length<4) d='0'+d;
+  return m[1]+d;
+}
+
 /* 實際／預計抵達時間（沒有 RTime 就用表定） */
 function arrAt(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
 
@@ -636,7 +655,9 @@ function render(){
       /* 待定班機（無門）不上色 */
       return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
-        + '<div class="c-fno"><b>'+esc(main)+'</b><small>'+esc(f.AName)+'</small></div>'
+        + '<div class="c-fno"><b>'+esc(fno4(main))+'</b>'
+          + (ctryOf(f)?'<i class="cty">🛫'+esc(ctryOf(f))+'</i>':'')
+          + '<small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
         + '<div class="c-city">'+esc(f.CityName)+paxHtml(f)+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
