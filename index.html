@@ -904,7 +904,10 @@ function reportText(kind){
     });
     rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
     /* 兩種回報用同一套格式：@All／日期＋標題／時間 班號 出發地 登機門／署名 */
-    var title = kind==='D' ? '兆豐後續班機' : (CATS[0].name+'、'+CATS[1].name+' 後續班機');
+    /* 回報標題只取分類名稱的主要部分，括號註記（例：2153（香化））不帶進群組訊息 */
+    var bare=function(x){ return String(x||'').replace(/[（(\[].*$/,'').trim(); };
+    var title = kind==='D' ? '兆豐後續班機'
+              : (bare(CATS[0].name)+'、'+bare(CATS[1].name)+' 後續班機');
     var lines = ['@All ', md+' '+title]
       .concat(rows.map(function(x){
         return fwColon(x.t)+' '+fno4(x.no)+' '+x.city+' '+x.g;
