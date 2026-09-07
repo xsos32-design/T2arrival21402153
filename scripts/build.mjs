@@ -203,6 +203,19 @@ function statusOf(f) {
    53 = 第二航廈、登機門屬 2153
    t2 = 第二航廈其餘登機門
    t1 = 第一航廈全部 */
+/* ── 出發國家對照（IATA 機場代碼 → 國家）＋ 航班號碼補滿四碼 ── */
+const CTRY = (() => { const o = {};
+  for (const kv of 'ADL:澳洲,AKL:紐西蘭,AMS:荷蘭,AOJ:日本,ARN:瑞典,ATH:希臘,ATL:美國,AUH:阿聯,BCN:西班牙,BER:德國,BKI:馬來西亞,BKK:泰國,BLR:印度,BNE:澳洲,BOM:印度,BOS:美國,BRU:比利時,BUD:匈牙利,BWN:汶萊,CAN:中國,CDG:法國,CEB:菲律賓,CGK:印尼,CGO:中國,CHC:紐西蘭,CJJ:韓國,CJU:韓國,CKG:中國,CMB:斯里蘭卡,CNX:泰國,CPH:丹麥,CPT:南非,CRK:菲律賓,CSX:中國,CTS:日本,CTU:中國,CXR:越南,DAC:孟加拉,DAD:越南,DEL:印度,DFW:美國,DLC:中國,DMK:泰國,DOH:卡達,DPS:印尼,DTW:美國,DVO:菲律賓,DXB:阿聯,EWR:美國,FCO:義大利,FKS:日本,FOC:中國,FRA:德國,FSZ:日本,FUK:日本,GMP:韓國,GUM:關島,GUM2:美國,GVA:瑞士,HAK:中國,HAN:越南,HEL:芬蘭,HFE:中國,HGH:中國,HIJ:日本,HKD:日本,HKG:香港,HKT:泰國,HND:日本,HNL:美國,HPH:越南,HRB:中國,HSG:日本,IAD:美國,IAH:美國,ICN:韓國,ISG:日本,IST:土耳其,ITM:日本,IWJ:日本,JED:沙烏地,JFK:美國,JHB:馬來西亞,JJN:中國,JKT:印尼,JNB:南非,KBV:泰國,KCH:馬來西亞,KHN:中國,KIJ:日本,KIX:日本,KKJ:日本,KLO:菲律賓,KMG:中國,KMI:日本,KMJ:日本,KMQ:日本,KOJ:日本,KOS:柬埔寨,KTI:柬埔寨,KTM:尼泊爾,KUL:馬來西亞,KWJ:韓國,LAS:美國,LAX:美國,LGK:馬來西亞,LGW:英國,LHR:英國,LIS:葡萄牙,LPQ:寮國,MAA:印度,MAD:西班牙,MAN:英國,MDL:緬甸,MEL:澳洲,MFM:澳門,MLE:馬爾地夫,MNL:菲律賓,MSP:美國,MUC:德國,MXP:義大利,MYJ:日本,NGB:中國,NGO:日本,NKG:中國,NNG:中國,NRT:日本,OKA:日本,OKJ:日本,ONT:美國,OOL:澳洲,ORD:美國,ORY:法國,OSL:挪威,PEK:中國,PEN:馬來西亞,PER:澳洲,PHX:美國,PKX:中國,PNH:柬埔寨,PPS:菲律賓,PQC:越南,PRG:捷克,PUS:韓國,PVG:中國,REP:柬埔寨,RGN:緬甸,ROR:帛琉,RSU:韓國,RUH:沙烏地,SAN:美國,SAW:土耳其,SDJ:日本,SEA:美國,SFO:美國,SGN:越南,SHA:中國,SHE:中國,SHI:日本,SIN:新加坡,SPK:日本,SPN:塞班,SUB:印尼,SVO:俄羅斯,SYD:澳洲,SYX:中國,SZX:中國,TAE:韓國,TAK:日本,TAO:中國,TLV:以色列,TNA:中國,TOY:日本,TSN:中國,TTJ:日本,UKB:日本,ULN:蒙古,USM:泰國,USN:韓國,UTP:泰國,VCA:越南,VCE:義大利,VIE:奧地利,VTE:寮國,VVO:俄羅斯,WAW:波蘭,WNZ:中國,WUH:中國,XMN:中國,YGJ:日本,YNT:中國,YUL:加拿大,YVR:加拿大,YYC:加拿大,YYZ:加拿大,ZRH:瑞士,ZUH:中國'.split(',')) { const p = kv.split(':'); o[p[0]] = p[1]; }
+  return o; })();
+const ctryOf = f => CTRY[String(f.CityCode || f.Dep || '').trim().toUpperCase()] || '';
+/* BR7 → BR0007 */
+function fno4(code){
+  const s = String(code || '').trim().toUpperCase();
+  const m = s.match(/^(.*?)(\d{1,4})$/);
+  if (!m) return s;
+  return m[1] + m[2].padStart(4, '0');
+}
+
 function shopOf(f) {
   const g = String(f.Gate || '').trim().toUpperCase();
   /* B6～B9 一航二航都有同名登機門，先以航班資訊的航廈為準，再依登機門歸分點 */
@@ -297,10 +310,11 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .old{color:#fbbf24}
 .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 7px;
+ grid-template-areas:"t t g" "f f f" "tag c st";
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:8px 9px;margin-bottom:6px;overflow:hidden}
 .r.done{opacity:.38}
 .r.soon{background:#3a2f10;border-color:#a16207}
-b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
+b.t{grid-area:t;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
  padding:0 6px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
 .t-early{color:#7dd3fc;background:#0b2b3c}
@@ -308,17 +322,20 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
 .t-plan{color:#fff;padding-left:0}
 .nd{font-style:normal;font-size:9.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
-.g{font-size:25px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;line-height:1.05;
+.g{grid-area:g;font-size:25px;font-weight:800;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
-.tag{font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start;letter-spacing:.02em}
+.tag{grid-area:tag;font-size:11px;font-weight:800;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:start;letter-spacing:.02em}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;text-align:center;letter-spacing:-.01em}
-.c{font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.5;min-width:0}
+.f{grid-area:f;font-size:21px;font-weight:800;color:#fff;white-space:nowrap;text-align:left;
+ letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.cty{font-style:normal;font-size:13px;font-weight:700;color:#cbd5e1;white-space:nowrap;
+ margin-left:8px;letter-spacing:0}
+.c{grid-area:c;font-size:13.5px;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.5;min-width:0}
 .px{font-style:normal;font-size:11.5px;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:2px}
 .tx{font-style:normal;font-size:11px;font-weight:800;color:#fbbf24;white-space:nowrap}
-.st{font-size:11.5px;font-weight:700;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center}
+.st{grid-area:st;font-size:11.5px;font-weight:700;padding:3px 6px;border-radius:6px;text-align:center;white-space:nowrap;align-self:center;justify-self:end}
 .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
 .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
 .b-info{background:#0b2b3c;color:#7dd3fc}
@@ -366,7 +383,10 @@ b.t{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
    justify-content:flex-end;pointer-events:none}
  .fabb{flex:0 0 auto;min-height:42px;padding:0 18px;font-size:14px;border-radius:999px;pointer-events:auto}
- .r{grid-template-columns:auto auto auto auto 1fr auto;align-items:center;gap:4px 12px;padding:8px 12px}
+ .r{grid-template-columns:auto auto auto auto 1fr auto;grid-template-areas:none;
+   align-items:center;gap:4px 12px;padding:8px 12px}
+ b.t,.f,.g,.tag,.c,.st{grid-area:auto}
+ .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
  .g{min-width:52px} .tag{text-align:center}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
@@ -456,7 +476,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
-<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(f.flightCode || '')}</span><span class="g">${esc(f.Gate)}</span>
+<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${ctryOf(f) ? `<i class="cty">🛫${esc(ctryOf(f))}</i>` : ''}</span><span class="g">${esc(f.Gate)}</span>
 <span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
