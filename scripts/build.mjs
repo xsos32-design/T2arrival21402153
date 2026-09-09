@@ -683,9 +683,9 @@ async function main() {
       }
     }
   }
-  /* 預設入口：自動挑「現在所在的那個六小時區間」＋全部＋不隱藏 */
+  /* 預設入口：自動挑「現在所在的那個六小時區間」＋只勾 2140／2153＋不隱藏 */
   await writeFile(join(OUT, 'watch.html'),
-                  renderPage(flights, CURRENT_PRESET, CATS.map(c => c.id), false, err), 'utf8');
+                  renderPage(flights, CURRENT_PRESET, ['40', '53'], false, err), 'utf8');
   console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
