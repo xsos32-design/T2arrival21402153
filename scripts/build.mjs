@@ -393,12 +393,14 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
-/* 開會時間（19:30–20:00 切兩場，各 15 分鐘，兩家分點錯開 15 分鐘）
-   規則：先看每家分點「19:30 之後的第一班飛機」，第一班比較早的那家先開，
-   這樣兩家都能在自己第一班進來之前把會開完。以「抓取時刻」的資料算好內嵌。 */
+/* 開會時間（19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘）
+   每家都排在自己「19:00 之後第一班飛機」的前面，散會後留 5 分鐘緩衝再去接機；
+   兩家算出來的時間如果太近，就把比較早的那家再往前挪。以「抓取時刻」的資料算好內嵌。 */
 function meetTable(flights) {
-  const LO = '19:30', HI = '20:00';
-  const SLOT = [{ s: '19:30', e: '19:45' }, { s: '19:45', e: '20:00' }];
+  const LO = '19:00', HI = '20:30', DUR = 15, BUF = 5;
+  const m2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
+  const toT = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+  const LOm = m2(LO), LASTm = m2(HI) - DUR;
   const at = f => hhmm(f.RTime) || hhmm(f.OTime);
   const pool = flights.filter(f => {
     if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
@@ -409,20 +411,30 @@ function meetTable(flights) {
     c.sort((a, b) => at(a).localeCompare(at(b)));
     return c[0] || null;
   };
+  const idealOf = f => {
+    if (!f) return LOm;
+    const s = Math.floor((m2(at(f)) - DUR - BUF) / 5) * 5;   /* 抓到 5 分鐘的整數 */
+    return Math.max(LOm, Math.min(LASTm, s));
+  };
   const S = [{ name: '2140', cls: 'g40', f: firstOf('40') },
              { name: '2153', cls: 'g53', f: firstOf('53') }];
+  S.forEach(r => { r.st = idealOf(r.f); });
   const ord = S.slice().sort((a, b) => {
-    if (!a.f && !b.f) return 0;
+    if (a.st !== b.st) return a.st - b.st;
     if (!a.f) return 1;
     if (!b.f) return -1;
     return at(a.f).localeCompare(at(b.f));
   });
+  if (ord[1].st - ord[0].st < DUR) {              /* 兩場撞在一起就把早的那家往前挪 */
+    ord[0].st = ord[1].st - DUR;
+    if (ord[0].st < LOm) { ord[0].st = LOm; ord[1].st = Math.min(LASTm, LOm + DUR); }
+  }
   let h = `<div class="mth">🕐 ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
     + '<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
-  ord.forEach((r, i) => {
-    const sl = SLOT[i], late = !!(r.f && at(r.f) < sl.e);
+  ord.forEach(r => {
+    const late = !!(r.f && m2(at(r.f)) < r.st + DUR);
     h += `<tr class="${r.cls}"><td class="lb">${r.name}</td>`
-       + `<td><b>${sl.s}–${sl.e}</b><br><small>15 分鐘</small></td>`
+       + `<td><b>${toT(r.st)}–${toT(r.st + DUR)}</b><br><small>15 分鐘</small></td>`
        + '<td>' + (r.f ? at(r.f) + ' ' + esc(fno4(r.f.flightCode)) + '<br><small>' + esc(r.f.Gate) + '</small>'
                        : '—<br><small>沒有班機</small>') + '</td></tr>';
     if (late) h += `<tr class="${r.cls} sub"><td></td><td colspan="2">⚠️ 第一班 ${at(r.f)} 就進來了，這場會來不及開完，建議提早或縮短</td></tr>`;
