@@ -393,41 +393,41 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
-/* 開會空檔（19:00–20:30，2140／2153 分開）—— 以「抓取時刻」的資料算好內嵌 */
+/* 開會時間（19:30–20:00 切兩場，各 15 分鐘，兩家分點錯開 15 分鐘）
+   規則：先看每家分點「19:30 之後的第一班飛機」，第一班比較早的那家先開，
+   這樣兩家都能在自己第一班進來之前把會開完。以「抓取時刻」的資料算好內嵌。 */
 function meetTable(flights) {
-  const LO = '19:00', HI = '20:30';
-  const toMin2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
-  const toT = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
-  const inWin = flights.filter(f => {
+  const LO = '19:30', HI = '20:00';
+  const SLOT = [{ s: '19:30', e: '19:45' }, { s: '19:45', e: '20:00' }];
+  const at = f => hhmm(f.RTime) || hhmm(f.OTime);
+  const pool = flights.filter(f => {
     if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
-    const t = hhmm(f.RTime) || hhmm(f.OTime);
-    return t >= LO && t <= HI;
+    return at(f) >= LO;
   });
-  const calc = (label, cls, rows) => {
-    rows.sort((a, b) => (hhmm(a.RTime) || hhmm(a.OTime)).localeCompare(hhmm(b.RTime) || hhmm(b.OTime)));
-    let h = `<tr class="${cls}"><td class="lb">${label}</td>`;
-    if (!rows.length) return h + '<td colspan="3">✅ 整段沒班機</td></tr>';
-    const pts = [toMin2(LO), ...rows.map(f => toMin2(hhmm(f.RTime) || hhmm(f.OTime))), toMin2(HI)];
-    let best = { len: -1, i: 0 }; const gaps = [];
-    for (let gi = 1; gi < pts.length; gi++) {
-      const glen = pts[gi] - pts[gi - 1];
-      gaps.push({ s: pts[gi - 1], e: pts[gi], len: glen, i: gi });
-      if (glen > best.len) best = { len: glen, s: pts[gi - 1], e: pts[gi], i: gi };
-    }
-    const pre = best.i >= 2 ? rows[best.i - 2] : null;
-    const post = best.i <= rows.length ? rows[best.i - 1] : null;
-    const cell = f => f ? (hhmm(f.RTime) || hhmm(f.OTime)) + ' ' + esc(f.flightCode) + '<br><small>' + esc(f.Gate) + '</small>' : '—';
-    h += `<td><b>${toT(best.s)}–${toT(best.e)}</b><br><small>${best.len} 分鐘</small></td>`
-       + `<td>${cell(pre)}</td><td>${cell(post)}</td></tr>`;
-    const others = gaps.filter(x => x.i !== best.i && x.len >= 10).map(x => toT(x.s) + '–' + toT(x.e) + '（' + x.len + '分）');
-    if (others.length) h += `<tr class="${cls} sub"><td></td><td colspan="3">其他空檔：${others.join('、')}</td></tr>`;
-    return h;
+  const firstOf = id => {
+    const c = pool.filter(f => shopOf(f) === id);
+    c.sort((a, b) => at(a).localeCompare(at(b)));
+    return c[0] || null;
   };
-  return `<div class="mth">🕐 ${todayLabel} 開會空檔（${LO}–${HI}）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
-    + '<table class="mt"><tr><th>分點</th><th>最大空檔</th><th>前一班</th><th>後一班</th></tr>'
-    + calc('2140', 'g40', inWin.filter(f => shopOf(f) === '40'))
-    + calc('2153', 'g53', inWin.filter(f => shopOf(f) === '53'))
-    + '</table>';
+  const S = [{ name: '2140', cls: 'g40', f: firstOf('40') },
+             { name: '2153', cls: 'g53', f: firstOf('53') }];
+  const ord = S.slice().sort((a, b) => {
+    if (!a.f && !b.f) return 0;
+    if (!a.f) return 1;
+    if (!b.f) return -1;
+    return at(a.f).localeCompare(at(b.f));
+  });
+  let h = `<div class="mth">🕐 ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
+    + '<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
+  ord.forEach((r, i) => {
+    const sl = SLOT[i], late = !!(r.f && at(r.f) < sl.e);
+    h += `<tr class="${r.cls}"><td class="lb">${r.name}</td>`
+       + `<td><b>${sl.s}–${sl.e}</b><br><small>15 分鐘</small></td>`
+       + '<td>' + (r.f ? at(r.f) + ' ' + esc(fno4(r.f.flightCode)) + '<br><small>' + esc(r.f.Gate) + '</small>'
+                       : '—<br><small>沒有班機</small>') + '</td></tr>';
+    if (late) h += `<tr class="${r.cls} sub"><td></td><td colspan="2">⚠️ 第一班 ${at(r.f)} 就進來了，這場會來不及開完，建議提早或縮短</td></tr>`;
+  });
+  return h + '</table>';
 }
 
 /* 表定今天、但延誤到隔天才會落地 */
@@ -505,7 +505,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
   const presetBtns = PRESETS
     .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset, 'pre')).join('\n');
   const hideBtn = btn(fileFor(preset, idOf(cur), !hide), hide ? '👁 全部顯示' : '🙈 隱藏抵達', hide, 'half');
-  const meetBtn = `<span class="btn half" id="bmeet">🕐 開會空檔</span>`;
+  const meetBtn = `<span class="btn half" id="bmeet">🕐 開會時間</span>`;
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
@@ -575,7 +575,7 @@ ${body}
       try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
     });
 
-    /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會空檔開關 */
+    /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會時間開關 */
     var zs={A:1,B:1,C:1,D:1};
     function zApply(){
       var rs=document.querySelectorAll('.r[data-z]');
