@@ -535,7 +535,8 @@ function catsLoad(){
 }
 function catsSave(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(CATS)); }catch(e){} }
 var CATS=catsLoad();
-var show={c0:true,c1:true,c2:true,c3:true};
+/* 一開啟只勾自己的兩家分點（2140／2153）；其他一航／二航要看再自己按 */
+var show={c0:true,c1:true,c2:false,c3:false};
 /* 把設定展開成比對用的樣子 */
 function catsExpand(){
   return CATS.map(function(c,i){

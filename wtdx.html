@@ -380,7 +380,8 @@ function paxHtml(f){ var p=paxOf(f);
   return ' <i class="px">'+p.dot+p.est+'</i>'+(p.tx?'<i class="tx">🔄</i>':''); }
 
 /* ── 畫面狀態 ── */
-var cats={c0:true,c1:true,c2:true,c3:true};
+/* 一開啟只勾自己的兩家分點（2140／2153）；其他一航／二航要看再自己按 */
+var cats={c0:true,c1:true,c2:false,c3:false};
 var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
 var win=['00:00','23:59'];
 var mode='win';      /* 'win'=固定時段  'now6'=現在起6小時 */
@@ -710,11 +711,11 @@ function diag(cb){
 document.getElementById('hd').addEventListener('click',load);
 document.getElementById('breload').addEventListener('click',load);
 document.getElementById('ball').addEventListener('click',function(){
-  cats={'40':true,'53':true,'t1':true,'t2':true};
+  cats={c0:true,c1:true,c2:true,c3:true};
   zones={'A':true,'B':true,'C':true,'D':true}; render();
 });
 document.getElementById('bnone').addEventListener('click',function(){
-  cats={'40':false,'53':false,'t1':false,'t2':false}; render();
+  cats={c0:false,c1:false,c2:false,c3:false}; render();
 });
 [].forEach.call(document.querySelectorAll('.zone'),function(b){
   b.addEventListener('click',function(){
