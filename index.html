@@ -345,7 +345,7 @@
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
       <span class="chip" id="cpD">📋 兆豐D區</span>
       <span class="chip" id="cpS">📋 2140+2153</span>
-      <span class="chip" id="cpM">🕐 開會時間 19:30–20:00</span>
+      <span class="chip" id="cpM">🕐 開會時間 19:00–20:30</span>
     </div>
     <div id="copybox"></div>
 
@@ -837,7 +837,7 @@ function reportText(kind){
   var d=new Date();
   var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var md=(d.getMonth()+1)+'/'+d.getDate();
-  var cut = kind==='M' ? '19:30' : '22:30';
+  var cut = kind==='M' ? '19:00' : '22:30';
   return getFlights(date).then(function(all){
     var want=date.replace(/-/g,'/');
     var seen={}, list=[];
@@ -849,33 +849,48 @@ function reportText(kind){
       var t=arrAt(f); if(t<cut) return;
       var k=hhmm(f.OTime)+'|'+g+'|'+(f.CityName||'');
       if(seen[k]) return; seen[k]=1;
-      /* （M＝開會用 19:30 起；D/S 回報維持 22:30 起，見上面 cut） */
+      /* （M＝開會用 19:00 起；D/S 回報維持 22:30 起，見上面 cut） */
       list.push({t:t,no:String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))),
                  city:String(f.CityName||'').replace(/市$/,''),g:g});
     });
     var EXr=catsExpand();
     var g40=EXr[0].set, g53=EXr[1].set;
 
-    /* ── 開會時間：19:30–20:00 切成兩場，各 15 分鐘，兩家分點錯開 15 分鐘 ──
-       規則：先看每家分點「19:30 之後的第一班飛機」，第一班比較早的那家先開，
-       這樣兩家都能在自己第一班進來之前把會開完。 */
+    /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘 ──
+       每家都排在自己「19:00 之後第一班飛機」的前面，散會後留 5 分鐘緩衝再去接機；
+       兩家算出來的時間如果太近，就把比較早的那家再往前挪。 */
     if(kind==='M'){
-      var LO='19:30', HI='20:00';
-      var SLOT=[{s:'19:30',e:'19:45'},{s:'19:45',e:'20:00'}];
+      var LO='19:00', HI='20:30', DUR=15, BUF=5;
+      var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
+      var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
+      var LOm=m2(LO), LASTm=m2(HI)-DUR;
       var firstOf=function(setG){
         var c=list.filter(function(x){ return !!setG[x.g] && x.t>=LO; });
         c.sort(function(a,b){ return a.t.localeCompare(b.t); });
         return c[0]||null;
       };
+      var idealOf=function(f){
+        if(!f) return LOm;
+        var s=Math.floor((m2(f.t)-DUR-BUF)/5)*5;   /* 抓到 5 分鐘的整數 */
+        return Math.max(LOm, Math.min(LASTm, s));
+      };
       var S=[{name:CATS[0].name,cls:'g40',f:firstOf(g40)},
              {name:CATS[1].name,cls:'g53',f:firstOf(g53)}];
+      S.forEach(function(r){ r.st=idealOf(r.f); });
       var ord=S.slice().sort(function(a,b){
-        if(!a.f&&!b.f) return 0;
+        if(a.st!==b.st) return a.st-b.st;
         if(!a.f) return 1;
         if(!b.f) return -1;
         return a.f.t.localeCompare(b.f.t);
       });
-      ord.forEach(function(r,i){ r.slot=SLOT[i]; r.late=!!(r.f && r.f.t < r.slot.e); });
+      if(ord[1].st-ord[0].st<DUR){                 /* 兩場撞在一起就把早的那家往前挪 */
+        ord[0].st=ord[1].st-DUR;
+        if(ord[0].st<LOm){ ord[0].st=LOm; ord[1].st=Math.min(LASTm,LOm+DUR); }
+      }
+      ord.forEach(function(r){
+        r.slot={s:toT(r.st),e:toT(r.st+DUR)};
+        r.late=!!(r.f && m2(r.f.t) < r.st+DUR);
+      });
       /* 純文字版（複製到群組用） */
       var lines=[md+' 開會時間（'+LO+'–'+HI+'，每場 15 分鐘）'];
       ord.forEach(function(r){
