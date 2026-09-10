@@ -123,6 +123,7 @@
   .mk{position:sticky;top:0;z-index:80;
     background:#fff7e6;border:0;border-bottom:3px solid #f59e0b;border-radius:0;
     padding:11px 14px;margin:0;text-align:center;line-height:1.15;
+    padding-top:calc(11px + env(safe-area-inset-top,0px));
     box-shadow:0 2px 10px rgba(15,23,42,.14)}
   .mk b{display:block;font-size:34px;font-weight:900;color:#92400e;letter-spacing:.04em}
   .mk i{display:block;font-style:normal;font-size:16px;font-weight:800;color:#b45309;
@@ -167,6 +168,7 @@
     .wrap{padding:9px}
     .credit{color:#5b636e;font-size:10.5px;margin-top:12px;padding-bottom:4px}
     .mk{background:#2a1a06;border-bottom-color:#b45309;padding:10px 12px 11px;
+      padding-top:calc(10px + env(safe-area-inset-top,0px));
       box-shadow:0 2px 12px rgba(0,0,0,.6)}
     .mk b{font-size:38px;color:#fbbf24}
     .mk i{font-size:16px;color:#fcd34d}
@@ -295,7 +297,7 @@
     .c-city{font-size:14.5px}
     .badge{font-size:12.5px;padding:3px 7px}
     .empty,.pend,.errbox,.tdxbox,.notice{font-size:11.5px;padding:9px;border-radius:10px}
-    .mk{padding:7px 8px 8px}
+    .mk{padding:7px 8px 8px;padding-top:calc(7px + env(safe-area-inset-top,0px))}
     .mk b{font-size:30px}
     .mk i{font-size:13.5px;margin-top:4px}
     .daybreak{font-size:12px;padding:7px}
