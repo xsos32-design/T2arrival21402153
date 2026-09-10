@@ -181,7 +181,6 @@
     .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
     .chip.shop{font-size:17.5px;font-weight:800;min-height:54px}
     .chip.zone{flex:1 1 22%;font-size:15px;padding:9px 2px}
-    .chip.sc{flex:1 1 30%;font-size:14.5px;padding:9px 2px}
     #cpM{flex:1 1 100%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
     #cpmsg{color:#8b94a1}
@@ -268,7 +267,6 @@
     .chip{flex:1 1 46%;min-height:48px;font-size:14.5px;border-radius:12px;padding:9px 3px}
     .chip.shop{font-size:16px;min-height:52px}
     .chip.zone{flex:1 1 46%}
-    .chip.sc{flex:1 1 30%;font-size:13px;letter-spacing:-.04em}
     button{padding:15px;font-size:19px;min-height:58px}
     details.cfg{display:none}
     .full{display:none} .short{display:inline}
@@ -335,9 +333,8 @@
       <span id="shopslot"></span>
     </div>
     <div class="chips">
-      <span class="chip sc" id="smine">只看我的</span>
-      <span class="chip sc" id="sall">全部</span>
-      <span class="chip sc" id="snone">全不要</span>
+      <span class="chip" id="sall">全部</span>
+      <span class="chip" id="snone">全不要</span>
     </div>
 
     <div class="chips">
@@ -1119,9 +1116,6 @@ function paintShops(){
     });
   });
 }
-document.getElementById('smine').addEventListener('click',function(){
-  show={c0:true,c1:true,c2:false,c3:false}; paintShops(); render();
-});
 document.getElementById('sall').addEventListener('click',function(){
   show={c0:true,c1:true,c2:true,c3:true}; paintShops(); render();
 });

@@ -86,7 +86,6 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .btn.half,.btn.cat{flex:1 1 46%;font-size:13.5px}
 .btn.cat{letter-spacing:-.04em;padding:8px 2px}
 .btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
-.btn.tri{flex:1 1 30%;font-size:12px;padding:8px 1px;letter-spacing:-.05em}
 /* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
 .grp.s{margin-top:12px}
 .btn.nav{flex:1 1 18%;font-size:17.5px;padding:8px 2px}
@@ -158,9 +157,8 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
   <span id="catslot"></span>
 </div>
 <div class="grp">
-  <span class="btn tri" id="bmine">只看我的</span>
-  <span class="btn tri" id="ball">全部</span>
-  <span class="btn tri" id="bnone">清空</span>
+  <span class="btn half" id="ball">全部</span>
+  <span class="btn half" id="bnone">清空</span>
 </div>
 <div class="grp s">
   <span class="btn zone" data-z="A">✓ A區</span>
@@ -411,11 +409,9 @@ var DATA=[];
 var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
 
 function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
-function mineOn(){ return cats.c0&&cats.c1&&!cats.c2&&!cats.c3; }
 
 function paintBtns(){
-  document.getElementById('ball').className='btn tri'+(allOn()?' on':'');
-  document.getElementById('bmine').className='btn tri'+(mineOn()?' on':'');
+  document.getElementById('ball').className='btn half'+(allOn()?' on':'');
   var slot=document.getElementById('catslot'), h='';
   CATS.forEach(function(c,i){
     h+='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
@@ -797,9 +793,6 @@ document.getElementById('bmeet').addEventListener('click',function(){
   var mb=document.getElementById('mb');
   if(mb.innerHTML){ mb.innerHTML=''; this.className='btn half'; return; }
   mb.innerHTML=meetTable(); this.className='btn half on';
-});
-document.getElementById('bmine').addEventListener('click',function(){
-  cats={c0:true,c1:true,c2:false,c3:false}; render();
 });
 /* ── 分類設定編輯器 ── */
 function paintCatBox(){
