@@ -372,7 +372,6 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .r.r40 .g{color:#5eead4}
 .r.r53 .g{color:#fdba74}
 .btn.zone{flex:1 1 22%;font-size:12.5px;padding:8px 1px;cursor:pointer;user-select:none;letter-spacing:-.03em}
-.btn.tri{flex:1 1 30%;font-size:12px;padding:8px 1px;letter-spacing:-.05em}
 /* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
 .grp.s{margin-top:12px}
 .mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
@@ -520,8 +519,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   /* 捷徑：全部 / 只看我的兩點 */
   const shortcut =
-      btn(fileFor(preset, MINE_ID, hide), '只看我的', idOf(cur) === MINE_ID, 'half')
-    + btn(fileFor(preset, ALL_ID,  hide), '全部',     idOf(cur) === ALL_ID,  'half');
+      btn(fileFor(preset, ALL_ID,  hide), '全部',     idOf(cur) === ALL_ID,  'half')
+    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID, 'half');
 
   /* 複選：點一下加入／移除該分類。只剩一個時不讓取消（連回自己）。 */
   const catBtns = CATS.map(c => {
