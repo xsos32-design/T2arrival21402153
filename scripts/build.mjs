@@ -574,7 +574,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
 <div class="mk">
   <b>小韋製作</b>
-  <i>⚠️ 內部參考用　請勿轉傳、轉用</i>
+  <i>⚠️ 請不要未經同意就轉用散布</i>
 </div>
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
