@@ -208,6 +208,12 @@ const CTRY = (() => { const o = {};
   for (const kv of 'ADL:澳洲,AKL:紐西蘭,AMS:荷蘭,AOJ:日本,ARN:瑞典,ATH:希臘,ATL:美國,AUH:阿聯,BCN:西班牙,BER:德國,BKI:馬來西亞,BKK:泰國,BLR:印度,BNE:澳洲,BOM:印度,BOS:美國,BRU:比利時,BUD:匈牙利,BWN:汶萊,CAN:中國,CDG:法國,CEB:菲律賓,CGK:印尼,CGO:中國,CHC:紐西蘭,CJJ:韓國,CJU:韓國,CKG:中國,CMB:斯里蘭卡,CNX:泰國,CPH:丹麥,CPT:南非,CRK:菲律賓,CSX:中國,CTS:日本,CTU:中國,CXR:越南,DAC:孟加拉,DAD:越南,DEL:印度,DFW:美國,DLC:中國,DMK:泰國,DOH:卡達,DPS:印尼,DTW:美國,DVO:菲律賓,DXB:阿聯,EWR:美國,FCO:義大利,FKS:日本,FOC:中國,FRA:德國,FSZ:日本,FUK:日本,GMP:韓國,GUM:關島,GUM2:美國,GVA:瑞士,HAK:中國,HAN:越南,HEL:芬蘭,HFE:中國,HGH:中國,HIJ:日本,HKD:日本,HKG:香港,HKT:泰國,HND:日本,HNL:美國,HPH:越南,HRB:中國,HSG:日本,IAD:美國,IAH:美國,ICN:韓國,ISG:日本,IST:土耳其,ITM:日本,IWJ:日本,JED:沙烏地,JFK:美國,JHB:馬來西亞,JJN:中國,JKT:印尼,JNB:南非,KBV:泰國,KCH:馬來西亞,KHN:中國,KIJ:日本,KIX:日本,KKJ:日本,KLO:菲律賓,KMG:中國,KMI:日本,KMJ:日本,KMQ:日本,KOJ:日本,KOS:柬埔寨,KTI:柬埔寨,KTM:尼泊爾,KUL:馬來西亞,KWJ:韓國,LAS:美國,LAX:美國,LGK:馬來西亞,LGW:英國,LHR:英國,LIS:葡萄牙,LPQ:寮國,MAA:印度,MAD:西班牙,MAN:英國,MDL:緬甸,MEL:澳洲,MFM:澳門,MLE:馬爾地夫,MNL:菲律賓,MSP:美國,MUC:德國,MXP:義大利,MYJ:日本,NGB:中國,NGO:日本,NKG:中國,NNG:中國,NRT:日本,OKA:日本,OKJ:日本,ONT:美國,OOL:澳洲,ORD:美國,ORY:法國,OSL:挪威,PEK:中國,PEN:馬來西亞,PER:澳洲,PHX:美國,PKX:中國,PNH:柬埔寨,PPS:菲律賓,PQC:越南,PRG:捷克,PUS:韓國,PVG:中國,REP:柬埔寨,RGN:緬甸,ROR:帛琉,RSU:韓國,RUH:沙烏地,SAN:美國,SAW:土耳其,SDJ:日本,SEA:美國,SFO:美國,SGN:越南,SHA:中國,SHE:中國,SHI:日本,SIN:新加坡,SPK:日本,SPN:塞班,SUB:印尼,SVO:俄羅斯,SYD:澳洲,SYX:中國,SZX:中國,TAE:韓國,TAK:日本,TAO:中國,TLV:以色列,TNA:中國,TOY:日本,TSN:中國,TTJ:日本,UKB:日本,ULN:蒙古,USM:泰國,USN:韓國,UTP:泰國,VCA:越南,VCE:義大利,VIE:奧地利,VTE:寮國,VVO:俄羅斯,WAW:波蘭,WNZ:中國,WUH:中國,XMN:中國,YGJ:日本,YNT:中國,YUL:加拿大,YVR:加拿大,YYC:加拿大,YYZ:加拿大,ZRH:瑞士,ZUH:中國'.split(',')) { const p = kv.split(':'); o[p[0]] = p[1]; }
   return o; })();
 const ctryOf = f => CTRY[String(f.CityCode || f.Dep || '').trim().toUpperCase()] || '';
+/* 國旗：國名 → ISO 兩碼，再用 regional indicator 組出旗子（比直接存 53 面旗省字） */
+const FLAG = (() => { const o = {};
+  for (const kv of '中國:CN,丹麥:DK,以色列:IL,俄羅斯:RU,加拿大:CA,匈牙利:HU,南非:ZA,卡達:QA,印尼:ID,印度:IN,土耳其:TR,塞班:MP,奧地利:AT,孟加拉:BD,寮國:LA,尼泊爾:NP,希臘:GR,帛琉:PW,德國:DE,挪威:NO,捷克:CZ,斯里蘭卡:LK,新加坡:SG,日本:JP,柬埔寨:KH,比利時:BE,汶萊:BN,沙烏地:SA,法國:FR,波蘭:PL,泰國:TH,澳洲:AU,澳門:MO,瑞典:SE,瑞士:CH,紐西蘭:NZ,緬甸:MM,美國:US,義大利:IT,芬蘭:FI,英國:GB,荷蘭:NL,菲律賓:PH,葡萄牙:PT,蒙古:MN,西班牙:ES,越南:VN,關島:GU,阿聯:AE,韓國:KR,香港:HK,馬來西亞:MY,馬爾地夫:MV,台灣:TW'.split(',')) { const p = kv.split(':'); o[p[0]] = p[1]; }
+  return o; })();
+const flagOf = name => { const c = FLAG[String(name || '').trim()];
+  return c ? String.fromCharCode(0xD83C, 0xDDE6 + c.charCodeAt(0) - 65, 0xD83C, 0xDDE6 + c.charCodeAt(1) - 65) : ''; };
 /* BR7 → BR0007 */
 function fno4(code){
   const s = String(code || '').trim().toUpperCase();
@@ -309,9 +315,9 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd b{color:#cbd5e1;font-size:14.5px;font-weight:800}
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .old{color:#fbbf24}
-.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 7px;
+.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 7px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
- background:#14171c;border:1px solid #262b33;border-radius:11px;padding:8px 9px;margin-bottom:6px;overflow:hidden}
+ background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.done{opacity:.38}
 .r.soon{background:#3a2f10;border-color:#a16207}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
@@ -331,9 +337,9 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
 .f{grid-area:f;font-size:26px;font-weight:900;color:#fff;white-space:nowrap;text-align:left;
  letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
-.cty{display:block;font-style:normal;font-size:15px;font-weight:800;color:#cbd5e1;white-space:nowrap;
- margin:2px 0 0;letter-spacing:0}
-.c{grid-area:c;font-size:15px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.5;min-width:0}
+.cty{font-style:normal;font-size:20px;font-weight:800;white-space:nowrap;
+ margin-left:8px;vertical-align:-2px;letter-spacing:0}
+.c{grid-area:c;font-size:15px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
 .px{font-style:normal;font-size:12.5px;font-weight:800;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:2px}
 .tx{font-style:normal;font-size:12.5px;font-weight:800;color:#fbbf24;white-space:nowrap}
 .st{grid-area:st;font-size:13px;font-weight:800;padding:3px 6px;border-radius:7px;text-align:center;white-space:nowrap;align-self:center;justify-self:end}
@@ -379,6 +385,13 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:12.5px;
  padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
 .notice b{color:#fde68a}
+/* 手機（341–419px）：跟網頁版手機卡片同一個排法，兩列就放得完，不留空行 */
+@media(min-width:341px) and (max-width:419px){
+ .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px}
+ .f{text-align:center}
+ .g{text-align:right}
+ .st{justify-self:end}
+}
 @media(min-width:420px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
@@ -388,7 +401,6 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
    align-items:center;gap:4px 12px;padding:8px 12px}
  b.t,.f,.g,.tag,.c,.st{grid-area:auto}
  .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
- .cty{display:inline;margin:0 0 0 8px}
  .g{min-width:52px} .tag{text-align:center}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
@@ -490,7 +502,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
-<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${ctryOf(f) ? `<i class="cty">🛫${esc(ctryOf(f))}</i>` : ''}</span><span class="g">${esc(f.Gate)}</span>
+<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagOf(ctryOf(f)) ? `<i class="cty" title="${esc(ctryOf(f))}">${flagOf(ctryOf(f))}</i>` : ''}</span><span class="g">${esc(f.Gate)}</span>
 <span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
