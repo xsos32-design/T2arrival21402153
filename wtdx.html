@@ -29,7 +29,8 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .u.busy{color:#fbbf24}
 .hd .u.err{color:#f87171}
-.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 7px;
+/* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 7px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 4px 0 0 #14b8a6}
@@ -85,6 +86,9 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .btn.half,.btn.cat{flex:1 1 46%;font-size:13.5px}
 .btn.cat{letter-spacing:-.04em;padding:8px 2px}
 .btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
+.btn.tri{flex:1 1 30%;font-size:12px;padding:8px 1px;letter-spacing:-.05em}
+/* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
+.grp.s{margin-top:12px}
 .btn.nav{flex:1 1 18%;font-size:17.5px;padding:8px 2px}
 .btn.mid{flex:1 1 56%;font-size:14px;padding:8px 2px}
 #catslot{display:contents}
@@ -106,23 +110,25 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .notice b{color:#fde68a}
 #fb .fbx{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:11.5px;
  padding:8px 9px;border-radius:10px;margin-bottom:6px;line-height:1.5;text-align:center}
-/* 手機（341–419px）：跟網頁版手機卡片同一個排法，兩列就放得完，不留空行 */
-@media(min-width:341px) and (max-width:419px){
- .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px}
+/* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
+    grid-template-columns:92px minmax(0,1fr) 60px}
  .f{text-align:center}
  .g{text-align:right}
  .st{justify-self:end}
 }
-@media(min-width:420px){
+/* 620px 以上才排成一整列；欄寬固定，每一列的同一欄都對齊 */
+@media(min-width:620px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
    justify-content:flex-end;pointer-events:none}
  .fabb{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:15.5px;border-radius:999px;pointer-events:auto}
- .r{grid-template-columns:auto auto auto auto 1fr auto;grid-template-areas:none;
+ .r{grid-template-columns:92px 134px 58px 78px minmax(0,1fr) 64px;grid-template-areas:none;
    align-items:center;gap:4px 12px;padding:8px 12px}
  .r{grid-template-areas:none} b.t,.f,.g,.tag,.c,.st{grid-area:auto}
  .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
- .g{min-width:52px} .tag{text-align:center}
+ .g{min-width:0} .tag{text-align:center;justify-self:stretch}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }
 </style>
@@ -148,28 +154,28 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
   <span class="btn mid" id="dMid">📅 今天</span>
   <span class="btn nav" id="dNext">▶</span>
 </div>
-<div class="grp">
+<div class="grp s">
   <span id="catslot"></span>
 </div>
 <div class="grp">
-  <span class="btn zone" data-z="A">　A區</span>
-  <span class="btn zone" data-z="B">　B區</span>
-  <span class="btn zone" data-z="C">　C區</span>
-  <span class="btn zone" data-z="D">　D區</span>
+  <span class="btn tri" id="bmine">只看我的</span>
+  <span class="btn tri" id="ball">全部</span>
+  <span class="btn tri" id="bnone">清空</span>
 </div>
-<div class="grp">
-  <span class="btn half" id="ball">全部</span>
-  <span class="btn half" id="bnone">全不要</span>
+<div class="grp s">
+  <span class="btn zone" data-z="A">✓ A區</span>
+  <span class="btn zone" data-z="B">✓ B區</span>
+  <span class="btn zone" data-z="C">✓ C區</span>
+  <span class="btn zone" data-z="D">✓ D區</span>
 </div>
-<div class="grp">
-  <span class="btn half" id="bmine">2140+2153</span>
-  <span class="btn half" id="bmeet">🕐 開會時間</span>
-</div>
-<div class="grp">
+<div class="grp s">
   <span class="btn half" id="bhide">🙈 隱藏抵達</span>
   <span class="btn half" id="breload">🔄 更新</span>
 </div>
-<div class="grp"><span class="btn" id="bcfg">⚙️ 分類設定</span></div>
+<div class="grp">
+  <span class="btn half" id="bmeet">🕐 開會時間</span>
+  <span class="btn half" id="bcfg">⚙️ 分類設定</span>
+</div>
 <div class="cfgbox" id="cfgbox" hidden>
   <h4>名稱／航廈／登機門（留空＝該航廈其餘）</h4>
   <div id="catbox"></div>
@@ -408,8 +414,8 @@ function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
 function mineOn(){ return cats.c0&&cats.c1&&!cats.c2&&!cats.c3; }
 
 function paintBtns(){
-  document.getElementById('ball').className='btn half'+(allOn()?' on':'');
-  document.getElementById('bmine').className='btn half'+(mineOn()?' on':'');
+  document.getElementById('ball').className='btn tri'+(allOn()?' on':'');
+  document.getElementById('bmine').className='btn tri'+(mineOn()?' on':'');
   var slot=document.getElementById('catslot'), h='';
   CATS.forEach(function(c,i){
     h+='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
@@ -825,7 +831,7 @@ function paintCatBox(){
 document.getElementById('bcfg').addEventListener('click',function(){
   var b=document.getElementById('cfgbox');
   b.hidden=!b.hidden;
-  this.className='btn'+(b.hidden?'':' on');
+  this.className='btn half'+(b.hidden?'':' on');
 });
 document.getElementById('catReset').addEventListener('click',function(){
   CATS=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });

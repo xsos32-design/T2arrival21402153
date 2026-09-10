@@ -181,6 +181,7 @@
     .chip.act{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
     .chip.shop{font-size:17.5px;font-weight:800;min-height:54px}
     .chip.zone{flex:1 1 22%;font-size:15px;padding:9px 2px}
+    .chip.sc{flex:1 1 30%;font-size:14.5px;padding:9px 2px}
     #cpM{flex:1 1 100%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
     #cpmsg{color:#8b94a1}
@@ -210,7 +211,8 @@
     .list{background:transparent;border:none;border-radius:0;overflow:visible}
     .r.head{display:none}
     .tfull{display:none} .tshort{display:inline}
-    .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 9px;overflow:hidden;
+    /* 右欄固定寬＝每張卡片的登機門、狀態都對齊，中間欄起點也一致 */
+    .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 66px;gap:2px 9px;overflow:hidden;
        grid-template-areas:"time fno gate" "shop city st";align-items:center;
        background:#14171c;border:1px solid #262b33;border-radius:12px;padding:8px 12px;margin-bottom:6px}
     .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 5px 0 0 #14b8a6}
@@ -229,7 +231,7 @@
     .c-time b.t-plan {color:#fff;background:transparent;padding-left:0}
     .c-time i{font-size:13.5px;font-weight:700;color:#8b94a1;margin-top:1px}
 
-    .c-gate{grid-area:gate;text-align:center;font-size:33px;color:#fff;line-height:1.05;white-space:nowrap}
+    .c-gate{grid-area:gate;text-align:right;font-size:33px;color:#fff;line-height:1.05;white-space:nowrap}
     .c-shop{grid-area:shop;text-align:left;white-space:nowrap}
     .tag{font-size:13px;padding:3px 8px;border-radius:7px}
     .t40{background:#0d3b36;color:#5eead4} .t53{background:#43200f;color:#fdba74}
@@ -266,11 +268,13 @@
     .chip{flex:1 1 46%;min-height:48px;font-size:14.5px;border-radius:12px;padding:9px 3px}
     .chip.shop{font-size:16px;min-height:52px}
     .chip.zone{flex:1 1 46%}
+    .chip.sc{flex:1 1 30%;font-size:13px;letter-spacing:-.04em}
     button{padding:15px;font-size:19px;min-height:58px}
     details.cfg{display:none}
     .full{display:none} .short{display:inline}
     /* 極窄螢幕改成三列：時間＋登機門／班號／分類＋城市＋狀態，字才放得大 */
     .r{gap:2px 5px;padding:7px 7px;border-radius:11px;margin-bottom:5px;
+       grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;
        grid-template-areas:"time time gate" "fno fno fno" "city city city" "shop shop st"}
     .c-time b{font-size:28px;padding:0 5px;border-radius:7px}
     .c-time i{font-size:12px;font-weight:700;margin-top:1px}
@@ -323,14 +327,17 @@
 
     <div class="chips">
       <span class="chip" id="now6">⏱ 現在6小時</span>
-      <span class="chip" id="hide">🙈 隱藏已抵達：否</span>
+      <span class="chip" id="hide">🙈 隱藏已抵達</span>
     </div>
 
     <div class="chips">
       <span class="chiplabel">分類</span>
-      <span class="chip" id="sall">全部</span>
-      <span class="chip" id="snone">全不要</span>
       <span id="shopslot"></span>
+    </div>
+    <div class="chips">
+      <span class="chip sc" id="smine">只看我的</span>
+      <span class="chip sc" id="sall">全部</span>
+      <span class="chip sc" id="snone">全不要</span>
     </div>
 
     <div class="chips">
@@ -1112,6 +1119,9 @@ function paintShops(){
     });
   });
 }
+document.getElementById('smine').addEventListener('click',function(){
+  show={c0:true,c1:true,c2:false,c3:false}; paintShops(); render();
+});
 document.getElementById('sall').addEventListener('click',function(){
   show={c0:true,c1:true,c2:true,c3:true}; paintShops(); render();
 });
@@ -1165,7 +1175,7 @@ paintShops();
 
 document.getElementById('hide').addEventListener('click',function(){
   hideDone=!hideDone;
-  this.textContent='🙈 隱藏已抵達：'+(hideDone?'是':'否');
+  this.textContent=hideDone?'👁 全部顯示':'🙈 隱藏已抵達';
   this.className=hideDone?'chip act':'chip';
   render();
 });
