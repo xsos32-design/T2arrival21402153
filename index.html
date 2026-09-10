@@ -58,8 +58,8 @@
   .status{font-size:12px;color:var(--muted);margin-top:9px}
 
   .list{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .r{display:grid;grid-template-columns:120px 190px 74px minmax(0,1fr) 96px 104px;gap:10px;align-items:center;
-     padding:10px 14px;border-top:1px solid var(--line)}
+  .r{display:grid;grid-template-columns:118px 152px 74px minmax(0,1fr) 94px 100px;gap:10px;align-items:center;
+     padding:9px 14px;border-top:1px solid var(--line)}
   .r.head{border-top:none;background:#fafbfc;color:var(--muted);font-size:12px;font-weight:800;
      letter-spacing:.06em;padding:8px 14px}
   .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
@@ -78,8 +78,8 @@
     color:var(--muted);white-space:nowrap;margin-top:3px;letter-spacing:-.01em}
   .tm{font-size:10px;font-weight:700;color:var(--muted);margin-left:3px;vertical-align:super}
   .c-fno b{font-weight:800;font-size:24px;letter-spacing:-.02em}
-  .cty{font-style:normal;font-size:14.5px;font-weight:800;color:var(--ink);
-    white-space:nowrap;margin-left:7px}
+  .cty{font-style:normal;font-size:19px;font-weight:800;color:var(--ink);
+    white-space:nowrap;margin-left:8px;vertical-align:-2px;letter-spacing:0}
   .c-fno small{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:2px;letter-spacing:.01em}
   .c-gate{font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
   .tag{display:inline-block;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;white-space:nowrap}
@@ -210,9 +210,9 @@
     .list{background:transparent;border:none;border-radius:0;overflow:visible}
     .r.head{display:none}
     .tfull{display:none} .tshort{display:inline}
-    .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:3px 9px;overflow:hidden;
+    .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 9px;overflow:hidden;
        grid-template-areas:"time fno gate" "shop city st";align-items:center;
-       background:#14171c;border:1px solid #262b33;border-radius:12px;padding:10px 12px;margin-bottom:7px}
+       background:#14171c;border:1px solid #262b33;border-radius:12px;padding:8px 12px;margin-bottom:6px}
     .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 5px 0 0 #14b8a6}
     .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 5px 0 0 #f97316}
     .r.r40 .c-gate{color:#5eead4}
@@ -227,7 +227,7 @@
     .c-time b.t-early{color:#7dd3fc;background:#0b2b3c}
     .c-time b.t-same {color:#6ee7b7;background:#0d2f1e}
     .c-time b.t-plan {color:#fff;background:transparent;padding-left:0}
-    .c-time i{font-size:13.5px;font-weight:700;color:#8b94a1;margin-top:3px}
+    .c-time i{font-size:13.5px;font-weight:700;color:#8b94a1;margin-top:1px}
 
     .c-gate{grid-area:gate;text-align:center;font-size:33px;color:#fff;line-height:1.05;white-space:nowrap}
     .c-shop{grid-area:shop;text-align:left;white-space:nowrap}
@@ -236,8 +236,8 @@
     .tt1{background:#2a1f4a;color:#c4b5fd} .tt2{background:#232830;color:#9aa3b0}
 
     .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:27px;color:#fff} .c-fno small{display:none}
-    .cty{display:block;margin:3px 0 0;font-size:15px;font-weight:800;color:#cbd5e1}
-    .c-city{grid-area:city;font-size:15.5px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.55}
+    .cty{display:inline;margin:0 0 0 8px;font-size:20px;font-weight:800;vertical-align:-2px}
+    .c-city{grid-area:city;font-size:15.5px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35}
     .px{font-style:normal;font-size:13px;font-weight:800;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums}
     .tx{font-size:12.5px;color:#fbbf24}
     .badge{font-size:13px;padding:3px 8px}
@@ -270,14 +270,14 @@
     details.cfg{display:none}
     .full{display:none} .short{display:inline}
     /* 極窄螢幕改成三列：時間＋登機門／班號／分類＋城市＋狀態，字才放得大 */
-    .r{gap:3px 5px;padding:8px 7px;border-radius:11px;margin-bottom:6px;
+    .r{gap:2px 5px;padding:7px 7px;border-radius:11px;margin-bottom:5px;
        grid-template-areas:"time time gate" "fno fno fno" "city city city" "shop shop st"}
     .c-time b{font-size:28px;padding:0 5px;border-radius:7px}
     .c-time i{font-size:12px;font-weight:700;margin-top:1px}
     .c-gate{font-size:29px;text-align:right}
     .tag{font-size:12.5px;padding:3px 7px;border-radius:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
     .c-fno{text-align:left} .c-fno b{font-size:26px}
-    .cty{font-size:14.5px;margin-top:2px}
+    .cty{font-size:18px;margin-left:6px}
     .c-city{font-size:14.5px}
     .badge{font-size:12.5px;padding:3px 7px}
     .empty,.pend,.errbox,.tdxbox,.notice{font-size:11.5px;padding:9px;border-radius:10px}
@@ -670,7 +670,7 @@ function render(){
       return lead+'<div class="r '+cls+shopCls+'">'
         + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
         + '<div class="c-fno"><b>'+esc(fno4(main))+'</b>'
-          + (ctryOf(f)?'<i class="cty">🛫'+esc(ctryOf(f))+'</i>':'')
+          + (flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')
           + '<small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
         + '<div class="c-city">'+esc(f.CityName)+paxHtml(f)+'</div>'
