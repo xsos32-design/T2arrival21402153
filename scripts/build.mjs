@@ -9,7 +9,7 @@
  * 這裡把「要資料」這件事整個搬到 GitHub 的機器上做，手錶只負責顯示文字。
  */
 
-import { mkdir, writeFile, copyFile, access } from 'node:fs/promises';
+import { mkdir, writeFile, copyFile, access, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 /* 資料來源：桃園國際機場「開放資料平台」即時航班資料集（服務代碼 114002）
@@ -264,8 +264,12 @@ const PRESETS = [
   { id: 'h13', label: '13:30–18', win: () => ['13:30', '17:59', '13:30–18:00'] },
   { id: 'h18', label: '18–24',    win: () => ['18:00', '23:59', '18:00–24:00'] },
 ];
-/* 現在該看哪個時段 —— 給 watch.html 當預設入口（06:00–13:30 固定排除） */
-const CURRENT_PRESET = H < 6 ? 'h00' : (H < 18 ? 'h13' : 'h18');
+/* 解封印版多一格：把固定被藏起來的 06:00–13:30 補回來 */
+const P06 = { id: 'h06', label: '06–13:30', win: () => ['06:00', '13:29', '06:00–13:30'] };
+const PRESETS_FULL = [PRESETS[0], P06, PRESETS[1], PRESETS[2]];
+/* 現在該看哪個時段 —— 給 watch.html／watchall.html 當預設入口 */
+const CURRENT_PRESET      = H < 6 ? 'h00' : (H < 18 ? 'h13' : 'h18');
+const CURRENT_PRESET_FULL = H < 6 ? 'h00' : (H * 60 + M < 810 ? 'h06' : (H < 18 ? 'h13' : 'h18'));
 
 /* 分類：四種，可任意複選。每個組合都會產生一個獨立的靜態檔。 */
 const CATS = [
@@ -287,10 +291,11 @@ const COMBOS = (() => {
   return out;
 })();
 
-const presetOf = id => PRESETS.find(p => p.id === id);
+const presetOf = id => PRESETS_FULL.find(p => p.id === id);
 
-/* 檔名規則：w-<時段>-<店別>[-h].html   （-h = 隱藏已抵達） */
-const fileFor = (p, s, hide) => `w-${p}-${s}${hide ? '-h' : ''}.html`;
+/* 檔名規則：<w|a>-<時段>-<店別>[-h].html
+   w- ＝ 一般版（不顯示 06:00–13:30）　a- ＝ 解封印版（全時段）　-h ＝ 隱藏已抵達 */
+const fileFor = (p, s, hide, full) => `${full ? 'a' : 'w'}-${p}-${s}${hide ? '-h' : ''}.html`;
 
 /* ---------- 版型 ---------- */
 const CSS = `
@@ -383,6 +388,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .r.r40 .g{color:#5eead4}
 .r.r53 .g{color:#fdba74}
 .btn.zone{flex:1 1 22%;font-size:12.5px;padding:8px 1px;cursor:pointer;user-select:none;letter-spacing:-.03em}
+body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}
 /* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
 .grp.s{margin-top:12px}
 .mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
@@ -399,6 +405,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:12.5px;
  padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
 .notice b{color:#fde68a}
+.notice .lk{color:#fde68a;font-weight:800;white-space:nowrap;text-decoration:underline}
 /* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
 @media(min-width:341px) and (max-width:619px){
  .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
@@ -476,7 +483,7 @@ function isNextDay(f) {
   return !!(f.ODate && rd && rd > f.ODate);
 }
 
-function renderPage(flights, preset, shopKey, hide, err) {
+function renderPage(flights, preset, shopKey, hide, err, full) {
   const [t1, t2, winLabel] = presetOf(preset).win();
   const codes = new Set(shopKey);
 
@@ -484,7 +491,7 @@ function renderPage(flights, preset, shopKey, hide, err) {
     .filter(f => {
       if (!String(f.Gate || '').trim()) return false;
       const t = hhmm(f.RTime) || hhmm(f.OTime);
-      if (t >= '06:00' && t <= '13:30') return false;   /* 固定排除 06:00–13:30 */
+      if (!full && t >= '06:00' && t <= '13:30') return false;   /* 一般版固定排除，解封印版不擋 */
       /* 延誤跨過午夜的班機（表定今天、實際落到隔天）掛在當天最後一段，不然會整班消失 */
       if (isNextDay(f)) { if (preset !== 'h18') return false; }
       else if (t < t1 || t > t2) return false;
@@ -530,8 +537,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   /* 捷徑：全部 / 只看我的兩點 */
   const shortcut =
-      btn(fileFor(preset, ALL_ID,  hide), '全部',     idOf(cur) === ALL_ID,  'half')
-    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID, 'half');
+      btn(fileFor(preset, ALL_ID,  hide, full), '全部',     idOf(cur) === ALL_ID,  'half')
+    + btn(fileFor(preset, MINE_ID, hide, full), '2140+2153', idOf(cur) === MINE_ID, 'half');
 
   /* 複選：點一下加入／移除該分類。只剩一個時不讓取消（連回自己）。 */
   const catBtns = CATS.map(c => {
@@ -539,16 +546,16 @@ function renderPage(flights, preset, shopKey, hide, err) {
     const next = new Set(cur);
     if (on) next.delete(c.id); else next.add(c.id);
     const target = next.size ? idOf(next) : idOf(cur);
-    return btn(fileFor(preset, target, hide), (on ? '✓ ' : '　') + c.label, on, 'half c' + c.id);
+    return btn(fileFor(preset, target, hide, full), (on ? '✓ ' : '　') + c.label, on, 'half c' + c.id);
   }).join('\n');
 
-  const presetBtns = PRESETS
-    .map(p => btn(fileFor(p.id, idOf(cur), hide), p.label, p.id === preset, 'pre')).join('\n');
-  const hideBtn = btn(fileFor(preset, idOf(cur), !hide), hide ? '👁 全部顯示' : '🙈 隱藏抵達', hide, 'half');
+  const presetBtns = (full ? PRESETS_FULL : PRESETS)
+    .map(p => btn(fileFor(p.id, idOf(cur), hide, full), p.label, p.id === preset, 'pre')).join('\n');
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide, full), hide ? '👁 全部顯示' : '🙈 隱藏抵達', hide, 'half');
   const meetBtn = `<span class="btn half" id="bmeet">🕐 開會時間</span>`;
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
-  const reloadBtn = btn(fileFor(preset, idOf(cur), hide),
+  const reloadBtn = btn(fileFor(preset, idOf(cur), hide, full),
                         '🔄 更新 ' + stamp + '<i id="age"></i>', false);
 
   const body = err
@@ -565,18 +572,18 @@ function renderPage(flights, preset, shopKey, hide, err) {
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>班機手錶版 ${winLabel}</title>
-<style>${CSS}</style></head><body data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}">
+<style>${CSS}</style></head><body class="${full ? 'full' : ''}" data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}" data-x="${full ? 'a' : 'w'}">
 <div id="fab">
   <button class="fabb" id="fTop">⬆</button>
-  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide)}">⏱ 現在</a>
-  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide)}">🔄</a>
+  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide, full)}">⏱ 現在</a>
+  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide, full)}">🔄</a>
 </div>
 
 <div class="mk">
   <b>小韋製作</b>
   <i>⚠️ 請不要未經同意就轉用散布</i>
 </div>
-<a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
+<a class="hd" href="${fileFor(preset, idOf(cur), hide, full)}"><b>✈️ 班機手錶版${full ? ' 🔓' : ''}</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
 <div class="grp s">${catBtns}</div>
 <div class="grp">${shortcut}</div>
@@ -588,7 +595,9 @@ function renderPage(flights, preset, shopKey, hide, err) {
 ${body}
 <div class="notice">⚠️ 僅供參考，<b>一律以現場為準</b><br>
 👥 數字＝推估走入境的人數（±15%）<br>🟢 未滿150　🟡 150–250　🔴 超過250<br>
-🔄 轉機客多，人數已打75折<br>本頁固定不顯示 06:00–13:30 的班機</div>
+🔄 轉機客多，人數已打75折<br>${full
+  ? '🔓 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">🔒 回一般版</a>'
+  : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">🔓 解封印版</a>'}</div>
 <div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
@@ -607,11 +616,11 @@ ${body}
     var fab=document.getElementById('fab');
     var bd=document.body, cid=bd.getAttribute('data-c')||'', hid=bd.getAttribute('data-h')?'-h':'',
         cp=bd.getAttribute('data-p')||'';
-    var hh=new Date().getHours();
-    var np=hh<6?'h00':(hh<18?'h13':'h18');
+    var nd=new Date(), hh=nd.getHours(), px=bd.getAttribute('data-x')||'w';
+    var np=hh<6?'h00':((px==='a'&&hh*60+nd.getMinutes()<810)?'h06':(hh<18?'h13':'h18'));
     var fN=document.getElementById('fNow');
     if(fN){
-      fN.setAttribute('href','w-'+np+'-'+cid+hid+'.html'+v);
+      fN.setAttribute('href',px+'-'+np+'-'+cid+hid+'.html'+v);
       if(np===cp) fN.className='fabb on';
     }
     var fT=document.getElementById('fTop');
@@ -666,6 +675,67 @@ ${body}
 }
 
 /* ---------- 主程式 ---------- */
+/* ───────────── 解封印版：把「固定不顯示 06:00–13:30」拿掉，另存一份 ─────────────
+   直接吃 repo 裡的 index.html / wtdx.html 再做字串取代，所以那兩個檔怎麼改，
+   解封印版都會跟著變，不會有兩份程式碼各改各的問題。
+   任何一條規則對不上就整份跳過並印出警告，正常版不受影響。            */
+const T1EXTRA = '<option value="06:00">06 時</option><option value="07:00">07 時</option><option value="08:00">08 時</option><option value="09:00">09 時</option><option value="10:00">10 時</option><option value="11:00">11 時</option><option value="12:00">12 時</option><option value="13:00">13 時</option>';
+const T2EXTRA = '<option value="06:59">07 時</option><option value="07:59">08 時</option><option value="08:59">09 時</option><option value="09:59">10 時</option><option value="10:59">11 時</option><option value="11:59">12 時</option><option value="12:59">13 時</option>';
+
+const UNLOCK = {
+  'index.html': { out: 'all.html', rules: [
+    ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 🔓 全時段</title>', 1],
+    ['<h1>✈️ 班機網頁版 2140 / 2153</h1>', '<h1>✈️ 班機網頁版 🔓 全時段</h1>', 1],
+    ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
+     '      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>\n'
+   + '      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n', 1],
+    ['<option value="05:00">05 時</option><option value="13:30">13:30</option>',
+     '<option value="05:00">05 時</option>' + T1EXTRA + '<option value="13:30">13:30</option>', 1],
+    ['<option value="05:59">06 時</option><option value="13:59">14 時</option>',
+     '<option value="05:59">06 時</option>' + T2EXTRA + '<option value="13:59">14 時</option>', 1],
+    ["      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */\n", '', 2],
+    ['　·　不含06:00–13:30', '　·　全時段', 2],
+    ['    本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="all.html">🔓 解封印版</a>\n',
+     '    🔓 這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="index.html">🔒 回一般版</a>\n', 1],
+  ]},
+  'wtdx.html': { out: 'wtdxall.html', rules: [
+    ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 🔓 全時段</title>', 1],
+    ['<b>✈️ 班機TDX版</b>', '<b>✈️ TDX版 🔓</b>', 1],
+    ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
+     '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
+   + '.btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}', 1],
+    ['  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>\n',
+     '  <span class="btn pre" data-t="06:00" data-e="13:29">06–13:30</span>\n'
+   + '  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>\n', 1],
+    ["    if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */\n", '', 1],
+    ["      if(t>='06:00'&&t<='13:30') return;\n", '', 1],
+    ["h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59'])",
+     "h<6 ? ['00:00','05:59'] : (nowMin()<810 ? ['06:00','13:29'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']))", 2],
+    ['function autoWin(){\n',
+     'function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }\n'
+   + 'function autoWin(){\n', 1],
+    ['本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html">🔓 解封印版</a><br>\n',
+     '🔓 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="wtdx.html">🔒 回一般版</a><br>\n', 1],
+  ]},
+};
+
+async function writeUnlocked() {
+  for (const [src, cfg] of Object.entries(UNLOCK)) {
+    let t;
+    try { await access(src); t = await readFile(src, 'utf8'); }
+    catch { console.log('找不到 ' + src + '，略過解封印版'); continue; }
+    let bad = '';
+    for (const [a, b, want] of cfg.rules) {
+      const hit = t.split(a).length - 1;
+      if (hit !== want) { bad = `「${a.trim().slice(0, 40)}」出現 ${hit} 次，預期 ${want} 次`; break; }
+      t = t.split(a).join(b);
+    }
+    if (bad) { console.log(`⚠️ ${cfg.out} 沒產生：${bad}（${src} 改過了，請更新 UNLOCK 規則）`); continue; }
+    await writeFile(join(OUT, cfg.out), t, 'utf8');
+    console.log('已產生 ' + cfg.out);
+  }
+}
+
 async function main() {
   let flights = [], tomorrowSnap = [], err = '';
   const tried = [];
@@ -718,24 +788,30 @@ async function main() {
   await mkdir(OUT, { recursive: true });
 
   let n = 0;
-  for (const p of PRESETS) {
-    for (const ids of COMBOS) {
-      for (const hide of [false, true]) {
-        await writeFile(join(OUT, fileFor(p.id, comboId(ids), hide)),
-                        renderPage(flights, p.id, ids, hide, err), 'utf8');
-        n++;
+  for (const full of [false, true]) {
+    for (const p of (full ? PRESETS_FULL : PRESETS)) {
+      for (const ids of COMBOS) {
+        for (const hide of [false, true]) {
+          await writeFile(join(OUT, fileFor(p.id, comboId(ids), hide, full)),
+                          renderPage(flights, p.id, ids, hide, err, full), 'utf8');
+          n++;
+        }
       }
     }
   }
   /* 預設入口：自動挑「現在所在的那個六小時區間」＋只勾 2140／2153＋不隱藏 */
   await writeFile(join(OUT, 'watch.html'),
-                  renderPage(flights, CURRENT_PRESET, ['40', '53'], false, err), 'utf8');
-  console.log(`watch.html 預設時段 = ${CURRENT_PRESET}（現在 ${stamp}）`);
+                  renderPage(flights, CURRENT_PRESET, ['40', '53'], false, err, false), 'utf8');
+  await writeFile(join(OUT, 'watchall.html'),
+                  renderPage(flights, CURRENT_PRESET_FULL, ['40', '53'], false, err, true), 'utf8');
+  console.log(`watch.html 時段 = ${CURRENT_PRESET}／watchall.html 時段 = ${CURRENT_PRESET_FULL}（現在 ${stamp}）`);
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
   const snap = flights.concat(tomorrowSnap);
   await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
   console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
+
+  await writeUnlocked();
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
   for (const f of ['index.html', 'wtest.html', 'wtdx.html']) {
@@ -743,7 +819,7 @@ async function main() {
     catch { console.log('找不到 ' + f + '，略過'); }
   }
 
-  console.log(`產生 ${n + 1} 個靜態頁 → ${OUT}/`);
+  console.log(`產生 ${n + 2} 個靜態頁 → ${OUT}/`);
   if (err) process.exitCode = 0; // 抓取失敗也要部署（頁面會顯示錯誤訊息）
 }
 
