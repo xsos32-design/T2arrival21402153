@@ -10,6 +10,17 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
  font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:47px}
+/* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
+.mk{background:#2a1a06;border:2px solid #b45309;border-radius:12px;
+ padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
+.mk b{display:block;font-size:30px;font-weight:900;color:#fbbf24;letter-spacing:.04em}
+.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:800;color:#fcd34d;
+ margin-top:4px;letter-spacing:.01em;line-height:1.4}
+@media(min-width:341px){
+ .mk{padding:11px 12px 12px;margin-bottom:9px}
+ .mk b{font-size:38px}
+ .mk i{font-size:16px;margin-top:5px}
+}
 /* 浮動快捷鍵：置頂／現在起6小時／更新 */
 /* 三顆快捷鍵固定浮在畫面「下方」。手錶的瀏覽器對下方的固定定位沒問題，
    放上方才會擋住滑動，所以一律靠下。 */
@@ -140,6 +151,10 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 </div>
 
 
+<div class="mk">
+  <b>小韋製作</b>
+  <i>⚠️ 內部參考用　請勿轉傳、轉用</i>
+</div>
 <div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>即時</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
@@ -190,7 +205,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 🔄 轉機客多（長榮／華航／星宇：東南亞16時後、歐美9時前），人數已打75折<br>
 本頁固定不顯示 06:00–13:30 的班機<br>
 此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已到</div>
-<div class="foot">按 🔄 或點最上面那條即可重抓當下資料<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+<div class="foot">按 🔄 或點最上面那條即可重抓當下資料<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
 
 <script>
 /* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
