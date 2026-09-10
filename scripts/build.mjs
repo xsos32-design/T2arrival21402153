@@ -315,7 +315,8 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd b{color:#cbd5e1;font-size:14.5px;font-weight:800}
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .old{color:#fbbf24}
-.r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 7px;
+/* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 7px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.done{opacity:.38}
@@ -371,6 +372,9 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .r.r40 .g{color:#5eead4}
 .r.r53 .g{color:#fdba74}
 .btn.zone{flex:1 1 22%;font-size:12.5px;padding:8px 1px;cursor:pointer;user-select:none;letter-spacing:-.03em}
+.btn.tri{flex:1 1 30%;font-size:12px;padding:8px 1px;letter-spacing:-.05em}
+/* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
+.grp.s{margin-top:12px}
 .mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
 .mt{width:100%;border-collapse:collapse;font-size:13px;background:#14171c;margin-bottom:9px}
 .mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
@@ -385,23 +389,25 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:12.5px;
  padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
 .notice b{color:#fde68a}
-/* 手機（341–419px）：跟網頁版手機卡片同一個排法，兩列就放得完，不留空行 */
-@media(min-width:341px) and (max-width:419px){
- .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px}
+/* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
+    grid-template-columns:92px minmax(0,1fr) 60px}
  .f{text-align:center}
  .g{text-align:right}
  .st{justify-self:end}
 }
-@media(min-width:420px){
+/* 620px 以上才排成一整列；欄寬固定，每一列的同一欄都對齊 */
+@media(min-width:620px){
  body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
    justify-content:flex-end;pointer-events:none}
  .fabb{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:15.5px;border-radius:999px;pointer-events:auto}
- .r{grid-template-columns:auto auto auto auto 1fr auto;grid-template-areas:none;
+ .r{grid-template-columns:92px 134px 58px 78px minmax(0,1fr) 64px;grid-template-areas:none;
    align-items:center;gap:4px 12px;padding:8px 12px}
  b.t,.f,.g,.tag,.c,.st{grid-area:auto}
  .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
- .g{min-width:52px} .tag{text-align:center}
+ .g{min-width:0} .tag{text-align:center;justify-self:stretch}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
@@ -514,8 +520,8 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
   /* 捷徑：全部 / 只看我的兩點 */
   const shortcut =
-      btn(fileFor(preset, ALL_ID,  hide), '全部',      idOf(cur) === ALL_ID,  'half')
-    + btn(fileFor(preset, MINE_ID, hide), '2140+2153', idOf(cur) === MINE_ID, 'half');
+      btn(fileFor(preset, MINE_ID, hide), '只看我的', idOf(cur) === MINE_ID, 'half')
+    + btn(fileFor(preset, ALL_ID,  hide), '全部',     idOf(cur) === ALL_ID,  'half');
 
   /* 複選：點一下加入／移除該分類。只剩一個時不讓取消（連回自己）。 */
   const catBtns = CATS.map(c => {
@@ -558,10 +564,10 @@ function renderPage(flights, preset, shopKey, hide, err) {
 
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
-<div class="grp">${catBtns}</div>
-<div class="grp">${zoneBtns}</div>
+<div class="grp s">${catBtns}</div>
 <div class="grp">${shortcut}</div>
-<div class="grp">${hideBtn}${meetBtn}</div>
+<div class="grp s">${zoneBtns}</div>
+<div class="grp s">${hideBtn}${meetBtn}</div>
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
 <div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
