@@ -297,6 +297,17 @@ const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
  font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:47px}
+/* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
+.mk{background:#2a1a06;border:2px solid #b45309;border-radius:12px;
+ padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
+.mk b{display:block;font-size:30px;font-weight:900;color:#fbbf24;letter-spacing:.04em}
+.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:800;color:#fcd34d;
+ margin-top:4px;letter-spacing:.01em;line-height:1.4}
+@media(min-width:341px){
+ .mk{padding:11px 12px 12px;margin-bottom:9px}
+ .mk b{font-size:38px}
+ .mk i{font-size:16px;margin-top:5px}
+}
 /* 浮動快捷鍵：置頂／現在時段／更新 */
 /* 三顆快捷鍵固定浮在畫面「下方」。手錶的瀏覽器對下方的固定定位沒問題，
    放上方才會擋住滑動，所以一律靠下。 */
@@ -561,6 +572,10 @@ function renderPage(flights, preset, shopKey, hide, err) {
   <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide)}">🔄</a>
 </div>
 
+<div class="mk">
+  <b>小韋製作</b>
+  <i>⚠️ 內部參考用　請勿轉傳、轉用</i>
+</div>
 <a class="hd" href="${fileFor(preset, idOf(cur), hide)}"><b>✈️ 班機手錶版</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
 <div class="grp s">${catBtns}</div>
@@ -574,7 +589,7 @@ ${body}
 <div class="notice">⚠️ 僅供參考，<b>一律以現場為準</b><br>
 👥 數字＝推估走入境的人數（±15%）<br>🟢 未滿150　🟡 150–250　🔴 超過250<br>
 🔄 轉機客多，人數已打75折<br>本頁固定不顯示 06:00–13:30 的班機</div>
-<div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a><br><br>檔案作者：小韋</div>
+<div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
