@@ -191,8 +191,12 @@ function statusOf(f) {
   if (/滑行/.test(cur))             return { txt: '🛬 滑行中',   cls: 'ok',   done: true  };
   if (/降落/.test(cur))             return { txt: '🛬 降落',     cls: 'ok',   done: true  };
   if (/已到/.test(memo) || cur)     return { txt: '✅ 已到',     cls: 'ok',   done: true  };
-  if (/延遲|延誤/.test(memo))       return { txt: '🕐 延誤',     cls: 'warn', done: false };
-  if (/變更|更改/.test(memo))       return { txt: '🔀 時間更改', cls: 'warn', done: false };
+  if (/延遲|延誤/.test(memo))       return { txt: '🕐 延遲',     cls: 'warn', done: false };
+  /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
+  if (/變更|更改/.test(memo)) {
+    const dm = (hhmm(f.RTime) && hhmm(f.OTime)) ? (toMin(f.RTime) - toMin(f.OTime) + (isNextDay(f) ? 1440 : 0)) : 0;
+    return { txt: dm < 0 ? '⏪ 提早' : (dm > 0 ? '🕐 延遲' : '🔀 時間更新'), cls: 'warn', done: false };
+  }
   if (/準時/.test(memo))            return { txt: '🟢 準時',     cls: 'info', done: false };
   return { txt: '預計', cls: 'none', done: false };
 }
@@ -247,8 +251,10 @@ const LCC = new Set(['BX','LJ','7C','TW','RS','ZE','VJ','VZ','AK','5J','DG','Z2'
 function paxOf(f) {
   const dep = String(f.Dep || '').toUpperCase();
   const al  = String(f.flightCode || '').slice(0, 2).toUpperCase();
-  const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 300 : 250));
-  let est = Math.round(seats * (LONGHAUL.has(dep) ? 0.85 : 0.80) / 5) * 5;
+  const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 295 : 250));
+  /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
+  const lf = LCC.has(al) ? 0.88 : (LONGHAUL.has(dep) ? 0.85 : (MIDHAUL.has(dep) ? 0.82 : 0.80));
+  let est = Math.round(seats * lf / 5) * 5;
   const tx = txOf(f);
   if (tx) est = Math.round(est * 0.75 / 5) * 5;   /* 轉機客不走入境 */
   return { est, tx, dot: est > 250 ? '🔴' : (est >= 150 ? '🟡' : '🟢') };
@@ -337,7 +343,6 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.done{opacity:.38}
 .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
-.cd{font-style:normal;font-size:12.5px;font-weight:800;color:#fcd34d;white-space:nowrap;margin-left:6px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
  padding:0 5px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
@@ -525,9 +530,9 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
-    return `<div class="r ${cls}${rowCls}" data-z="${zg}" data-e="${st.done ? '' : eta + (isNextDay(f) ? 1440 : 0)}">
+    return `<div class="r ${cls}${rowCls}" data-z="${zg}">
 <b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagOf(ctryOf(f)) ? `<i class="cty" title="${esc(ctryOf(f))}">${flagOf(ctryOf(f))}</i>` : ''}</span><span class="g">${esc(f.Gate)}</span>
-<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}<i class="cd"></i></span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -671,14 +676,6 @@ ${body}
       el.textContent = m < 1 ? '· 剛更新' : '· ' + m + '分前';
       if (m >= 45) el.className = 'dead';
       else if (m >= 20) el.className = 'old';
-    }
-    /* 還有幾分鐘到：用抓取當下的分鐘數扣掉這份資料放了多久，開啟時算一次就好 */
-    var rs = document.querySelectorAll('.r');
-    for (var ri = 0; ri < rs.length; ri++){
-      var e0 = rs[ri].getAttribute('data-e'), cdEl = rs[ri].querySelector('.cd');
-      if (!cdEl || e0 === null || e0 === '') continue;
-      var left = (+e0) - m;
-      cdEl.textContent = left > 0 ? (left < 90 ? left + '分後' : Math.round(left / 60) + '小時後') : '';
     }
   }catch(e){}
 })();
