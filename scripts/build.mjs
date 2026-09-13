@@ -514,7 +514,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
       const d = toMin(f.RTime) - toMin(f.OTime) + (isNextDay(f) ? 1440 : 0);
       big = act;
       tc  = d > 0 ? 'late' : (d < 0 ? 'early' : 'same');
-      sub = '表定' + sch + (d ? (d > 0 ? ' +' : ' −') + Math.abs(d) : '');
+      sub = '表定' + (d ? (d > 0 ? ' +' : ' −') + Math.abs(d) : '');
     } else { big = sch; tc = 'plan'; sub = '表定'; }
     if (isNextDay(f)) sub = '隔日 · ' + sub;
 
