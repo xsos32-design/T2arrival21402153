@@ -336,7 +336,8 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.done{opacity:.38}
-.r.soon{background:#3a2f10;border-color:#a16207}
+.r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
+.cd{font-style:normal;font-size:12.5px;font-weight:800;color:#fcd34d;white-space:nowrap;margin-left:6px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
  padding:0 5px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
@@ -524,9 +525,9 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
-    return `<div class="r ${cls}${rowCls}" data-z="${zg}">
+    return `<div class="r ${cls}${rowCls}" data-z="${zg}" data-e="${st.done ? '' : eta + (isNextDay(f) ? 1440 : 0)}">
 <b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagOf(ctryOf(f)) ? `<i class="cty" title="${esc(ctryOf(f))}">${flagOf(ctryOf(f))}</i>` : ''}</span><span class="g">${esc(f.Gate)}</span>
-<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}<i class="cd"></i></span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -568,6 +569,9 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <html lang="zh-Hant"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="${full ? 'T2 全時段' : 'T2 班機'}">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -661,12 +665,20 @@ ${body}
     });
     var b = +(document.body.getAttribute('data-b') || 0);
     var el = document.getElementById('age');
+    var m = b ? Math.floor((now - b) / 60000) : 0;
+    if (m < 0) m = 0;
     if (b && el){
-      var m = Math.floor((now - b) / 60000);
-      if (m < 0) m = 0;
       el.textContent = m < 1 ? '· 剛更新' : '· ' + m + '分前';
       if (m >= 45) el.className = 'dead';
       else if (m >= 20) el.className = 'old';
+    }
+    /* 還有幾分鐘到：用抓取當下的分鐘數扣掉這份資料放了多久，開啟時算一次就好 */
+    var rs = document.querySelectorAll('.r');
+    for (var ri = 0; ri < rs.length; ri++){
+      var e0 = rs[ri].getAttribute('data-e'), cdEl = rs[ri].querySelector('.cd');
+      if (!cdEl || e0 === null || e0 === '') continue;
+      var left = (+e0) - m;
+      cdEl.textContent = left > 0 ? (left < 90 ? left + '分後' : Math.round(left / 60) + '小時後') : '';
     }
   }catch(e){}
 })();
@@ -685,6 +697,8 @@ const T2EXTRA = '<option value="06:59">07 時</option><option value="07:59">08 �
 const UNLOCK = {
   'index.html': { out: 'all.html', rules: [
     ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 🔓 全時段</title>', 1],
+    ['<link rel="manifest" href="app.webmanifest">', '<link rel="manifest" href="app-all.webmanifest">', 1],
+    ['content="T2 班機"', 'content="T2 全時段"', 1],
     ['<h1>✈️ 班機網頁版 2140 / 2153</h1>', '<h1>✈️ 班機網頁版 🔓 全時段</h1>', 1],
     ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
      '      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>\n'
@@ -700,6 +714,7 @@ const UNLOCK = {
   ]},
   'wtdx.html': { out: 'wtdxall.html', rules: [
     ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 🔓 全時段</title>', 1],
+    ['content="T2 TDX"', 'content="T2 TDX全"', 1],
     ['<b>✈️ 班機TDX版</b>', '<b>✈️ TDX版 🔓</b>', 1],
     ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
      '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
@@ -814,7 +829,9 @@ async function main() {
   await writeUnlocked();
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html']) {
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html',
+                   'icon-180.png', 'icon-192.png', 'icon-512.png',
+                   'app.webmanifest', 'app-all.webmanifest']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
