@@ -689,8 +689,8 @@ function render(){
         if(isNextDay(f)) d+=1440;               /* 延誤跨過午夜：00:05 − 23:25 要算成晚 40 分 */
         big=act;
         tcls = d>0?'t-late' : (d<0?'t-early':'t-same');
-        sub='<span class="tfull">'+(isNextDay(f)?'隔日 · ':'')+'表定 '+sch+(d>0?' · 晚'+d+'分':(d<0?' · 早'+(-d)+'分':''))+'</span>'
-           +'<span class="tshort">'+(isNextDay(f)?'隔日 ':'')+'表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'')+'</span>';
+        /* 只寫差幾分鐘就好，表定幾點幾分不再重複寫一次（例：表定 +59） */
+        sub=(isNextDay(f)?'隔日 ':'')+'表定'+(d?(d>0?' +':' −')+Math.abs(d):'');
       } else {
         big=sch; tcls='t-plan'; sub='表定';
       }
