@@ -4,6 +4,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="app.webmanifest">
+<meta name="apple-mobile-web-app-title" content="T2 班機">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b0d10">
@@ -67,7 +71,8 @@
   .r.r40 .c-gate{color:#0f766e}
   .r.r53 .c-gate{color:#9a3412}
   .r.done{opacity:.45}
-  .r.soon{background:#fffdf3}
+  .r.soon{background:#fffbe8;outline:2px solid #eab308;outline-offset:-2px}
+  .cd{font-style:normal;font-weight:800;color:#b45309}
   .c-time b{display:inline-block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;
     line-height:1.15;padding:1px 6px;border-radius:7px;letter-spacing:-.01em}
   .c-time b.t-late {color:#9a3412;background:#fdece0}
@@ -234,7 +239,8 @@
     .r.r40 .c-gate{color:#5eead4}
     .r.r53 .c-gate{color:#fdba74}
     .r.done{opacity:.4}
-    .r.soon{background:#3a2f10;border-color:#a16207}
+    .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
+    .cd{color:#fcd34d}
     .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
 
     .c-time{grid-area:time}
@@ -398,7 +404,7 @@
         改完立即生效，存在這台裝置。</div>
     </details>
 
-    <div class="status" id="status">按上面的「更新班機」開始。</div>
+    <div class="status" id="status">⏳ 開啟時會自動抓最新班機…</div>
   </div>
 
   <div id="out"></div>
@@ -610,6 +616,9 @@ function ctryOf(f){
   return CTRY[c]||'';
 }
 /* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
+/* 還有幾分鐘到：只在開啟／更新那一刻算一次，不裝計時器（手錶會被計時器拖垮） */
+function etaTxt(m){ if(!(m>0)) return '';
+  return m<90 ? m+'分後' : Math.round(m/60)+'小時後'; }
 function fno4(code){
   var s=String(code||'').trim().toUpperCase();
   var m=s.match(/^(.*?)(\d{1,4})$/);
@@ -686,6 +695,8 @@ function render(){
         big=sch; tcls='t-plan'; sub='表定';
       }
       var eta=mins(big)-nowM;
+      var cdv=st.done?'':etaTxt(eta+(isNextDay(f)?1440:0));
+      if(cdv) sub+=' · <i class="cd">'+cdv+'</i>';
       var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
       var tg=x.shop?tagOf(x.shop):{txt:'待定',cls:'tt2'};
       var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
@@ -966,6 +977,16 @@ function reportText(kind){
     return lines.join('\n');
   });
 }
+/* 產生回報後自動複製一次；複製不到就靜靜留著「複製」鍵給手動按 */
+function autoCopy(txt){
+  var say=function(ok){ var m=document.getElementById('cpmsg');
+    if(m) m.textContent = ok ? '✅ 已複製，直接去群組貼上' : '按下面的「複製」鍵，或長按文字手動複製'; };
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(function(){say(true);},function(){say(false);});
+    else say(false);
+  }catch(e){ say(false); }
+}
 function showCopy(txt,html){
   var box=document.getElementById('copybox');
   box.innerHTML='<div class="cpwrap">'
@@ -1000,7 +1021,9 @@ function makeReport(kind,chip){
   chip.textContent='⏳ 產生中…';
   reportText(kind).then(function(r){
     chip.textContent=old;
+    var txt=(typeof r==='string')?r:r.text;
     if(typeof r==='string') showCopy(r); else showCopy(r.text,r.html);
+    autoCopy(txt);                       /* 產生完直接複製，少按一次 */
     document.getElementById('copybox').scrollIntoView({behavior:'smooth',block:'nearest'});
   })['catch'](function(e){
     chip.textContent=old;

@@ -4,6 +4,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="T2 TDX">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>班機TDX版 · 即時</title>
 <style>
@@ -49,7 +52,8 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .r.r40 .g{color:#5eead4}
 .r.r53 .g{color:#fdba74}
 .r.done{opacity:.38}
-.r.soon{background:#3a2f10;border-color:#a16207}
+.r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
+.cd{font-style:normal;font-size:12.5px;font-weight:800;color:#fcd34d;white-space:nowrap;margin-left:6px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
  padding:0 5px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
@@ -380,6 +384,9 @@ function ctryOf(f){
   return CTRY[c]||'';
 }
 /* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
+/* 還有幾分鐘到：只在開啟／更新那一刻算一次，不裝計時器（手錶會被計時器拖垮） */
+function etaTxt(m){ if(!(m>0)) return '';
+  return m<90 ? m+'分後' : Math.round(m/60)+'小時後'; }
 function fno4(code){
   var s=String(code||'').trim().toUpperCase();
   var m=s.match(/^(.*?)(\d{1,4})$/);
@@ -517,12 +524,14 @@ function rowHtml(f,nowMin){
     sub='表定'+sch+(d?(d>0?' +':' −')+Math.abs(d):'');
   } else { big=sch; tc='plan'; sub='表定'; }
   var eta=mins(big)-nowMin;
+  var cdv=(st.done||nowMin<0)?'':etaTxt(eta+(isNextDay(f)?1440:0));
+  var cd=cdv?'<i class="cd">'+cdv+'</i>':'';
   var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
   var shop=shopOf(f);
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
     +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+esc(f.Gate)+'</span>'
-    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+cd+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
 function render(){
