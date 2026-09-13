@@ -53,7 +53,6 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .r.r53 .g{color:#fdba74}
 .r.done{opacity:.38}
 .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
-.cd{font-style:normal;font-size:12.5px;font-weight:800;color:#fcd34d;white-space:nowrap;margin-left:6px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
  padding:0 5px;border-radius:7px;display:inline-block}
 .t-late{color:#fcd34d;background:#3f2c08}
@@ -348,8 +347,12 @@ function statusOf(f){
   var memo=f.Memo||'';
   if(/取消/.test(memo)) return {txt:'❌ 取消',    cls:'bad', done:false};
   if(/已到/.test(memo)) return {txt:'✅ 已到',    cls:'ok',  done:true };
-  if(/延遲|延誤/.test(memo)) return {txt:'🕐 延誤', cls:'warn',done:false};
-  if(/更改|變更/.test(memo)) return {txt:'🔀 更改', cls:'warn',done:false};
+  if(/延遲|延誤/.test(memo)) return {txt:'🕐 延遲', cls:'warn',done:false};
+  /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
+  if(/更改|變更/.test(memo)){
+    var dm=(hhmm(f.RTime)&&hhmm(f.OTime))?(mins(f.RTime)-mins(f.OTime)+(isNextDay(f)?1440:0)):0;
+    return {txt: dm<0?'⏪ 提早':(dm>0?'🕐 延遲':'🔀 時間更新'), cls:'warn', done:false};
+  }
   if(/準時/.test(memo)) return {txt:'🟢 準時',   cls:'info',done:false};
   return {txt:'預計', cls:'none', done:false};
 }
@@ -384,9 +387,6 @@ function ctryOf(f){
   return CTRY[c]||'';
 }
 /* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
-/* 還有幾分鐘到：只在開啟／更新那一刻算一次，不裝計時器（手錶會被計時器拖垮） */
-function etaTxt(m){ if(!(m>0)) return '';
-  return m<90 ? m+'分後' : Math.round(m/60)+'小時後'; }
 function fno4(code){
   var s=String(code||'').trim().toUpperCase();
   var m=s.match(/^(.*?)(\d{1,4})$/);
@@ -410,8 +410,10 @@ var LCC={BX:1,LJ:1,'7C':1,TW:1,RS:1,ZE:1,VJ:1,VZ:1,AK:1,'5J':1,DG:1,Z2:1,IT:1,MM
 function paxOf(f){
   var dep=String(f.Dep||'').toUpperCase();
   var al=String(f.flightCode||'').slice(0,2).toUpperCase();
-  var seats=LONGHAUL[dep]?333:(LCC[al]?189:(MIDHAUL[dep]?300:250));
-  var est=Math.round(seats*(LONGHAUL[dep]?0.85:0.80)/5)*5;
+  var seats=LONGHAUL[dep]?333:(LCC[al]?189:(MIDHAUL[dep]?295:250));
+  /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
+  var lf=LCC[al]?0.88:(LONGHAUL[dep]?0.85:(MIDHAUL[dep]?0.82:0.80));
+  var est=Math.round(seats*lf/5)*5;
   var tx=txOf(f);
   if(tx) est=Math.round(est*0.75/5)*5;   /* 轉機客不走入境 */
   return {est:est,tx:tx,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
@@ -524,14 +526,12 @@ function rowHtml(f,nowMin){
     sub='表定'+(d?(d>0?' +':' −')+Math.abs(d):'');
   } else { big=sch; tc='plan'; sub='表定'; }
   var eta=mins(big)-nowMin;
-  var cdv=(st.done||nowMin<0)?'':etaTxt(eta+(isNextDay(f)?1440:0));
-  var cd=cdv?'<i class="cd">'+cdv+'</i>':'';
   var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
   var shop=shopOf(f);
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
     +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+esc(f.Gate)+'</span>'
-    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+cd+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
 function render(){

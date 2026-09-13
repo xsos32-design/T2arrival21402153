@@ -72,7 +72,6 @@
   .r.r53 .c-gate{color:#9a3412}
   .r.done{opacity:.45}
   .r.soon{background:#fffbe8;outline:2px solid #eab308;outline-offset:-2px}
-  .cd{font-style:normal;font-weight:800;color:#b45309}
   .c-time b{display:inline-block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;
     line-height:1.15;padding:1px 6px;border-radius:7px;letter-spacing:-.01em}
   .c-time b.t-late {color:#9a3412;background:#fdece0}
@@ -240,7 +239,6 @@
     .r.r53 .c-gate{color:#fdba74}
     .r.done{opacity:.4}
     .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
-    .cd{color:#fcd34d}
     .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
 
     .c-time{grid-area:time}
@@ -458,9 +456,16 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return
    航空公司不公開真實載客數，這裡用「機型座位數 × 航線平均載客率」推估：
    桃機 API 有機型（PlaneNo）最準；TDX 沒機型就用航線推估，粗一點。
    燈號：🟢<150　🟡150–250　🔴>250　（僅供參考，誤差約 ±15%） */
-var SEAT_RULES=[[/77W|777/,333],[/787-10|78J|781/,342],[/787|789|788/,300],
-  [/A350|A?35\d/,306],[/A330|A?33\d/,297],[/A380|A?38\d/,495],[/A321|32Q|32[1N]/,194],
-  [/A320|32[0AS]/,174],[/737|73[89H]/,189],[/767/,270],[/747|744/,370],[/A319/,134],[/ATR|AT7/,70],[/E19|E7[05]/,104]];
+/* 機型 → 座位數。桃機的 PlaneNo 給的是機型（例：B777-300ER、A321-271NX），
+   所以同一家族要由細到粗排，先比對長的字串才不會被短的規則吃掉。 */
+var SEAT_RULES=[
+  [/777-300|77W/,350],[/777-200|772|77L/,263],[/777/,333],
+  [/787-10|78J|781/,342],[/787-9|789/,304],[/787|788/,270],
+  [/A?350-1000|35K/,350],[/A350|A?35\d/,306],
+  [/A330-900|A?33[9X]/,297],[/A330|A?33\d/,297],[/A380|A?38\d/,495],
+  [/A321|32Q|32[1N]/,194],[/A320|32[0AS]/,174],[/A319/,134],
+  [/737-900|73[9H]/,215],[/737|738/,189],
+  [/767/,270],[/747|744/,370],[/ATR|AT7/,70],[/E19|E7[05]/,104]];
 function seatsByPlane(p){ p=String(p||'').toUpperCase(); if(!p) return 0;
   for(var i=0;i<SEAT_RULES.length;i++) if(SEAT_RULES[i][0].test(p)) return SEAT_RULES[i][1];
   return 250; }
@@ -479,13 +484,19 @@ function seatsByRoute(dep,code){
 }
 function paxOf(f){
   var dep=String(f.Dep||f.CityCode||'').toUpperCase();
+  var al=String(f.flightCode||'').slice(0,2).toUpperCase();
+  var pl=String(f.PlaneNo||'').toUpperCase();
+  if(/F$|BCF/.test(pl)) return {est:0,tx:false,dot:'📦'};   /* 全貨機沒有下機旅客 */
   var seats=seatsByPlane(f.PlaneNo)||seatsByRoute(dep,f.flightCode);
-  var est=Math.round(seats*(LONGHAUL[dep]?0.85:0.80)/5)*5;
+  /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
+  var lf=LCC[al]?0.88:(LONGHAUL[dep]?0.85:(MIDHAUL[dep]?0.82:0.80));
+  var est=Math.round(seats*lf/5)*5;
   var tx=txOf(f);
   if(tx) est=Math.round(est*0.75/5)*5;   /* 轉機客不走入境，扣約四成一 */
   return {est:est,tx:tx,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
 }
 function paxHtml(f){ var p=paxOf(f);
+  if(!p.est) return ' <i class="px">'+p.dot+'貨機</i>';
   return ' <i class="px">'+p.dot+p.est+'人</i>'+(p.tx?' <i class="tx">🔄</i>':''); }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
@@ -512,9 +523,12 @@ function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate|
 function statusOf(f){
   function clean(s){ return String(s||'').replace(/[\s.．、,]+$/,'').replace(/\s+/g,' ').trim(); }
   var memo=clean(f.Memo).replace('預計時間變更','時間變更'), cur=clean(f.CurrentStatus);
+  /* 「時間變更」本身看不出好壞，改講實際比表定早還是晚 */
+  var dmin=(hhmm(f.RTime)&&hhmm(f.OTime))?(mins(f.RTime)-mins(f.OTime)+(isNextDay(f)?1440:0)):0;
+  if(/變更|更改/.test(memo)) memo=memo.replace(/時間(變更|更改)/, dmin<0?'提早':(dmin>0?'延遲':'時間更新'));
   var text=[memo,cur].filter(Boolean).join(' · '), cls='b-none', done=false;
   if(/取消/.test(memo)) cls='b-bad';
-  else if(/延遲|變更/.test(memo)) cls='b-warn';
+  else if(/延遲|延誤|提早|變更/.test(memo)) cls='b-warn';
   else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; }
   if(!text) text='預計';
   /* 極窄螢幕用的縮寫，但仍保留「哪一種狀態」的區別 */
@@ -523,8 +537,8 @@ function statusOf(f){
             : /滑行/.test(cur)      ? '滑行'
             : /降落/.test(cur)      ? '降落'
             : /已到/.test(memo)     ? '已到'
-            : /延遲|延誤/.test(memo)? '延誤'
-            : /變更|更改/.test(memo)? '改點'
+            : /提早/.test(memo)     ? '提早'
+            : /延遲|延誤/.test(memo)? '延遲'
             : /準時/.test(memo)     ? '準時'
             : '預計';
   /* 狀態表情符號：一眼掃過去就知道好壞 */
@@ -533,8 +547,8 @@ function statusOf(f){
           : /滑行/.test(cur)       ? '🛬'
           : /降落/.test(cur)       ? '🛬'
           : /已到/.test(memo)      ? '✅'
+          : /提早/.test(memo)      ? '⏪'
           : /延遲|延誤/.test(memo) ? '🕐'
-          : /變更|更改/.test(memo) ? '🔀'
           : /準時/.test(memo)      ? '🟢'
           : '';
   if(emo){ text=emo+' '+text; short=emo+short; }
@@ -616,9 +630,6 @@ function ctryOf(f){
   return CTRY[c]||'';
 }
 /* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
-/* 還有幾分鐘到：只在開啟／更新那一刻算一次，不裝計時器（手錶會被計時器拖垮） */
-function etaTxt(m){ if(!(m>0)) return '';
-  return m<90 ? m+'分後' : Math.round(m/60)+'小時後'; }
 function fno4(code){
   var s=String(code||'').trim().toUpperCase();
   var m=s.match(/^(.*?)(\d{1,4})$/);
@@ -695,8 +706,6 @@ function render(){
         big=sch; tcls='t-plan'; sub='表定';
       }
       var eta=mins(big)-nowM;
-      var cdv=st.done?'':etaTxt(eta+(isNextDay(f)?1440:0));
-      if(cdv) sub+=' · <i class="cd">'+cdv+'</i>';
       var cls=st.done?'done':((eta>=0&&eta<=45)?'soon':'');
       var tg=x.shop?tagOf(x.shop):{txt:'待定',cls:'tt2'};
       var tags='<span class="tag '+tg.cls+'">'+tg.txt+'</span>';
