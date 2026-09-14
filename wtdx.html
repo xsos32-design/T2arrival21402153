@@ -44,13 +44,13 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd .u.busy{color:#fbbf24}
 .hd .u.err{color:#f87171}
 /* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
-.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 7px;
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 66px;gap:2px 7px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
  background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
 .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 4px 0 0 #14b8a6}
 .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 4px 0 0 #f97316}
-.r.r40 .g{color:#5eead4}
-.r.r53 .g{color:#fdba74}
+.r.r40 .g .gn{background:#14b8a6;color:#04221e}
+.r.r53 .g .gn{background:#f97316;color:#2c1204}
 .r.done{opacity:.38}
 .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
@@ -63,6 +63,8 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* 登機門染色：2140 青綠、2153 橘，一眼就分得出是哪一邊的班機 */
+.g .gn{display:inline-block;padding:0 5px;border-radius:8px;background:#2b313b;color:#e5e9ef}
 .tag{grid-area:tag;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap;
  align-self:center;justify-self:start;letter-spacing:.02em;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
@@ -127,7 +129,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 /* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
 @media(min-width:341px) and (max-width:619px){
  .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
-    grid-template-columns:92px minmax(0,1fr) 60px}
+    grid-template-columns:92px minmax(0,1fr) 68px}
  .f{text-align:center}
  .g{text-align:right}
  .st{justify-self:end}
@@ -138,7 +140,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
  #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
    justify-content:flex-end;pointer-events:none}
  .fabb{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:15.5px;border-radius:999px;pointer-events:auto}
- .r{grid-template-columns:92px 134px 58px 78px minmax(0,1fr) 64px;grid-template-areas:none;
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) 64px;grid-template-areas:none;
    align-items:center;gap:4px 12px;padding:8px 12px}
  .r{grid-template-areas:none} b.t,.f,.g,.tag,.c,.st{grid-area:auto}
  .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
@@ -530,7 +532,7 @@ function rowHtml(f,nowMin){
   var shop=shopOf(f);
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
-    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+esc(f.Gate)+'</span>'
+    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'')+'</span>'
     +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }

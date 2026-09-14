@@ -68,8 +68,8 @@
      letter-spacing:.06em;padding:8px 14px}
   .r.r40{background:#eefaf7;box-shadow:inset 5px 0 0 #0d9488}
   .r.r53{background:#fff4ea;box-shadow:inset 5px 0 0 #ea580c}
-  .r.r40 .c-gate{color:#0f766e}
-  .r.r53 .c-gate{color:#9a3412}
+  .r.r40 .c-gate .gn{background:#0d9488;color:#fff}
+  .r.r53 .c-gate .gn{background:#ea580c;color:#fff}
   .r.done{opacity:.45}
   .r.soon{background:#fffbe8;outline:2px solid #eab308;outline-offset:-2px}
   .c-time b{display:inline-block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;
@@ -86,6 +86,8 @@
     white-space:nowrap;margin-left:8px;vertical-align:-2px;letter-spacing:0}
   .c-fno small{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:2px;letter-spacing:.01em}
   .c-gate{font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  /* 登機門染色：2140 青綠、2153 橘，一眼就分得出是哪一邊的班機 */
+  .c-gate .gn{display:inline-block;font-weight:900;padding:1px 8px;border-radius:9px;background:#e6e9ee;color:#475569}
   .tag{display:inline-block;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;white-space:nowrap}
   .c-city{font-size:15.5px;font-weight:650;line-height:1.5}
   .t40{background:var(--c40bg);color:var(--c40)} .t53{background:var(--c53bg);color:var(--c53)}
@@ -230,13 +232,13 @@
     .r.head{display:none}
     .tfull{display:none} .tshort{display:inline}
     /* 右欄固定寬＝每張卡片的登機門、狀態都對齊，中間欄起點也一致 */
-    .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 66px;gap:2px 9px;overflow:hidden;
+    .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 76px;gap:2px 9px;overflow:hidden;
        grid-template-areas:"time fno gate" "shop city st";align-items:center;
        background:#14171c;border:1px solid #262b33;border-radius:12px;padding:8px 12px;margin-bottom:6px}
     .r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 5px 0 0 #14b8a6}
     .r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 5px 0 0 #f97316}
-    .r.r40 .c-gate{color:#5eead4}
-    .r.r53 .c-gate{color:#fdba74}
+    .r.r40 .c-gate .gn{background:#14b8a6;color:#04221e}
+    .r.r53 .c-gate .gn{background:#f97316;color:#2c1204}
     .r.done{opacity:.4}
     .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
     .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
@@ -250,6 +252,7 @@
     .c-time i{font-size:13.5px;font-weight:700;color:#8b94a1;margin-top:1px}
 
     .c-gate{grid-area:gate;text-align:right;font-size:33px;color:#fff;line-height:1.05;white-space:nowrap}
+    .c-gate .gn{padding:0 6px;border-radius:9px;background:#2b313b;color:#e5e9ef}
     .c-shop{grid-area:shop;text-align:left;white-space:nowrap}
     .tag{font-size:13px;padding:3px 8px;border-radius:7px}
     .t40{background:#0d3b36;color:#5eead4} .t53{background:#43200f;color:#fdba74}
@@ -292,11 +295,12 @@
     .full{display:none} .short{display:inline}
     /* 極窄螢幕改成三列：時間＋登機門／班號／分類＋城市＋狀態，字才放得大 */
     .r{gap:2px 5px;padding:7px 7px;border-radius:11px;margin-bottom:5px;
-       grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;
+       grid-template-columns:minmax(0,auto) minmax(0,1fr) 68px;
        grid-template-areas:"time time gate" "fno fno fno" "city city city" "shop shop st"}
     .c-time b{font-size:28px;padding:0 5px;border-radius:7px}
     .c-time i{font-size:12px;font-weight:700;margin-top:1px}
     .c-gate{font-size:29px;text-align:right}
+    .c-gate .gn{padding:0 5px;border-radius:8px}
     .tag{font-size:12.5px;padding:3px 7px;border-radius:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
     .c-fno{text-align:left} .c-fno b{font-size:26px}
     .cty{font-size:18px;margin-left:6px}
@@ -718,7 +722,7 @@ function render(){
         + '<div class="c-fno"><b>'+esc(fno4(main))+'</b>'
           + (flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')
           + '<small>'+esc(f.AName)+'</small></div>'
-        + '<div class="c-gate">'+(String(f.Gate||'').trim()?esc(f.Gate):'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
+        + '<div class="c-gate">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
         + '<div class="c-city">'+esc(f.CityName)+paxHtml(f)+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
         + '<div class="c-st"><span class="badge '+st.cls+'">'
