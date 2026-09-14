@@ -338,9 +338,9 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
 .hd .old{color:#fbbf24}
 /* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
-.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 66px;gap:2px 7px;
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 6px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
- background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 9px;margin-bottom:5px;overflow:hidden}
+ background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 7px;margin-bottom:5px;overflow:hidden}
 .r.done{opacity:.38}
 .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
 b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
@@ -354,7 +354,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 /* 登機門染色：2140 青綠、2153 橘，一眼就分得出是哪一邊的班機 */
-.g .gn{display:inline-block;padding:0 5px;border-radius:8px;background:#2b313b;color:#e5e9ef}
+.g .gn{display:inline-block;font-size:.92em;padding:0 4px;border-radius:7px;background:#2b313b;color:#e5e9ef}
 .tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
 .tag{grid-area:tag;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap;
  align-self:center;justify-self:start;letter-spacing:.02em;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
