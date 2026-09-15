@@ -892,6 +892,24 @@ async function main() {
   }
   await writeFile(join(OUT, 'meta.json'), JSON.stringify({ t: stamp, n: metaN, x: metaX }), 'utf8');
   console.log(`meta.json：${Object.keys(metaN).length} 個機場名、${Object.keys(metaX).length} 筆轉機比例`);
+
+  /* 省流量快照：手錶版平常就讀這份，不用打 TDX（214KB → 約 35KB）。
+     欄位壓成陣列、時間去掉冒號、城市名交給 meta.json 對照，能省的都省了。
+     每列＝[班號, 出發地, 登機門, 航廈, 表定時刻, 實際時刻, 表定日偏移, 實際日偏移, 備註, 轉機比例] */
+  const hm4 = t => String(t || '').slice(0, 5).replace(':', '');
+  const dayOff = d => {
+    if (!d) return 0;
+    const a0 = Date.parse(String(today).replace(/\//g, '-') + 'T00:00:00Z');
+    const b0 = Date.parse(String(d).replace(/\//g, '-') + 'T00:00:00Z');
+    return isNaN(a0) || isNaN(b0) ? 0 : Math.round((b0 - a0) / 86400000);
+  };
+  const rows = snap.map(f => [
+    f.flightCode || '', f.Dep || '', f.Gate || '', String(f.BNO || ''),
+    hm4(f.OTime), hm4(f.RTime), dayOff(f.ODate), dayOff(f.RDate),
+    f.Memo || '', typeof f.tx === 'number' ? f.tx : 0,
+  ]);
+  await writeFile(join(OUT, 'snap.json'), JSON.stringify({ t: stamp, d: today, f: rows }), 'utf8');
+  console.log(`snap.json：${rows.length} 班（省流量用）`);
   console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
 
   await writeUnlocked();
