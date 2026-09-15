@@ -287,16 +287,27 @@ var NAMES=null;
 var TXMAP={};   /* 班號 → 轉機比例。GitHub 那邊已經拿出境班表算好了，這裡直接抄 */
 function tdxNames(){
   if(NAMES) return Promise.resolve(NAMES);
-  /* 城市中文名改從同網域快照撈（同網域不吃 TDX 額度）：
-     快照是 GitHub 用金鑰抓的，名字齊全。這樣每次更新只打 1 次 TDX，額度省一半 */
-  return fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():{d:[]}; }).then(function(j){
-    var m={};
-    ((j&&j.d)||[]).forEach(function(f){
+  /* 只抓小檔 meta.json（約 12KB）：機場中文名＋GitHub 依出境班表算好的轉機比例。
+     網址上的編號每 5 分鐘才換一次（跟 GitHub 更新同步），中間重開都吃手錶自己的
+     快取，不會重複下載。抓不到就退回完整快照 data.json。 */
+  var mk='meta.json?v='+Math.floor(Date.now()/300000);
+  var take=function(j){
+    var m=(j&&(j.n||j.names))||null;
+    if(!m){ m={}; ((j&&j.d)||[]).forEach(function(f){
       if(f.Dep&&f.CityName&&f.CityName!==f.Dep) m[f.Dep]=f.CityName;
       if(f.flightCode&&typeof f.tx==='number') TXMAP[String(f.flightCode).toUpperCase()]=f.tx;
-    });
+    }); }
+    var x=(j&&j.x)||null;
+    if(x) for(var k in x){ if(x.hasOwnProperty(k)) TXMAP[k]=x[k]; }
     NAMES=m; return m;
-  })['catch'](function(){ return {}; });
+  };
+  return fetch(mk).then(function(r){ if(!r.ok) throw new Error('meta '+r.status); return r.json(); })
+    .then(take)
+    ['catch'](function(){
+      return fetch('data.json?v='+Math.floor(Date.now()/300000))
+        .then(function(r){ return r.ok?r.json():{d:[]}; }).then(take)
+        ['catch'](function(){ return {}; });
+    });
 }
 function fromTDX(f,names){
   var hm=function(s){ return (String(s||'').split('T')[1]||'').slice(0,5); };
@@ -675,13 +686,16 @@ function ensureTomorrow(force){
   });
 }
 
-function load(){
+function load(fresh){
   var el=document.getElementById('hstamp');
   el.textContent='更新中…'; el.className='u busy';
   var d0=new Date();
   var iso=d0.getFullYear()+'-'+pad(d0.getMonth()+1)+'-'+pad(d0.getDate());
-  /* 只抓今天的班機（620KB→200KB），手錶才吞得下；25 秒沒回應就放棄 */
-  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+Date.now();
+  /* 只抓今天的班機（620KB→200KB），手錶才吞得下；25 秒沒回應就放棄。
+     開頁那一次用「每分鐘才換一次」的編號，連續開關同一分鐘內不會重複下載；
+     自己按 🔄 才強制重抓（那是你要最新資料的時候）。 */
+  var nc=fresh?Date.now():Math.floor(Date.now()/60000);
+  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+nc;
   var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('逾時，25 秒沒回應')); },25000); });
   Promise.race([bail,
     fetch(url).then(function(r){
@@ -711,7 +725,7 @@ function load(){
 /* TDX 直連失敗 → 改抓同網域的 GitHub 快照（手錶一定讀得到，只是非即時） */
 function fallback(err){
   var el=document.getElementById('hstamp');
-  fetch('data.json?nc='+Date.now())
+  fetch('data.json?v='+Math.floor(Date.now()/300000))
   .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); })
   .then(function(j){
     var n=new Date();
@@ -906,7 +920,7 @@ document.getElementById('fNow').addEventListener('click',function(){
 document.getElementById('fGo').addEventListener('click',function(){
   var b=document.getElementById('fGo'); b.textContent='⏳';
   setTimeout(function(){ b.textContent='🔄'; },1200);
-  load();
+  load(true);
 });
 
 document.getElementById('bhide').addEventListener('click',function(){
