@@ -490,18 +490,18 @@ function paxOf(f){
   var dep=String(f.Dep||f.CityCode||'').toUpperCase();
   var al=String(f.flightCode||'').slice(0,2).toUpperCase();
   var pl=String(f.PlaneNo||'').toUpperCase();
-  if(/F$|BCF/.test(pl)) return {est:0,tx:false,dot:'📦'};   /* 全貨機沒有下機旅客 */
+  if(/F$|BCF/.test(pl)) return {est:0,inn:0,tx:0,dot:'📦'};   /* 全貨機沒有下機旅客 */
   var seats=seatsByPlane(f.PlaneNo)||seatsByRoute(dep,f.flightCode);
   /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
   var lf=LCC[al]?0.88:(LONGHAUL[dep]?0.85:(MIDHAUL[dep]?0.82:0.80));
-  var est=Math.round(seats*lf/5)*5;
-  var tx=txOf(f);
-  if(tx) est=Math.round(est*0.75/5)*5;   /* 轉機客不走入境，扣約四成一 */
-  return {est:est,tx:tx,dot:est>250?'🔴':(est>=150?'🟡':'🟢')};
+  var est=Math.round(seats*lf/5)*5;    /* 機上總人數 */
+  var tx=Math.round(est*txRatio(f)/5)*5;  /* 其中推估直接去轉機、不走入境的 */
+  return {est:est, tx:tx, inn:Math.max(0,est-tx),
+          dot:(est-tx)>250?'🔴':((est-tx)>=150?'🟡':'🟢')};
 }
 function paxHtml(f){ var p=paxOf(f);
   if(!p.est) return ' <i class="px">'+p.dot+'貨機</i>';
-  return ' <i class="px">'+p.dot+p.est+'人</i>'+(p.tx?' <i class="tx">🔄</i>':''); }
+  return ' <i class="px">'+p.dot+p.inn+'入境</i>'+(p.tx?' <i class="tx" title="推估轉機，不走入境">🔄'+p.tx+'</i>':''); }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
 var TXHUB={BR:1,CI:1,JX:1};
@@ -516,6 +516,37 @@ function txOf(f){
   if(TXSEA[dep]&&t>='16:00') return true;   /* 東南亞晚班 → 接深夜歐美紅眼 */
   if(TXFAR[dep]&&t<='09:00') return true;   /* 清晨歐美班 → 接早上東南亞/日韓 */
   return false;
+}
+
+/* ── 轉機客推估：拿當天「出境班表」回推轉機波段 ──────────────────
+   一班到站落地後 50 分–4 小時之間，同航空／同集團／同聯盟有幾班飛出去，
+   班次越密，代表這班越可能是替後面那批出境班機載客的（華航、長榮的清晨
+   歐美回程最明顯：一落地後面接 30 班自家出境）。抓不到出境班表就退回
+   舊的時段判斷。這仍是推估，不是航空公司的真實轉機人數。 */
+var DEPS=null;
+var ALGRP={CI:'CI',AE:'CI',BR:'BR',B7:'BR'};
+var SKY={CI:1,AE:1,KE:1,MU:1,CZ:1,DL:1,AF:1,KL:1,VN:1,GA:1,MF:1,SU:1,AM:1,KQ:1,RO:1,SV:1,UX:1,VS:1,ME:1,OK:1};
+var STAR={BR:1,B7:1,NH:1,SQ:1,TG:1,UA:1,AC:1,LH:1,OS:1,LX:1,SK:1,TK:1,OZ:1,CA:1,SA:1,NZ:1,ET:1,MS:1,AI:1,ZH:1,TP:1,LO:1,AV:1,CM:1,BC:1,JU:1};
+var ONEW={CX:1,JL:1,QF:1,AA:1,BA:1,MH:1,QR:1,AY:1,IB:1,RJ:1,S7:1,UL:1,AT:1,KA:1};
+function alliOf(a){ return SKY[a]?'S':(STAR[a]?'*':(ONEW[a]?'1':'')); }
+function txRatio(f){
+  var al=String(f.flightCode||'').slice(0,2).toUpperCase();
+  var dep=String(f.Dep||f.CityCode||'').toUpperCase();
+  if(!DEPS||!DEPS.length) return txOf(f)?0.25:0;
+  var t=mins(hhmm(f.RTime)||hhmm(f.OTime));
+  if(isNaN(t)) return 0;
+  var g=ALGRP[al]||al, my=alliOf(al), w=0;
+  for(var i=0;i<DEPS.length;i++){
+    var x=DEPS[i], dt=x.t-t; if(dt<0) dt+=1440;
+    if(dt<50||dt>240) continue;        /* 不到 50 分鐘轉不了，超過 4 小時多半不是同一批 */
+    if(x.c&&x.c===dep) continue;       /* 不會有人原路飛回去 */
+    if(x.a===al) w+=1;
+    else if((ALGRP[x.a]||x.a)===g) w+=0.8;
+    else if(my&&alliOf(x.a)===my) w+=0.45;
+    else w+=0.08;                      /* 跨聯盟聯運很少，給很低的權重 */
+  }
+  if(LCC[al]) w*=0.3;                  /* 廉航幾乎不做聯運，客人多半就是到台灣 */
+  return Math.min(0.55, w*0.02);
 }
 
 /* 班機「實際」抵達的日期／時間：有預計（延誤）時間就用預計的，否則用表定 */
@@ -799,8 +830,25 @@ function mergeCodeshare(list){
   return keys.map(function(k){ return map[k]; });
 }
 
+/* 當天出境班表（只給轉機推估用，抓不到就算了，不影響到站清單） */
+function loadDeps(date){
+  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({AState:'D',ODate:date.replace(/-/g,'/'),language:'ch'})})
+  .then(function(r){ return r.ok?r.json():[]; })
+  .then(function(all){
+    DEPS=(all||[]).map(function(f){
+      return {a:String(f.ACode||'').toUpperCase(),
+              t:mins(hhmm(f.RTime)||hhmm(f.OTime)),
+              c:String(f.CityCode||'').toUpperCase()};
+    }).filter(function(x){ return !isNaN(x.t); });
+  })['catch'](function(){ DEPS=null; });
+}
+
 /* 先試桃機（資料最完整），失敗就換 TDX（手錶走這條） */
 function getFlights(date){
+  return Promise.all([getFlightsRaw(date), loadDeps(date)]).then(function(r){ return r[0]; });
+}
+function getFlightsRaw(date){
   return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'})})
   .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
