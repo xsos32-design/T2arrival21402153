@@ -38,9 +38,10 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
 .fabb:active{opacity:.7}
 .hd{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
  background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden;cursor:pointer}
+.hd{flex-wrap:wrap;row-gap:2px}
 .hd>*{white-space:nowrap;flex:0 0 auto}
 .hd b{color:#cbd5e1;font-size:14.5px;font-weight:800;white-space:nowrap}
-.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
+.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .hd .u.busy{color:#fbbf24}
 .hd .u.err{color:#f87171}
 /* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
@@ -190,6 +191,9 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 <div class="grp s">
   <span class="btn half" id="bhide">🙈 隱藏抵達</span>
   <span class="btn half" id="breload">🔄 更新</span>
+</div>
+<div class="grp">
+  <span class="btn" id="blite">📉 省流量</span>
 </div>
 <div class="grp">
   <span class="btn half" id="bmeet">🕐 開會時間</span>
@@ -663,6 +667,7 @@ function ensureDay(off){
 
 /* 跨日時把隔日班機抓回來（即時失敗就退快照；只在需要時才多打這 1 次） */
 function ensureTomorrow(force){
+  if(LITE && DATA2!==null) return;   /* 省流量：隔日班機小快照裡already有了 */
   var n=new Date();
   if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
   if(DATA2!==null) return;
@@ -687,6 +692,12 @@ function ensureTomorrow(force){
 }
 
 function load(fresh){
+  /* 省流量開著的時候，連「更新」也只重讀 35KB 的小快照（最多 5 分鐘前的資料）。
+     真的要當下即時，把「省流量」關掉再按更新。 */
+  if(LITE) return loadSnap(fresh);
+  return loadLive(fresh);
+}
+function loadLive(fresh){
   var el=document.getElementById('hstamp');
   el.textContent='更新中…'; el.className='u busy';
   var d0=new Date();
@@ -720,6 +731,58 @@ function load(fresh){
       render();
     });
   })['catch'](function(e){ fallback(e); });
+}
+
+/* ── 省流量模式 ──────────────────────────────────────────────
+   平常開頁只讀 GitHub 每 5 分鐘產生的小快照 snap.json（約 35KB），
+   不打 TDX（那包 214KB）。要最新的就按 🔄，那一次才連 TDX。
+   手錶吃的是自己的行動網路額度，預設就開著省流量。 */
+var LITE=true;
+try{ LITE = localStorage.getItem('tpeLite')!=='0'; }catch(e){}
+
+function fromSnap(r,base){
+  var dOf=function(o){
+    var d=new Date(base.getTime()+(o||0)*86400000);
+    return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());
+  };
+  var hm=function(v){ return v? String(v).slice(0,2)+':'+String(v).slice(2,4)+':00' : ''; };
+  return {flightCode:r[0], Dep:r[1], CityName:(NAMES&&NAMES[r[1]])||r[1], Gate:r[2],
+          BNO:String(r[3]||''), ODate:dOf(r[6]), OTime:hm(r[4]),
+          RDate:r[5]?dOf(r[7]):'', RTime:hm(r[5]),
+          Memo:r[8]||'', CurrentStatus:'', tx:(typeof r[9]==='number'?r[9]:0)};
+}
+
+function loadSnap(fresh){
+  var el=document.getElementById('hstamp');
+  el.textContent='讀取中…'; el.className='u busy';
+  /* 先把城市名對照表拿到（也是小檔、也會吃快取），再讀班機快照。
+     按了更新才換新的編號去重抓，平常重開都吃快取。 */
+  var v=fresh?Date.now():Math.floor(Date.now()/300000);
+  return tdxNames()['catch'](function(){ return {}; }).then(function(){
+    return fetch('snap.json?v='+v)
+      .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
+  }).then(function(j){
+    var bs=String(j.d||'').split('/');
+    var base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
+    if(isNaN(base.getTime())) base=new Date();
+    var all=(j.f||[]).map(function(r){ return fromSnap(r,base); });
+    var n=new Date();
+    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+    var m2=new Date(n.getTime()+86400000);
+    var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
+    DATA =all.filter(function(f){ return f.ODate===today||f.RDate===today; });
+    DATA2=all.filter(function(f){ return f.ODate===tm; });
+    DAYS={};
+    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+    el.textContent=(j.t||'')+' 省流量'; el.className='u';
+    document.getElementById('fb').innerHTML='';
+    render();
+  })['catch'](function(e){
+    /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx">📉 省流量快照讀不到（'+esc(e&&e.message||e)+'），改連 TDX 即時</div>';
+    loadLive(true);
+  });
 }
 
 /* TDX 直連失敗 → 改抓同網域的 GitHub 快照（手錶一定讀得到，只是非即時） */
@@ -774,7 +837,19 @@ function diag(cb){
 
 /* ── 事件 ── */
 document.getElementById('hd').addEventListener('click',load);
-document.getElementById('breload').addEventListener('click',load);
+document.getElementById('breload').addEventListener('click',function(){ load(true); });
+document.getElementById('blite').addEventListener('click',function(){
+  LITE=!LITE;
+  try{ localStorage.setItem('tpeLite',LITE?'1':'0'); }catch(e){}
+  paintLite();
+  load();
+});
+function paintLite(){
+  var b=document.getElementById('blite');
+  if(!b) return;
+  b.textContent=LITE?'📉 省流量（開）':'📶 即時（吃流量）';
+  b.className=LITE?'btn on':'btn';
+}
 document.getElementById('ball').addEventListener('click',function(){
   cats={c0:true,c1:true,c2:true,c3:true};
   zones={'A':true,'B':true,'C':true,'D':true}; render();
@@ -931,6 +1006,7 @@ document.getElementById('bhide').addEventListener('click',function(){
 (function(){
   var h=new Date().getHours();
   win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
+  paintLite();
   load();
 })();
 </script>
