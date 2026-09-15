@@ -162,7 +162,7 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
   <b>小韋製作</b>
   <i>⚠️ 未經同意請勿私自轉傳</i>
 </div>
-<div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>即時</span><span class="u" id="hstamp">載入中…</span></div>
+<div class="hd" id="hd"><b>✈️ 班機TDX版</b><span id="hdate">—</span><span>每5分</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp"><span class="btn" id="bnow">⏱ 現在起 6 小時</span></div>
 <div class="grp">
@@ -193,9 +193,6 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
   <span class="btn half" id="breload">🔄 更新</span>
 </div>
 <div class="grp">
-  <span class="btn" id="blite">📉 省流量</span>
-</div>
-<div class="grp">
   <span class="btn half" id="bmeet">🕐 開會時間</span>
   <span class="btn half" id="bcfg">⚙️ 分類設定</span>
 </div>
@@ -210,12 +207,12 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice">⚠️ TDX 交通部即時資料，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
+<div class="notice">⚠️ 交通部 TDX 資料，GitHub 每 5 分鐘抓一次（節流模式，省手錶流量）。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
 👥 數字＝推估走入境的人數（±15%）　🟢 未滿150　🟡 150–250　🔴 超過250<br>
 🔄 後面的數字＝推估會直接去轉機、不走入境的人數（依當天出境班表推算）<br>
 本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html">🔓 解封印版</a><br>
 此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示 ✅ 已到</div>
-<div class="foot">按 🔄 或點最上面那條即可重抓當下資料<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
+<div class="foot">按 🔄 或點最上面那條即可重讀最新一次的快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
 
 <script>
 /* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
@@ -667,7 +664,7 @@ function ensureDay(off){
 
 /* 跨日時把隔日班機抓回來（即時失敗就退快照；只在需要時才多打這 1 次） */
 function ensureTomorrow(force){
-  if(LITE && DATA2!==null) return;   /* 省流量：隔日班機小快照裡already有了 */
+  if(DATA2!==null) return;   /* 節流：隔日班機小快照裡已經有了，不用再抓 */
   var n=new Date();
   if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
   if(DATA2!==null) return;
@@ -692,10 +689,9 @@ function ensureTomorrow(force){
 }
 
 function load(fresh){
-  /* 省流量開著的時候，連「更新」也只重讀 35KB 的小快照（最多 5 分鐘前的資料）。
-     真的要當下即時，把「省流量」關掉再按更新。 */
-  if(LITE) return loadSnap(fresh);
-  return loadLive(fresh);
+  /* 一律走節流：只讀 35KB 的小快照（GitHub 每 5 分鐘從 TDX 抓一次）。
+     小快照讀不到才會自動改連 TDX，平常完全不打。 */
+  return loadSnap(fresh);
 }
 function loadLive(fresh){
   var el=document.getElementById('hstamp');
@@ -733,13 +729,10 @@ function loadLive(fresh){
   })['catch'](function(e){ fallback(e); });
 }
 
-/* ── 省流量模式 ──────────────────────────────────────────────
+/* ── 節流模式（固定，沒有開關） ──────────────────────────────────────────────
    平常開頁只讀 GitHub 每 5 分鐘產生的小快照 snap.json（約 35KB），
-   不打 TDX（那包 214KB）。要最新的就按 🔄，那一次才連 TDX。
-   手錶吃的是自己的行動網路額度，預設就開著省流量。 */
-var LITE=true;
-try{ LITE = localStorage.getItem('tpeLite')!=='0'; }catch(e){}
-
+   不打 TDX（那包 214KB）。小快照讀不到才會自動退回直連 TDX。
+   手錶吃的是自己的行動網路額度，這樣一個班省下十幾 MB。 */
 function fromSnap(r,base){
   var dOf=function(o){
     var d=new Date(base.getTime()+(o||0)*86400000);
@@ -774,13 +767,13 @@ function loadSnap(fresh){
     DATA2=all.filter(function(f){ return f.ODate===tm; });
     DAYS={};
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
-    el.textContent=(j.t||'')+' 省流量'; el.className='u';
+    el.textContent=(j.t||'')+' ↻'; el.className='u';
     document.getElementById('fb').innerHTML='';
     render();
   })['catch'](function(e){
     /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
     document.getElementById('fb').innerHTML=
-      '<div class="fbx">📉 省流量快照讀不到（'+esc(e&&e.message||e)+'），改連 TDX 即時</div>';
+      '<div class="fbx">📡 快照讀不到（'+esc(e&&e.message||e)+'），這次改直接連 TDX</div>';
     loadLive(true);
   });
 }
@@ -838,18 +831,6 @@ function diag(cb){
 /* ── 事件 ── */
 document.getElementById('hd').addEventListener('click',load);
 document.getElementById('breload').addEventListener('click',function(){ load(true); });
-document.getElementById('blite').addEventListener('click',function(){
-  LITE=!LITE;
-  try{ localStorage.setItem('tpeLite',LITE?'1':'0'); }catch(e){}
-  paintLite();
-  load();
-});
-function paintLite(){
-  var b=document.getElementById('blite');
-  if(!b) return;
-  b.textContent=LITE?'📉 省流量（開）':'📶 即時（吃流量）';
-  b.className=LITE?'btn on':'btn';
-}
 document.getElementById('ball').addEventListener('click',function(){
   cats={c0:true,c1:true,c2:true,c3:true};
   zones={'A':true,'B':true,'C':true,'D':true}; render();
@@ -1006,7 +987,6 @@ document.getElementById('bhide').addEventListener('click',function(){
 (function(){
   var h=new Date().getHours();
   win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
-  paintLite();
   load();
 })();
 </script>
