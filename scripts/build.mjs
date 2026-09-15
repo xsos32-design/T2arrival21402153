@@ -809,12 +809,24 @@ async function main() {
     try {
       const rd = await fetch(TDX_DEPART, { headers: { Accept: 'application/json', Authorization: auth } });
       if (!rd.ok) throw new Error('回應 ' + rd.status);
-      DEPS = (await rd.json()).filter(f => !f.IsCargo).map(f => ({
-        a: String(f.AirlineID || '').toUpperCase(),
-        t: toMin((String(f.ActualDepartureTime || f.EstimatedDepartureTime || f.ScheduleDepartureTime || '').split('T')[1] || '').slice(0, 5)),
-        c: String(f.ArrivalAirportID || '').toUpperCase(),
-      })).filter(x => !isNaN(x.t));
-      console.log(`✈️ 出境班表 ${DEPS.length} 筆，轉機推估改用實際銜接班次`);
+      const rawDep = (await rd.json()).filter(f => !f.IsCargo);
+      const dOf = x => String(x || '').split('T')[0].replace(/-/g, '/');
+      /* 只留「當天」：跨午夜的銜接靠下面的 +1440 處理，多帶一天會讓每班都被重複算 */
+      const dayDep = rawDep.filter(f => dOf(f.ScheduleDepartureTime || f.FlightDate) === today);
+      /* TDX 的出境班表每個共掛班號各自一列，同一架飛機會被算好幾次。
+         同時間＋同目的地＝同一班，只留在桃機班次最多的那家（多半就是實際執飛的）。 */
+      const cnt = {};
+      for (const f of dayDep) { const a = String(f.AirlineID || '').toUpperCase(); cnt[a] = (cnt[a] || 0) + 1; }
+      const best = {};
+      for (const f of dayDep) {
+        const hm = (String(f.ActualDepartureTime || f.EstimatedDepartureTime || f.ScheduleDepartureTime || '').split('T')[1] || '').slice(0, 5);
+        const c = String(f.ArrivalAirportID || '').toUpperCase();
+        const a = String(f.AirlineID || '').toUpperCase();
+        const k = hm + '|' + c;
+        if (!best[k] || (cnt[a] || 0) > (cnt[best[k].a] || 0)) best[k] = { a, t: toMin(hm), c };
+      }
+      DEPS = Object.values(best).filter(x => !isNaN(x.t));
+      console.log(`✈️ 出境班表 ${rawDep.length} 列 → 當天 ${dayDep.length} 列 → 併共掛後 ${DEPS.length} 班`);
     } catch (e) { DEPS = []; console.log('⚠️ 出境班表沒抓到，轉機推估沿用時段判斷：' + why(e)); }
     /* 先算好比例存進班機物件，data.json 快照帶著走，手錶版就不用再打一次 TDX */
     for (const f of flights) f.tx = +txRatio(f).toFixed(3);
