@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path';
    關鍵是它在 odp 這台獨立主機，不像 www 那台會擋機房 IP。 */
 const ODP = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
 const TDX_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON';
+const TDX_DEPART  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Departure/TPE?%24format=JSON';
 const TDX_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
 const TOKEN_URL   = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
 const TDX_ID      = process.env.TDX_ID || '';
@@ -181,6 +182,38 @@ function txOf(f) {
   return false;
 }
 
+/* ── 轉機客推估：拿當天「出境班表」回推轉機波段 ──────────────────
+   一班到站落地後 50 分–4 小時之間，同航空／同集團／同聯盟有幾班飛出去，
+   班次越密，這班就越可能是替後面那批出境班機載客的。抓不到出境班表
+   就退回舊的時段判斷。推估值，不是航空公司的真實轉機人數。 */
+let DEPS = [];
+const ALGRP = { CI:'CI', AE:'CI', BR:'BR', B7:'BR' };
+const SKY  = new Set(['CI','AE','KE','MU','CZ','DL','AF','KL','VN','GA','MF','SU','AM','KQ','RO','SV','UX','VS','ME','OK']);
+const STAR = new Set(['BR','B7','NH','SQ','TG','UA','AC','LH','OS','LX','SK','TK','OZ','CA','SA','NZ','ET','MS','AI','ZH','TP','LO','AV','CM','BC','JU']);
+const ONEW = new Set(['CX','JL','QF','AA','BA','MH','QR','AY','IB','RJ','S7','UL','AT','KA']);
+const alliOf = a => SKY.has(a) ? 'S' : (STAR.has(a) ? '*' : (ONEW.has(a) ? '1' : ''));
+function txRatio(f) {
+  const al = String(f.flightCode || '').slice(0, 2).toUpperCase();
+  const dep = String(f.Dep || '').toUpperCase();
+  if (typeof f.tx === 'number') return f.tx;          /* 已經算好（快照帶過來的） */
+  if (!DEPS.length) return txOf(f) ? 0.25 : 0;
+  const t = toMin(hhmm(f.RTime) || hhmm(f.OTime));
+  if (isNaN(t)) return 0;
+  const g = ALGRP[al] || al, my = alliOf(al);
+  let w = 0;
+  for (const x of DEPS) {
+    let dt = x.t - t; if (dt < 0) dt += 1440;
+    if (dt < 50 || dt > 240) continue;   /* 不到 50 分鐘轉不了，超過 4 小時多半不是同一批 */
+    if (x.c && x.c === dep) continue;    /* 不會有人原路飛回去 */
+    if (x.a === al) w += 1;
+    else if ((ALGRP[x.a] || x.a) === g) w += 0.8;
+    else if (my && alliOf(x.a) === my) w += 0.45;
+    else w += 0.08;                      /* 跨聯盟聯運很少，權重給很低 */
+  }
+  if (LCC.has(al)) w *= 0.3;             /* 廉航幾乎不做聯運，客人多半就是到台灣 */
+  return Math.min(0.55, w * 0.02);
+}
+
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
@@ -254,13 +287,13 @@ function paxOf(f) {
   const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 295 : 250));
   /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
   const lf = LCC.has(al) ? 0.88 : (LONGHAUL.has(dep) ? 0.85 : (MIDHAUL.has(dep) ? 0.82 : 0.80));
-  let est = Math.round(seats * lf / 5) * 5;
-  const tx = txOf(f);
-  if (tx) est = Math.round(est * 0.75 / 5) * 5;   /* 轉機客不走入境 */
-  return { est, tx, dot: est > 250 ? '🔴' : (est >= 150 ? '🟡' : '🟢') };
+  const est = Math.round(seats * lf / 5) * 5;        /* 機上總人數 */
+  const tx = Math.round(est * txRatio(f) / 5) * 5;   /* 推估直接去轉機、不走入境的 */
+  const inn = Math.max(0, est - tx);
+  return { est, tx, inn, dot: inn > 250 ? '🔴' : (inn >= 150 ? '🟡' : '🟢') };
 }
 function paxHtml(f) { const p = paxOf(f);
-  return ` <i class="px">${p.dot}${p.est}</i>` + (p.tx ? '<i class="tx">🔄</i>' : ''); }
+  return ` <i class="px">${p.dot}${p.inn}</i>` + (p.tx ? `<i class="tx">🔄${p.tx}</i>` : ''); }
 
 /* ---------- 時段 ----------
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
@@ -771,8 +804,23 @@ async function main() {
     const list = listAll.filter(f => f.ODate === today);
     if (!list.length) throw new Error('TDX 回傳 0 筆今日到站');
     flights = mergeCodeshare(list);
+    const tomorrowSnapPre = mergeCodeshare(listAll.filter(f => f.ODate === tomorrow0));
+    /* 出境班表：只拿來推估轉機，抓不到就沿用舊的時段判斷 */
+    try {
+      const rd = await fetch(TDX_DEPART, { headers: { Accept: 'application/json', Authorization: auth } });
+      if (!rd.ok) throw new Error('回應 ' + rd.status);
+      DEPS = (await rd.json()).filter(f => !f.IsCargo).map(f => ({
+        a: String(f.AirlineID || '').toUpperCase(),
+        t: toMin((String(f.ActualDepartureTime || f.EstimatedDepartureTime || f.ScheduleDepartureTime || '').split('T')[1] || '').slice(0, 5)),
+        c: String(f.ArrivalAirportID || '').toUpperCase(),
+      })).filter(x => !isNaN(x.t));
+      console.log(`✈️ 出境班表 ${DEPS.length} 筆，轉機推估改用實際銜接班次`);
+    } catch (e) { DEPS = []; console.log('⚠️ 出境班表沒抓到，轉機推估沿用時段判斷：' + why(e)); }
+    /* 先算好比例存進班機物件，data.json 快照帶著走，手錶版就不用再打一次 TDX */
+    for (const f of flights) f.tx = +txRatio(f).toFixed(3);
+    for (const f of tomorrowSnapPre) f.tx = +txRatio(f).toFixed(3);
     /* 隔日班機留一份給 data.json 快照 —— wtdx 的「現在起6小時」跨日備援要用 */
-    tomorrowSnap = mergeCodeshare(listAll.filter(f => f.ODate === tomorrow0));
+    tomorrowSnap = tomorrowSnapPre;
     console.log(`共掛合併：${list.length} 筆 → ${flights.length} 班`);
     console.log(`✅ TDX 成功，抓到 ${flights.length} 筆到站（${today}）`);
   } catch (e) {
