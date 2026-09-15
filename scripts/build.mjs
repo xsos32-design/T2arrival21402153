@@ -639,7 +639,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 ${body}
 <div class="notice">⚠️ 僅供參考，<b>一律以現場為準</b><br>
 👥 數字＝推估走入境的人數（±15%）<br>🟢 未滿150　🟡 150–250　🔴 超過250<br>
-🔄 轉機客多，人數已打75折<br>${full
+🔄 後面的數字＝推估會直接去轉機、不走入境的人數（依當天出境班表推算）<br>${full
   ? '🔓 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">🔒 回一般版</a>'
   : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">🔓 解封印版</a>'}</div>
 <div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
