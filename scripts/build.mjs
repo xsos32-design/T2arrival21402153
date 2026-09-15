@@ -883,6 +883,15 @@ async function main() {
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
   const snap = flights.concat(tomorrowSnap);
   await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
+  /* 手錶版每次開啟其實只要兩張對照表：機場中文名、轉機比例。
+     單獨存一份小檔（約 12KB），它就不用每次拖 128KB 的完整快照下來。 */
+  const metaN = {}, metaX = {};
+  for (const f of snap) {
+    if (f.Dep && f.CityName && f.CityName !== f.Dep) metaN[f.Dep] = f.CityName;
+    if (f.flightCode && typeof f.tx === 'number') metaX[String(f.flightCode).toUpperCase()] = f.tx;
+  }
+  await writeFile(join(OUT, 'meta.json'), JSON.stringify({ t: stamp, n: metaN, x: metaX }), 'utf8');
+  console.log(`meta.json：${Object.keys(metaN).length} 個機場名、${Object.keys(metaX).length} 筆轉機比例`);
   console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
 
   await writeUnlocked();
