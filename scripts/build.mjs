@@ -445,7 +445,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 #age.dead{color:#f87171}
 #stale{background:#2A1010;border:1px solid #7A3029;border-radius:11px;color:#EFA79E;
  font-size:13px;font-weight:700;line-height:1.5;padding:9px 10px;margin:0 0 7px;text-align:center}
-#stale b{color:#FFD9D2;font-size:15px}
+#stale b{color:#FFD9D2;font-size:15px;white-space:nowrap}
 #stale.bad{background:#3A1210;border-color:#A03B31;color:#FFC2B8}
 .tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
  background:#1c2027;border:1px solid #2e343d;color:#7dd3fc;font-size:12px;
@@ -688,8 +688,8 @@ ${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b
 ${full
   ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
   : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">' + IC('unlock') + ' 解封印版</a>'}</div>
-<div class="foot">本頁是預先產生的靜態頁，<b>完全不連網</b>，所以一定不是即時的<br>
-上方 ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>看頂端的「幾分前」再決定要不要信登機門</b><br>點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
+<div class="foot">本頁預先產生、<b>完全不連網</b>，所以一定不是即時的<br>
+${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾分前」再決定要不要信登機門</b><br>點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
@@ -756,9 +756,9 @@ ${full
     if (m < 0) m = 0;
     function ageTxt(x){
       if (x < 1) return '剛更新';
-      if (x < 60) return x + ' 分前';
+      if (x < 60) return x + '分前';
       var h = Math.floor(x / 60), r = x % 60;
-      return h + ' 小時' + (r ? r + ' 分' : '') + '前';
+      return h + '小時' + (r ? r + '分' : '') + '前';
     }
     if (b && el){
       el.textContent = '· ' + ageTxt(m);
@@ -769,9 +769,8 @@ ${full
        不要只靠角落那個小字。 */
     var sb = document.getElementById('stale');
     if (b && sb && m >= 30){
-      sb.innerHTML = '這份資料是 <b>' + ageTxt(m) + '</b> 抓的'
-        + '<br>登機門多半是快落地才派，這裡的門很可能已經不對了'
-        + '<br>要準的請開 TDX 版';
+      sb.innerHTML = '資料是 <b>' + ageTxt(m) + '</b> 抓的'
+        + '<br>登機門可能已經不是這樣，要準的開 TDX 版';
       if (m >= 120) sb.className = 'bad';
       sb.hidden = false;
     }
