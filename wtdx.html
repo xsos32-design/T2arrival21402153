@@ -156,6 +156,9 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 .notice .lk{color:#E7C785;font-weight:800;white-space:nowrap;text-decoration:none;border-bottom:1px solid #5C4718}
 #fb .fbx{background:#1A1308;border:1px solid #4A3A14;color:#D9B96C;font-size:11.5px;
  padding:8px 9px;border-radius:10px;margin-bottom:6px;line-height:1.5;text-align:center}
+#fb .fbx.hot{background:#2A1010;border-color:#7A3029;color:#EFA79E;font-size:12.5px;font-weight:700}
+#fb .fbx b{color:#FFD9D2}
+.hd .u.old{color:#E2A85C}
 /* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
 @media(min-width:341px) and (max-width:619px){
  .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
@@ -211,7 +214,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
   <b>小韋製作</b>
   <i><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 未經同意請勿私自轉傳</i>
 </div>
-<div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span>每5分</span><span class="u" id="hstamp">載入中…</span></div>
+<div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
 <div class="grp">
@@ -256,7 +259,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料，GitHub 每 5 分鐘抓一次（節流模式，省手錶流量）。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
+<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料。平常讀 GitHub 產生的小快照（省流量）；<b>快照超過 15 分鐘就自動改連即時</b>。GitHub 排程實際上常隔數小時才跑，所以標題列一定要看「幾分前」。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
 <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 解封印版</a><br>
@@ -338,8 +341,8 @@ var TXMAP={};   /* 班號 → 轉機比例。GitHub 那邊已經拿出境班表�
 function tdxNames(){
   if(NAMES) return Promise.resolve(NAMES);
   /* 只抓小檔 meta.json（約 12KB）：機場中文名＋GitHub 依出境班表算好的轉機比例。
-     網址上的編號每 5 分鐘才換一次（跟 GitHub 更新同步），中間重開都吃手錶自己的
-     快取，不會重複下載。抓不到就退回完整快照 data.json。 */
+     網址上的編號每 5 分鐘才換一次，中間重開都吃手錶自己的快取，不會重複下載。
+     抓不到就退回完整快照 data.json。 */
   var mk='meta.json?v='+Math.floor(Date.now()/300000);
   var take=function(j){
     var m=(j&&(j.n||j.names))||null;
@@ -747,8 +750,8 @@ function ensureTomorrow(force){
 }
 
 function load(fresh){
-  /* 一律走節流：只讀 35KB 的小快照（GitHub 每 5 分鐘從 TDX 抓一次）。
-     小快照讀不到才會自動改連 TDX，平常完全不打。 */
+  /* 一律先走節流：只讀 35KB 的小快照。快照讀不到、或快照已經超過
+     SNAP_MAX_AGE 分鐘，才會自動改連 TDX（那包 214KB）。 */
   return loadSnap(fresh);
 }
 function loadLive(fresh){
@@ -788,9 +791,32 @@ function loadLive(fresh){
 }
 
 /* ── 節流模式（固定，沒有開關） ──────────────────────────────────────────────
-   平常開頁只讀 GitHub 每 5 分鐘產生的小快照 snap.json（約 35KB），
-   不打 TDX（那包 214KB）。小快照讀不到才會自動退回直連 TDX。
-   手錶吃的是自己的行動網路額度，這樣一個班省下十幾 MB。 */
+   平常開頁只讀 GitHub 產生的小快照 snap.json（約 35KB），不打 TDX（那包 214KB）。
+   但 GitHub 的 cron 實際上常隔 2–7 小時才跑一次（官方就寫明是盡力而為），
+   所以快照一超過 SNAP_MAX_AGE 分鐘就直接改連 TDX，寧可花流量也不給錯的登機門。 */
+
+/* 快照超過幾分鐘就視為不可信，自動改抓即時 */
+var SNAP_MAX_AGE=15;
+
+/* 由 snap.json 的 d（YYYY/MM/DD）＋ t（HH:MM）算出這份資料放了幾分鐘。
+   算不出來回 null（那就不判斷，照舊顯示）。 */
+function snapAgeMin(j){
+  try{
+    var ds=String(j&&j.d||'').split('/'), ts=String(j&&j.t||'').split(':');
+    if(ds.length<3||ts.length<2) return null;
+    var b=new Date(+ds[0],(+ds[1])-1,+ds[2],+ts[0],+ts[1],0,0);
+    if(isNaN(b.getTime())) return null;
+    var m=Math.floor((Date.now()-b.getTime())/60000);
+    return m<0?0:m;
+  }catch(e){ return null; }
+}
+function ageText(m){
+  if(m===null) return '';
+  if(m<1) return '剛更新';
+  if(m<60) return m+'分前';
+  var h=Math.floor(m/60);
+  return h+'小時'+(m%60?(m%60)+'分':'')+'前';
+}
 function fromSnap(r,base){
   var dOf=function(o){
     var d=new Date(base.getTime()+(o||0)*86400000);
@@ -825,9 +851,22 @@ function loadSnap(fresh){
     DATA2=all.filter(function(f){ return f.ODate===tm; });
     DAYS={};
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
-    el.textContent=(j.t||'')+' ↻'; el.className='u';
-    document.getElementById('fb').innerHTML='';
+
+    /* 這份快照放了多久？標題列一律標出來，不要只給一個時刻讓人自己換算 */
+    var age=snapAgeMin(j), at=ageText(age);
+    var hf=document.getElementById('hfreq');
+    if(hf) hf.textContent=at?('快照 '+at):'快照';
+    el.textContent=(j.t||'')+' ↻';
+    el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
+
+    var stale=(age!==null&&age>SNAP_MAX_AGE);
+    document.getElementById('fb').innerHTML= stale
+      ? '<div class="fbx hot">'+IC('alert')+' 這份快照是 <b>'+esc(at)+'</b> 的資料（GitHub 排程沒準時跑）'
+        +'<br>先讓你看個大概，<b>正在改抓即時資料</b>…登機門以即時的為準'
+      : '';
     render();
+    /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它 */
+    if(stale) loadLive(true);
   })['catch'](function(e){
     /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
     document.getElementById('fb').innerHTML=
@@ -849,10 +888,12 @@ function fallback(err){
     var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
     DATA2=(j.d||[]).filter(function(f){ return f.ODate===tm; });
     document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
-    el.textContent=j.t+' 快照'; el.className='u busy';
+    el.textContent=j.t+' 快照'; el.className='u err';
+    var hf=document.getElementById('hfreq'); if(hf) hf.textContent='離線快照';
     document.getElementById('fb').innerHTML=
-      '<div class="fbx">'+IC('signal')+' 即時連線失敗（'+esc(err&&err.message||err)+'）<br>'
-      +'已改用 GitHub 於 <b>'+esc(j.t)+'</b> 抓的快照，非即時。按「更新」可再試即時連線。</div>';
+      '<div class="fbx hot">'+IC('signal')+' 即時連線失敗（'+esc(err&&err.message||err)+'）<br>'
+      +'只能拿 GitHub 於 <b>'+esc(j.t)+'</b> 抓的快照給你，<b>可能是好幾小時前的</b>。'
+      +'<br>登機門與時間請務必以現場為準。按「更新」可再試即時連線。</div>';
     render();
   })
   ['catch'](function(e2){
@@ -1049,6 +1090,5 @@ document.getElementById('bhide').addEventListener('click',function(){
   load();
 })();
 </script>
-<script src="https://xsos32-design.github.io/job/icons.js" defer></script>
 </body>
 </html>
