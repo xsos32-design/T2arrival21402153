@@ -611,7 +611,10 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta name="apple-mobile-web-app-title" content="${full ? 'T2 全時段' : 'T2 班機'}">
+<link rel="manifest" href="${full ? 'app-watchall.webmanifest' : 'app-watch.webmanifest'}">
+<meta name="apple-mobile-web-app-title" content="${full ? '韋 手錶全' : '韋 手錶'}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b0d10">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -730,7 +733,7 @@ const UNLOCK = {
   'index.html': { out: 'all.html', rules: [
     ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 🔓 全時段</title>', 1],
     ['<link rel="manifest" href="app.webmanifest">', '<link rel="manifest" href="app-all.webmanifest">', 1],
-    ['content="T2 班機"', 'content="T2 全時段"', 1],
+    ['content="韋 班機"', 'content="韋 全時段"', 1],
     ['<h1>✈️ 班機網頁版 2140 / 2153</h1>', '<h1>✈️ 班機網頁版 🔓 全時段</h1>', 1],
     ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
      '      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>\n'
@@ -746,7 +749,9 @@ const UNLOCK = {
   ]},
   'wtdx.html': { out: 'wtdxall.html', rules: [
     ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 🔓 全時段</title>', 1],
-    ['content="T2 TDX"', 'content="T2 TDX全"', 1],
+    ['content="韋 TDX"', 'content="韋 TDX全"', 1],
+    ['<link rel="manifest" href="app-tdx.webmanifest">',
+     '<link rel="manifest" href="app-tdxall.webmanifest">', 1],
     ['<b>✈️ 班機TDX版</b>', '<b>✈️ TDX版 🔓</b>', 1],
     ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
      '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
@@ -917,7 +922,9 @@ async function main() {
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
   for (const f of ['index.html', 'wtest.html', 'wtdx.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
-                   'app.webmanifest', 'app-all.webmanifest']) {
+                   'app.webmanifest', 'app-all.webmanifest',
+                   'app-tdx.webmanifest', 'app-tdxall.webmanifest',
+                   'app-watch.webmanifest', 'app-watchall.webmanifest']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
