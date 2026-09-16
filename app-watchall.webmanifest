@@ -1,7 +1,7 @@
 {
-  "name": "韋 班機 2140 / 2153",
-  "short_name": "韋 班機",
-  "start_url": "index.html",
+  "name": "韋 班機 手錶全時段",
+  "short_name": "韋 手錶全",
+  "start_url": "watchall.html",
   "display": "standalone",
   "background_color": "#0b0d10",
   "theme_color": "#0b0d10",
