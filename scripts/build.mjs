@@ -687,7 +687,7 @@ ${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 ${full
   ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
-  : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">' + IC('unlock') + ' 解封印版</a>'}</div>
+  : '本頁固定不顯示 06:00–13:30 的班機'}</div>
 <div class="foot">本頁預先產生、<b>完全不連網</b>，所以一定不是即時的<br>
 ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾分前」再決定要不要信登機門</b><br>點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
@@ -803,7 +803,7 @@ const UNLOCK = {
      '<option value="05:59">06 時</option>' + T2EXTRA + '<option value="13:59">14 時</option>', 1],
     ["      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */\n", '', 2],
     ['　·　不含06:00–13:30', '　·　全時段', 2],
-    ['    本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="all.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 解封印版</a>\n',
+    ['    本頁固定不顯示 06:00–13:30 的班機\n',
      '    這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="index.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a>\n', 1],
   ]},
   'wtdx.html': { out: 'wtdxall.html', rules: [
@@ -825,7 +825,7 @@ const UNLOCK = {
     ['function autoWin(){\n',
      'function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }\n'
    + 'function autoWin(){\n', 1],
-    ['本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 解封印版</a><br>\n',
+    ['本頁固定不顯示 06:00–13:30 的班機<br>\n',
      '這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="wtdx.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a><br>\n', 1],
   ]},
 };
