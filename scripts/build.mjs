@@ -214,23 +214,39 @@ function txRatio(f) {
   return Math.min(0.55, w * 0.02);
 }
 
+/* 圖示：Lucide（ISC 授權）內嵌成 sprite，一次定義到處引用，不連外站 */
+const IC = n => `<svg class="ic" viewBox="0 0 24 24"><use href="#i-${n}"/></svg>`;
+const SPRITE = `<svg class="sprite" aria-hidden="true"><defs>
+<g id="i-land"><path d="M2 22h20"/><path d="M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38Z"/></g>
+<g id="i-timer"><path d="M10 2h4"/><path d="m12 14 3-3"/><circle cx="12" cy="14" r="8"/></g>
+<g id="i-refresh"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></g>
+<g id="i-hide"><path d="M10.7 5.1a10.7 10.7 0 0 1 11.2 6.6 1 1 0 0 1 0 .7 10.7 10.7 0 0 1-1.4 2.5"/><path d="M14.1 14.2a3 3 0 0 1-4.3-4.3"/><path d="M17.5 17.5A10.8 10.8 0 0 1 2.1 12.3a1 1 0 0 1 0-.7 10.8 10.8 0 0 1 4.4-5.1"/><path d="m2 2 20 20"/></g>
+<g id="i-show"><path d="M2.1 12.3a1 1 0 0 1 0-.7 10.8 10.8 0 0 1 19.8 0 1 1 0 0 1 0 .7 10.8 10.8 0 0 1-19.8 0"/><circle cx="12" cy="12" r="3"/></g>
+<g id="i-clock"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></g>
+<g id="i-up"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></g>
+<g id="i-alert"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></g>
+<g id="i-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><circle cx="9" cy="7" r="4"/></g>
+<g id="i-unlock"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></g>
+<g id="i-lock"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
+</defs></svg>`;
+
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
   /* cur 是桃機原始資料才有的即時動態（地面滑行／抵達機坪），TDX 沒有這欄，
      所以手錶版通常只會落在 memo 那幾種。 */
-  if (/取消/.test(memo))            return { txt: '❌ 取消',     cls: 'bad',  done: false };
-  if (/抵達機坪/.test(cur))         return { txt: '🛬 抵達機坪', cls: 'ok',   done: true  };
-  if (/滑行/.test(cur))             return { txt: '🛬 滑行中',   cls: 'ok',   done: true  };
-  if (/降落/.test(cur))             return { txt: '🛬 降落',     cls: 'ok',   done: true  };
-  if (/已到/.test(memo) || cur)     return { txt: '✅ 已到',     cls: 'ok',   done: true  };
-  if (/延遲|延誤/.test(memo))       return { txt: '🕐 延遲',     cls: 'warn', done: false };
+  if (/取消/.test(memo))            return { txt: '取消',     cls: 'bad',  done: false };
+  if (/抵達機坪/.test(cur))         return { txt: '抵達機坪', cls: 'ok',   done: true  };
+  if (/滑行/.test(cur))             return { txt: '滑行中',   cls: 'ok',   done: true  };
+  if (/降落/.test(cur))             return { txt: '降落',     cls: 'ok',   done: true  };
+  if (/已到/.test(memo) || cur)     return { txt: '已到',     cls: 'ok',   done: true  };
+  if (/延遲|延誤/.test(memo))       return { txt: '延遲',     cls: 'warn', done: false };
   /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
   if (/變更|更改/.test(memo)) {
     const dm = (hhmm(f.RTime) && hhmm(f.OTime)) ? (toMin(f.RTime) - toMin(f.OTime) + (isNextDay(f) ? 1440 : 0)) : 0;
-    return { txt: dm < 0 ? '⏪ 提早' : (dm > 0 ? '🕐 延遲' : '🔀 時間更新'), cls: 'warn', done: false };
+    return { txt: dm < 0 ? '提早' : (dm > 0 ? '延遲' : '時間更新'), cls: dm < 0 ? 'early' : 'warn', done: false };
   }
-  if (/準時/.test(memo))            return { txt: '🟢 準時',     cls: 'info', done: false };
+  if (/準時/.test(memo))            return { txt: '準時',     cls: 'info', done: false };
   return { txt: '預計', cls: 'none', done: false };
 }
 
@@ -275,7 +291,7 @@ const TAG = {
 };
 
 /* ── 預估下機人數（TDX 沒機型欄位，用航線推估；誤差約 ±15%）──
-   燈號：🟢<150　🟡150–250　🔴>250 */
+   負載條：1 格<150　2 格 150–250　3 格>250 */
 const LONGHAUL = new Set(['LAX','SFO','SEA','JFK','EWR','ORD','DFW','IAH','IAD','BOS','ATL','MSP','ONT',
   'YVR','YYZ','CDG','AMS','LHR','FRA','MXP','VIE','MUC','IST','PRG','BCN','SYD','BNE','MEL','AKL']);
 const MIDHAUL = new Set(['BKK','DMK','SIN','KUL','PEN','CGK','DPS','MNL','SGN','HAN','PNH','KTI','REP',
@@ -290,10 +306,11 @@ function paxOf(f) {
   const est = Math.round(seats * lf / 5) * 5;        /* 機上總人數 */
   const tx = Math.round(est * txRatio(f) / 5) * 5;   /* 推估直接去轉機、不走入境的 */
   const inn = Math.max(0, est - tx);
-  return { est, tx, inn, dot: inn > 250 ? '🔴' : (inn >= 150 ? '🟡' : '🟢') };
+  return { est, tx, inn, lv: inn > 250 ? 3 : (inn >= 150 ? 2 : 1) };
 }
 function paxHtml(f) { const p = paxOf(f);
-  return ` <i class="px">${p.dot}${p.inn}</i>` + (p.tx ? `<i class="tx">🔄${p.tx}</i>` : ''); }
+  return ` <i class="px"><i class="bars lv${p.lv}"><i></i><i></i><i></i></i>${p.inn}<u>入境</u></i>`
+       + (p.tx ? ` <i class="tx">${p.tx}<u>轉機</u></i>` : ''); }
 
 /* ---------- 時段 ----------
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
@@ -339,13 +356,16 @@ const fileFor = (p, s, hide, full) => `${full ? 'a' : 'w'}-${p}-${s}${hide ? '-h
 /* ---------- 版型 ---------- */
 const CSS = `
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ic{width:1.05em;height:1.05em;stroke:currentColor;fill:none;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:0 0 auto}
+body{background:#0A0D12;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
  font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:47px}
 /* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
-.mk{background:#2a1a06;border:2px solid #b45309;border-radius:12px;
+.mk{background:linear-gradient(180deg,#14100A,#0C0A07);border:1px solid #4A3A14;border-top:2px solid #8A7440;border-radius:12px;
  padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
-.mk b{display:block;font-size:30px;font-weight:900;color:#fbbf24;letter-spacing:.04em}
-.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:800;color:#fcd34d;
+.mk b{display:block;font-size:30px;font-weight:800;color:#E7C785;letter-spacing:.1em}
+.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:700;color:#9A8A62;
  margin-top:4px;letter-spacing:.01em;line-height:1.4}
 @media(min-width:341px){
  .mk{padding:11px 12px 12px;margin-bottom:9px}
@@ -359,29 +379,31 @@ body{background:#0b0d10;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
  left:5px;right:5px;z-index:70;display:flex;gap:5px;padding:0;margin:0;
  background:none;border:0;pointer-events:none}
 .fabb{flex:1 1 0;min-width:0;min-height:38px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;letter-spacing:-.03em;
- border-radius:11px;background:rgba(24,28,34,.96);border:2px solid #3a4250;color:#e5e9ef;cursor:pointer;
+ border-radius:11px;background:rgba(17,21,28,.96);border:1px solid #2A323E;color:#C3CAD4;cursor:pointer;
  white-space:nowrap;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;
  pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
 .fabb:active{opacity:.7}
 .hd{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
- text-decoration:none;background:#14171c;border:1px solid #262b33;border-radius:10px;min-height:38px;overflow:hidden}
+ text-decoration:none;background:linear-gradient(180deg,#151A22,#0E1217);border:1px solid #1E242E;
+ border-top:2px solid #8A7440;border-radius:10px;min-height:38px;overflow:hidden}
+.hd{flex-wrap:wrap;row-gap:2px}
 .hd>*{white-space:nowrap;flex:0 0 auto}
-.hd b{color:#cbd5e1;font-size:14.5px;font-weight:800}
-.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700}
+.hd b{color:#E7C785;font-size:14.5px;font-weight:800;letter-spacing:.06em}
+.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .hd .old{color:#fbbf24}
 /* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
 .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 6px;
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
- background:#14171c;border:1px solid #262b33;border-radius:11px;padding:7px 7px;margin-bottom:5px;overflow:hidden}
-.r.done{opacity:.38}
+ background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;margin-bottom:5px;overflow:hidden}
+.r.done{opacity:.4}
 .r.soon{background:#3f3311;border-color:#eab308;outline:2px solid #eab308;outline-offset:-2px}
-b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
- padding:0 5px;border-radius:7px;display:inline-block}
-.t-late{color:#fcd34d;background:#3f2c08}
-.t-early{color:#7dd3fc;background:#0b2b3c}
-.t-same{color:#6ee7b7;background:#0d2f1e}
-.t-plan{color:#fff;padding-left:0}
+b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
+ display:inline-block;letter-spacing:-.01em;color:#E7C785}
+.t-late{color:#E2A85C}
+.t-early{color:#8FC4D6}
+.t-same{color:#8FC0A8}
+.t-plan{color:#E7C785}
 .nd{font-style:normal;font-size:10.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
@@ -391,18 +413,32 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
 .tag{grid-area:tag;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap;
  align-self:center;justify-self:start;letter-spacing:.02em;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.s53{background:#43200f;color:#fdba74} .s40{background:#0d3b36;color:#5eead4}
-.st1{background:#2a1f4a;color:#c4b5fd} .st2{background:#232830;color:#9aa3b0}
-.f{grid-area:f;font-size:26px;font-weight:900;color:#fff;white-space:nowrap;text-align:left;
+.s40{background:#0E2B27;color:#6FC4B2} .s53{background:#2E1C0B;color:#D9955A}
+.st1{background:#1E1B2C;color:#A79BC4} .st2{background:#1A1F27;color:#8B93A1}
+.f{grid-area:f;font-size:26px;font-weight:700;color:#E8EAED;white-space:nowrap;text-align:left;
  letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
 .cty{font-style:normal;font-size:20px;font-weight:800;white-space:nowrap;
  margin-left:8px;vertical-align:-2px;letter-spacing:0}
 .c{grid-area:c;font-size:15px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
-.px{font-style:normal;font-size:12.5px;font-weight:800;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums;margin-left:2px}
-.tx{font-style:normal;font-size:12.5px;font-weight:800;color:#fbbf24;white-space:nowrap}
-.st{grid-area:st;font-size:13px;font-weight:800;padding:3px 6px;border-radius:7px;text-align:center;white-space:nowrap;align-self:center;justify-self:end}
-.b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
-.b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
+/* 人數：三格負載條＋數字＋小標字 */
+.px{font-style:normal;font-size:13px;font-weight:800;color:#dce2ea;white-space:nowrap;
+ font-variant-numeric:tabular-nums;margin-left:4px}
+.tx{font-style:normal;font-size:13px;font-weight:800;color:#b99a5e;white-space:nowrap;
+ font-variant-numeric:tabular-nums}
+.px u,.tx u{text-decoration:none;font-size:10.5px;font-weight:700;color:#818a98;letter-spacing:.06em;margin-left:2px}
+.bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:4px}
+.bars>i{width:3px;height:10px;border-radius:1px;background:#242b36;display:block}
+.lv1>i:nth-child(1){background:#5fa98f}
+.lv2>i:nth-child(-n+2){background:#d9a441}
+.lv3>i{background:#c4675e}
+/* 狀態：只有字，靠顏色和一條細左邊界分級 */
+.st{grid-area:st;font-size:13.5px;font-weight:800;text-align:right;white-space:nowrap;
+ align-self:center;justify-self:end;letter-spacing:.04em;padding-left:7px;border-left:2px solid transparent}
+.b-ok{color:#7fbfa6;border-left-color:#2f5f4e}
+.b-warn{color:#e0b35c;border-left-color:#5c4718}
+.b-bad{color:#d0786e;border-left-color:#5e2a25}
+.b-early{color:#8fc4d6;border-left-color:#27505e}
+.b-none{color:#818a98;border-left-color:#242b36}
 .b-info{background:#0b2b3c;color:#7dd3fc}
 #age{font-style:normal;font-weight:800;margin-left:6px;color:#7dd3fc;font-size:13.5px}
 #age.old{color:#fbbf24}
@@ -410,11 +446,11 @@ b.t{grid-area:t;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums
 .tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
  background:#1c2027;border:1px solid #2e343d;color:#7dd3fc;font-size:12px;
  font-weight:700;text-decoration:none}
-.msg{background:#14171c;border:1px solid #262b33;border-radius:9px;padding:12px;color:#8b94a1;font-size:13px;text-align:center}
+.msg{background:#11151C;border:1px solid #1E242E;border-radius:9px;padding:12px;color:#818A98;font-size:13px;text-align:center}
 .msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
 .grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
 .btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
- background:#1c2027;border:2px solid #2e343d;border-radius:11px;color:#9aa3b0;
+ background:#141922;border:1px solid #242B36;border-radius:10px;color:#AEB6C2;
  font-size:15px;font-weight:800;text-decoration:none;text-align:center;padding:8px 4px;
  white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
@@ -443,10 +479,10 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
 .mt .sub td{font-size:11.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:11.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
-.notice{background:#2e2408;border:1px solid #5c4708;color:#fcd34d;font-size:12.5px;
- padding:10px 10px;border-radius:10px;margin:9px 0;line-height:1.8;text-align:center;letter-spacing:.01em}
-.notice b{color:#fde68a}
-.notice .lk{color:#fde68a;font-weight:800;white-space:nowrap;text-decoration:underline}
+.notice{background:#0E1217;border:1px solid #1E242E;border-left:2px solid #8A7440;color:#818A98;font-size:12.5px;
+ padding:10px 11px;border-radius:0 10px 10px 0;margin:9px 0;line-height:1.85;text-align:left;letter-spacing:.01em}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#E7C785;font-weight:800;white-space:nowrap;text-decoration:none;border-bottom:1px solid #5C4718}
 /* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
 @media(min-width:341px) and (max-width:619px){
  .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
@@ -505,7 +541,7 @@ function meetTable(flights) {
     ord[0].st = ord[1].st - DUR;
     if (ord[0].st < LOm) { ord[0].st = LOm; ord[1].st = Math.min(LASTm, LOm + DUR); }
   }
-  let h = `<div class="mth">🕐 ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
+  let h = `<div class="mth">${IC('clock')} ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
     + '<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
   ord.forEach(r => {
     const late = !!(r.f && m2(at(r.f)) < r.st + DUR);
@@ -513,7 +549,7 @@ function meetTable(flights) {
        + `<td><b>${toT(r.st)}–${toT(r.st + DUR)}</b><br><small>15 分鐘</small></td>`
        + '<td>' + (r.f ? at(r.f) + ' ' + esc(fno4(r.f.flightCode)) + '<br><small>' + esc(r.f.Gate) + '</small>'
                        : '—<br><small>沒有班機</small>') + '</td></tr>';
-    if (late) h += `<tr class="${r.cls} sub"><td></td><td colspan="2">⚠️ 第一班 ${at(r.f)} 就進來了，這場會來不及開完，建議提早或縮短</td></tr>`;
+    if (late) h += `<tr class="${r.cls} sub"><td></td><td colspan="2">${IC('alert')} 第一班 ${at(r.f)} 就進來了，這場會來不及開完，建議提早或縮短</td></tr>`;
   });
   return h + '</table>';
 }
@@ -592,12 +628,12 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 
   const presetBtns = (full ? PRESETS_FULL : PRESETS)
     .map(p => btn(fileFor(p.id, idOf(cur), hide, full), p.label, p.id === preset, 'pre')).join('\n');
-  const hideBtn = btn(fileFor(preset, idOf(cur), !hide, full), hide ? '👁 全部顯示' : '🙈 隱藏抵達', hide, 'half');
-  const meetBtn = `<span class="btn half" id="bmeet">🕐 開會時間</span>`;
+  const hideBtn = btn(fileFor(preset, idOf(cur), !hide, full), hide ? IC('show') + ' 全部顯示' : IC('hide') + ' 隱藏抵達', hide, 'half');
+  const meetBtn = `<span class="btn half" id="bmeet">${IC('clock')} 開會時間</span>`;
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide, full),
-                        '🔄 更新 ' + stamp + '<i id="age"></i>', false);
+                        IC('refresh') + ' 更新 ' + stamp + '<i id="age"></i>', false);
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -620,17 +656,18 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <meta http-equiv="Expires" content="0">
 <title>班機手錶版 ${winLabel}</title>
 <style>${CSS}</style></head><body class="${full ? 'full' : ''}" data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}" data-x="${full ? 'a' : 'w'}">
+${SPRITE}
 <div id="fab">
-  <button class="fabb" id="fTop">⬆</button>
-  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide, full)}">⏱ 現在</a>
-  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide, full)}">🔄</a>
+  <button class="fabb" id="fTop">${IC('up')}</button>
+  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('timer')} 現在</a>
+  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('refresh')}</a>
 </div>
 
 <div class="mk">
   <b>小韋製作</b>
-  <i>⚠️ 未經同意請勿私自轉傳</i>
+  <i>${IC('alert')} 未經同意請勿私自轉傳</i>
 </div>
-<a class="hd" href="${fileFor(preset, idOf(cur), hide, full)}"><b>✈️ 班機手錶版${full ? ' 🔓' : ''}</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
+<a class="hd" href="${fileFor(preset, idOf(cur), hide, full)}"><b>${IC('land')} 班機手錶版${full ? ' ' + IC('unlock') : ''}</b><span>${todayLabel} ${presetOf(preset).label}</span><span class="u">${stamp} ↻</span></a>
 <div class="grp">${presetBtns}</div>
 <div class="grp s">${catBtns}</div>
 <div class="grp">${shortcut}</div>
@@ -640,11 +677,12 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <div class="sep"></div>
 <div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
-<div class="notice">⚠️ 僅供參考，<b>一律以現場為準</b><br>
-👥 數字＝推估走入境的人數（±15%）<br>🟢 未滿150　🟡 150–250　🔴 超過250<br>
-🔄 後面的數字＝推估會直接去轉機、不走入境的人數（依當天出境班表推算）<br>${full
-  ? '🔓 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">🔒 回一般版</a>'
-  : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">🔓 解封印版</a>'}</div>
+<div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
+${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
+${full
+  ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
+  : '本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="watchall.html">' + IC('unlock') + ' 解封印版</a>'}</div>
 <div class="foot">資料定時抓取並預先產生，非即時<br>上方 ${stamp} 為抓取時刻，點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
@@ -659,7 +697,7 @@ ${body}
       var h = a[i].getAttribute('href') || '';
       if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
     }
-    /* 浮動快捷鍵：⬆ 置頂／⏱ 跳到現在的時段／🔄 重新載入 */
+    /* 浮動快捷鍵：置頂／跳到現在的時段／重新載入 */
     var fab=document.getElementById('fab');
     var bd=document.body, cid=bd.getAttribute('data-c')||'', hid=bd.getAttribute('data-h')?'-h':'',
         cp=bd.getAttribute('data-p')||'';
@@ -731,10 +769,10 @@ const T2EXTRA = '<option value="06:59">07 時</option><option value="07:59">08 �
 
 const UNLOCK = {
   'index.html': { out: 'all.html', rules: [
-    ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 🔓 全時段</title>', 1],
+    ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 · 全時段</title>', 1],
     ['<link rel="manifest" href="app.webmanifest">', '<link rel="manifest" href="app-all.webmanifest">', 1],
     ['content="韋 班機"', 'content="韋 全時段"', 1],
-    ['<h1>✈️ 班機網頁版 2140 / 2153</h1>', '<h1>✈️ 班機網頁版 🔓 全時段</h1>', 1],
+    ['班機網頁版 2140 / 2153</h1>', '班機網頁版 · 全時段</h1>', 1],
     ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
      '      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>\n'
    + '      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n', 1],
@@ -744,15 +782,15 @@ const UNLOCK = {
      '<option value="05:59">06 時</option>' + T2EXTRA + '<option value="13:59">14 時</option>', 1],
     ["      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */\n", '', 2],
     ['　·　不含06:00–13:30', '　·　全時段', 2],
-    ['    本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="all.html">🔓 解封印版</a>\n',
-     '    🔓 這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="index.html">🔒 回一般版</a>\n', 1],
+    ['    本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="all.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 解封印版</a>\n',
+     '    這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="index.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a>\n', 1],
   ]},
   'wtdx.html': { out: 'wtdxall.html', rules: [
-    ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 🔓 全時段</title>', 1],
+    ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 · 全時段</title>', 1],
     ['content="韋 TDX"', 'content="韋 TDX全"', 1],
     ['<link rel="manifest" href="app-tdx.webmanifest">',
      '<link rel="manifest" href="app-tdxall.webmanifest">', 1],
-    ['<b>✈️ 班機TDX版</b>', '<b>✈️ TDX版 🔓</b>', 1],
+    ['班機TDX版</b>', 'TDX版</b>', 1],
     ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
      '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
    + '.btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}', 1],
@@ -766,8 +804,8 @@ const UNLOCK = {
     ['function autoWin(){\n',
      'function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }\n'
    + 'function autoWin(){\n', 1],
-    ['本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html">🔓 解封印版</a><br>\n',
-     '🔓 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="wtdx.html">🔒 回一般版</a><br>\n', 1],
+    ['本頁固定不顯示 06:00–13:30 的班機　<a class="lk" href="wtdxall.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 解封印版</a><br>\n',
+     '這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="wtdx.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a><br>\n', 1],
   ]},
 };
 
