@@ -61,12 +61,19 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
  background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;
  margin-bottom:5px;overflow:hidden}
 /* 分點只用左邊一條細色帶，不整張染色——看板不會整格發光 */
-.r.r40{box-shadow:inset 3px 0 0 #3E9A88}
-.r.r53{box-shadow:inset 3px 0 0 #C4762F}
-.r.r40 .g .gn{background:#0E2B27;color:#7FD6C4;box-shadow:inset 0 0 0 1px #1E4F47}
-.r.r53 .g .gn{background:#2E1C0B;color:#E8A362;box-shadow:inset 0 0 0 1px #57310F}
+.r.r40{background:#0D1C19;border-color:#2A574D;box-shadow:inset 7px 0 0 #4FBFA6}
+.r.r53{background:#1C140B;border-color:#5C3F20;box-shadow:inset 7px 0 0 #E08A38}
+/* 登機門實心：一眼就知道是不是自己這一邊的 */
+.r.r40 .g .gn{background:#4FBFA6;color:#052019;box-shadow:none}
+.r.r53 .g .gn{background:#E08A38;color:#221202;box-shadow:none}
+.r.r40 .tag{background:#4FBFA6;color:#06201B;font-weight:900}
+.r.r53 .tag{background:#E08A38;color:#241304;font-weight:900}
+/* 不是 2140／2153 的往後退，讓自己的班機浮出來 */
+.r:not(.r40):not(.r53):not(.done){opacity:.55}
+.r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
 .r.done{opacity:.4}
-.r.soon{border-color:#5C4718;box-shadow:inset 3px 0 0 #D9A441,0 0 0 1px #5C4718}
+.r.soon{border-color:#5C4718;outline:2px solid #D9A441;outline-offset:-2px}
+.r.soon:not(.r40):not(.r53){box-shadow:inset 7px 0 0 #D9A441}
 b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
  display:inline-block;letter-spacing:-.01em;color:#E7C785}
 .t-late{color:#E2A85C}
