@@ -96,27 +96,35 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
  margin-left:8px;vertical-align:-2px;letter-spacing:0}
 .c{grid-area:c;font-size:15px;font-weight:650;color:#B9C0CB;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
 /* 人數：三格負載條＋數字＋小標字，不用彩色圓點 */
-.px{font-style:normal;font-size:13px;font-weight:800;color:#dce2ea;white-space:nowrap;
- font-variant-numeric:tabular-nums;margin-left:4px}
-.tx{font-style:normal;font-size:13px;font-weight:800;color:#b99a5e;white-space:nowrap;
- font-variant-numeric:tabular-nums}
-.px u,.tx u{text-decoration:none;font-size:10.5px;font-weight:700;color:#818a98;
- letter-spacing:.06em;margin-left:2px}
-.bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:4px}
-.bars>i{width:3px;height:10px;border-radius:1px;background:#242b36;display:block}
-.lv1>i:nth-child(1){background:#5fa98f}
-.lv2>i:nth-child(-n+2){background:#d9a441}
-.lv3>i{background:#c4675e}
-/* 狀態：只有字，靠顏色和一條細左邊界分級 */
-.st{grid-area:st;font-size:13.5px;font-weight:800;text-align:right;white-space:nowrap;
- align-self:center;justify-self:end;letter-spacing:.04em;padding-left:7px;
- border-left:2px solid transparent}
-.b-ok{color:#7fbfa6;border-left-color:#2f5f4e}
-.b-warn{color:#e0b35c;border-left-color:#5c4718}
-.b-bad{color:#d0786e;border-left-color:#5e2a25}
-.b-early{color:#8fc4d6;border-left-color:#27505e}
-.b-info{color:#8aa8b8;border-left-color:#2b3d47}
-.b-none{color:#818a98;border-left-color:#242b36}
+/* 入境人數：實心色塊。綠＝順利、琥珀＝注意、紅＝爆量 */
+.px{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+ align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:4px;
+ padding:1px 6px;border-radius:6px;background:#1E242E;color:#C3CAD4}
+.px.p1{background:#14352C;color:#79D8B0}
+.px.p2{background:#3A2B0C;color:#F0C167}
+.px.p3{background:#3E1712;color:#F49B8D}
+.tx{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+ align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:3px;
+ padding:1px 6px;border-radius:6px;background:#2A2216;color:#DFC079}
+.bars{display:none}
+.px u,.tx u{text-decoration:none;font-size:10px;font-weight:700;opacity:.72;
+ letter-spacing:.06em}
+.bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:2px}
+.bars>i{width:3px;height:10px;border-radius:1px;background:rgba(255,255,255,.18);display:block}
+.lv1>i:nth-child(1){background:currentColor}
+.lv2>i:nth-child(-n+2){background:currentColor}
+.lv3>i{background:currentColor}
+/* 狀態：實心色塊。綠＝順利、藍＝提早、琥珀＝延遲、紅＝取消、灰＝結束 */
+.st{grid-area:st;font-size:13px;font-weight:900;text-align:center;white-space:nowrap;
+ align-self:center;justify-self:end;letter-spacing:.06em;padding:3px 8px;border-radius:7px}
+.b-ok{background:#14352C;color:#79D8B0}
+.b-warn{background:#3A2B0C;color:#F0C167}
+.b-bad{background:#3E1712;color:#F49B8D}
+.b-early{background:#12303D;color:#8FD2E6}
+.b-info{background:#1A2A33;color:#93B6C6}
+.b-none{background:#1E242E;color:#8B93A1}
+/* 說明區裡當圖例用時不要吃 grid-area */
+.notice .st,.notice .px{grid-area:auto;display:inline-flex;justify-self:auto;vertical-align:-.15em}
 .day{background:#131820;border:1px solid #242B36;color:#B9C0CB;font-size:15.5px;font-weight:800;
  border-radius:10px;padding:8px 8px;margin:9px 0 6px;text-align:center}
 .mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
@@ -249,7 +257,8 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 
 <div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料。平常讀 GitHub 產生的小快照（省流量）；<b>快照超過 15 分鐘就自動改連即時</b>。GitHub 排程實際上常隔數小時才跑，所以標題列一定要看「幾分前」。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
 <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
-負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
+入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
+狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
 本頁固定不顯示 06:00–13:30 的班機<br>
 此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示「已到」</div>
 <div class="foot">按「更新」或點最上面那條即可重讀最新一次的快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
@@ -490,7 +499,7 @@ function paxOf(f){
   return {est:est,tx:tx,inn:inn,lv:inn>250?3:(inn>=150?2:1)};
 }
 function paxHtml(f){ var p=paxOf(f);
-  return ' <i class="px"><i class="bars lv'+p.lv+'"><i></i><i></i><i></i></i>'+p.inn+'<u>入境</u></i>'
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>入境</u></i>'
        + (p.tx?' <i class="tx">'+p.tx+'<u>轉機</u></i>':''); }
 
 /* ── 畫面狀態 ── */

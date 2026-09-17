@@ -112,20 +112,22 @@
     border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;width:auto}
   #catmsg{font-size:12px;color:var(--muted)}
   .badge{display:inline-block;font-size:13px;font-weight:800;padding:3px 9px;border-radius:7px;white-space:nowrap}
-  .px{font-style:normal;font-size:13px;font-weight:800;color:#DCE2EA;white-space:nowrap;
-    font-variant-numeric:tabular-nums;margin-left:4px}
-  .tx{font-style:normal;font-size:13px;font-weight:800;color:#B99A5E;white-space:nowrap;
-    font-variant-numeric:tabular-nums}
-  .px u,.tx u{text-decoration:none;font-size:10.5px;font-weight:700;color:var(--muted);
-    letter-spacing:.06em;margin-left:2px}
-  .bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:4px}
-  .bars>i{width:3px;height:10px;border-radius:1px;background:#d7dbe1;display:block}
-  .lv1>i:nth-child(1){background:#5FA98F}
-  .lv2>i:nth-child(-n+2){background:#D9A441}
-  .lv3>i{background:#C4675E}
+  /* 入境人數：實心色塊。綠＝順利、琥珀＝注意、紅＝爆量 */
+  .px{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+    align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:4px;
+    padding:1px 6px;border-radius:6px;background:#eef1f4;color:#47505c}
+  .px.p1{background:#e0f3ea;color:#186b4b}
+  .px.p2{background:#fbf0dc;color:#835410}
+  .px.p3{background:#fce9e6;color:#8d2f24}
+  .tx{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+    align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:3px;
+    padding:1px 6px;border-radius:6px;background:#f3eee1;color:#78591c}
+  .px u,.tx u{text-decoration:none;font-size:10px;font-weight:700;opacity:.72;
+    letter-spacing:.06em}
+  .bars{display:none}
   .short,.tshort{display:none}
   .c-time{overflow:hidden}
-  .b-early{background:#16242B;color:#8FC4D6}
+  .b-early{background:#e4f0f7;color:#1d5b78}
   .b-ok{background:var(--okbg);color:var(--ok)} .b-warn{background:var(--warnbg);color:var(--warn)}
   .b-bad{background:var(--badbg);color:var(--bad)} .b-none{background:var(--nonebg);color:var(--none)}
   .empty,.pend{padding:14px;color:var(--muted);font-size:13px;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:12px}
@@ -289,11 +291,15 @@
     .c-fno{grid-area:fno;text-align:center} .c-fno b{font-size:27px;color:#fff} .c-fno small{display:none}
     .cty{display:inline;margin:0 0 0 8px;font-size:20px;font-weight:800;vertical-align:-2px}
     .c-city{grid-area:city;font-size:15.5px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35}
-    .px{font-style:normal;font-size:13px;font-weight:800;color:#8b94a1;white-space:nowrap;font-variant-numeric:tabular-nums}
-    .tx{font-size:12.5px;color:#fbbf24}
+    .px{background:#1E242E;color:#C3CAD4}
+    .px.p1{background:#14352C;color:#79D8B0}
+    .px.p2{background:#3A2B0C;color:#F0C167}
+    .px.p3{background:#3E1712;color:#F49B8D}
+    .tx{background:#2A2216;color:#DFC079}
     .badge{font-size:13px;padding:3px 8px}
-    .b-ok{background:#0e2f1b;color:#4ade80} .b-warn{background:#3a2a0c;color:#fbbf24}
-    .b-bad{background:#3b1414;color:#f87171} .b-none{background:#232830;color:#8b94a1}
+    .b-ok{background:#14352C;color:#79D8B0} .b-warn{background:#3A2B0C;color:#F0C167}
+    .b-bad{background:#3E1712;color:#F49B8D} .b-none{background:#1E242E;color:#8B93A1}
+    .b-early{background:#12303D;color:#8FD2E6}
 
     .empty,.pend{background:#14171c;border-color:#262b33;color:#8b94a1;font-size:12.5px;padding:11px;border-radius:12px}
     .pend b{color:#e5e9ef}
@@ -445,7 +451,7 @@
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 資料擷取自桃園機場公開航班資訊，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
-    負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
+    入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-none">已到</span><br>
     本頁固定不顯示 06:00–13:30 的班機
   </div>
 
@@ -531,7 +537,7 @@ function paxOf(f){
 function IC(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
 function paxHtml(f){ var p=paxOf(f);
   if(!p.est) return ' <i class="px">'+IC('box')+'<u>貨機</u></i>';
-  return ' <i class="px"><i class="bars lv'+p.lv+'"><i></i><i></i><i></i></i>'+p.inn+'<u>入境</u></i>'
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>入境</u></i>'
        + (p.tx?' <i class="tx" title="推估轉機，不走入境">'+p.tx+'<u>轉機</u></i>':''); }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
