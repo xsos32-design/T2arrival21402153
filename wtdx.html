@@ -60,14 +60,21 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
  grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
  background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;
  margin-bottom:5px;overflow:hidden}
-/* 分點只用左邊一條細色帶，不整張染色——看板不會整格發光 */
-.r.r40{background:#06211F;border-color:#1D6058;box-shadow:inset 7px 0 0 #3DE0D5}
-.r.r53{background:#240C14;border-color:#6E2639;box-shadow:inset 7px 0 0 #F2506E}
-/* 登機門實心：一眼就知道是不是自己這一邊的 */
-.r.r40 .g .gn{background:#3DE0D5;color:#042321;box-shadow:none}
-.r.r53 .g .gn{background:#F2506E;color:#2B0710;box-shadow:none}
-.r.r40 .tag{background:#3DE0D5;color:#042321;font-weight:900}
-.r.r53 .tag{background:#F2506E;color:#2B0710;font-weight:900}
+/* 分點整張卡上色：底色＋色帶＋外發光。兩邊亮度刻意調到一樣（差 0.5），
+   誰都不會看起來比較「重」。 */
+.r.r40{background:#0E5049;border-color:#2A9A90;
+ box-shadow:inset 7px 0 0 #3DE0D5, 0 4px 22px -10px rgba(61,224,213,.9)}
+.r.r53{background:#7A2440;border-color:#B83E5C;
+ box-shadow:inset 7px 0 0 #F2506E, 0 4px 22px -10px rgba(242,80,110,.9)}
+.r.r40 .c,.r.r53 .c{color:#E1E7ED}
+/* 卡片變亮後，裡面的小色塊要一條細邊才不會糊進底色 */
+.r.r40 .px,.r.r40 .tx,.r.r40 .st,
+.r.r53 .px,.r.r53 .tx,.r.r53 .st{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+/* 登機門實心＋打亮：一眼就知道是不是自己這一邊的 */
+.r.r40 .g .gn{background:#3DE0D5;color:#042321;box-shadow:0 0 18px -2px rgba(61,224,213,.85)}
+.r.r53 .g .gn{background:#F2506E;color:#2B0710;box-shadow:0 0 18px -2px rgba(242,80,110,.85)}
+.r.r40 .tag{background:#3DE0D5;color:#042321;font-weight:900;box-shadow:0 0 14px -3px rgba(61,224,213,.7)}
+.r.r53 .tag{background:#F2506E;color:#2B0710;font-weight:900;box-shadow:0 0 14px -3px rgba(242,80,110,.7)}
 /* 不是 2140／2153 的往後退，讓自己的班機浮出來 */
 .r:not(.r40):not(.r53):not(.done){opacity:.55}
 .r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
