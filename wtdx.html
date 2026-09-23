@@ -97,9 +97,6 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 .t-early{color:#8FC4D6}
 .t-same{color:#8FC0A8}
 .t-plan{color:#E7C785}
-/* 同一分鐘抵達時的建議順序：入境人數多的排前面（人多＝客人多） */
-.odr{font-style:normal;font-size:11px;font-weight:900;color:#0A0D12;background:#E7C785;
- border-radius:5px;padding:0 4px;margin-left:4px;vertical-align:super;letter-spacing:0}
 .nd{font-style:normal;font-size:10.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
@@ -277,7 +274,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 
 <div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料。平常讀 GitHub 產生的小快照（省流量）；<b>快照超過 15 分鐘就自動改連即時</b>。GitHub 排程實際上常隔數小時才跑，所以標題列一定要看「幾分前」。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
 <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
-<b class="odr">1</b><b class="odr">2</b> ＝ 同一分鐘抵達，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
+同一分鐘抵達時，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
 入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
 狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
 本頁固定不顯示 06:00–13:30 的班機<br>
@@ -621,19 +618,6 @@ function rowsFor(list,lo,hi){
         || (paxOf(b).inn||0)-(paxOf(a).inn||0)            /* 再比入境人數，多的先跑 */
         || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
   });
-  return markTies(arr);
-}
-/* 同一分鐘抵達時標上 1、2、3。
-   只有「還沒到」的才編號 —— 已到的不用去了，不該佔順位。
-   同一分鐘只剩一班沒到，也不編號（沒得選就不用標）。 */
-function markTies(arr){
-  for(var i=0;i<arr.length;){
-    var t=effTime(arr[i]), j=i, live=[];
-    while(j<arr.length&&effTime(arr[j])===t) j++;
-    for(var k=i;k<j;k++){ arr[k]._tie=0; if(!noGo(arr[k])) live.push(arr[k]); }
-    if(live.length>1) for(var m=0;m<live.length;m++) live[m]._tie=m+1;
-    i=j;
-  }
   return arr;
 }
 function rowHtml(f,nowMin){
@@ -651,7 +635,7 @@ function rowHtml(f,nowMin){
   var shop=shopOf(f);
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
-    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+(f._tie?'<i class="odr" title="同一分鐘抵達，入境人數多的排前面">'+f._tie+'</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'')+'</span>'
+    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+(flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')+'</span><span class="g">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'')+'</span>'
     +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c">'+esc(f.CityName)+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
