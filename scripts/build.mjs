@@ -404,6 +404,9 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 .t-early{color:#8FC4D6}
 .t-same{color:#8FC0A8}
 .t-plan{color:#E7C785}
+/* 同一分鐘抵達時的建議順序：入境人數多的排前面 */
+.odr{font-style:normal;font-size:10.5px;font-weight:900;color:#0A0D12;background:#E7C785;
+ border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .nd{font-style:normal;font-size:10.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
  border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
 .g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
@@ -583,8 +586,20 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
     .sort((a, b) => {
       const ta = hhmm(a.RTime) || hhmm(a.OTime), tb = hhmm(b.RTime) || hhmm(b.OTime);
       return (isNextDay(a) ? 1 : 0) - (isNextDay(b) ? 1 : 0)
-          || ta.localeCompare(tb) || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
+          || ta.localeCompare(tb)
+          || (paxOf(b).inn || 0) - (paxOf(a).inn || 0)   /* 同一分鐘：入境人數多的先跑 */
+          || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
     });
+  /* 同一分鐘抵達的標上 1、2、3；沒撞在一起的不標 */
+  {
+    const key = f => (isNextDay(f) ? 1 : 0) + '|' + (hhmm(f.RTime) || hhmm(f.OTime));
+    for (let i = 0; i < rows.length;) {
+      const k = key(rows[i]); let j = i;
+      while (j < rows.length && key(rows[j]) === k) j++;
+      for (let m = i; m < j; m++) rows[m]._tie = (j - i > 1) ? (m - i + 1) : 0;
+      i = j;
+    }
+  }
 
   const cards = rows.map(f => {
     const st = statusOf(f);
@@ -606,7 +621,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}">
-<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagOf(ctryOf(f)) ? `<i class="cty" title="${esc(ctryOf(f))}">${flagOf(ctryOf(f))}</i>` : ''}</span><span class="g">${String(f.Gate || '').trim() ? `<b class="gn">${esc(f.Gate)}</b>` : ''}</span>
+<b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}${f._tie ? `<i class="odr">${f._tie}</i>` : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagOf(ctryOf(f)) ? `<i class="cty" title="${esc(ctryOf(f))}">${flagOf(ctryOf(f))}</i>` : ''}</span><span class="g">${String(f.Gate || '').trim() ? `<b class="gn">${esc(f.Gate)}</b>` : ''}</span>
 <span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
