@@ -601,6 +601,8 @@ function poolFor(off){
   });
   return out;
 }
+/* 不用跑的班機：已經落地的、還有取消的（根本不會來） */
+function noGo(f){ return !!statusOf(f).done||/取消/.test(String(f.Memo||'')); }
 function rowsFor(list,lo,hi){
   var arr=(list||[]).filter(function(f){
     if(!f.Gate) return false;
@@ -615,7 +617,7 @@ function rowsFor(list,lo,hi){
   }).sort(function(a,b){
     var ta=hhmm(a.RTime)||hhmm(a.OTime), tb=hhmm(b.RTime)||hhmm(b.OTime);
     return ta.localeCompare(tb)
-        || (statusOf(a).done?1:0)-(statusOf(b).done?1:0)  /* 已到的排後面：不用去了 */
+        || (noGo(a)?1:0)-(noGo(b)?1:0)                    /* 已到／取消的排後面：不用去了 */
         || (paxOf(b).inn||0)-(paxOf(a).inn||0)            /* 再比入境人數，多的先跑 */
         || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
   });
@@ -628,7 +630,7 @@ function markTies(arr){
   for(var i=0;i<arr.length;){
     var t=effTime(arr[i]), j=i, live=[];
     while(j<arr.length&&effTime(arr[j])===t) j++;
-    for(var k=i;k<j;k++){ arr[k]._tie=0; if(!statusOf(arr[k]).done) live.push(arr[k]); }
+    for(var k=i;k<j;k++){ arr[k]._tie=0; if(!noGo(arr[k])) live.push(arr[k]); }
     if(live.length>1) for(var m=0;m<live.length;m++) live[m]._tie=m+1;
     i=j;
   }

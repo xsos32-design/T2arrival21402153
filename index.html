@@ -611,6 +611,8 @@ function effTime(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
 function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !!(f.ODate&&rd&&rd>f.ODate); }
 function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate||''; }
 
+/* 不用跑的班機：已經落地的，還有取消的（根本不會來） */
+function noGo(f){ return !!statusOf(f).done||/取消/.test(String(f.Memo||'')); }
 function statusOf(f){
   function clean(s){ return String(s||'').replace(/[\s.．、,]+$/,'').replace(/\s+/g,' ').trim(); }
   var memo=clean(f.Memo).replace('預計時間變更','時間變更'), cur=clean(f.CurrentStatus);
@@ -753,7 +755,7 @@ function render(){
     return ((a.f._day||0)-(b.f._day||0))
         || ((a.f._nd||0)-(b.f._nd||0))          /* 延誤跨過午夜的排在當天最後 */
         || arrAt(a.f).localeCompare(arrAt(b.f))
-        || (statusOf(a.f).done?1:0)-(statusOf(b.f).done?1:0)  /* 已到的排後面：不用去了 */
+        || (noGo(a.f)?1:0)-(noGo(b.f)?1:0)                    /* 已到／取消的排後面：不用去了 */
         || (paxOf(b.f).inn||0)-(paxOf(a.f).inn||0)            /* 再比入境人數，多的先跑 */
         || hhmm(a.f.OTime).localeCompare(hhmm(b.f.OTime));
   });
@@ -764,7 +766,7 @@ function render(){
     for(var i=0;i<rows.length;){
       var k=key(rows[i]), j=i, live=[];
       while(j<rows.length&&key(rows[j])===k) j++;
-      for(var m=i;m<j;m++){ rows[m].f._tie=0; if(!statusOf(rows[m].f).done) live.push(rows[m].f); }
+      for(var m=i;m<j;m++){ rows[m].f._tie=0; if(!noGo(rows[m].f)) live.push(rows[m].f); }
       if(live.length>1) for(var n=0;n<live.length;n++) live[n]._tie=n+1;
       i=j;
     }
