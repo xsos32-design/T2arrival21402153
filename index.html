@@ -78,6 +78,9 @@
   .r.r53 .c-shop .tag{background:#B81E4A;color:#fff;font-weight:900}
   .r.done{opacity:.45}
   .r.soon{background:#fffbe8;outline:2px solid #eab308;outline-offset:-2px}
+  /* 同一分鐘抵達時的建議順序：入境人數多的排前面（人多＝客人多） */
+  .odr{font-style:normal;font-size:11px;font-weight:900;color:#fff;background:#8a6a28;
+    border-radius:5px;padding:0 4px;margin-left:4px;vertical-align:super;letter-spacing:0}
   .c-time b{display:inline-block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;
     line-height:1.15;padding:1px 6px;border-radius:7px;letter-spacing:-.01em}
   .c-time b.t-late {color:#9a3412;background:#fdece0}
@@ -314,6 +317,7 @@
     .b-ok{background:#14352C;color:#79D8B0} .b-warn{background:#3A2B0C;color:#F0C167}
     .b-bad{background:#3E1712;color:#F49B8D} .b-none{background:#1E242E;color:#8B93A1}
     .b-early{background:#12303D;color:#8FD2E6}
+    .odr{color:#0A0D12;background:#E7C785}
 
     .empty,.pend{background:#14171c;border-color:#262b33;color:#8b94a1;font-size:12.5px;padding:11px;border-radius:12px}
     .pend b{color:#e5e9ef}
@@ -465,6 +469,7 @@
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 資料擷取自桃園機場公開航班資訊，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+    <b class="odr">1</b><b class="odr">2</b> ＝ 同一分鐘抵達，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
     入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-none">已到</span><br>
     本頁固定不顯示 06:00–13:30 的班機
   </div>
@@ -748,8 +753,19 @@ function render(){
     return ((a.f._day||0)-(b.f._day||0))
         || ((a.f._nd||0)-(b.f._nd||0))          /* 延誤跨過午夜的排在當天最後 */
         || arrAt(a.f).localeCompare(arrAt(b.f))
+        || (paxOf(b.f).inn||0)-(paxOf(a.f).inn||0)   /* 同一分鐘：入境人數多的先跑 */
         || hhmm(a.f.OTime).localeCompare(hhmm(b.f.OTime));
   });
+  /* 把同一分鐘抵達的標上 1、2、3；沒撞在一起的不標，畫面不會多東西 */
+  (function(){
+    var key=function(x){ return (x.f._day||0)+'|'+(x.f._nd||0)+'|'+arrAt(x.f); };
+    for(var i=0;i<rows.length;){
+      var k=key(rows[i]), j=i;
+      while(j<rows.length&&key(rows[j])===k) j++;
+      for(var m=i;m<j;m++) rows[m].f._tie=(j-i>1)?(m-i+1):0;
+      i=j;
+    }
+  })();
 
   var out=document.getElementById('out');
   if(!show.c0 && !show.c1 && !show.c2 && !show.c3){
@@ -791,7 +807,7 @@ function render(){
       var shopCls=x.shop==='c0'?' r40':(x.shop==='c1'?' r53':'');
       /* 待定班機（無門）不上色 */
       return lead+'<div class="r '+cls+shopCls+'">'
-        + '<div class="c-time"><b class="'+tcls+'">'+big+'</b><i>'+sub+'</i></div>'
+        + '<div class="c-time"><b class="'+tcls+'">'+big+'</b>'+(f._tie?'<i class="odr" title="同一分鐘抵達，入境人數多的排前面">'+f._tie+'</i>':'')+'<i>'+sub+'</i></div>'
         + '<div class="c-fno"><b>'+esc(fno4(main))+'</b>'
           + (flagOf(ctryOf(f))?'<i class="cty" title="'+esc(ctryOf(f))+'">'+flagOf(ctryOf(f))+'</i>':'')
           + '<small>'+esc(f.AName)+'</small></div>'
