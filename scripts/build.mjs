@@ -587,16 +587,18 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
       const ta = hhmm(a.RTime) || hhmm(a.OTime), tb = hhmm(b.RTime) || hhmm(b.OTime);
       return (isNextDay(a) ? 1 : 0) - (isNextDay(b) ? 1 : 0)
           || ta.localeCompare(tb)
-          || (paxOf(b).inn || 0) - (paxOf(a).inn || 0)   /* 同一分鐘：入境人數多的先跑 */
+          || (statusOf(a).done ? 1 : 0) - (statusOf(b).done ? 1 : 0)  /* 已到的排後面 */
+          || (paxOf(b).inn || 0) - (paxOf(a).inn || 0)                /* 再比入境人數 */
           || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
     });
-  /* 同一分鐘抵達的標上 1、2、3；沒撞在一起的不標 */
+  /* 同一分鐘抵達時標上 1、2、3。只有「還沒到」的才編號 —— 已到的不用去了 */
   {
     const key = f => (isNextDay(f) ? 1 : 0) + '|' + (hhmm(f.RTime) || hhmm(f.OTime));
     for (let i = 0; i < rows.length;) {
-      const k = key(rows[i]); let j = i;
+      const k = key(rows[i]); let j = i; const live = [];
       while (j < rows.length && key(rows[j]) === k) j++;
-      for (let m = i; m < j; m++) rows[m]._tie = (j - i > 1) ? (m - i + 1) : 0;
+      for (let m = i; m < j; m++) { rows[m]._tie = 0; if (!statusOf(rows[m]).done) live.push(rows[m]); }
+      if (live.length > 1) live.forEach((f, n) => { f._tie = n + 1; });
       i = j;
     }
   }
