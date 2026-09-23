@@ -230,6 +230,8 @@ const SPRITE = `<svg class="sprite" aria-hidden="true"><defs>
 <g id="i-lock"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
 </defs></svg>`;
 
+/* 不用跑的班機：已經落地的，還有取消的（根本不會來） */
+function noGo(f) { return !!statusOf(f).done || /取消/.test(String(f.Memo || '')); }
 function statusOf(f) {
   const clean = s => String(s || '').replace(/[\s.．、,]+$/, '').replace(/\s+/g, ' ').trim();
   const memo = clean(f.Memo), cur = clean(f.CurrentStatus);
@@ -587,17 +589,17 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
       const ta = hhmm(a.RTime) || hhmm(a.OTime), tb = hhmm(b.RTime) || hhmm(b.OTime);
       return (isNextDay(a) ? 1 : 0) - (isNextDay(b) ? 1 : 0)
           || ta.localeCompare(tb)
-          || (statusOf(a).done ? 1 : 0) - (statusOf(b).done ? 1 : 0)  /* 已到的排後面 */
+          || (noGo(a) ? 1 : 0) - (noGo(b) ? 1 : 0)                    /* 已到／取消的排後面 */
           || (paxOf(b).inn || 0) - (paxOf(a).inn || 0)                /* 再比入境人數 */
           || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
     });
-  /* 同一分鐘抵達時標上 1、2、3。只有「還沒到」的才編號 —— 已到的不用去了 */
+  /* 同一分鐘抵達時標上 1、2、3。只有「還會來」的才編號 —— 已到、取消的不用去了 */
   {
     const key = f => (isNextDay(f) ? 1 : 0) + '|' + (hhmm(f.RTime) || hhmm(f.OTime));
     for (let i = 0; i < rows.length;) {
       const k = key(rows[i]); let j = i; const live = [];
       while (j < rows.length && key(rows[j]) === k) j++;
-      for (let m = i; m < j; m++) { rows[m]._tie = 0; if (!statusOf(rows[m]).done) live.push(rows[m]); }
+      for (let m = i; m < j; m++) { rows[m]._tie = 0; if (!noGo(rows[m])) live.push(rows[m]); }
       if (live.length > 1) live.forEach((f, n) => { f._tie = n + 1; });
       i = j;
     }
