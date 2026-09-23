@@ -262,9 +262,18 @@
     .r.r53 .px,.r.r53 .tx,.r.r53 .badge{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
     .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.55}
     .r:not(.r40):not(.r53) .c-gate .gn{background:#232A34;color:#9AA3B0}
-    .r.soon{background:#11151C;border-color:#5C4718;outline:2px solid #D9A441;outline-offset:-2px;box-shadow:none}
-    .r.soon.r40{background:#0E5049;box-shadow:inset 7px 0 0 #3DE0D5, 0 4px 22px -10px rgba(61,224,213,.9)}
-    .r.soon.r53{background:#7A2440;box-shadow:inset 7px 0 0 #F2506E, 0 4px 22px -10px rgba(242,80,110,.9)}
+    .r.soon{--bar:#D9A441;background:#11151C;border-color:#5C4718;outline:2px solid #D9A441;outline-offset:-2px;
+      box-shadow:inset 7px 0 0 var(--bar), 0 0 20px -3px rgba(217,164,65,.8);
+      animation:soonGlow 2.4s ease-in-out infinite}
+    .r.soon.r40{--bar:#3DE0D5;background:#0E5049}
+    .r.soon.r53{--bar:#F2506E;background:#7A2440}
+    /* 即將抵達（45 分內）：金色光暈呼吸。左邊色帶維持分點顏色，
+       所以「是我的」跟「快到了」兩個訊息不會互相蓋掉。 */
+    @keyframes soonGlow{
+     0%,100%{box-shadow:inset 7px 0 0 var(--bar), 0 0 8px -4px rgba(217,164,65,.5)}
+     50%    {box-shadow:inset 7px 0 0 var(--bar), 0 0 26px 0 rgba(217,164,65,.95)}}
+    /* 系統開了「減少動態效果」就只留靜態光暈 */
+    @media (prefers-reduced-motion:reduce){.r.soon{animation:none}}
     .notice{background:#0E1217;border:1px solid #1E242E;border-left:2px solid #8A7440;
       color:#818A98;border-radius:0 10px 10px 0;text-align:left}
     .notice b{color:#C3CAD4}
