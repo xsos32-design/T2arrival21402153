@@ -79,16 +79,16 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
 .r:not(.r40):not(.r53):not(.done){opacity:.55}
 .r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
 .r.done{opacity:.4}
-.r.soon{--bar:#D9A441;border-color:#5C4718;outline:2px solid #D9A441;outline-offset:-2px;
- box-shadow:inset 7px 0 0 var(--bar), 0 0 20px -3px rgba(217,164,65,.8);
+.r.soon{--bar:#D9A441;border-color:#5C4718;position:relative;z-index:2;
+ box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
  animation:soonGlow 2.4s ease-in-out infinite}
 .r.soon.r40{--bar:#3DE0D5}
 .r.soon.r53{--bar:#F2506E}
 /* 即將抵達（45 分內）：金色光暈呼吸。左邊色帶維持分點顏色，
    所以「是我的」跟「快到了」兩個訊息不會互相蓋掉。 */
 @keyframes soonGlow{
- 0%,100%{box-shadow:inset 7px 0 0 var(--bar), 0 0 8px -4px rgba(217,164,65,.5)}
- 50%    {box-shadow:inset 7px 0 0 var(--bar), 0 0 26px 0 rgba(217,164,65,.95)}}
+ 0%,100%{box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 12px -2px rgba(217,164,65,.55)}
+ 50%    {box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 34px 3px rgba(217,164,65,1)}}
 /* 系統開了「減少動態效果」就只留靜態光暈 */
 @media (prefers-reduced-motion:reduce){.r.soon{animation:none}}
 b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
