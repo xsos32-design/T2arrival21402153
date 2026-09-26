@@ -71,12 +71,14 @@
      letter-spacing:.06em;padding:8px 14px}
   .r.r40{background:#cdf1ee;box-shadow:inset 8px 0 0 #17A9A0}
   .r.r53{background:#fbd9e3;box-shadow:inset 8px 0 0 #B81E4A}
-  .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.62}
+  .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.8}
   .r.r40 .c-gate .gn{background:#17A9A0;color:#fff}
   .r.r53 .c-gate .gn{background:#B81E4A;color:#fff}
   .r.r40 .c-shop .tag{background:#17A9A0;color:#fff;font-weight:900}
   .r.r53 .c-shop .tag{background:#B81E4A;color:#fff;font-weight:900}
-  .r.done{opacity:.45}
+  /* 已到＝壓暗＋去色＋時間畫線；「不是你的分點」只是退後，不去色 */
+  .r.done{opacity:.5;filter:grayscale(1)}
+  .r.done .c-time b{text-decoration:line-through;text-decoration-thickness:2px}
   /* 表格列之間沒有空隙，光環畫在外面會連成一大塊，所以畫在內緣。
      分點色帶列在前面＝蓋在光環上，左邊的色帶不會被吃掉。不佔任何版面。 */
   .r.soon{background:#fffbe8;position:relative;z-index:2;
@@ -265,7 +267,8 @@
     .r.r40 .c-city,.r.r53 .c-city{color:#E1E7ED}
     .r.r40 .px,.r.r40 .tx,.r.r40 .badge,
     .r.r53 .px,.r.r53 .tx,.r.r53 .badge{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
-    .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.55}
+    /* 兩種「變淡」要分得開，見下面 .r.done */
+    .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.72}
     .r:not(.r40):not(.r53) .c-gate .gn{background:#232A34;color:#9AA3B0}
     .r.soon{--bar:#D9A441;background:#11151C;border-color:#5C4718;position:relative;z-index:2;
       box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
@@ -287,7 +290,7 @@
     .r.r53 .c-gate .gn{background:#F2506E;color:#2B0710;box-shadow:0 0 18px -2px rgba(242,80,110,.85)}
     .r.r40 .c-shop .tag{background:#3DE0D5;color:#042321;font-weight:900;box-shadow:0 0 14px -3px rgba(61,224,213,.7)}
     .r.r53 .c-shop .tag{background:#F2506E;color:#2B0710;font-weight:900;box-shadow:0 0 14px -3px rgba(242,80,110,.7)}
-    .r.done{opacity:.4}
+    .r.done{opacity:.42;filter:grayscale(1)}
     .c-fno,.c-st{min-width:0} .c-st{justify-self:end;grid-area:st}
 
     .c-time{grid-area:time}

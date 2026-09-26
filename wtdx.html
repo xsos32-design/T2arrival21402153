@@ -76,9 +76,13 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
 .r.r40 .tag{background:#3DE0D5;color:#042321;font-weight:900;box-shadow:0 0 14px -3px rgba(61,224,213,.7)}
 .r.r53 .tag{background:#F2506E;color:#2B0710;font-weight:900;box-shadow:0 0 14px -3px rgba(242,80,110,.7)}
 /* 不是 2140／2153 的往後退，讓自己的班機浮出來 */
-.r:not(.r40):not(.r53):not(.done){opacity:.55}
+/* 兩種「變淡」要分得開：
+   不是你的分點 → 只是稍微退後，顏色還在（它還沒到，你只是不用管）
+   已經到了     → 壓暗＋整列去色＋時間畫一條線（這班結束了） */
+.r:not(.r40):not(.r53):not(.done){opacity:.72}
 .r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
-.r.done{opacity:.4}
+.r.done{opacity:.42;filter:grayscale(1)}
+.r.done b.t{text-decoration:line-through;text-decoration-thickness:2px}
 .r.soon{--bar:#D9A441;border-color:#5C4718;position:relative;z-index:2;
  box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
  animation:soonGlow 2.4s ease-in-out infinite}
