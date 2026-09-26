@@ -76,10 +76,10 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
 .r.r40 .tag{background:#3DE0D5;color:#042321;font-weight:900;box-shadow:0 0 14px -3px rgba(61,224,213,.7)}
 .r.r53 .tag{background:#F2506E;color:#2B0710;font-weight:900;box-shadow:0 0 14px -3px rgba(242,80,110,.7)}
 /* 不是 2140／2153 的往後退，讓自己的班機浮出來 */
-/* 兩種「變淡」要分得開：
-   不是你的分點 → 只是稍微退後，顏色還在（它還沒到，你只是不用管）
-   已經到了     → 壓暗＋整列去色＋時間畫一條線（這班結束了） */
-.r:not(.r40):not(.r53):not(.done){opacity:.72}
+/* 「變淡」只留給「已到」一種意思。
+   不是你的分點 → 卡片壓深、登機門轉灰（往後退），但字還是清清楚楚的，
+   因為它根本還沒到，不該看起來像被關掉。 */
+.r:not(.r40):not(.r53):not(.done){background:#0C1016;border-color:#1A1F27}
 .r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
 .r.done{opacity:.42;filter:grayscale(1)}
 .r.done b.t{text-decoration:line-through;text-decoration-thickness:2px}

@@ -71,7 +71,7 @@
      letter-spacing:.06em;padding:8px 14px}
   .r.r40{background:#cdf1ee;box-shadow:inset 8px 0 0 #17A9A0}
   .r.r53{background:#fbd9e3;box-shadow:inset 8px 0 0 #B81E4A}
-  .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.8}
+  .r:not(.r40):not(.r53):not(.head):not(.done){background:#f6f8fa}
   .r.r40 .c-gate .gn{background:#17A9A0;color:#fff}
   .r.r53 .c-gate .gn{background:#B81E4A;color:#fff}
   .r.r40 .c-shop .tag{background:#17A9A0;color:#fff;font-weight:900}
@@ -267,8 +267,8 @@
     .r.r40 .c-city,.r.r53 .c-city{color:#E1E7ED}
     .r.r40 .px,.r.r40 .tx,.r.r40 .badge,
     .r.r53 .px,.r.r53 .tx,.r.r53 .badge{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
-    /* 兩種「變淡」要分得開，見下面 .r.done */
-    .r:not(.r40):not(.r53):not(.head):not(.done){opacity:.72}
+    /* 「變淡」只留給「已到」。不是你的分點＝卡片壓深，字不變淡 */
+    .r:not(.r40):not(.r53):not(.head):not(.done){background:#0C1016;border-color:#1A1F27}
     .r:not(.r40):not(.r53) .c-gate .gn{background:#232A34;color:#9AA3B0}
     .r.soon{--bar:#D9A441;background:#11151C;border-color:#5C4718;position:relative;z-index:2;
       box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
