@@ -53,7 +53,8 @@
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
   .chip{font-size:14px;font-weight:800;padding:6px 13px;border:1px solid var(--line);border-radius:999px;background:#fff;
     cursor:pointer;color:var(--muted);white-space:nowrap;user-select:none}
-  .chip.act{border-color:var(--accent);color:var(--accent);background:#f0f6ff}
+  .chip.act{border-color:var(--accent);color:#fff;background:var(--accent);
+    box-shadow:0 0 0 3px rgba(37,99,235,.22)}
   .chiplabel{font-size:11.5px;color:var(--muted);font-weight:700;margin-right:3px;letter-spacing:.03em}
   .chip.shop{font-weight:700;color:#9aa3ae}
   #shopslot{display:contents}
@@ -224,7 +225,9 @@
     .chip{flex:1 1 47%;min-height:50px;padding:9px 4px;font-size:15.5px;border-radius:12px;border-width:2px;
       display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25;
       background:#141922;border-color:#2e343d;color:#9aa3b0}
-    .chip.act{background:#1B222D;border-color:#4A5567;color:#E7C785}
+    .chip.act{background:#3A2E12;border-color:#D9A441;color:#F7DFA0;
+      box-shadow:0 0 13px -2px rgba(217,164,65,.6)}
+    .chip:active{transform:scale(.97);filter:brightness(1.3)}
     .chip.shop{font-size:17.5px;font-weight:800;min-height:54px}
     .chip.zone{flex:1 1 22%;font-size:15px;padding:9px 2px}
     #cpM{flex:1 1 100%}
