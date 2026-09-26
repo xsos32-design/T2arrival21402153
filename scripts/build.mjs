@@ -469,7 +469,8 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
  background:#141922;border:1px solid #242B36;border-radius:10px;color:#AEB6C2;
  font-size:15px;font-weight:800;text-decoration:none;text-align:center;padding:8px 4px;
  white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
-.btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe;box-shadow:0 0 13px -2px rgba(59,130,246,.7)}
+.btn:active{transform:scale(.97);filter:brightness(1.3)}
 .btn.half{flex:1 1 46%;font-size:13.5px}
 .btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
 .btn.c40.on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
