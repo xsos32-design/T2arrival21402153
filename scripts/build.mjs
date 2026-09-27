@@ -407,7 +407,7 @@ body{background:#0A0D12;color:#f2f4f7;font-family:-apple-system,"PingFang TC","N
  background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;margin-bottom:5px;overflow:hidden}
 /* 手錶只有「已到」會變淡，不會跟別的意思搞混，所以不加去色濾鏡（省效能） */
 .r.done{opacity:.42}
-.r.done b.t{text-decoration:line-through;text-decoration-thickness:2px}
+.r.done b.t{text-decoration:line-through}
 .r.soon{background:#3f3311;border-color:#eab308;position:relative;z-index:2;
  box-shadow:0 0 0 3px #eab308, 0 0 22px 1px rgba(234,179,8,.8)}
 b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
