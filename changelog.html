@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A0D12">
+<title>更新日誌 · 韋 班機</title>
+<style>
+*{box-sizing:border-box;-webkit-text-size-adjust:100%}
+body{margin:0;background:#0A0D12;color:#C3CAD4;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+ font-size:15px;line-height:1.7;letter-spacing:-.01em;
+ padding:14px 14px calc(24px + env(safe-area-inset-bottom));max-width:720px;margin-inline:auto}
+.hd{background:linear-gradient(180deg,#151A22,#0E1217);border:1px solid #1E242E;border-top:2px solid #8A7440;
+ border-radius:0 0 12px 12px;padding:14px;margin:-14px -14px 16px;text-align:center}
+.hd h1{margin:0;font-size:21px;font-weight:900;color:#E7C785;letter-spacing:.04em}
+.hd p{margin:5px 0 0;font-size:12.5px;color:#818A98}
+.back{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 16px;min-height:42px;
+ background:#141922;border:1px solid #242B36;border-radius:10px;color:#AEB6C2;
+ font-size:14px;font-weight:800;text-decoration:none}
+.back:active{transform:scale(.97);filter:brightness(1.3)}
+.day{margin:0 0 9px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.day b{font-size:17px;font-weight:900;color:#E7C785;font-variant-numeric:tabular-nums;letter-spacing:0}
+.day i{font-style:normal;font-size:11.5px;font-weight:800;color:#0A0D12;background:#5B6675;
+ border-radius:5px;padding:1px 7px;letter-spacing:.02em}
+.day i.new{background:#D9A441;box-shadow:0 0 12px -2px rgba(217,164,65,.8)}
+.card{background:#11151C;border:1px solid #1E242E;border-radius:12px;padding:13px 14px;margin-bottom:9px;
+ box-shadow:inset 4px 0 0 #2A323E}
+.card.hi{box-shadow:inset 4px 0 0 #D9A441}
+ul{margin:0;padding-left:19px}
+li{margin:0 0 5px}
+li:last-child{margin-bottom:0}
+li b{color:#E7E9ED}
+.k40{color:#3DE0D5;font-weight:800}
+.k53{color:#F2506E;font-weight:800}
+.foot{margin-top:18px;padding-top:14px;border-top:1px solid #1E242E;
+ font-size:12.5px;line-height:1.6;color:#6E7683;text-align:center}
+@media (min-width:700px){ body{font-size:15.5px} .hd h1{font-size:24px} }
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>更新日誌</h1>
+  <p>桃園 T2 入境班機看板 · <span class="k40">2140</span> / <span class="k53">2153</span></p>
+  <a class="back" href="index.html">← 回班機看板</a>
+</div>
+
+<div class="day"><b>9/27</b><i class="new">最新</i></div>
+<div class="card hi"><ul>
+  <li>加了這一頁。網頁版最下面可以點進來看改過什麼。</li>
+</ul></div>
+
+<div class="day"><b>9/26</b></div>
+<div class="card hi"><ul>
+  <li><b>按鍵選到會發光了。</b>原本「選到」和「沒選到」的顏色差不到一階，等於看不出來。現在選到的是金色外框＋金字＋一圈光；<span class="k40">2140</span> 是青色光、<span class="k53">2153</span> 是玫瑰色光。手指按下去還會縮一下。</li>
+  <li><b>「變淡」現在只代表「已經到了」。</b>以前不是你分點的班機也會被壓暗，看起來像已經結束，但它們根本還沒到。現在改成卡片底色壓深一階，字一樣清楚。</li>
+  <li><b>已到的班機</b>整列轉灰、時間畫一條橫線，不會再跟別的狀態搞混。</li>
+</ul></div>
+
+<div class="day"><b>9/25</b></div>
+<div class="card"><ul>
+  <li>即將抵達（45 分內）的金色外框加粗、光暈加亮，而且不擠到版面。光環改畫在卡片外緣，左邊的分點色帶不會被吃掉。</li>
+</ul></div>
+
+<div class="day"><b>9/24</b></div>
+<div class="card"><ul>
+  <li>深色配色整理，<span class="k40">2140</span> 青綠、<span class="k53">2153</span> 洋紅維持不變。</li>
+</ul></div>
+
+<div class="day"><b>9/23</b></div>
+<div class="card hi"><ul>
+  <li><b>三種群組回報統一格式：</b>時間 → 班號 → 國旗 → 出發地 → 登機門。開會時段那份以前沒有國旗和出發地，現在補上了。</li>
+  <li><b>每一班都有國旗。</b>機場對照表從 197 個補到 323 個（日本地方線、中國二線、東南亞、歐美、大洋洲、台灣國內線）。萬一還有沒收到的會顯示 🌐，長按看得到機場代碼。</li>
+  <li>拿掉同分鐘抵達的 ①②③ 編號。順序還是照入境人數排，上下排開就是建議順序。</li>
+  <li><b>已到、取消的班機不再排進順序。</b>之前會把已經落地的排第一，等於叫你先去一班已經結束的。</li>
+  <li>即將抵達的卡片加上呼吸光暈。</li>
+  <li><span class="k40">2140</span> / <span class="k53">2153</span> 改成整張卡片上色。</li>
+</ul></div>
+
+<div class="day"><b>9/18</b></div>
+<div class="card"><ul>
+  <li>兩家分點的顏色改成青 vs 玫瑰，亮度差距拉大五倍，色弱也分得出來。</li>
+</ul></div>
+
+<div class="day"><b>9/17</b></div>
+<div class="card"><ul>
+  <li>每個欄位都上色塊：入境人數多寡、班機狀態一眼分辨，一個顏色只代表一件事。</li>
+  <li><span class="k40">2140</span> / <span class="k53">2153</span> 的登機門和分點標籤改成實心色塊。</li>
+</ul></div>
+
+<div class="day"><b>9/16</b></div>
+<div class="card"><ul>
+  <li><b>全套手繪賽博龐克圖示</b>，取代原本的表情符號，而且檔案比現成圖示庫還小。</li>
+  <li><b>快照超過 15 分鐘自動改抓即時。</b>GitHub 排程實測常隔好幾小時才跑，所以頂端會跳紅字說明資料多舊。</li>
+  <li>加到主畫面的桌面圖示（金色韋字），六個版本各自獨立。</li>
+  <li>一般版不再顯示解封印版連結。</li>
+</ul></div>
+
+<div class="day"><b>9/15</b></div>
+<div class="card"><ul>
+  <li><b>省流量。</b>平常只讀 12KB 的小快照，不用每次抓 200KB 即時資料。</li>
+  <li>轉機人數改用當天出境班表回推，入境人數更接近實際。</li>
+  <li>電腦版中間寬度不再被切掉。</li>
+</ul></div>
+
+<div class="day"><b>9/14</b></div>
+<div class="card"><ul>
+  <li>登機門色塊染色，<span class="k40">2140</span> / <span class="k53">2153</span> 一眼分辨。</li>
+</ul></div>
+
+<div class="day"><b>9/13</b></div>
+<div class="card"><ul>
+  <li>表定時間只顯示差多少（例：表定 +59），不用自己算。</li>
+  <li>時間變更改成講「提早」或「延遲」，看得出是好是壞。</li>
+  <li>人數估算細分機型和載客率。</li>
+</ul></div>
+
+<div class="day"><b>9/10</b></div>
+<div class="card"><ul>
+  <li>置頂的製作者與「未經同意請勿私自轉傳」提醒，避開手機瀏海。</li>
+  <li>出發地改顯示國旗，卡片更緊湊。</li>
+</ul></div>
+
+<div class="day"><b>9/9</b></div>
+<div class="card"><ul>
+  <li>開會時段回到 19:00–20:30，自動排在每家第一班之前，散會留 5 分鐘緩衝。</li>
+  <li>預設只看 <span class="k40">2140</span> / <span class="k53">2153</span>。</li>
+</ul></div>
+
+<div class="day"><b>9/7 – 9/8</b></div>
+<div class="card"><ul>
+  <li>三個版本字級全面加大加粗。</li>
+  <li>班號補滿四碼、加上出發國家。</li>
+  <li>兩種群組回報用同一套格式，結尾署名 wei。</li>
+</ul></div>
+
+<div class="day"><b>9/6</b></div>
+<div class="card"><ul>
+  <li>四個分類可以自己改：名稱、登機門、航廈。改完立即生效，存在你這台裝置。</li>
+</ul></div>
+
+<div class="day"><b>9/1</b></div>
+<div class="card"><ul>
+  <li>快速列改成浮在畫面下方，捲動時一直看得到。</li>
+</ul></div>
+
+<div class="day"><b>8/30</b></div>
+<div class="card"><ul>
+  <li>修正 B6：一航二航都有同名登機門，改成航廈先判斷再比登機門。</li>
+</ul></div>
+
+<div class="day"><b>8/27</b></div>
+<div class="card"><ul>
+  <li>延誤跨過午夜的班機不會再從時段裡消失，會標「隔日」。</li>
+  <li>浮動快速列（置頂／現在 6 小時／更新）。</li>
+</ul></div>
+
+<div class="day"><b>8/26</b></div>
+<div class="card"><ul>
+  <li>轉機多的班機會標出來，人數只算真正走證照查驗出來的。</li>
+</ul></div>
+
+<div class="day"><b>8/24</b></div>
+<div class="card"><ul>
+  <li>日期切換（前一天／後一天）、明天班表、跨午夜時段。</li>
+</ul></div>
+
+<div class="day"><b>8/19 – 8/21</b></div>
+<div class="card"><ul>
+  <li>推估下機人數。</li>
+  <li>開會空檔計算（每家分開算）。</li>
+  <li>一鍵複製群組回報。</li>
+</ul></div>
+
+<div class="day"><b>8/12 – 8/16</b></div>
+<div class="card"><ul>
+  <li>看板上線：網頁版、TDX 版、手錶版三種。</li>
+</ul></div>
+
+<div class="foot">資料擷取自桃園機場公開航班資訊與交通部 TDX，僅供參考。<br>實際登機門、時間、狀態一律以現場為準。</div>
+
+</body>
+</html>
