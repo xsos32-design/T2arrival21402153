@@ -82,9 +82,8 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
    因為它根本還沒到，不該看起來像被關掉。 */
 .r:not(.r40):not(.r53):not(.done){background:#0C1016;border-color:#1A1F27}
 .r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
-/* 已到＝壓暗（顏色留著，不去色）＋時間畫一條細線 */
+/* 已到＝單純壓暗，顏色留著。「不是你的分點」不淡化，所以暗＝已到不會搞混 */
 .r.done{opacity:.45}
-.r.done b.t{text-decoration:line-through}
 .r.soon{--bar:#D9A441;border-color:#5C4718;position:relative;z-index:2;
  box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
  animation:soonGlow 2.4s ease-in-out infinite}
