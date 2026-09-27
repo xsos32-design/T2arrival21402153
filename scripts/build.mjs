@@ -992,6 +992,14 @@ async function main() {
 
   await writeUnlocked();
 
+  /* 版本檔：把 index.html 裡的 PAGE_V 抄出來，前端拿它判斷自己是不是舊版 */
+  try {
+    const src = await readFile('index.html', 'utf8');
+    const v = (src.match(/var PAGE_V='([^']*)'/) || [])[1] || '';
+    if (v) { await writeFile(join(OUT, 'ver.json'), JSON.stringify({ v }), 'utf8'); console.log('已產生 ver.json（' + v + '）'); }
+    else console.log('index.html 找不到 PAGE_V，略過 ver.json');
+  } catch { console.log('讀不到 index.html，略過 ver.json'); }
+
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
   for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
