@@ -496,6 +496,27 @@
 
 
 <script>
+/* ── 版本自動更新 ────────────────────────────────────────────
+   手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
+   這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
+   一次工作階段只做一次，不會反覆重整。 */
+var PAGE_V='2026-09-27a';
+(function(){
+  /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
+     所以用網址當第二道保險，確保絕對不會無限重整） */
+  if(/[?&]v=/.test(location.search)) return;
+  try{ if(sessionStorage.getItem('vchk')==='1') return; }catch(e){}
+  try{
+    fetch('ver.json?t='+Date.now(),{cache:'no-store'}).then(function(r){
+      return r.ok?r.json():null;
+    }).then(function(j){
+      var want=j&&j.v;
+      if(!want||!PAGE_V||want===PAGE_V) return;
+      try{ sessionStorage.setItem('vchk','1'); }catch(e){}
+      location.replace(location.pathname+'?v='+encodeURIComponent(want));
+    })['catch'](function(){});
+  }catch(e){}
+})();
 var API='https://www.taoyuan-airport.com/api/api/flight/a_flight';
 
 var GATE_ORDER=(function(){
