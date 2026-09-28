@@ -21,6 +21,8 @@ body{margin:0;background:#0A0D12;color:#C3CAD4;
 .back:active{transform:scale(.97);filter:brightness(1.3)}
 .day{margin:0 0 9px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .day b{font-size:17px;font-weight:900;color:#E7C785;font-variant-numeric:tabular-nums;letter-spacing:0}
+/* 日期旁邊直接寫這天做了什麼，不用點開下面也知道 */
+.day em{font-style:normal;font-size:13.5px;font-weight:700;color:#93A0B0;line-height:1.35;flex:1 1 auto;min-width:0}
 .day i{font-style:normal;font-size:11.5px;font-weight:800;color:#0A0D12;background:#5B6675;
  border-radius:5px;padding:1px 7px;letter-spacing:.02em}
 .day i.new{background:#D9A441;box-shadow:0 0 12px -2px rgba(217,164,65,.8)}
@@ -46,31 +48,31 @@ li b{color:#E7E9ED}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>9/27</b><i class="new">最新</i></div>
+<div class="day"><b>9/27</b><em>更新日誌上線 · 已到只壓暗</em><i class="new">最新</i></div>
 <div class="card hi"><ul>
   <li>加了這一頁。網頁版最下面可以點進來看改過什麼。</li>
   <li><b>已到的班機改成單純壓暗</b>，顏色留著（2140 還是青綠、2153 還是玫瑰），不再去色也不畫橫線。因為「不是你的分點」已經完全不淡化了，暗＝已到不會搞混。</li>
   <li><b>改版會自動更新了。</b>手機常常把舊版畫面存起來重複用，改了東西你卻還看到舊的。現在開頁時會比對版本，不一樣就自動重載一次（只一次，不會卡在重整）。</li>
 </ul></div>
 
-<div class="day"><b>9/26</b></div>
+<div class="day"><b>9/26</b><em>按鍵會發光 · 變淡只代表已到</em></div>
 <div class="card hi"><ul>
   <li><b>按鍵選到會發光了。</b>原本「選到」和「沒選到」的顏色差不到一階，等於看不出來。現在選到的是金色外框＋金字＋一圈光；<span class="k40">2140</span> 是青色光、<span class="k53">2153</span> 是玫瑰色光。手指按下去還會縮一下。</li>
   <li><b>「變淡」現在只代表「已經到了」。</b>以前不是你分點的班機也會被壓暗，看起來像已經結束，但它們根本還沒到。現在改成卡片底色壓深一階，字一樣清楚。</li>
   <li><b>已到的班機</b>跟其他狀態分開表示，不會再搞混。</li>
 </ul></div>
 
-<div class="day"><b>9/25</b></div>
+<div class="day"><b>9/25</b><em>即將抵達的光環加粗</em></div>
 <div class="card"><ul>
   <li>即將抵達（45 分內）的金色外框加粗、光暈加亮，而且不擠到版面。光環改畫在卡片外緣，左邊的分點色帶不會被吃掉。</li>
 </ul></div>
 
-<div class="day"><b>9/24</b></div>
+<div class="day"><b>9/24</b><em>深色配色整理</em></div>
 <div class="card"><ul>
   <li>深色配色整理，<span class="k40">2140</span> 青綠、<span class="k53">2153</span> 洋紅維持不變。</li>
 </ul></div>
 
-<div class="day"><b>9/23</b></div>
+<div class="day"><b>9/23</b><em>回報統一格式 · 每班都有國旗</em></div>
 <div class="card hi"><ul>
   <li><b>三種群組回報統一格式：</b>時間 → 班號 → 國旗 → 出發地 → 登機門。開會時段那份以前沒有國旗和出發地，現在補上了。</li>
   <li><b>每一班都有國旗。</b>機場對照表從 197 個補到 323 個（日本地方線、中國二線、東南亞、歐美、大洋洲、台灣國內線）。萬一還有沒收到的會顯示 🌐，長按看得到機場代碼。</li>
@@ -80,18 +82,18 @@ li b{color:#E7E9ED}
   <li><span class="k40">2140</span> / <span class="k53">2153</span> 改成整張卡片上色。</li>
 </ul></div>
 
-<div class="day"><b>9/18</b></div>
+<div class="day"><b>9/18</b><em>兩家分點顏色拉開</em></div>
 <div class="card"><ul>
   <li>兩家分點的顏色改成青 vs 玫瑰，亮度差距拉大五倍，色弱也分得出來。</li>
 </ul></div>
 
-<div class="day"><b>9/17</b></div>
+<div class="day"><b>9/17</b><em>每個欄位都上色塊</em></div>
 <div class="card"><ul>
   <li>每個欄位都上色塊：入境人數多寡、班機狀態一眼分辨，一個顏色只代表一件事。</li>
   <li><span class="k40">2140</span> / <span class="k53">2153</span> 的登機門和分點標籤改成實心色塊。</li>
 </ul></div>
 
-<div class="day"><b>9/16</b></div>
+<div class="day"><b>9/16</b><em>自製圖示 · 資料過期自動補救</em></div>
 <div class="card"><ul>
   <li><b>全套手繪賽博龐克圖示</b>，取代原本的表情符號，而且檔案比現成圖示庫還小。</li>
   <li><b>快照超過 15 分鐘自動改抓即時。</b>GitHub 排程實測常隔好幾小時才跑，所以頂端會跳紅字說明資料多舊。</li>
@@ -99,83 +101,83 @@ li b{color:#E7E9ED}
   <li>一般版不再顯示解封印版連結。</li>
 </ul></div>
 
-<div class="day"><b>9/15</b></div>
+<div class="day"><b>9/15</b><em>省流量 · 人數算得更準</em></div>
 <div class="card"><ul>
   <li><b>省流量。</b>平常只讀 12KB 的小快照，不用每次抓 200KB 即時資料。</li>
   <li>轉機人數改用當天出境班表回推，入境人數更接近實際。</li>
   <li>電腦版中間寬度不再被切掉。</li>
 </ul></div>
 
-<div class="day"><b>9/14</b></div>
+<div class="day"><b>9/14</b><em>登機門染色</em></div>
 <div class="card"><ul>
   <li>登機門色塊染色，<span class="k40">2140</span> / <span class="k53">2153</span> 一眼分辨。</li>
 </ul></div>
 
-<div class="day"><b>9/13</b></div>
+<div class="day"><b>9/13</b><em>時間只顯示差多少</em></div>
 <div class="card"><ul>
   <li>表定時間只顯示差多少（例：表定 +59），不用自己算。</li>
   <li>時間變更改成講「提早」或「延遲」，看得出是好是壞。</li>
   <li>人數估算細分機型和載客率。</li>
 </ul></div>
 
-<div class="day"><b>9/10</b></div>
+<div class="day"><b>9/10</b><em>置頂提醒 · 出發地改國旗</em></div>
 <div class="card"><ul>
   <li>置頂的製作者與「未經同意請勿私自轉傳」提醒，避開手機瀏海。</li>
   <li>出發地改顯示國旗，卡片更緊湊。</li>
 </ul></div>
 
-<div class="day"><b>9/9</b></div>
+<div class="day"><b>9/9</b><em>開會時段自動排</em></div>
 <div class="card"><ul>
   <li>開會時段回到 19:00–20:30，自動排在每家第一班之前，散會留 5 分鐘緩衝。</li>
   <li>預設只看 <span class="k40">2140</span> / <span class="k53">2153</span>。</li>
 </ul></div>
 
-<div class="day"><b>9/7 – 9/8</b></div>
+<div class="day"><b>9/7 – 9/8</b><em>字體全面加大</em></div>
 <div class="card"><ul>
   <li>三個版本字級全面加大加粗。</li>
   <li>班號補滿四碼、加上出發國家。</li>
   <li>兩種群組回報用同一套格式，結尾署名 wei。</li>
 </ul></div>
 
-<div class="day"><b>9/6</b></div>
+<div class="day"><b>9/6</b><em>四個分類可以自己改</em></div>
 <div class="card"><ul>
   <li>四個分類可以自己改：名稱、登機門、航廈。改完立即生效，存在你這台裝置。</li>
 </ul></div>
 
-<div class="day"><b>9/1</b></div>
+<div class="day"><b>9/1</b><em>快速列改成浮動</em></div>
 <div class="card"><ul>
   <li>快速列改成浮在畫面下方，捲動時一直看得到。</li>
 </ul></div>
 
-<div class="day"><b>8/30</b></div>
+<div class="day"><b>8/30</b><em>登機門判斷修正</em></div>
 <div class="card"><ul>
   <li>修正 B6：一航二航都有同名登機門，改成航廈先判斷再比登機門。</li>
 </ul></div>
 
-<div class="day"><b>8/27</b></div>
+<div class="day"><b>8/27</b><em>跨午夜的班機不會消失</em></div>
 <div class="card"><ul>
   <li>延誤跨過午夜的班機不會再從時段裡消失，會標「隔日」。</li>
   <li>浮動快速列（置頂／現在 6 小時／更新）。</li>
 </ul></div>
 
-<div class="day"><b>8/26</b></div>
+<div class="day"><b>8/26</b><em>轉機人數分開算</em></div>
 <div class="card"><ul>
   <li>轉機多的班機會標出來，人數只算真正走證照查驗出來的。</li>
 </ul></div>
 
-<div class="day"><b>8/24</b></div>
+<div class="day"><b>8/24</b><em>日期切換 · 明天班表</em></div>
 <div class="card"><ul>
   <li>日期切換（前一天／後一天）、明天班表、跨午夜時段。</li>
 </ul></div>
 
-<div class="day"><b>8/19 – 8/21</b></div>
+<div class="day"><b>8/19 – 8/21</b><em>人數估算 · 開會空檔</em></div>
 <div class="card"><ul>
   <li>推估下機人數。</li>
   <li>開會空檔計算（每家分開算）。</li>
   <li>一鍵複製群組回報。</li>
 </ul></div>
 
-<div class="day"><b>8/12 – 8/16</b></div>
+<div class="day"><b>8/12 – 8/16</b><em>看板上線</em></div>
 <div class="card"><ul>
   <li>看板上線：網頁版、TDX 版、手錶版三種。</li>
 </ul></div>
