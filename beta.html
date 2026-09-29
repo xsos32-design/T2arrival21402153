@@ -483,12 +483,12 @@
       <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兩組後續航班</span>
     </div>
 
-    <div class="chips"><span class="chiplabel">開會／空檔提醒：選群組和空檔時間，算出空檔後第一班，提前 15 分鐘提醒</span></div>
+    <div class="chips"><span class="chiplabel">開會時間：選群組和可以開會的區間，排 15 分鐘的會，越晚越好、開完直接接班機</span></div>
     <div class="row mtg">
       <div class="fld"><label for="mG">群組</label><select id="mG"></select></div>
       <div class="fld"><label for="mLo">空檔從</label><input type="time" id="mLo" step="300" value="19:00"></div>
       <div class="fld"><label for="mHi">到</label><input type="time" id="mHi" step="300" value="20:30"></div>
-      <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="mGo"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 算第一班</button></div>
+      <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="mGo"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 排開會時間</button></div>
     </div>
     <div id="copybox"></div>
 
@@ -1122,34 +1122,56 @@ function reportText(){
   });
 }
 
-/* ── 開會／空檔提醒：選一組、一段空檔，算出空檔後第一班，提前 15 分鐘回崗位 ── */
-var MEET_KEY='tpeMeetBeta1', MEET_LEAD=15;
+/* ── 開會／空檔提醒 ─────────────────────────────────────────
+   在空檔區間裡排一場 15 分鐘的會，越晚越好，而且最好「開完直接接班機」：
+   1. 先找區間內最晚的一班飛機，會議排在它前面 15 分鐘（散會＝飛機到）
+      ——但會議那 15 分鐘裡不能有別班飛機進來
+   2. 區間內沒有適合的飛機，就排在區間最後 15 分鐘（一樣避開會中到的班機，往前 5 分鐘一格找）
+   3. 都排不進去就說明原因 */
+var MEET_KEY='tpeMeetBeta1', MEET_LEN=15;
 function m2t(m){ m=((m%1440)+1440)%1440; return pad(Math.floor(m/60))+':'+pad(m%60); }
+function meetPlan(list, lo, hi){
+  var L=mins(lo), H=mins(hi);
+  var busy=function(end){ var st=end-MEET_LEN;   /* 會中（開始～散會前）有飛機進來 */
+    return list.some(function(x){ var t=mins(x.t); return t>=st && t<end; }); };
+  var cands=list.filter(function(x){ var t=mins(x.t); return t>=L+MEET_LEN && t<=H; }).reverse();
+  for(var i=0;i<cands.length;i++){
+    var e=mins(cands[i].t);
+    if(!busy(e)) return {st:e-MEET_LEN, end:e, direct:true};
+  }
+  for(var e2=Math.floor(H/5)*5; e2>=L+MEET_LEN; e2-=5){
+    if(!busy(e2)) return {st:e2-MEET_LEN, end:e2, direct:false};
+  }
+  return null;
+}
 function meetText(gi, lo, hi){
   var d=new Date(), md=(d.getMonth()+1)+'/'+d.getDate(), name=bareName(CATS[gi].name);
   return getFlights(todayIso()).then(function(all){
-    var list=groupFlights(all,gi);
-    var inWin=list.filter(function(x){ return x.t>=lo && x.t<hi; });
-    var next=list.filter(function(x){ return x.t>=hi; })[0]||null;
-    var back=next ? m2t(mins(next.t)-MEET_LEAD) : '';
-    var tight=!!(next && back<hi);          /* 空檔一結束 15 分鐘內就有飛機 */
-    var lines=[md+'【'+name+'】空檔 '+lo+'–'+hi];
-    if(inWin.length){ lines.push('⚠ 空檔內有 '+inWin.length+' 班：'); inWin.forEach(function(x){ lines.push(fline(x)); }); }
-    if(next){
-      lines.push('空檔後第一班 '+fline(next));
-      lines.push('⏰ '+fwColon(back)+' 前回到登機口（第一班前 '+MEET_LEAD+' 分鐘）');
-      if(tight) lines.push('第一班 '+fwColon(next.t)+' 就到，空檔要提早在 '+fwColon(back)+' 結束');
-    } else lines.push('空檔後今天沒有班機，時間彈性');
+    var list=groupFlights(all,gi), plan=meetPlan(list,lo,hi);
+    var head=md+'【'+name+'】空檔 '+lo+'–'+hi;
+    var hHead='<div class="mth">'+IC('clock')+' '+md+' '+esc(name)+'　空檔 '+lo+'–'+hi+'</div>';
+    if(!plan){
+      var why=(mins(hi)-mins(lo)<MEET_LEN)?'空檔不到 '+MEET_LEN+' 分鐘':'空檔裡每 '+MEET_LEN+' 分鐘都有飛機進來';
+      return {text:head+'\n排不進 '+MEET_LEN+' 分鐘的會（'+why+'）',
+              html:hHead+'<div class="status">'+IC('alert')+' 排不進 '+MEET_LEN+' 分鐘的會（'+why+'）</div>'};
+    }
+    var st=m2t(plan.st), en=m2t(plan.end);
+    var next=list.filter(function(x){ return mins(x.t)>=plan.end; })[0]||null;
+    var before=list.filter(function(x){ return x.t>=lo && mins(x.t)<plan.st; });
+    var lines=[head, '開會 '+st+'–'+en+'（'+MEET_LEN+' 分鐘）'];
+    if(next) lines.push((plan.direct?'散會直接接 ':'散會後第一班 ')+fline(next));
+    else lines.push('散會後今天沒有班機');
+    if(before.length) lines.push('開會前先接 '+before.length+' 班：'+before.map(function(x){ return fwColon(x.t)+' '+x.g; }).join('、'));
     var cls=CAT_CLS[gi];
-    var h='<div class="mth">'+IC('clock')+' '+md+' '+esc(name)+'　空檔 '+lo+'–'+hi+'</div><table class="mt">'
-      +'<tr><th>提醒</th><th>空檔後第一班</th></tr><tr>'
-      +'<td><b>'+(next?back:'—')+'</b><br><small>'+(next?'前回到登機口':'沒有班機')+'</small></td>'
+    var h=hHead+'<table class="mt"><tr><th>開會</th><th>'+(plan.direct?'散會直接接':'散會後第一班')+'</th></tr><tr>'
+      +'<td><b>'+st+'–'+en+'</b><br><small>'+MEET_LEN+' 分鐘</small></td>'
       +'<td>'+(next ? next.t+' '+esc(fno4(next.no))+' '+(flagOf(next.ct)||'🌐')
                      +'<br><small><span class="tag '+cls+'">'+esc(next.g)+'</span>　'+esc(next.city)+'</small>'
-                   : '—')+'</td></tr>';
-    if(tight) h+='<tr class="sub"><td colspan="2">'+IC('alert')+' 第一班 '+next.t+' 就到，空檔要提早在 '+back+' 結束</td></tr>';
-    if(inWin.length) h+='<tr class="sub"><td colspan="2">'+IC('alert')+' 空檔內還有 '+inWin.length+' 班：'
-      +inWin.map(function(x){ return x.t+' '+esc(fno4(x.no))+' '+esc(x.g); }).join('、')+'</td></tr>';
+                   : '—<br><small>沒有班機</small>')+'</td></tr>';
+    if(!plan.direct && next) h+='<tr class="sub"><td colspan="2">'+IC('alert')+' 空檔裡沒有能「開完直接接」的班機，排在空檔最後；散會到第一班還有 '
+      +(mins(next.t)-plan.end)+' 分鐘</td></tr>';
+    if(before.length) h+='<tr class="sub"><td colspan="2">開會前先接 '+before.length+' 班：'
+      +before.map(function(x){ return x.t+' '+esc(fno4(x.no))+' '+esc(x.g); }).join('、')+'</td></tr>';
     h+='</table>';
     return {text:lines.join('\n'), html:h};
   });
