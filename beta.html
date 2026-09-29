@@ -483,7 +483,7 @@
       <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兩組後續航班</span>
     </div>
 
-    <div class="chips"><span class="chiplabel">開會時間：選群組和可以開會的區間，排 15 分鐘的會，越晚越好、開完直接接班機</span></div>
+    <div class="chips"><span class="chiplabel">開會時間：選群組和可以開會的區間，排 15 分鐘的會，散會和下一班飛機越接近越好</span></div>
     <div class="row mtg">
       <div class="fld"><label for="mG">群組</label><select id="mG"></select></div>
       <div class="fld"><label for="mLo">空檔從</label><input type="time" id="mLo" step="300" value="19:00"></div>
@@ -1122,27 +1122,26 @@ function reportText(){
   });
 }
 
-/* ── 開會／空檔提醒 ─────────────────────────────────────────
-   在空檔區間裡排一場 15 分鐘的會，越晚越好，而且最好「開完直接接班機」：
-   1. 先找區間內最晚的一班飛機，會議排在它前面 15 分鐘（散會＝飛機到）
-      ——但會議那 15 分鐘裡不能有別班飛機進來
-   2. 區間內沒有適合的飛機，就排在區間最後 15 分鐘（一樣避開會中到的班機，往前 5 分鐘一格找）
-   3. 都排不進去就說明原因 */
+/* ── 開會時間 ────────────────────────────────────────────────
+   在區間裡排一場 15 分鐘的會，「散會」和「下一班飛機」越接近越好：
+   區間內每一分鐘都當成散會時間試一次（會中不能有飛機進來），
+   選散會到下一班間隔最短的；間隔一樣就選比較晚的。
+   間隔 0＝開完直接接班機。 */
 var MEET_KEY='tpeMeetBeta1', MEET_LEN=15;
 function m2t(m){ m=((m%1440)+1440)%1440; return pad(Math.floor(m/60))+':'+pad(m%60); }
 function meetPlan(list, lo, hi){
-  var L=mins(lo), H=mins(hi);
-  var busy=function(end){ var st=end-MEET_LEN;   /* 會中（開始～散會前）有飛機進來 */
-    return list.some(function(x){ var t=mins(x.t); return t>=st && t<end; }); };
-  var cands=list.filter(function(x){ var t=mins(x.t); return t>=L+MEET_LEN && t<=H; }).reverse();
-  for(var i=0;i<cands.length;i++){
-    var e=mins(cands[i].t);
-    if(!busy(e)) return {st:e-MEET_LEN, end:e, direct:true};
+  var L=mins(lo), H=mins(hi), T=list.map(function(x){ return mins(x.t); }), best=null;
+  for(var e=L+MEET_LEN; e<=H; e++){
+    var st=e-MEET_LEN, bad=false, gap=Infinity;
+    for(var i=0;i<T.length;i++){
+      if(T[i]>=st && T[i]<e){ bad=true; break; }      /* 會中有飛機進來 */
+      if(T[i]>=e && T[i]-e<gap) gap=T[i]-e;
+    }
+    if(bad) continue;
+    if(!best || gap<best.gap || (gap===best.gap && e>best.end)) best={st:st,end:e,gap:gap};
   }
-  for(var e2=Math.floor(H/5)*5; e2>=L+MEET_LEN; e2-=5){
-    if(!busy(e2)) return {st:e2-MEET_LEN, end:e2, direct:false};
-  }
-  return null;
+  if(best) best.direct=(best.gap===0);
+  return best;
 }
 function meetText(gi, lo, hi){
   var d=new Date(), md=(d.getMonth()+1)+'/'+d.getDate(), name=bareName(CATS[gi].name);
@@ -1159,7 +1158,7 @@ function meetText(gi, lo, hi){
     var next=list.filter(function(x){ return mins(x.t)>=plan.end; })[0]||null;
     var before=list.filter(function(x){ return x.t>=lo && mins(x.t)<plan.st; });
     var lines=[head, '開會 '+st+'–'+en+'（'+MEET_LEN+' 分鐘）'];
-    if(next) lines.push((plan.direct?'散會直接接 ':'散會後第一班 ')+fline(next));
+    if(next) lines.push((plan.direct?'散會直接接 ':'散會後隔 '+(mins(next.t)-plan.end)+' 分鐘接 ')+fline(next));
     else lines.push('散會後今天沒有班機');
     if(before.length) lines.push('開會前先接 '+before.length+' 班：'+before.map(function(x){ return fwColon(x.t)+' '+x.g; }).join('、'));
     var cls=CAT_CLS[gi];
@@ -1168,8 +1167,7 @@ function meetText(gi, lo, hi){
       +'<td>'+(next ? next.t+' '+esc(fno4(next.no))+' '+(flagOf(next.ct)||'🌐')
                      +'<br><small><span class="tag '+cls+'">'+esc(next.g)+'</span>　'+esc(next.city)+'</small>'
                    : '—<br><small>沒有班機</small>')+'</td></tr>';
-    if(!plan.direct && next) h+='<tr class="sub"><td colspan="2">'+IC('alert')+' 空檔裡沒有能「開完直接接」的班機，排在空檔最後；散會到第一班還有 '
-      +(mins(next.t)-plan.end)+' 分鐘</td></tr>';
+    if(!plan.direct && next) h+='<tr class="sub"><td colspan="2">散會到第一班隔 '+(mins(next.t)-plan.end)+' 分鐘（這個區間最接近的排法）</td></tr>';
     if(before.length) h+='<tr class="sub"><td colspan="2">開會前先接 '+before.length+' 班：'
       +before.map(function(x){ return x.t+' '+esc(fno4(x.no))+' '+esc(x.g); }).join('、')+'</td></tr>';
     h+='</table>';
