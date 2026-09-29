@@ -522,11 +522,12 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
 }`;
 
 /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
-   不是只看「第一班」，而是把整個區間掃一遍，找出這家分點的空檔：
-     1. 最優先：散會那一分鐘剛好有班機到（開完直接去接，零等待）
-     2. 同樣條件下取最晚的
-     3. 都沒有就取「中間沒有班機」的最晚空檔
-   兩家撞在一起時，兩種讓法都算過，挑「直接接到班機」的場次比較多的那種。 */
+   把區間內所有可能的組合掃一遍（兩家各 76 個起點，約 5800 組，不到 0.1 毫秒），
+   依這個優先順序挑最好的一組：
+     ① 開會中間不能有自己的班機進來
+     ② 散會那一分鐘剛好有班機到（開完直接去接，零等待）
+     ③ 兩場開會時間越接近越好
+     ④ 越晚越好 */
 function meetTable(flights) {
   const LO = '19:00', HI = '20:30', DUR = 15;
   const m2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
@@ -537,29 +538,25 @@ function meetTable(flights) {
     if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
     return at(f) >= LO;
   });
-  /* 由晚往早掃，回傳最好的開始時間；busy=另一場占掉的 [起,迄)，沒有就 null */
-  function pickSlot(ts, busy){
-    var best=null, bestHit=null, s, i;
-    for(s=LASTm; s>=LOm; s--){
-      if(busy && s<busy[1] && s+DUR>busy[0]) continue;
-      var inside=false, hit=false;
-      for(i=0;i<ts.length;i++){
-        if(ts[i]>=s && ts[i]<s+DUR){ inside=true; break; }
-        if(ts[i]===s+DUR) hit=true;
+  function free(ts,s){ for(var i=0;i<ts.length;i++){ if(ts[i]>=s&&ts[i]<s+DUR) return false; } return true; }
+  function hitsAt(ts,s){ return ts.indexOf(s+DUR)>=0; }
+  function planPair(A,B){
+    var best=null, sa, sb;
+    for(sa=LOm; sa<=LASTm; sa++){
+      var okA=free(A,sa), hA=okA&&hitsAt(A,sa);
+      for(sb=LOm; sb<=LASTm; sb++){
+        if(sa<sb+DUR && sa+DUR>sb) continue;              /* 兩場不能重疊 */
+        var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
+        var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
+        var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
+              +((hA?1:0)+(hB?1:0))*1000000                /* ② 散會直接接班機 */
+              -gap*1000                                   /* ③ 兩場越近越好 */
+              +sa+sb;                                     /* ④ 越晚越好 */
+        if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
       }
-      if(inside) continue;
-      if(best===null) best=s;
-      if(hit){ bestHit=s; break; }
     }
-    return bestHit!==null?bestHit:best;
+    return [best.sa,best.sb];
   }
-  /* 完全找不到空檔（班機太密）時的退路 */
-  function fallback(busy){
-    for(var s=LASTm;s>=LOm;s--){ if(!(busy && s<busy[1] && s+DUR>busy[0])) return s; }
-    return LOm;
-  }
-  function pick(ts,busy){ var s=pickSlot(ts,busy); return s===null?fallback(busy):s; }
-  function hitsAt(ts,s){ return s!==null && ts.indexOf(s+DUR)>=0; }
   function minsOf(id){
     return pool.filter(function(f){return shopOf(f)===id;})
                .map(function(f){ return m2(at(f)); })
@@ -571,14 +568,7 @@ function meetTable(flights) {
     return c[0]||null;
   }
   var A=minsOf('40'), B=minsOf('53');
-  var sa=pick(A,null), sb=pick(B,null);
-  if(sa<sb+DUR && sa+DUR>sb){
-    var o1=[sa, pick(B,[sa,sa+DUR])];
-    var o2=[pick(A,[sb,sb+DUR]), sb];
-    var score=function(o){ return ((hitsAt(A,o[0])?1:0)+(hitsAt(B,o[1])?1:0))*10000 + o[0] + o[1]; };
-    var win=score(o2)>score(o1)?o2:o1;
-    sa=win[0]; sb=win[1];
-  }
+  var pp=planPair(A,B), sa=pp[0], sb=pp[1];
   const S = [{ name: '2140', cls: 'g40', st: sa, f: nextAfter('40', sa + DUR) },
              { name: '2153', cls: 'g53', st: sb, f: nextAfter('53', sb + DUR) }];
   const ord = S.slice().sort(function(a,b){ return a.st-b.st; });
