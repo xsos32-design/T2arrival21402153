@@ -500,7 +500,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-09-27a';
+var PAGE_V='2026-09-29a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1060,10 +1060,12 @@ function reportText(kind){
     var g40=EXr[0].set, g53=EXr[1].set;
 
     /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘 ──
-       每家都排在自己「19:00 之後第一班飛機」的前面，散會後留 5 分鐘緩衝再去接機；
-       兩家算出來的時間如果太近，就把比較早的那家再往前挪。 */
+       排法：從區間最晚往回抓 15 分鐘，也就是「散會就直接接第一班」。
+       結束時間＝min(20:30, 自己第一班的抵達時間)，開始＝結束往前 15 分鐘。
+       沒有班機的那家就排在區間最後 15 分鐘（20:15–20:30）。
+       兩家撞在一起時，第一班比較早的那家往前讓。 */
     if(kind==='M'){
-      var LO='19:00', HI='20:30', DUR=15, BUF=5;
+      var LO='19:00', HI='20:30', DUR=15;
       var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
       var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
       var LOm=m2(LO), LASTm=m2(HI)-DUR;
@@ -1073,9 +1075,9 @@ function reportText(kind){
         return c[0]||null;
       };
       var idealOf=function(f){
-        if(!f) return LOm;
-        var s=Math.floor((m2(f.t)-DUR-BUF)/5)*5;   /* 抓到 5 分鐘的整數 */
-        return Math.max(LOm, Math.min(LASTm, s));
+        if(!f) return LASTm;                       /* 沒班機＝排最後 15 分鐘 */
+        var end=Math.min(m2(HI), m2(f.t));         /* 開完直接接班機，不留空檔 */
+        return Math.max(LOm, Math.min(LASTm, end-DUR));
       };
       var S=[{name:CATS[0].name,cls:'g40',f:firstOf(g40)},
              {name:CATS[1].name,cls:'g53',f:firstOf(g53)}];
