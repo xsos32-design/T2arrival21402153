@@ -521,11 +521,12 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
-/* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘 ──
-   排法：從區間最晚往回抓 15 分鐘，也就是「散會就直接接第一班」。
-   結束時間＝min(20:30, 自己第一班的抵達時間)，開始＝結束往前 15 分鐘。
-   沒有班機的那家就排在區間最後 15 分鐘（20:15–20:30）。
-   兩家撞在一起時，第一班比較早的那家往前讓。 */
+/* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
+   不是只看「第一班」，而是把整個區間掃一遍，找出這家分點的空檔：
+     1. 最優先：散會那一分鐘剛好有班機到（開完直接去接，零等待）
+     2. 同樣條件下取最晚的
+     3. 都沒有就取「中間沒有班機」的最晚空檔
+   兩家撞在一起時，兩種讓法都算過，挑「直接接到班機」的場次比較多的那種。 */
 function meetTable(flights) {
   const LO = '19:00', HI = '20:30', DUR = 15;
   const m2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
@@ -536,29 +537,51 @@ function meetTable(flights) {
     if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
     return at(f) >= LO;
   });
-  const firstOf = id => {
-    const c = pool.filter(f => shopOf(f) === id);
-    c.sort((a, b) => at(a).localeCompare(at(b)));
-    return c[0] || null;
-  };
-  const idealOf = f => {
-    if (!f) return LASTm;                         /* 沒班機＝排最後 15 分鐘 */
-    const end = Math.min(m2(HI), m2(at(f)));      /* 開完直接接班機，不留空檔 */
-    return Math.max(LOm, Math.min(LASTm, end - DUR));
-  };
-  const S = [{ name: '2140', cls: 'g40', f: firstOf('40') },
-             { name: '2153', cls: 'g53', f: firstOf('53') }];
-  S.forEach(r => { r.st = idealOf(r.f); });
-  const ord = S.slice().sort((a, b) => {
-    if (a.st !== b.st) return a.st - b.st;
-    if (!a.f) return 1;
-    if (!b.f) return -1;
-    return at(a.f).localeCompare(at(b.f));
-  });
-  if (ord[1].st - ord[0].st < DUR) {              /* 兩場撞在一起就把早的那家往前挪 */
-    ord[0].st = ord[1].st - DUR;
-    if (ord[0].st < LOm) { ord[0].st = LOm; ord[1].st = Math.min(LASTm, LOm + DUR); }
+  /* 由晚往早掃，回傳最好的開始時間；busy=另一場占掉的 [起,迄)，沒有就 null */
+  function pickSlot(ts, busy){
+    var best=null, bestHit=null, s, i;
+    for(s=LASTm; s>=LOm; s--){
+      if(busy && s<busy[1] && s+DUR>busy[0]) continue;
+      var inside=false, hit=false;
+      for(i=0;i<ts.length;i++){
+        if(ts[i]>=s && ts[i]<s+DUR){ inside=true; break; }
+        if(ts[i]===s+DUR) hit=true;
+      }
+      if(inside) continue;
+      if(best===null) best=s;
+      if(hit){ bestHit=s; break; }
+    }
+    return bestHit!==null?bestHit:best;
   }
+  /* 完全找不到空檔（班機太密）時的退路 */
+  function fallback(busy){
+    for(var s=LASTm;s>=LOm;s--){ if(!(busy && s<busy[1] && s+DUR>busy[0])) return s; }
+    return LOm;
+  }
+  function pick(ts,busy){ var s=pickSlot(ts,busy); return s===null?fallback(busy):s; }
+  function hitsAt(ts,s){ return s!==null && ts.indexOf(s+DUR)>=0; }
+  function minsOf(id){
+    return pool.filter(function(f){return shopOf(f)===id;})
+               .map(function(f){ return m2(at(f)); })
+               .sort(function(a,b){ return a-b; });
+  }
+  function nextAfter(id,st){
+    var c=pool.filter(function(f){ return shopOf(f)===id && m2(at(f))>=st; });
+    c.sort(function(a,b){ return at(a).localeCompare(at(b)); });
+    return c[0]||null;
+  }
+  var A=minsOf('40'), B=minsOf('53');
+  var sa=pick(A,null), sb=pick(B,null);
+  if(sa<sb+DUR && sa+DUR>sb){
+    var o1=[sa, pick(B,[sa,sa+DUR])];
+    var o2=[pick(A,[sb,sb+DUR]), sb];
+    var score=function(o){ return ((hitsAt(A,o[0])?1:0)+(hitsAt(B,o[1])?1:0))*10000 + o[0] + o[1]; };
+    var win=score(o2)>score(o1)?o2:o1;
+    sa=win[0]; sb=win[1];
+  }
+  const S = [{ name: '2140', cls: 'g40', st: sa, f: nextAfter('40', sa + DUR) },
+             { name: '2153', cls: 'g53', st: sb, f: nextAfter('53', sb + DUR) }];
+  const ord = S.slice().sort(function(a,b){ return a.st-b.st; });
   let h = `<div class="mth">${IC('clock')} ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
     + '<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
   ord.forEach(r => {
