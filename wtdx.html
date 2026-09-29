@@ -301,7 +301,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-09-29c';
+var PAGE_V='2026-09-29d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1013,8 +1013,8 @@ document.getElementById('bnone').addEventListener('click',function(){
    把區間內所有可能的組合掃一遍（兩家各 76 個起點，約 5800 組，不到 0.1 毫秒），
    依這個優先順序挑最好的一組：
      ① 開會中間不能有自己的班機進來
-     ② 散會那一分鐘剛好有班機到（開完直接去接，零等待）
-     ③ 兩場開會時間越接近越好
+     ② 兩場盡量接著開（間隔越小越好，最好是 0）
+     ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
      ④ 越晚越好 */
 function meetTable(){
   var LO='19:00', HI='20:30', DUR=15;
@@ -1037,8 +1037,8 @@ function meetTable(){
         var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
         var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
         var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
-              +((hA?1:0)+(hB?1:0))*1000000                /* ② 散會直接接班機 */
-              -gap*1000                                   /* ③ 兩場越近越好 */
+              -gap*1000000                                /* ② 兩場盡量接著開 */
+              +((hA?1:0)+(hB?1:0))*10000                  /* ③ 散會直接接班機 */
               +sa+sb;                                     /* ④ 越晚越好 */
         if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
       }
