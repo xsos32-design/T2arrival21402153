@@ -521,11 +521,13 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
-/* 開會時間（19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘）
-   每家都排在自己「19:00 之後第一班飛機」的前面，散會後留 5 分鐘緩衝再去接機；
-   兩家算出來的時間如果太近，就把比較早的那家再往前挪。以「抓取時刻」的資料算好內嵌。 */
+/* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘 ──
+   排法：從區間最晚往回抓 15 分鐘，也就是「散會就直接接第一班」。
+   結束時間＝min(20:30, 自己第一班的抵達時間)，開始＝結束往前 15 分鐘。
+   沒有班機的那家就排在區間最後 15 分鐘（20:15–20:30）。
+   兩家撞在一起時，第一班比較早的那家往前讓。 */
 function meetTable(flights) {
-  const LO = '19:00', HI = '20:30', DUR = 15, BUF = 5;
+  const LO = '19:00', HI = '20:30', DUR = 15;
   const m2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
   const toT = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
   const LOm = m2(LO), LASTm = m2(HI) - DUR;
@@ -540,9 +542,9 @@ function meetTable(flights) {
     return c[0] || null;
   };
   const idealOf = f => {
-    if (!f) return LOm;
-    const s = Math.floor((m2(at(f)) - DUR - BUF) / 5) * 5;   /* 抓到 5 分鐘的整數 */
-    return Math.max(LOm, Math.min(LASTm, s));
+    if (!f) return LASTm;                         /* 沒班機＝排最後 15 分鐘 */
+    const end = Math.min(m2(HI), m2(at(f)));      /* 開完直接接班機，不留空檔 */
+    return Math.max(LOm, Math.min(LASTm, end - DUR));
   };
   const S = [{ name: '2140', cls: 'g40', f: firstOf('40') },
              { name: '2153', cls: 'g53', f: firstOf('53') }];
@@ -1001,7 +1003,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'beta.html', 'wtest.html', 'wtdx.html', 'changelog.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
