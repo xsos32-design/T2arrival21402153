@@ -525,8 +525,8 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
    把區間內所有可能的組合掃一遍（兩家各 76 個起點，約 5800 組，不到 0.1 毫秒），
    依這個優先順序挑最好的一組：
      ① 開會中間不能有自己的班機進來
-     ② 散會那一分鐘剛好有班機到（開完直接去接，零等待）
-     ③ 兩場開會時間越接近越好
+     ② 兩場盡量接著開（間隔越小越好，最好是 0）
+     ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
      ④ 越晚越好 */
 function meetTable(flights) {
   const LO = '19:00', HI = '20:30', DUR = 15;
@@ -549,8 +549,8 @@ function meetTable(flights) {
         var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
         var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
         var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
-              +((hA?1:0)+(hB?1:0))*1000000                /* ② 散會直接接班機 */
-              -gap*1000                                   /* ③ 兩場越近越好 */
+              -gap*1000000                                /* ② 兩場盡量接著開 */
+              +((hA?1:0)+(hB?1:0))*10000                  /* ③ 散會直接接班機 */
               +sa+sb;                                     /* ④ 越晚越好 */
         if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
       }
