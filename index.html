@@ -500,7 +500,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-09-29a';
+var PAGE_V='2026-09-29b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1059,39 +1059,64 @@ function reportText(kind){
     var EXr=catsExpand();
     var g40=EXr[0].set, g53=EXr[1].set;
 
-    /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家錯開至少 15 分鐘 ──
-       排法：從區間最晚往回抓 15 分鐘，也就是「散會就直接接第一班」。
-       結束時間＝min(20:30, 自己第一班的抵達時間)，開始＝結束往前 15 分鐘。
-       沒有班機的那家就排在區間最後 15 分鐘（20:15–20:30）。
-       兩家撞在一起時，第一班比較早的那家往前讓。 */
+    /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
+       不是只看「第一班」，而是把整個區間掃一遍，找出這家分點的空檔：
+         1. 最優先：散會那一分鐘剛好有班機到（開完直接去接，零等待）
+         2. 同樣條件下取最晚的
+         3. 都沒有就取「中間沒有班機」的最晚空檔
+       兩家撞在一起時，兩種讓法都算過，挑「直接接到班機」的場次比較多的那種。 */
     if(kind==='M'){
       var LO='19:00', HI='20:30', DUR=15;
       var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
       var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
       var LOm=m2(LO), LASTm=m2(HI)-DUR;
-      var firstOf=function(setG){
-        var c=list.filter(function(x){ return !!setG[x.g] && x.t>=LO; });
+      var minsOf=function(setG){
+        return list.filter(function(x){ return !!setG[x.g] && x.t>=LO; })
+                   .map(function(x){ return m2(x.t); })
+                   .sort(function(a,b){ return a-b; });
+      };
+      /* 由晚往早掃，回傳最好的開始時間；busy=另一場占掉的 [起,迄)，沒有就 null */
+      var pickSlot=function(ts, busy){
+        var best=null, bestHit=null, s, i;
+        for(s=LASTm; s>=LOm; s--){
+          if(busy && s<busy[1] && s+DUR>busy[0]) continue;   /* 跟另一場重疊 */
+          var inside=false, hit=false;
+          for(i=0;i<ts.length;i++){
+            if(ts[i]>=s && ts[i]<s+DUR){ inside=true; break; }
+            if(ts[i]===s+DUR) hit=true;
+          }
+          if(inside) continue;
+          if(best===null) best=s;
+          if(hit){ bestHit=s; break; }               /* 由晚往早，第一個就是最晚的 */
+        }
+        return bestHit!==null?bestHit:best;
+      };
+      var hitsAt=function(ts,s){ return s!==null && ts.indexOf(s+DUR)>=0; };
+      /* 完全找不到空檔（班機太密）時的退路：最晚、且不跟另一場撞的時段 */
+      var fallback=function(busy){
+        for(var s=LASTm;s>=LOm;s--){ if(!(busy && s<busy[1] && s+DUR>busy[0])) return s; }
+        return LOm;
+      };
+      var pick=function(ts,busy){ var s=pickSlot(ts,busy); return s===null?fallback(busy):s; };
+      var A=minsOf(g40), B=minsOf(g53);
+      var sa=pick(A,null), sb=pick(B,null);
+      if(sa<sb+DUR && sa+DUR>sb){                  /* 兩場重疊才需要喬 */
+        var o1=[sa, pick(B,[sa,sa+DUR])];
+        var o2=[pick(A,[sb,sb+DUR]), sb];
+        var score=function(o){
+          return ((hitsAt(A,o[0])?1:0)+(hitsAt(B,o[1])?1:0))*10000 + o[0] + o[1];
+        };
+        var win=score(o2)>score(o1)?o2:o1;
+        sa=win[0]; sb=win[1];
+      }
+      var nextAfter=function(setG,st){
+        var c=list.filter(function(x){ return !!setG[x.g] && m2(x.t)>=st; });
         c.sort(function(a,b){ return a.t.localeCompare(b.t); });
         return c[0]||null;
       };
-      var idealOf=function(f){
-        if(!f) return LASTm;                       /* 沒班機＝排最後 15 分鐘 */
-        var end=Math.min(m2(HI), m2(f.t));         /* 開完直接接班機，不留空檔 */
-        return Math.max(LOm, Math.min(LASTm, end-DUR));
-      };
-      var S=[{name:CATS[0].name,cls:'g40',f:firstOf(g40)},
-             {name:CATS[1].name,cls:'g53',f:firstOf(g53)}];
-      S.forEach(function(r){ r.st=idealOf(r.f); });
-      var ord=S.slice().sort(function(a,b){
-        if(a.st!==b.st) return a.st-b.st;
-        if(!a.f) return 1;
-        if(!b.f) return -1;
-        return a.f.t.localeCompare(b.f.t);
-      });
-      if(ord[1].st-ord[0].st<DUR){                 /* 兩場撞在一起就把早的那家往前挪 */
-        ord[0].st=ord[1].st-DUR;
-        if(ord[0].st<LOm){ ord[0].st=LOm; ord[1].st=Math.min(LASTm,LOm+DUR); }
-      }
+      var S=[{name:CATS[0].name,cls:'g40',st:sa,f:nextAfter(g40,sa+DUR)},
+             {name:CATS[1].name,cls:'g53',st:sb,f:nextAfter(g53,sb+DUR)}];
+      var ord=S.slice().sort(function(a,b){ return a.st-b.st; });
       ord.forEach(function(r){
         r.slot={s:toT(r.st),e:toT(r.st+DUR)};
         r.late=!!(r.f && m2(r.f.t) < r.st+DUR);
