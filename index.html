@@ -500,7 +500,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-09-29d';
+var PAGE_V='2026-09-30a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -965,14 +965,25 @@ function getFlightsRaw(date){
 }
 
 var now6Mode=false;
+/* 時段鍵（00–06／13:30–18／18–24／整天）的選取狀態。
+   原本只有分類鍵和區域鍵會亮，這幾顆從來沒有人幫它們加 act。 */
+function paintWin(){
+  var a=(document.getElementById('t1')||{}).value, b=(document.getElementById('t2')||{}).value;
+  [].forEach.call(document.querySelectorAll('.chip[data-t]'),function(c){
+    var on = !now6Mode && c.getAttribute('data-t')===a && c.getAttribute('data-e')===b;
+    c.className = on?'chip act':'chip';
+  });
+}
 function setNow6(on){
   now6Mode=on;
   document.getElementById('now6').className=on?'chip act':'chip';
   var fn=document.getElementById('fNow');
   if(fn) fn.className=on?'fabb on':'fabb';
+  paintWin();
 }
 /* 現在起 6 小時：今天 now→now+6h；跨日就連隔日一起抓，清單中插日期分隔列 */
 function runNow6(){
+  paintWin();
   var n=new Date();
   var tIso=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
   var press=pad(n.getHours())+':'+pad(n.getMinutes());
@@ -1210,6 +1221,7 @@ document.getElementById('cpM').addEventListener('click',function(){ makeReport('
 
 function run(){
   if(now6Mode){ runNow6(); return; }
+  paintWin();
   var date=document.getElementById('date').value;
   var t1=document.getElementById('t1').value||'00:00';
   var t2=document.getElementById('t2').value||'23:59';
@@ -1396,9 +1408,16 @@ document.getElementById('hide').addEventListener('click',function(){
 (function(){
   var n=new Date();
   document.getElementById('date').value=n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
-  var blk=Math.floor(n.getHours()/6)*6;
-  document.getElementById('t1').value=pad(blk)+':00';
-  document.getElementById('t2').value=pad(blk+5)+':59';
+  /* 直接挑「現在落在哪一顆預設時段鍵」，不要自己算 6 小時區塊。
+     起始下拉沒有 06:00、12:00 這些選項（本頁固定不顯示 06:00–13:30），
+     算出來會設成不存在的值，select 直接變空白，時段鍵當然也就不會亮。 */
+  var m=n.getHours()*60+n.getMinutes();
+  var w = (m<360) ? ['00:00','05:59']          /* 00–06 */
+        : (m<1080) ? ['13:30','17:59']         /* 13:30–18（06:00–13:30 本頁不顯示） */
+        : ['18:00','23:59'];                   /* 18–24 */
+  document.getElementById('t1').value=w[0];
+  document.getElementById('t2').value=w[1];
+  paintWin();
   run();
 })();
 </script>
