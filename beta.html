@@ -265,7 +265,7 @@
     .chip.zone{flex:1 1 22%;font-size:15px;padding:9px 2px}
     #cpS{flex:1 1 100%}
     .mtg .fld{flex:1 1 30%} .mtg .fld:first-child{flex:1 1 100%} .mtg .fld:last-child{flex:1 1 100%}
-    .trk .fld:first-child,.trk .fld:nth-child(2){flex:1 1 45%}
+    .trk .fld:nth-child(2),.trk .fld:nth-child(3){flex:1 1 45%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
     #cpmsg{color:#8b94a1}
     .mth{color:#e5e9ef}
@@ -479,11 +479,12 @@
     </div>
 
 
-    <div class="chips"><span class="chiplabel">登機口後續航班追蹤：選日期和時間，列出兩組在那之後的班機</span></div>
+    <div class="chips"><span class="chiplabel">登機口後續航班追蹤：勾選群組、選日期和時間，列出那之後的班機</span></div>
     <div class="row mtg trk">
-      <div class="fld"><label for="tD">日期</label><input type="date" id="tD"></div>
+      <div class="fld"><label>群組（可複選）</label><div class="chips" id="tGs" style="margin-top:0"></div></div>
+      <div class="fld trkd"><label for="tD">日期</label><input type="date" id="tD"></div>
       <div class="fld"><label for="tT">幾點以後</label><input type="time" id="tT" step="300" value="22:30"></div>
-      <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兩組後續航班</button></div>
+      <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 列出後續航班</button></div>
     </div>
 
     <div class="chips"><span class="chiplabel">開會時間：勾選群組和可以開會的區間，每組排 15 分鐘的會</span></div>
@@ -1112,12 +1113,13 @@ function groupFlights(all, gi, iso){
 }
 /* 所有回報共用同一行格式：時間 班號 國旗 出發地 登機門（國旗一律有，查不到給地球） */
 function fline(x){ return fwColon(x.t)+' '+fno4(x.no)+' '+(flagOf(x.ct)||'🌐')+' '+x.city+' '+x.g; }
-function reportText(iso, cut){
+function reportText(iso, cut, gis){
   return getFlights(iso).then(function(all){
-    var rows=groupFlights(all,0,iso).concat(groupFlights(all,1,iso))
-      .filter(function(x){ return x.t>=cut; });
+    var rows=[];
+    gis.forEach(function(i){ rows=rows.concat(groupFlights(all,i,iso)); });
+    rows=rows.filter(function(x){ return x.t>=cut; });
     rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
-    var title=bareName(CATS[0].name)+'、'+bareName(CATS[1].name)+' 後續班機';
+    var title=gis.map(function(i){ return bareName(CATS[i].name); }).join('、')+' 後續班機';
     var lines=[mdOf(iso)+' '+title].concat(rows.map(fline));
     if(!rows.length) lines.push('（'+cut+' 後沒有符合的班機）');
     return lines.join('\n');
@@ -1215,16 +1217,20 @@ function meetText(gis, lo, hi){
                  +rows.map(function(r){ return r.html; }).join('')+'</table>'};
   });
 }
-var meetSel=[true,true];
-function paintMeetGroups(){
-  var box=document.getElementById('mGs'); if(!box) return;
+/* 追蹤、開會各自一組勾選（兩組名稱），互不影響 */
+var meetSel=[true,true], trackSel=[true,true];
+function paintGroupChips(id, sel){
+  var box=document.getElementById(id); if(!box) return;
   box.innerHTML=CATS.slice(0,2).map(function(c,i){
-    return '<span class="chip shop cs'+i+(meetSel[i]?' act':'')+'" data-mi="'+i+'">'
-      +(meetSel[i]?'✓ ':'　')+esc(c.name)+'</span>'; }).join('');
+    return '<span class="chip shop cs'+i+(sel[i]?' act':'')+'" data-mi="'+i+'">'
+      +(sel[i]?'✓ ':'　')+esc(c.name)+'</span>'; }).join('');
 }
-document.getElementById('mGs').addEventListener('click',function(e){
-  var el=e.target.closest?e.target.closest('[data-mi]'):null; if(!el) return;
-  var i=+el.getAttribute('data-mi'); meetSel[i]=!meetSel[i]; paintMeetGroups();
+function paintMeetGroups(){ paintGroupChips('mGs',meetSel); paintGroupChips('tGs',trackSel); }
+[['mGs',function(){ return meetSel; }],['tGs',function(){ return trackSel; }]].forEach(function(p){
+  document.getElementById(p[0]).addEventListener('click',function(e){
+    var el=e.target.closest?e.target.closest('[data-mi]'):null; if(!el) return;
+    var sel=p[1](), i=+el.getAttribute('data-mi'); sel[i]=!sel[i]; paintGroupChips(p[0],sel);
+  });
 });
 (function(){
   document.getElementById('tD').value=todayIso();
@@ -1233,6 +1239,7 @@ document.getElementById('mGs').addEventListener('click',function(e){
            if(m.hi) document.getElementById('mHi').value=m.hi;
            if(m.gs&&m.gs.length===2) meetSel=[!!m.gs[0],!!m.gs[1]]; }
     var t=localStorage.getItem('tpeTrackBeta1'); if(t) document.getElementById('tT').value=t;
+    var tg=JSON.parse(localStorage.getItem('tpeTrackGsBeta1')||'null'); if(tg&&tg.length===2) trackSel=[!!tg[0],!!tg[1]];
   }catch(e){}
 })();
 
@@ -1278,7 +1285,7 @@ function makeReport(kind,chip,opt){
   cpKind=kind;
   var old=chip.innerHTML;
   chip.textContent='⏳ 產生中…';
-  (kind==='M' ? meetText(opt.gis, opt.lo, opt.hi) : reportText(opt.iso, opt.cut)).then(function(r){
+  (kind==='M' ? meetText(opt.gis, opt.lo, opt.hi) : reportText(opt.iso, opt.cut, opt.gis)).then(function(r){
     chip.innerHTML=old;
     var txt=(typeof r==='string')?r:r.text;
     if(typeof r==='string') showCopy(r); else showCopy(r.text,r.html);
@@ -1290,11 +1297,13 @@ function makeReport(kind,chip,opt){
   });
 }
 document.getElementById('cpS').addEventListener('click',function(){
-  var iso=document.getElementById('tD').value||todayIso(), cut=document.getElementById('tT').value||'22:30';
-  try{ localStorage.setItem('tpeTrackBeta1',cut); }catch(e){}
-  if(cpKind==='S' && document.getElementById('copybox').innerHTML && this._k===iso+cut){ makeReport('S',this); return; }
-  this._k=iso+cut; cpKind=null;   /* 換了日期／時間就重算，同條件再按一次＝收合 */
-  makeReport('S',this,{iso:iso,cut:cut});
+  var iso=document.getElementById('tD').value||todayIso(), cut=document.getElementById('tT').value||'22:30',
+      gis=[0,1].filter(function(i){ return trackSel[i]; }), k=iso+cut+gis.join('');
+  if(!gis.length){ showCopy('請至少勾一個群組'); cpKind=null; return; }
+  try{ localStorage.setItem('tpeTrackBeta1',cut); localStorage.setItem('tpeTrackGsBeta1',JSON.stringify(trackSel)); }catch(e){}
+  if(cpKind==='S' && document.getElementById('copybox').innerHTML && this._k===k){ makeReport('S',this); return; }
+  this._k=k; cpKind=null;   /* 換了群組／日期／時間就重算，同條件再按一次＝收合 */
+  makeReport('S',this,{iso:iso,cut:cut,gis:gis});
 });
 document.getElementById('mGo').addEventListener('click',function(){
   var lo=document.getElementById('mLo').value, hi=document.getElementById('mHi').value,
@@ -1476,7 +1485,6 @@ document.getElementById('catReset').addEventListener('click',function(){
 function bareName(x){ return String(x||'').replace(/[（(\[].*$/,'').trim()||String(x||''); }
 function paintTitles(){
   var a=bareName(CATS[0].name), b=bareName(CATS[1].name);
-  document.getElementById('cpS').innerHTML=IC('copy')+' '+esc(a)+'＋'+esc(b)+' 後續航班';
   paintMeetGroups();
 }
 
