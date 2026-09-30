@@ -458,6 +458,8 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
  font-size:13px;font-weight:700;line-height:1.5;padding:9px 10px;margin:0 0 7px;text-align:center}
 #stale b{color:#FFD9D2;font-size:15px;white-space:nowrap}
 #stale.bad{background:#3A1210;border-color:#A03B31;color:#FFC2B8}
+#stale.ok{background:#10241E;border-color:#2C6B55;color:#9FE3C6}
+#stale.ok b{color:#CFF5E4}
 .tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
  background:#1c2027;border:1px solid #2e343d;color:#7dd3fc;font-size:12px;
  font-weight:700;text-decoration:none}
@@ -634,7 +636,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 
     const rowCls = shop === '40' ? ' r40' : (shop === '53' ? ' r53' : '');
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
-    return `<div class="r ${cls}${rowCls}" data-z="${zg}">
+    return `<div class="r ${cls}${rowCls}" data-z="${zg}" data-fn="${esc(f.flightCode || '')}" data-o="${sch}">
 <b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagCell(f)}</span><span class="g">${String(f.Gate || '').trim() ? `<b class="gn">${esc(f.Gate)}</b>` : ''}</span>
 <span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
@@ -688,7 +690,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>班機手錶版 ${winLabel}</title>
-<style>${CSS}</style></head><body class="${full ? 'full' : ''}" data-b="${buildEpoch}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}" data-x="${full ? 'a' : 'w'}">
+<style>${CSS}</style></head><body class="${full ? 'full' : ''}" data-b="${buildEpoch}" data-day="${todayISO}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}" data-x="${full ? 'a' : 'w'}">
 ${SPRITE}
 <div id="fab">
   <button class="fabb" id="fTop">${IC('up')}</button>
@@ -803,6 +805,127 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
       if (m >= 120) sb.className = 'bad';
       sb.hidden = false;
     }
+
+    /* ── 資料超過 30 分鐘，就跟 TDX 對一次時間／登機門／狀態 ──────────
+       畫面已經先出來了，這只是事後補正：抓不到、逾時、格式怪都維持原樣，
+       絕不會讓這一頁開不出來或卡住。只抓一次，沒有定時輪詢。          */
+    if (b && m >= 30) tdxPatch();
+
+    function tdxPatch(){
+      var day = document.body.getAttribute('data-day') || '';
+      var box = document.getElementById('stale');
+      if (!day) return;
+      var url = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+              + '?%24format=JSON'
+              + '&%24select=FlightNumber,AirlineID,ScheduleArrivalTime,EstimatedArrivalTime,'
+              + 'ActualArrivalTime,Gate,ArrivalRemark'
+              + '&%24filter=' + encodeURIComponent("date(FlightDate) eq " + day + " and Terminal eq '2'")
+              + '&nc=' + now;
+      var over = false;
+      var timer = setTimeout(function(){ if(!over){ over = true; tail('TDX 沒回應，畫面維持原樣'); } }, 8000);
+      function finish(fn){ if(over) return; over = true; clearTimeout(timer); try{ fn(); }catch(e){} }
+      function tail(t){ if(box){ box.innerHTML += '<br>' + t; } }
+
+      try{
+        fetch(url).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(list){ finish(function(){
+          if(!list || !list.length){ tail('TDX 沒回傳資料，畫面維持原樣'); return; }
+          apply(list);
+        }); })['catch'](function(){ finish(function(){ tail('TDX 連不到，畫面維持原樣'); }); });
+      }catch(e){ finish(function(){}); }
+
+      function hm(s){ var x=String(s||'').match(/T(\\d\\d:\\d\\d)/); return x?x[1]:''; }
+      function toMin(t){ var q=String(t||'').split(':'); return (+q[0])*60+(+q[1]); }
+      function fkey(c){
+        var s=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+        var x=s.match(/^([A-Z]*)0*(\\d+)$/); return x?(x[1]+x[2]):s;
+      }
+      function esc2(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+      function stOf(p){
+        var r = p.rm || '';
+        if(/取消/.test(r))           return {txt:'取消', cls:'bad',  done:false};
+        if(/抵達|已到|降落/.test(r)) return {txt:'已到', cls:'ok',   done:true };
+        if(/延誤|延遲/.test(r))      return {txt:'延遲', cls:'warn', done:false};
+        if(/更改|變更/.test(r)){
+          var d = (p.act && p.sch) ? (toMin(p.act)-toMin(p.sch)) : 0;
+          return {txt: d<0?'提早':(d>0?'延遲':'時間更新'), cls: d<0?'early':'warn', done:false};
+        }
+        if(/準時/.test(r))           return {txt:'準時', cls:'info', done:false};
+        return {txt:'預計', cls:'none', done:false};
+      }
+
+      function apply(list){
+        var map={}, i;
+        for(i=0;i<list.length;i++){
+          var r=list[i];
+          var k=fkey(String(r.AirlineID||'')+String(r.FlightNumber||''));
+          var sc=hm(r.ScheduleArrivalTime);
+          if(!k||!sc) continue;
+          if(!map[k]) map[k]=[];
+          map[k].push({ sch:sc, act:hm(r.ActualArrivalTime)||hm(r.EstimatedArrivalTime),
+                        gate:String(r.Gate||'').trim(), rm:String(r.ArrivalRemark||'') });
+        }
+        var rows=document.querySelectorAll('.r[data-fn]'), hit=0, chg=0;
+        var nowM=(function(){ var x=new Date(); return x.getHours()*60+x.getMinutes(); })();
+        for(i=0;i<rows.length;i++){
+          var row=rows[i], cs=map[fkey(row.getAttribute('data-fn'))];
+          if(!cs) continue;
+          var o=row.getAttribute('data-o')||'', pick=cs[0], bd=99999, j;
+          for(j=0;j<cs.length;j++){
+            var d=Math.abs(toMin(cs[j].sch)-toMin(o));
+            if(d<bd){ bd=d; pick=cs[j]; }
+          }
+          if(bd>180) continue;              /* 差太多＝對錯班了，寧可不改 */
+          hit++;
+          if(patchRow(row,pick,nowM)) chg++;
+        }
+        try{ zApply(); }catch(e){}
+        if(box){
+          var t=new Date();
+          box.className='ok';
+          box.innerHTML='已用 <b>TDX 即時資料</b>校對過（'
+            + (t.getHours()<10?'0':'') + t.getHours() + ':' + (t.getMinutes()<10?'0':'') + t.getMinutes()
+            + '）<br>對到 ' + hit + ' 班，其中 ' + chg + ' 班有變動'
+            + '<br><small>人數推估與開會時間仍是 ' + ageTxt(m) + '抓的</small>';
+          box.hidden=false;
+        }
+      }
+
+      function patchRow(row,p,nowM){
+        var changed=false;
+        var big = p.act || p.sch;
+        var tEl = row.getElementsByTagName('b')[0];
+        if(tEl && tEl.className.indexOf('t')===0 && big){
+          var keepNd = row.getElementsByClassName('nd').length>0;
+          var old=(tEl.textContent||'').replace(/[^0-9:]/g,'').slice(0,5);
+          if(old!==big) changed=true;
+          var tc='plan';
+          if(p.act && p.sch){ var d=toMin(p.act)-toMin(p.sch); tc = d>0?'late':(d<0?'early':'same'); }
+          tEl.className='t t-'+tc;
+          tEl.innerHTML=big+(keepNd?'<i class="nd">隔日</i>':'');
+        }
+        var gEl=row.getElementsByClassName('g')[0];
+        if(gEl){
+          var og=(gEl.textContent||'').trim();
+          if(og!==p.gate) changed=true;
+          gEl.innerHTML = p.gate ? '<b class="gn">'+esc2(p.gate)+'</b>' : '';
+          row.setAttribute('data-z', p.gate?p.gate.charAt(0).toUpperCase():'');
+        }
+        var st=stOf(p), sEl=row.getElementsByClassName('st')[0];
+        if(sEl){
+          if((sEl.textContent||'').trim()!==st.txt) changed=true;
+          sEl.className='st b-'+st.cls;
+          sEl.textContent=st.txt;
+        }
+        var base=row.className.replace(/\\s*\\b(done|soon)\\b/g,'');
+        var eta = big ? (toMin(big)-nowM) : 9999;
+        var soon = !st.done && st.txt!=='取消' && eta>=0 && eta<=45;   /* 取消的不該發光 */
+        row.className = base + (st.done?' done':(soon?' soon':''));
+        return changed;
+      }
+    }
+
   }catch(e){}
 })();
 </script>
@@ -1016,7 +1139,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'beta.html', 'wtest.html', 'wtdx.html', 'changelog.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
