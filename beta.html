@@ -265,6 +265,7 @@
     .chip.zone{flex:1 1 22%;font-size:15px;padding:9px 2px}
     #cpS{flex:1 1 100%}
     .mtg .fld{flex:1 1 30%} .mtg .fld:first-child{flex:1 1 100%} .mtg .fld:last-child{flex:1 1 100%}
+    .trk .fld:first-child,.trk .fld:nth-child(2){flex:1 1 45%}
     #cptxt{background:#1c2027;border-color:#2e343d;color:#f2f4f7}
     #cpmsg{color:#8b94a1}
     .mth{color:#e5e9ef}
@@ -478,14 +479,16 @@
     </div>
 
 
-    <div class="chips">
-      <span class="chiplabel">登機口後續航班追蹤（今天 22:30 後）</span>
-      <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兩組後續航班</span>
+    <div class="chips"><span class="chiplabel">登機口後續航班追蹤：選日期和時間，列出兩組在那之後的班機</span></div>
+    <div class="row mtg trk">
+      <div class="fld"><label for="tD">日期</label><input type="date" id="tD"></div>
+      <div class="fld"><label for="tT">幾點以後</label><input type="time" id="tT" step="300" value="22:30"></div>
+      <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兩組後續航班</button></div>
     </div>
 
-    <div class="chips"><span class="chiplabel">開會時間：選群組和可以開會的區間，排 15 分鐘的會，散會和下一班飛機越接近越好</span></div>
+    <div class="chips"><span class="chiplabel">開會時間：勾選群組和可以開會的區間，每組排 15 分鐘的會</span></div>
     <div class="row mtg">
-      <div class="fld"><label for="mG">群組</label><select id="mG"></select></div>
+      <div class="fld"><label>群組（可複選，兩組都勾就排兩場、不重疊）</label><div class="chips" id="mGs" style="margin-top:0"></div></div>
       <div class="fld"><label for="mLo">空檔從</label><input type="time" id="mLo" step="300" value="19:00"></div>
       <div class="fld"><label for="mHi">到</label><input type="time" id="mHi" step="300" value="20:30"></div>
       <div class="fld"><label>&nbsp;</label><button type="button" class="btn2" id="mGo"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 排開會時間</button></div>
@@ -1085,13 +1088,14 @@ function runNow6(){
   });
 }
 
-/* ── 登機口後續航班追蹤：今天 22:30 後、兩組登機口的班機，一鍵複製 ──
+/* ── 登機口後續航班追蹤：選一天、一個時間，列出兩組在那之後的班機，一鍵複製 ──
    每組照自己的航廈比對，B6～B9 一航二航同名才不會混在一起 */
 function fwColon(t){ return t.replace(':','：'); }
 function todayIso(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-/* 今天、有登機門、沒取消，而且屬於第 gi 組的班機（依抵達時間排好） */
-function groupFlights(all, gi){
-  var want=todayIso().replace(/-/g,'/'), c=catsExpand()[gi], seen={}, list=[];
+function mdOf(iso){ var p=String(iso).split('-'); return (+p[1])+'/'+(+p[2]); }
+/* 那一天、有登機門、沒取消，而且屬於第 gi 組的班機（依抵達時間排好） */
+function groupFlights(all, gi, iso){
+  var want=(iso||todayIso()).replace(/-/g,'/'), c=catsExpand()[gi], seen={}, list=[];
   (all||[]).forEach(function(f){
     if(f.ODate!==want&&f.RDate!==want) return;
     var g=(f.Gate||'').trim().toUpperCase(); if(!g||!c.set[g]) return;
@@ -1108,16 +1112,14 @@ function groupFlights(all, gi){
 }
 /* 所有回報共用同一行格式：時間 班號 國旗 出發地 登機門（國旗一律有，查不到給地球） */
 function fline(x){ return fwColon(x.t)+' '+fno4(x.no)+' '+(flagOf(x.ct)||'🌐')+' '+x.city+' '+x.g; }
-function reportText(){
-  var d=new Date(), md=(d.getMonth()+1)+'/'+d.getDate(), cut='22:30';
-  return getFlights(todayIso()).then(function(all){
-    var rows=groupFlights(all,0).concat(groupFlights(all,1))
+function reportText(iso, cut){
+  return getFlights(iso).then(function(all){
+    var rows=groupFlights(all,0,iso).concat(groupFlights(all,1,iso))
       .filter(function(x){ return x.t>=cut; });
     rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
     var title=bareName(CATS[0].name)+'、'+bareName(CATS[1].name)+' 後續班機';
-    var lines=['@All ', md+' '+title].concat(rows.map(fline));
-    if(!rows.length) lines.push('（22:30 後沒有符合的班機）');
-    lines.push('wei');
+    var lines=[mdOf(iso)+' '+title].concat(rows.map(fline));
+    if(!rows.length) lines.push('（'+cut+' 後沒有符合的班機）');
     return lines.join('\n');
   });
 }
@@ -1143,49 +1145,94 @@ function meetPlan(list, lo, hi){
   if(best) best.direct=(best.gap===0);
   return best;
 }
-function meetText(gi, lo, hi){
-  var d=new Date(), md=(d.getMonth()+1)+'/'+d.getDate(), name=bareName(CATS[gi].name);
-  return getFlights(todayIso()).then(function(all){
-    var list=groupFlights(all,gi), plan=meetPlan(list,lo,hi);
-    var head=md+'【'+name+'】空檔 '+lo+'–'+hi;
-    var hHead='<div class="mth">'+IC('clock')+' '+md+' '+esc(name)+'　空檔 '+lo+'–'+hi+'</div>';
-    if(!plan){
-      var why=(mins(hi)-mins(lo)<MEET_LEN)?'空檔不到 '+MEET_LEN+' 分鐘':'空檔裡每 '+MEET_LEN+' 分鐘都有飛機進來';
-      return {text:head+'\n排不進 '+MEET_LEN+' 分鐘的會（'+why+'）',
-              html:hHead+'<div class="status">'+IC('alert')+' 排不進 '+MEET_LEN+' 分鐘的會（'+why+'）</div>'};
+/* 兩組都勾：一起排兩場（不重疊），優先順序跟正式版一樣：
+   ① 會中不能有自己組的班機進來　② 兩場盡量接著開
+   ③ 散會和自己組下一班越接近越好　④ 越晚越好
+   區間 3 小時內每分鐘試一次，更長就每 5 分鐘試一次 */
+function meetPair(A, B, lo, hi){
+  var L=mins(lo), last=mins(hi)-MEET_LEN, step=(last-L>180)?5:1, best=null;
+  var TA=A.map(function(x){ return mins(x.t); }), TB=B.map(function(x){ return mins(x.t); });
+  function info(T,s){ var e=s+MEET_LEN, ok=true, gap=Infinity;
+    for(var i=0;i<T.length;i++){ if(T[i]>=s&&T[i]<e){ ok=false; } else if(T[i]>=e&&T[i]-e<gap) gap=T[i]-e; }
+    return {ok:ok, gap:gap===Infinity?600:Math.min(gap,600)}; }
+  var IA=[], IB=[], sa, sb;
+  for(sa=L; sa<=last; sa+=step){ IA.push([sa,info(TA,sa)]); IB.push([sa,info(TB,sa)]); }
+  IA.forEach(function(a){ IB.forEach(function(b){
+    var sa=a[0], sb=b[0];
+    if(sa<sb+MEET_LEN && sa+MEET_LEN>sb) return;          /* 兩場不能重疊 */
+    var between=(sa<sb)?(sb-sa-MEET_LEN):(sa-sb-MEET_LEN);
+    var sc=[(a[1].ok?1:0)+(b[1].ok?1:0), -between, -(a[1].gap+b[1].gap), sa+sb];
+    if(!best||cmp(sc,best.sc)>0) best={sc:sc,sa:sa,sb:sb,okA:a[1].ok,okB:b[1].ok};
+  }); });
+  function cmp(x,y){ for(var i=0;i<x.length;i++){ if(x[i]!==y[i]) return x[i]-y[i]; } return 0; }
+  return best;
+}
+function meetRow(gi, list, st, lo, ok){
+  var end=st+MEET_LEN, name=bareName(CATS[gi].name), cls=CAT_CLS[gi];
+  var next=list.filter(function(x){ return mins(x.t)>=end; })[0]||null;
+  var before=list.filter(function(x){ return x.t>=lo && mins(x.t)<st; });
+  var during=list.filter(function(x){ var t=mins(x.t); return t>=st && t<end; });
+  var gap=next?mins(next.t)-end:0, S=m2t(st), E=m2t(end);
+  var ln='【'+name+'】開會 '+S+'–'+E+'　'
+    +(next ? (gap===0?'散會直接接 ':'散會後隔 '+gap+' 分鐘接 ')+fline(next) : '散會後今天沒有班機');
+  var lines=[ln];
+  if(!ok) lines.push('⚠ 會中有 '+during.length+' 班進來：'+during.map(function(x){ return fwColon(x.t)+' '+x.g; }).join('、'));
+  if(before.length) lines.push('開會前先接 '+before.length+' 班：'+before.map(function(x){ return fwColon(x.t)+' '+x.g; }).join('、'));
+  var h='<tr class="'+(gi?'g53':'g40')+'"><td class="lb">'+esc(name)+'</td>'
+    +'<td><b>'+S+'–'+E+'</b><br><small>'+MEET_LEN+' 分鐘</small></td>'
+    +'<td>'+(next ? next.t+' '+esc(fno4(next.no))+' '+(flagOf(next.ct)||'🌐')
+                   +'<br><small><span class="tag '+cls+'">'+esc(next.g)+'</span>　'+(gap===0?'直接接':'隔 '+gap+' 分')+'</small>'
+                 : '—<br><small>沒有班機</small>')+'</td></tr>';
+  if(!ok) h+='<tr class="sub"><td></td><td colspan="2">'+IC('alert')+' 會中有 '+during.length+' 班進來：'
+    +during.map(function(x){ return x.t+' '+esc(x.g); }).join('、')+'（區間太滿，排不開）</td></tr>';
+  if(before.length) h+='<tr class="sub"><td></td><td colspan="2">開會前先接：'
+    +before.map(function(x){ return x.t+' '+esc(fno4(x.no))+' '+esc(x.g); }).join('、')+'</td></tr>';
+  return {st:st, text:lines.join('\n'), html:h};
+}
+function meetText(gis, lo, hi){
+  var iso=todayIso(), md=mdOf(iso);
+  return getFlights(iso).then(function(all){
+    var L=[groupFlights(all,0,iso), groupFlights(all,1,iso)], rows=[];
+    var headT=md+' 開會時間（'+lo+'–'+hi+'，每場 '+MEET_LEN+' 分鐘）';
+    var headH='<div class="mth">'+IC('clock')+' '+esc(headT)+'</div>';
+    if(gis.length===2){
+      if(mins(hi)-mins(lo)<MEET_LEN*2) return {text:headT+'\n區間不到 '+(MEET_LEN*2)+' 分鐘，排不下兩場',
+        html:headH+'<div class="status">'+IC('alert')+' 區間不到 '+(MEET_LEN*2)+' 分鐘，排不下兩場</div>'};
+      var p=meetPair(L[0],L[1],lo,hi);
+      rows=[meetRow(0,L[0],p.sa,lo,p.okA), meetRow(1,L[1],p.sb,lo,p.okB)];
+    } else {
+      var gi=gis[0], plan=meetPlan(L[gi],lo,hi);
+      if(!plan){
+        var why=(mins(hi)-mins(lo)<MEET_LEN)?'區間不到 '+MEET_LEN+' 分鐘':'區間裡每 '+MEET_LEN+' 分鐘都有飛機進來';
+        return {text:headT+'\n【'+bareName(CATS[gi].name)+'】排不進（'+why+'）',
+                html:headH+'<div class="status">'+IC('alert')+' '+esc(bareName(CATS[gi].name))+' 排不進（'+why+'）</div>'};
+      }
+      rows=[meetRow(gi,L[gi],plan.st,lo,true)];
     }
-    var st=m2t(plan.st), en=m2t(plan.end);
-    var next=list.filter(function(x){ return mins(x.t)>=plan.end; })[0]||null;
-    var before=list.filter(function(x){ return x.t>=lo && mins(x.t)<plan.st; });
-    var lines=[head, '開會 '+st+'–'+en+'（'+MEET_LEN+' 分鐘）'];
-    if(next) lines.push((plan.direct?'散會直接接 ':'散會後隔 '+(mins(next.t)-plan.end)+' 分鐘接 ')+fline(next));
-    else lines.push('散會後今天沒有班機');
-    if(before.length) lines.push('開會前先接 '+before.length+' 班：'+before.map(function(x){ return fwColon(x.t)+' '+x.g; }).join('、'));
-    var cls=CAT_CLS[gi];
-    var h=hHead+'<table class="mt"><tr><th>開會</th><th>'+(plan.direct?'散會直接接':'散會後第一班')+'</th></tr><tr>'
-      +'<td><b>'+st+'–'+en+'</b><br><small>'+MEET_LEN+' 分鐘</small></td>'
-      +'<td>'+(next ? next.t+' '+esc(fno4(next.no))+' '+(flagOf(next.ct)||'🌐')
-                     +'<br><small><span class="tag '+cls+'">'+esc(next.g)+'</span>　'+esc(next.city)+'</small>'
-                   : '—<br><small>沒有班機</small>')+'</td></tr>';
-    if(!plan.direct && next) h+='<tr class="sub"><td colspan="2">散會到第一班隔 '+(mins(next.t)-plan.end)+' 分鐘（這個區間最接近的排法）</td></tr>';
-    if(before.length) h+='<tr class="sub"><td colspan="2">開會前先接 '+before.length+' 班：'
-      +before.map(function(x){ return x.t+' '+esc(fno4(x.no))+' '+esc(x.g); }).join('、')+'</td></tr>';
-    h+='</table>';
-    return {text:lines.join('\n'), html:h};
+    rows.sort(function(a,b){ return a.st-b.st; });
+    return {text:[headT].concat(rows.map(function(r){ return r.text; })).join('\n'),
+            html:headH+'<table class="mt"><tr><th>群組</th><th>開會</th><th>散會後第一班</th></tr>'
+                 +rows.map(function(r){ return r.html; }).join('')+'</table>'};
   });
 }
+var meetSel=[true,true];
 function paintMeetGroups(){
-  var sel=document.getElementById('mG'); if(!sel) return;
-  var v=sel.value||'0';
-  sel.innerHTML=CATS.slice(0,2).map(function(c,i){
-    return '<option value="'+i+'">'+esc(c.name)+'</option>'; }).join('');
-  sel.value=v;
+  var box=document.getElementById('mGs'); if(!box) return;
+  box.innerHTML=CATS.slice(0,2).map(function(c,i){
+    return '<span class="chip shop cs'+i+(meetSel[i]?' act':'')+'" data-mi="'+i+'">'
+      +(meetSel[i]?'✓ ':'　')+esc(c.name)+'</span>'; }).join('');
 }
+document.getElementById('mGs').addEventListener('click',function(e){
+  var el=e.target.closest?e.target.closest('[data-mi]'):null; if(!el) return;
+  var i=+el.getAttribute('data-mi'); meetSel[i]=!meetSel[i]; paintMeetGroups();
+});
 (function(){
+  document.getElementById('tD').value=todayIso();
   try{ var m=JSON.parse(localStorage.getItem(MEET_KEY)||'null');
     if(m){ if(m.lo) document.getElementById('mLo').value=m.lo;
            if(m.hi) document.getElementById('mHi').value=m.hi;
-           if(m.g) setTimeout(function(){ document.getElementById('mG').value=m.g; },0); }
+           if(m.gs&&m.gs.length===2) meetSel=[!!m.gs[0],!!m.gs[1]]; }
+    var t=localStorage.getItem('tpeTrackBeta1'); if(t) document.getElementById('tT').value=t;
   }catch(e){}
 })();
 
@@ -1231,7 +1278,7 @@ function makeReport(kind,chip,opt){
   cpKind=kind;
   var old=chip.innerHTML;
   chip.textContent='⏳ 產生中…';
-  (kind==='M' ? meetText(opt.gi, opt.lo, opt.hi) : reportText()).then(function(r){
+  (kind==='M' ? meetText(opt.gis, opt.lo, opt.hi) : reportText(opt.iso, opt.cut)).then(function(r){
     chip.innerHTML=old;
     var txt=(typeof r==='string')?r:r.text;
     if(typeof r==='string') showCopy(r); else showCopy(r.text,r.html);
@@ -1242,14 +1289,21 @@ function makeReport(kind,chip,opt){
     showCopy('抓不到資料（'+(e&&e.message||e)+'），請稍後再試');
   });
 }
-document.getElementById('cpS').addEventListener('click',function(){ makeReport('S',this); });
+document.getElementById('cpS').addEventListener('click',function(){
+  var iso=document.getElementById('tD').value||todayIso(), cut=document.getElementById('tT').value||'22:30';
+  try{ localStorage.setItem('tpeTrackBeta1',cut); }catch(e){}
+  if(cpKind==='S' && document.getElementById('copybox').innerHTML && this._k===iso+cut){ makeReport('S',this); return; }
+  this._k=iso+cut; cpKind=null;   /* 換了日期／時間就重算，同條件再按一次＝收合 */
+  makeReport('S',this,{iso:iso,cut:cut});
+});
 document.getElementById('mGo').addEventListener('click',function(){
   var lo=document.getElementById('mLo').value, hi=document.getElementById('mHi').value,
-      gi=+document.getElementById('mG').value||0;
-  if(!lo||!hi||hi<=lo){ showCopy('空檔的結束時間要比開始晚（不跨午夜）'); cpKind=null; return; }
-  try{ localStorage.setItem(MEET_KEY, JSON.stringify({g:String(gi),lo:lo,hi:hi})); }catch(e){}
+      gis=[0,1].filter(function(i){ return meetSel[i]; });
+  if(!gis.length){ showCopy('請至少勾一個群組'); cpKind=null; return; }
+  if(!lo||!hi||hi<=lo){ showCopy('區間的結束時間要比開始晚（不跨午夜）'); cpKind=null; return; }
+  try{ localStorage.setItem(MEET_KEY, JSON.stringify({gs:meetSel,lo:lo,hi:hi})); }catch(e){}
   cpKind=null;   /* 改了條件再按一次要重算，不是收合 */
-  makeReport('M',this,{gi:gi,lo:lo,hi:hi});
+  makeReport('M',this,{gis:gis,lo:lo,hi:hi});
 });
 
 function run(){
@@ -1422,7 +1476,7 @@ document.getElementById('catReset').addEventListener('click',function(){
 function bareName(x){ return String(x||'').replace(/[（(\[].*$/,'').trim()||String(x||''); }
 function paintTitles(){
   var a=bareName(CATS[0].name), b=bareName(CATS[1].name);
-  document.getElementById('cpS').innerHTML=IC('copy')+' '+esc(a)+'+'+esc(b);
+  document.getElementById('cpS').innerHTML=IC('copy')+' '+esc(a)+'＋'+esc(b)+' 後續航班';
   paintMeetGroups();
 }
 
