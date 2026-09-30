@@ -486,15 +486,6 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}
 /* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
 .grp.s{margin-top:12px}
-.mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
-.mt{width:100%;border-collapse:collapse;font-size:13px;background:#14171c;margin-bottom:9px}
-.mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
-.mt th{background:#1c2027;color:#8b94a1;font-size:11.5px;font-weight:800}
-.mt td b{font-size:15px}
-.mt td small{color:#8b94a1}
-.mt .g40 .lb{background:#0d3b36;color:#5eead4;font-weight:800}
-.mt .g53 .lb{background:#43200f;color:#fdba74;font-weight:800}
-.mt .sub td{font-size:11.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
 .sep{border-top:1px solid #262b33;margin:10px 0}
 .foot{color:#5b636e;font-size:11.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
 .notice{background:#0E1217;border:1px solid #1E242E;border-left:2px solid #8A7440;color:#818A98;font-size:12.5px;
@@ -523,69 +514,6 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }`;
 
-/* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
-   把區間內所有可能的組合掃一遍（兩家各 76 個起點，約 5800 組，不到 0.1 毫秒），
-   依這個優先順序挑最好的一組：
-     ① 開會中間不能有自己的班機進來
-     ② 兩場盡量接著開（間隔越小越好，最好是 0）
-     ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
-     ④ 越晚越好 */
-function meetTable(flights) {
-  const LO = '19:00', HI = '20:30', DUR = 15;
-  const m2 = t => { const p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
-  const toT = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
-  const LOm = m2(LO), LASTm = m2(HI) - DUR;
-  const at = f => hhmm(f.RTime) || hhmm(f.OTime);
-  const pool = flights.filter(f => {
-    if (!String(f.Gate || '').trim() || /取消/.test(f.Memo || '')) return false;
-    return at(f) >= LO;
-  });
-  function free(ts,s){ for(var i=0;i<ts.length;i++){ if(ts[i]>=s&&ts[i]<s+DUR) return false; } return true; }
-  function hitsAt(ts,s){ return ts.indexOf(s+DUR)>=0; }
-  function planPair(A,B){
-    var best=null, sa, sb;
-    for(sa=LOm; sa<=LASTm; sa++){
-      var okA=free(A,sa), hA=okA&&hitsAt(A,sa);
-      for(sb=LOm; sb<=LASTm; sb++){
-        if(sa<sb+DUR && sa+DUR>sb) continue;              /* 兩場不能重疊 */
-        var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
-        var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
-        var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
-              -gap*1000000                                /* ② 兩場盡量接著開 */
-              +((hA?1:0)+(hB?1:0))*10000                  /* ③ 散會直接接班機 */
-              +sa+sb;                                     /* ④ 越晚越好 */
-        if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
-      }
-    }
-    return [best.sa,best.sb];
-  }
-  function minsOf(id){
-    return pool.filter(function(f){return shopOf(f)===id;})
-               .map(function(f){ return m2(at(f)); })
-               .sort(function(a,b){ return a-b; });
-  }
-  function nextAfter(id,st){
-    var c=pool.filter(function(f){ return shopOf(f)===id && m2(at(f))>=st; });
-    c.sort(function(a,b){ return at(a).localeCompare(at(b)); });
-    return c[0]||null;
-  }
-  var A=minsOf('40'), B=minsOf('53');
-  var pp=planPair(A,B), sa=pp[0], sb=pp[1];
-  const S = [{ name: '2140', cls: 'g40', st: sa, f: nextAfter('40', sa + DUR) },
-             { name: '2153', cls: 'g53', st: sb, f: nextAfter('53', sb + DUR) }];
-  const ord = S.slice().sort(function(a,b){ return a.st-b.st; });
-  let h = `<div class="mth">${IC('clock')} ${todayLabel} 開會時間（${LO}–${HI}，每場 15 分鐘）　<small style="color:#8b94a1">依 ${stamp} 抓取的資料</small></div>`
-    + '<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
-  ord.forEach(r => {
-    const late = !!(r.f && m2(at(r.f)) < r.st + DUR);
-    h += `<tr class="${r.cls}"><td class="lb">${r.name}</td>`
-       + `<td><b>${toT(r.st)}–${toT(r.st + DUR)}</b><br><small>15 分鐘</small></td>`
-       + '<td>' + (r.f ? at(r.f) + ' ' + esc(fno4(r.f.flightCode)) + '<br><small>' + esc(r.f.Gate) + '</small>'
-                       : '—<br><small>沒有班機</small>') + '</td></tr>';
-    if (late) h += `<tr class="${r.cls} sub"><td></td><td colspan="2">${IC('alert')} 第一班 ${at(r.f)} 就進來了，這場會來不及開完，建議提早或縮短</td></tr>`;
-  });
-  return h + '</table>';
-}
 
 /* 表定今天、但延誤到隔天才會落地 */
 function isNextDay(f) {
@@ -664,7 +592,6 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
   const presetBtns = (full ? PRESETS_FULL : PRESETS)
     .map(p => btn(fileFor(p.id, idOf(cur), hide, full), p.label, p.id === preset, 'pre')).join('\n');
   const hideBtn = btn(fileFor(preset, idOf(cur), !hide, full), hide ? IC('show') + ' 全部顯示' : IC('hide') + ' 隱藏抵達', hide, 'half');
-  const meetBtn = `<span class="btn half" id="bmeet">${IC('clock')} 開會時間</span>`;
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide, full),
@@ -708,10 +635,9 @@ ${SPRITE}
 <div class="grp s">${catBtns}</div>
 <div class="grp">${shortcut}</div>
 <div class="grp s">${zoneBtns}</div>
-<div class="grp s">${hideBtn}${meetBtn}</div>
+<div class="grp s">${hideBtn}</div>
 <div class="grp">${reloadBtn}</div>
 <div class="sep"></div>
-<div id="meetbox" hidden>${err ? '' : meetTable(flights)}</div>
 ${body}
 <div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
 ${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
@@ -750,7 +676,7 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
       try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
     });
 
-    /* A–D 區篩選（純本頁 JavaScript，不用連線）＋ 開會時間開關 */
+    /* A–D 區篩選（純本頁 JavaScript，不用連線） */
     var zs={A:1,B:1,C:1,D:1};
     function zApply(){
       var rs=document.querySelectorAll('.r[data-z]');
@@ -776,11 +702,6 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
         });
       })(zbs[k]);
     }
-    var bm=document.getElementById('bmeet'), mbx=document.getElementById('meetbox');
-    if(bm&&mbx) bm.addEventListener('click',function(){
-      mbx.hidden=!mbx.hidden;
-      bm.className='btn half'+(mbx.hidden?'':' on');
-    });
     var b = +(document.body.getAttribute('data-b') || 0);
     var el = document.getElementById('age');
     var m = b ? Math.floor((now - b) / 60000) : 0;
@@ -887,7 +808,7 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
           box.innerHTML='已用 <b>TDX 即時資料</b>校對過（'
             + (t.getHours()<10?'0':'') + t.getHours() + ':' + (t.getMinutes()<10?'0':'') + t.getMinutes()
             + '）<br>對到 ' + hit + ' 班，其中 ' + chg + ' 班有變動'
-            + '<br><small>人數推估與開會時間仍是 ' + ageTxt(m) + '抓的</small>';
+            + '<br><small>人數推估仍是 ' + ageTxt(m) + '抓的</small>';
           box.hidden=false;
         }
       }
