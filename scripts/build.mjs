@@ -633,6 +633,15 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 .sep{border-top-color:#1b2431}
 .foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
 
+/* ── 按鍵再加大一階（手機和手錶都套用，上次只改了手錶）── */
+.btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em}
+.btn.half,.btn.cat{font-size:16px}
+.btn.zone,.btn.pre{font-size:14.5px}
+.btn.nav{font-size:19px} .btn.mid{font-size:16px}
+/* ── 浮動快捷鍵加大 ── */
+.fabb{min-height:46px;font-size:17px;font-weight:900}
+.fabb .ic{width:1.25em;height:1.25em}
+
 /* ══════════════ 手錶版（≤340px）：E 版型 ══════════════
    兩列。第一列：時間 ＋ 班號（班號比舊版還大）。第二列：登機門／城市／人數／狀態。
    國旗拿掉、分點標籤拿掉（卡片顏色本來就在講是哪一邊），省下來的寬度全給班號。
@@ -1250,7 +1259,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
