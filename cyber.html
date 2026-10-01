@@ -132,6 +132,24 @@ body{background:#05070a;color:#e5e9ef;
   background-size:260% 100%;animation:sweep 2.6s linear infinite}
 @keyframes sweep{0%{background-position:160% 0}100%{background-position:-60% 0}}
 
+/* ═════════ B2：整張用分點色實心填滿（不漸層、不透明）═════════ */
+.v-solid .r.r40{background:#064F47;border-color:#00EFD4}
+.v-solid .r.r53{background:#6B0F33;border-color:#FF2E6E}
+.v-solid .r.plain{background:#0B1019;border-color:#1b2431}
+.v-solid .r40 .c-city,.v-solid .r53 .c-city{color:#D6DFE8}
+.v-solid .r40 .c-time i,.v-solid .r53 .c-time i{color:#9FB0BE}
+/* 底色變實心後，標籤／人數框原本的半透明底會糊掉，改成實色小塊 */
+.v-solid .r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.v-solid .r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.v-solid .r40 .c-gate b{background:#00EFD4;border-color:#00EFD4;color:#02241F;text-shadow:none;
+  box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.v-solid .r53 .c-gate b{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;text-shadow:none;
+  box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.v-solid .r40 .px,.v-solid .r40 .tx,.v-solid .r40 .badge,
+.v-solid .r53 .px,.v-solid .r53 .tx,.v-solid .r53 .badge{background:rgba(0,0,0,.42)}
+/* 即將抵達的金框不能被實心底吃掉 */
+.v-solid .r.soon{border-color:#FFC53D;box-shadow:0 0 0 2px #FFC53D,0 0 26px -6px rgba(255,197,61,.9)}
+
 /* ═════════ C：重口味加料 ═════════ */
 .v-hard .wrapbg{background-image:
     repeating-linear-gradient(0deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),
@@ -169,6 +187,7 @@ body{background:#05070a;color:#e5e9ef;
   <b>樣式</b>
   <button class="sw on" data-v="now">A 現在這版</button>
   <button class="sw" data-v="soft">B 賽博·剛好</button>
+  <button class="sw" data-v="solid">B2 賽博·實心填滿</button>
   <button class="sw" data-v="hard">C 賽博·全開</button>
   <button class="sw sun" id="sun">☀ 模擬太陽下</button>
 </div>
@@ -212,6 +231,10 @@ var NOTE={
      +'左側色帶改成發光燈條、標籤改成終端機風的方框、標題列變成狀態列。'
      +'<b>顏色沒換意思</b>：2140 還是青、2153 還是桃紅，只是調到更亮的霓虹值。'
      +'即將抵達從「呼吸光暈」改成<b>掃描線掠過</b>。重點是：字還是粗的、對比還是夠的。</p>',
+ solid:'<p><b>B2 實心填滿</b>：跟 B 一模一樣，只差卡片底色——B 是從左邊漸層淡出，B2 是<b>整張用分點色填滿、不透明</b>。'
+     +'好處是<b>一眼就看出整列是誰的</b>，不用看左邊那條；掃過去的時候色塊比漸層更快被認出來。'
+     +'代價是底色變重，所以登機門、2140/2153 標籤我改成<b>實色小塊</b>（反白字），人數框墊一層黑底，不然會跟底色糊在一起。</p>'
+     +'<p>記得按 <b>☀ 模擬太陽下</b> 比一下：實心底在強光下其實比漸層<b>更撐得住</b>，因為整片都有顏色可以對比。</p>',
  hard:'<p><b>C 賽博·全開</b>：再加上 CRT 掃描線疊在整頁、數字加霓虹光暈和左右錯位（色差）、'
      +'標題偶爾 glitch 抖一下、即將抵達改成強脈衝。<b>好看，但代價是清晰度</b>——'
      +'光暈會讓數字邊緣糊掉，掃描線在手錶那種小螢幕上會變成一層灰網。</p>'
@@ -220,7 +243,7 @@ var NOTE={
 };
 var st=document.getElementById('stage'),wp=document.getElementById('wrap'),nt=document.getElementById('note');
 function paint(v){
-  st.className=(v==='now'?'v-now':(v==='soft'?'cy v-soft':'cy v-hard'));
+  st.className=(v==='now'?'v-now':(v==='soft'?'cy v-soft':(v==='solid'?'cy v-solid':'cy v-hard')));
   wp.innerHTML=(v==='now'?HDR.now:HDR.cy)+FL.map(card).join('');
   nt.innerHTML=NOTE[v];
 }
