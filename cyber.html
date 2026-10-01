@@ -150,6 +150,82 @@ body{background:#05070a;color:#e5e9ef;
 /* 即將抵達的金框不能被實心底吃掉 */
 .v-solid .r.soon{border-color:#FFC53D;box-shadow:0 0 0 2px #FFC53D,0 0 26px -6px rgba(255,197,61,.9)}
 
+/* ═════════ D：賽博龐克面板（整組機殼）═════════ */
+.v-panel{--y:#FCEE09;--c40:#00EFD4;--c53:#FF2E6E}
+.v-panel .wrapbg{background:
+   radial-gradient(90% 55% at 50% -5%,rgba(252,238,9,.07),transparent 70%),
+   linear-gradient(transparent 0 97%,rgba(252,238,9,.05) 97% 100%) 0 0/100% 30px,
+   linear-gradient(90deg,transparent 0 97%,rgba(252,238,9,.05) 97% 100%) 0 0/30px 100%;
+  mask-image:none}
+/* 機殼 */
+.pnl{position:relative;border:1px solid rgba(252,238,9,.42);background:rgba(5,7,10,.78);
+  padding:0 0 0 19px;margin-bottom:10px;
+  clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% calc(100% - 8px),calc(100% - 8px) 100%,
+    20px 100%,0 calc(100% - 20px))}
+/* 左側導軌：刻度 */
+.pnl::before{content:"";position:absolute;left:0;top:0;bottom:0;width:19px;
+  border-right:1px solid rgba(252,238,9,.3);
+  background:repeating-linear-gradient(180deg,rgba(252,238,9,.55) 0 1px,transparent 1px 11px) 7px 0/7px 100% no-repeat}
+/* 右上角切角補一條亮邊 */
+.pnl::after{content:"";position:absolute;right:-1px;top:-1px;width:29px;height:29px;
+  border-top:1px solid var(--y);transform:rotate(45deg);transform-origin:top right;opacity:.75}
+
+/* 標題板 */
+.plate{display:flex;align-items:center;gap:9px;padding:8px 12px 8px 10px;margin-right:0;
+  border-bottom:1px solid rgba(252,238,9,.3);background:linear-gradient(90deg,rgba(252,238,9,.1),transparent 60%);
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--y)}
+.plate .big{font-size:15px;letter-spacing:.24em}
+.plate .hz{flex:1;height:11px;min-width:24px;
+  background:repeating-linear-gradient(135deg,rgba(252,238,9,.85) 0 5px,transparent 5px 11px)}
+.plate .rec{display:flex;align-items:center;gap:6px;color:#FF2E6E;font-size:11px;letter-spacing:.12em}
+.plate .rec i{width:7px;height:7px;border-radius:50%;background:#FF2E6E;box-shadow:0 0 9px #FF2E6E;
+  animation:rec 1.3s steps(1) infinite}
+@keyframes rec{0%,55%{opacity:1}56%,100%{opacity:.15}}
+/* 次標籤列 */
+.subbar{display:flex;gap:14px;flex-wrap:wrap;padding:5px 12px 6px 10px;
+  border-bottom:1px solid rgba(252,238,9,.16);
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.1em;color:#6f7c62}
+.subbar b{color:#B9AC3E;font-weight:800}
+
+.v-panel .rows{padding:8px 7px 3px 6px}
+.v-panel .r{margin-bottom:7px;padding-left:11px;border:1px solid #1b2431;background:#0B1019;
+  clip-path:polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,11px 100%,0 calc(100% - 11px))}
+.v-panel .r::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#2a3545}
+.v-panel .r.r40{background:#064F47;border-color:var(--c40)}
+.v-panel .r.r40::before{background:var(--c40);box-shadow:0 0 16px 1px var(--c40)}
+.v-panel .r.r53{background:#6B0F33;border-color:var(--c53)}
+.v-panel .r.r53::before{background:var(--c53);box-shadow:0 0 16px 1px var(--c53)}
+.v-panel .r.plain{background:#0B1019;border-color:#1b2431}
+.v-panel .r .cor{display:none}
+.v-panel .r40 .c-city,.v-panel .r53 .c-city{color:#D6DFE8}
+.v-panel .r40 .c-time i,.v-panel .r53 .c-time i{color:#9FB0BE}
+.v-panel .r40 .tag{background:var(--c40);border-color:var(--c40);color:#02241F}
+.v-panel .r53 .tag{background:var(--c53);border-color:var(--c53);color:#2B0411}
+.v-panel .r40 .c-gate b{background:var(--c40);border-color:var(--c40);color:#02241F;text-shadow:none;
+  box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.v-panel .r53 .c-gate b{background:var(--c53);border-color:var(--c53);color:#2B0411;text-shadow:none;
+  box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.v-panel .r40 .px,.v-panel .r40 .tx,.v-panel .r40 .badge,
+.v-panel .r53 .px,.v-panel .r53 .tx,.v-panel .r53 .badge{background:rgba(0,0,0,.45)}
+/* 狀態用中括號包起來 */
+.v-panel .badge::before{content:"[ "} .v-panel .badge::after{content:" ]"}
+.v-panel .r.soon{border-color:var(--y);box-shadow:0 0 0 2px var(--y),0 0 26px -6px rgba(252,238,9,.9)}
+.v-panel .r.soon::after{background:linear-gradient(100deg,transparent 35%,rgba(252,238,9,.22) 50%,transparent 65%);
+  background-size:260% 100%}
+.v-panel .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 70px}
+.v-panel .px,.v-panel .tx{font-size:11.5px;padding:2px 5px;margin-left:4px}
+.v-panel .c-city{font-size:15px}
+.v-panel .c-time b{color:var(--y)}
+.v-panel .t-late{color:#FF8A3D} .v-panel .t-early{color:#5BD6FF} .v-panel .t-same{color:#5BE8A8}
+
+/* 機殼頁尾 */
+.foot{display:flex;align-items:center;gap:10px;padding:7px 12px 8px 10px;
+  border-top:1px solid rgba(252,238,9,.22);
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;color:#6f7c62}
+.foot .seg{flex:1;height:7px;min-width:30px;
+  background:repeating-linear-gradient(90deg,rgba(252,238,9,.5) 0 7px,transparent 7px 11px)}
+.foot b{color:var(--y);font-weight:800}
+
 /* ═════════ C：重口味加料 ═════════ */
 .v-hard .wrapbg{background-image:
     repeating-linear-gradient(0deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),
@@ -189,6 +265,7 @@ body{background:#05070a;color:#e5e9ef;
   <button class="sw" data-v="soft">B 賽博·剛好</button>
   <button class="sw" data-v="solid">B2 賽博·實心填滿</button>
   <button class="sw" data-v="hard">C 賽博·全開</button>
+  <button class="sw" data-v="panel">D 賽博龐克·面板</button>
   <button class="sw sun" id="sun">☀ 模擬太陽下</button>
 </div>
 
@@ -220,6 +297,18 @@ function card(f){
    +'<div class="c-shop"><span class="tag">'+tag+'</span></div>'
    +'<div class="c-st"><span class="badge '+f.sc+'">'+f.st+'</span></div></div>';
 }
+function panelOpen(){
+  return '<div class="pnl"><div class="plate"><span class="big">ARRIVALS</span>'
+   +'<span>// TPE.T2</span><span class="hz"></span>'
+   +'<span class="rec"><i></i>LIVE</span></div>'
+   +'<div class="subbar"><span>NODE <b>2140 · 2153</b></span><span>SYNC <b>19:02:41</b></span>'
+   +'<span>SRC <b>TPE.APT</b></span><span>WIN <b>18:00-24:00</b></span></div>'
+   +'<div class="rows">';
+}
+function panelClose(){
+  return '</div><div class="foot"><span>LISTED <b>05</b></span><span class="seg"></span>'
+   +'<span>MINE <b>04</b></span><span>EOF</span></div></div>';
+}
 var HDR={
  now:'<div class="hdr">桃機到站 · 2140 / 2153<span>更新於 19:02</span></div>',
  cy :'<div class="hdr"><span class="t">TPE//T2</span><span class="sep">▸</span>ARRIVALS'
@@ -235,6 +324,12 @@ var NOTE={
      +'好處是<b>一眼就看出整列是誰的</b>，不用看左邊那條；掃過去的時候色塊比漸層更快被認出來。'
      +'代價是底色變重，所以登機門、2140/2153 標籤我改成<b>實色小塊</b>（反白字），人數框墊一層黑底，不然會跟底色糊在一起。</p>'
      +'<p>記得按 <b>☀ 模擬太陽下</b> 比一下：實心底在強光下其實比漸層<b>更撐得住</b>，因為整片都有顏色可以對比。</p>',
+ panel:'<p><b>D 賽博龐克·面板</b>：B2 的卡片不變，外面再套一層<b>機殼</b>——'
+     +'左邊一條有刻度的導軌、上面一塊斜切的標題板配危險斜紋、右上角切角、下面一條分段狀態條。'
+     +'機殼本身用<b>黃色</b>（賽博龐克那個招牌黃），分點色留給卡片，所以「哪些是框、哪些是資料」一眼分得開。</p>'
+     +'<p>標題板上那些 <b>NODE / SYNC / SRC / WIN</b> 是真的有用的東西：分點、資料時間、來源、目前時段——'
+     +'不是裝飾字。狀態改成 <b>[ 已起飛 ]</b> 中括號包起來。</p>'
+     +'<p>代價：機殼本身吃掉左右各約 30px，手錶那種寬度會擠。手錶版我建議<b>只留卡片、不要機殼</b>。</p>',
  hard:'<p><b>C 賽博·全開</b>：再加上 CRT 掃描線疊在整頁、數字加霓虹光暈和左右錯位（色差）、'
      +'標題偶爾 glitch 抖一下、即將抵達改成強脈衝。<b>好看，但代價是清晰度</b>——'
      +'光暈會讓數字邊緣糊掉，掃描線在手錶那種小螢幕上會變成一層灰網。</p>'
@@ -243,8 +338,10 @@ var NOTE={
 };
 var st=document.getElementById('stage'),wp=document.getElementById('wrap'),nt=document.getElementById('note');
 function paint(v){
-  st.className=(v==='now'?'v-now':(v==='soft'?'cy v-soft':(v==='solid'?'cy v-solid':'cy v-hard')));
-  wp.innerHTML=(v==='now'?HDR.now:HDR.cy)+FL.map(card).join('');
+  st.className=(v==='now'?'v-now':(v==='soft'?'cy v-soft':(v==='solid'?'cy v-solid':(v==='panel'?'cy v-panel':'cy v-hard'))));
+  wp.innerHTML = (v==='panel')
+    ? panelOpen()+FL.map(card).join('')+panelClose()
+    : (v==='now'?HDR.now:HDR.cy)+FL.map(card).join('');
   nt.innerHTML=NOTE[v];
 }
 [].forEach.call(document.querySelectorAll('.sw[data-v]'),function(b){
