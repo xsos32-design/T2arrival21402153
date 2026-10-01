@@ -482,7 +482,7 @@
 
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 資料擷取自桃園機場公開航班資訊，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
-    <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+    <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
     同一分鐘抵達時，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
     入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-none">已到</span><br>
     本頁固定不顯示 06:00–13:30 的班機
@@ -500,7 +500,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-09-30a';
+var PAGE_V='2026-10-01a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -551,10 +551,81 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return
 
 /* ── 預估下機人數 ─────────────────────────────────────────────
    航空公司不公開真實載客數，這裡用「機型座位數 × 航線平均載客率」推估：
-   桃機 API 有機型（PlaneNo）最準；TDX 沒機型就用航線推估，粗一點。
-   負載條：1 格<150　2 格 150–250　3 格>250　（僅供參考，誤差約 ±15%） */
+   座位數三層：① 桃機回傳的真實機型 ② 機隊表（班號→座位數）③ 航線粗估。
+   負載條：1 格<150　2 格 150–250　3 格>250　（僅供參考） */
 /* 機型 → 座位數。桃機的 PlaneNo 給的是機型（例：B777-300ER、A321-271NX），
    所以同一家族要由細到粗排，先比對長的字串才不會被短的規則吃掉。 */
+/* ── 座位數：先看真實機型，再查機隊表，最後才用航線猜 ─────────────
+   機型字串正規化成「機型族」，再查各航空公司的實際客艙配置。
+   長榮／華航／星宇佔二航廈約七成，這三家是逐一查過的實際座位數。 */
+function famOf(p){ p=String(p||'').toUpperCase().replace(/\s/g,'');
+  if(/A380/.test(p)) return 'A380';
+  if(/A350-?10|35K/.test(p)) return 'A350-1000';
+  if(/A350|A?35\d/.test(p)) return 'A350-900';
+  if(/A330-?9|A?33[9X]/.test(p)) return 'A330-900';
+  if(/A330-?2/.test(p)) return 'A330-200';
+  if(/A330|A?33\d/.test(p)) return 'A330-300';
+  if(/(A32[01])-?2?[5-9]\d*N|NEO/.test(p)) return /A320/.test(p)?'A320':'A321NEO';
+  if(/A321|32Q|32[1N]/.test(p)) return 'A321';
+  if(/A320|32[0AS]|A319/.test(p)) return 'A320';
+  if(/787-?10|78J|781/.test(p)) return 'B787-10';
+  if(/787-?9|789/.test(p)) return 'B787-9';
+  if(/787|788/.test(p)) return 'B787-8';
+  if(/777-?300ER|77W/.test(p)) return 'B777-300ER';
+  if(/777-?3/.test(p)) return 'B777-300';
+  if(/777|772|77L/.test(p)) return 'B777-200';
+  if(/767/.test(p)) return 'B767-300';
+  if(/747|744/.test(p)) return 'B747';
+  if(/MAX/.test(p)) return 'B737MAX';
+  if(/737-?9|73[9H]/.test(p)) return 'B737-900';
+  if(/737|738/.test(p)) return 'B737-800';
+  if(/ATR|AT7/.test(p)) return 'ATR72';
+  if(/E19|E7[05]/.test(p)) return 'E190';
+  return '';
+}
+/* 這幾家的實際客艙配置（維基百科機隊表） */
+var SEAT_AL={
+ 'BR|B777-300ER':323,'BR|B777-300':323,'BR|B787-10':342,'BR|B787-9':278,'BR|A330-300':309,'BR|A321':184,
+ 'CI|A350-900':306,'CI|A330-300':313,'CI|A321NEO':180,'CI|A321':180,'CI|B777-300ER':358,'CI|B777-300':358,
+ 'JX|A350-900':306,'JX|A350-1000':350,'JX|A330-900':297,'JX|A321NEO':188,'JX|A321':188,
+ 'AE|A321NEO':180,'AE|A321':180};
+/* 其餘航空公司用機型通用值；廉航同機型塞更多人 */
+var SEAT_GEN={'A320':180,'A321':195,'A321NEO':190,'A330-200':263,'A330-300':297,'A330-900':287,
+ 'A350-900':315,'A350-1000':360,'A380':500,'B737-800':180,'B737-900':180,'B737MAX':180,
+ 'B747':370,'B767-300':240,'B777-200':290,'B777-300':350,'B777-300ER':350,
+ 'B787-8':250,'B787-9':290,'B787-10':330,'ATR72':70,'E190':104};
+var SEAT_LCC={'A320':186,'A321':230,'A321NEO':232,'A330-300':440,'A330-900':440,
+ 'B737-800':189,'B737MAX':189,'B787-8':330,'B787-9':375,'B777-200':390,'B777-300':450};
+function seatsByType(al,plane){
+  al=String(al||'').toUpperCase();
+  var k=famOf(plane); if(!k) return 0;
+  if(SEAT_AL[al+'|'+k]) return SEAT_AL[al+'|'+k];
+  if(LCC[al]&&SEAT_LCC[k]) return SEAT_LCC[k];
+  return SEAT_GEN[k]||0;
+}
+/* 機隊表：班號 → 座位數。TDX 沒有機型欄位，用這張表補。
+   表是從桃機的真實機型資料產生的（fleet.txt），同一班號機型其實相當固定。 */
+var FLEET_BAKED='180:7G801 9C8951 AE992 BI451 CA409 CI105 CI107 CI109 CI113 CI119 CI123 CI129 CI131 CI151 CI153 CI155 CI179 CI187 CI189 CI191 CI195 CI27 CI29 CI371 CI395 CI512 CI518 CI602 CI706 CI732 CI756 CI764 CI788 CI794 CI834 CI836 CI838 CI852 CI862 CI904 CI910 CI916 CI920 CI924 CZ3023 HB710 HU7987 HX252 HX254 HX260 JL809 JL8671 LJ763 MF879 MU2009 MU2087 MU5001 NU301 NX612 NX616 NX622 RF511 SL380 SL381 SL394 SL395 SL396 SL397 UA165|186:AK1510 AK1511 FD242 FD243 GK13 GK55 GK57 IT201 IT203 IT209 IT211 IT213 IT215 IT217 IT231 IT233 IT235 IT237 IT241 IT247 IT251 IT253 IT255 IT257 IT259 IT552 IT603 IT607 IT655 IT701 IT715 IT721 IT737 IT751 MM23 MM25 MM27 MM625 MM627 MM631 MM6927 MM723 MM859 MM921 MM927 MM929 VZ570 VZ571 Z2124|306:CI101 CI157 CI21 CI23 CI3 CI31 CI502 CI504 CI54 CI58 CI64 CI68 CI7 CI722 CI754 CI76 CI762 CI82 CI832 JX1 JX11 JX31 JX742 JX772 JX841 JX851 JX9|323:BR11 BR131 BR15 BR153 BR17 BR202 BR212 BR216 BR218 BR226 BR228 BR27 BR31 BR35 BR392 BR396 BR398 BR5 BR51 BR55 BR68 BR711 BR72 BR76 BR88 BR9|297:CA195 CX402 CX408 CX420 CX472 CX494 CX530 CX531 CZ3087 HU7981 JX202 JX234 JX712 JX726 JX746 JX752 JX805 JX821 JX839 JX863 JX871 MH366 MU5005|184:BR101 BR109 BR113 BR117 BR1193 BR121 BR133 BR135 BR157 BR163 BR165 BR175 BR185 BR258 BR262 BR386 BR810 BR852 BR868 BR870|195:9G510 CA149 CA185 CA189 CX400 CX464 HX282 KE2085 NX632 PR890 PR894 TG636 TG636D UO110 UO112 UO114 UO116 VN570 VN578 ZH9073|188:JX1835 JX206 JX236 JX704 JX706 JX714 JX718 JX762 JX766 JX782 JX786 JX792 JX835 JX847 JX861 JX891 JX901 JX903|189:7C6101 7C6151 7C6153 7C6171 HB702 LJ751 OD698 TW663 TW687 VZ566 VZ567 ZE781 ZE881 ZE8813 ZE885 ZE983 ZE987 ZE989|342:BR105 BR115 BR129 BR159 BR177 BR183 BR195 BR197 BR206 BR23 BR25 BR62 BR757 BR872 BR892|350:B7188 CX450 CX451 CX466 CX564 CX565 CZ3095 CZ3097 JX102 JX25 JX801 JX803 JX823 TG632 UA871|230:5J310 BX791 BX793 FD230 FD231 GK11 VJ5512 VJ842 VJ844 VJ942 VZ568 VZ569|313:CI111 CI117 CI121 CI161 CI163 CI173 CI522 CI528 CI702 CI704 CI782 CI792|290:EY898 HO1309 KE2027 KL807 KL808 NZ77 OZ711 OZ713 TK124 TK24 UA853|278:BR234 BR238 BR272 BR278 BR3 BR49 BR7 BR802 BR806 BR96|309:BR169 BR256 BR266 BR282 BR382 BR384 BR715 BR721 BR858|330:KE2021 SQ876 SQ878 TR873 TR892 TR893|358:CI11 CI52 CI62 CI74 CI772 CI784|375:TR866 TR867 TR872 TR874 TR875|315:CX488 DL69 EK386 TG634|440:5J312 D7378 D7379|263:CA417 MU5007|190:MF887|240:JL8663|390:LJ733|500:EK366';
+var FLEET={};
+function fleetParse(t){
+  String(t||'').split('|').forEach(function(g){
+    var i=g.indexOf(':'); if(i<0) return;
+    var s=+g.slice(0,i);
+    g.slice(i+1).split(/\s+/).forEach(function(c){ if(c) FLEET[c.toUpperCase()]=s; });
+  });
+}
+fleetParse(FLEET_BAKED);              /* 內建一份，離線版 / 手錶也查得到 */
+function loadFleet(){                 /* repo 裡的 fleet.txt 抓得到就覆蓋，以後只換那個檔就更新 */
+  try{
+    return fetch('fleet.txt?v='+PAGE_V).then(function(r){ return r.ok?r.text():''; })
+      .then(function(t){ if(t) fleetParse(t); })['catch'](function(){});
+  }catch(e){ return Promise.resolve(); }
+}
+function fleetSeats(code){
+  var s=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  var m=s.match(/^([A-Z]*)0*(\d+)$/); if(m) s=m[1]+m[2];
+  return FLEET[s]||0;
+}
 var SEAT_RULES=[
   [/777-300|77W/,350],[/777-200|772|77L/,263],[/777/,333],
   [/787-10|78J|781/,342],[/787-9|789/,304],[/787|788/,270],
@@ -584,7 +655,10 @@ function paxOf(f){
   var al=String(f.flightCode||'').slice(0,2).toUpperCase();
   var pl=String(f.PlaneNo||'').toUpperCase();
   if(/F$|BCF/.test(pl)) return {est:0,inn:0,tx:0,lv:0};   /* 全貨機沒有下機旅客 */
-  var seats=seatsByPlane(f.PlaneNo)||seatsByRoute(dep,f.flightCode);
+  var seats=seatsByType(al,f.PlaneNo)                /* ① 桃機給的真實機型 */
+          || fleetSeats(f.flightCode)                /* ② 機隊表（TDX 來源沒機型時） */
+          || seatsByPlane(f.PlaneNo)                 /* ③ 舊的機型通用值 */
+          || seatsByRoute(dep,f.flightCode);         /* ④ 最後才用航線猜 */
   /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
   var lf=LCC[al]?0.88:(LONGHAUL[dep]?0.85:(MIDHAUL[dep]?0.82:0.80));
   var est=Math.round(seats*lf/5)*5;    /* 機上總人數 */
@@ -1418,7 +1492,8 @@ document.getElementById('hide').addEventListener('click',function(){
   document.getElementById('t1').value=w[0];
   document.getElementById('t2').value=w[1];
   paintWin();
-  run();
+  /* 先把「班號→座位數」機隊表載進來，再第一次算，避免第一屏用到舊的粗估值 */
+  loadFleet().then(run,run);
 })();
 </script>
 </body>
