@@ -392,7 +392,7 @@ const CSS = `
 .ic{width:1.05em;height:1.05em;stroke:currentColor;fill:none;stroke-width:2;
  stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:0 0 auto}
 body{background:#0A0D12;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
- font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:47px}
+ font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:81px}
 /* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
 .mk{background:linear-gradient(180deg,#14100A,#0C0A07);border:1px solid #4A3A14;border-top:2px solid #8A7440;border-radius:12px;
  padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
@@ -638,9 +638,21 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 .btn.half,.btn.cat{font-size:16px}
 .btn.zone,.btn.pre{font-size:14.5px}
 .btn.nav{font-size:19px} .btn.mid{font-size:16px}
-/* ── 浮動快捷鍵加大 ── */
-.fabb{min-height:46px;font-size:17px;font-weight:900}
-.fabb .ic{width:1.25em;height:1.25em}
+
+/* ── 浮動快捷鍵：三顆鍵一排，現在時間自己一條放在正下方 ── */
+#fab{flex-direction:column;gap:4px}
+.fabrow{display:flex;gap:5px;width:100%}
+.fabrow .fabb{flex:1 1 0}
+/* 黑底白字，最單純最好認。純顯示，不是按鈕，所以不吃點擊 */
+.fclock{display:flex;align-items:center;justify-content:center;min-height:30px;
+ font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ font-size:22px;font-weight:900;letter-spacing:.04em;
+ background:#000;border:1px solid #2A323E;color:#fff;
+ box-shadow:0 4px 14px rgba(0,0,0,.55);pointer-events:none;user-select:none}
+@media(max-width:340px){ .fclock{font-size:20px;min-height:28px} }
+@media(min-width:620px){ #fab{flex-direction:row;align-items:center}
+ .fabrow{width:auto} .fabrow .fabb{flex:0 0 auto}
+ .fclock{min-height:44px;padding:0 14px;font-size:20px;border-radius:999px} }
 
 /* ══════════════ 手錶版（≤340px）：E 版型 ══════════════
    兩列。第一列：時間 ＋ 班號（班號比舊版還大）。第二列：登機門／城市／人數／狀態。
@@ -820,9 +832,12 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
 <style>${CSS}</style></head><body class="${full ? 'full' : ''}" data-b="${buildEpoch}" data-day="${todayISO}" data-c="${idOf(cur)}" data-p="${preset}" data-h="${hide ? 1 : ''}" data-x="${full ? 'a' : 'w'}">
 ${SPRITE}
 <div id="fab">
-  <button class="fabb" id="fTop">${IC('up')}</button>
-  <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('timer')} 現在</a>
-  <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('refresh')}</a>
+  <div class="fabrow">
+    <button class="fabb" id="fTop">${IC('up')}</button>
+    <a class="fabb" id="fNow" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('timer')} 現在</a>
+    <a class="fabb" id="fGo" href="${fileFor(preset, idOf(cur), hide, full)}">${IC('refresh')}</a>
+  </div>
+  <div class="fclock" id="fClock">--:--</div>
 </div>
 
 <div class="mk">
@@ -847,6 +862,23 @@ ${full
 <div class="foot">本頁預先產生、<b>完全不連網</b>，所以一定不是即時的<br>
 ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾分前」再決定要不要信登機門</b><br>點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
+/* 現在時間：整分鐘才更新一次（一分鐘只寫一次字，不會像以前的輪詢那樣卡捲動）。
+   螢幕暗掉就停，亮起來立刻補上正確的時間。 */
+(function(){
+  var el=document.getElementById('fClock'); if(!el) return;
+  var tid=0;
+  function pad(n){ return (n<10?'0':'')+n; }
+  function tick(){
+    var d=new Date();
+    el.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+    clearTimeout(tid);
+    tid=setTimeout(tick,(60-d.getSeconds())*1000-d.getMilliseconds()+60);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) clearTimeout(tid); else tick();
+  });
+  tick();
+})();
 /* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
    1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
    2. 算這份資料放了幾分鐘，超過就變色警告                              */
