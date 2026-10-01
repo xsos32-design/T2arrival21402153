@@ -227,6 +227,80 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
  .g{min-width:0} .tag{text-align:center;justify-self:stretch}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
 }
+
+/* ══════════════ 賽博皮膚 B3：分點色實心填滿 ＋ 字推到滿版 ══════════════
+   跟網頁版同一套視覺。手錶（≤340px）只換配色和切角，字維持原本尺寸——
+   那邊的字早就按小螢幕調過，再放大只會換行。 */
+body{background:#05070a}
+.r{border-radius:0;position:relative}
+/* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成三角形。
+   不用 clip-path，那會把「即將抵達」的外發光一起裁掉。 */
+.r::after{content:"";position:absolute;width:20px;height:20px;right:-10px;top:-10px;
+ background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545;pointer-events:none}
+.r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 6px 0 0 #00EFD4,0 0 22px -12px #00EFD4}
+.r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 6px 0 0 #FF2E6E,0 0 22px -12px #FF2E6E}
+.r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+.r:not(.r40):not(.r53):not(.done){background:#0B1019;border-color:#1b2431;box-shadow:inset 6px 0 0 #2a3545}
+.r.r40 .c,.r.r53 .c{color:#DCE4EC}
+.r.soon{--bar:#D9A441;border-color:#FFC53D;
+ box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r40{--bar:#00EFD4;background:#064F47}
+.r.soon.r53{--bar:#FF2E6E;background:#6B0F33}
+.r.soon::after{border-bottom-color:#FFC53D}
+@keyframes soonGlow{
+ 0%,100%{box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 12px -6px rgba(255,197,61,.6)}
+ 50%    {box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 32px -2px rgba(255,197,61,1)}}
+/* 數字換等寬字：時間／班號／登機門天然對齊 */
+b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;letter-spacing:-.04em}
+.t-late{color:#FF8A3D} .t-early{color:#5BD6FF} .t-same{color:#5BE8A8} .t-plan{color:#FFC53D}
+.f{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:#fff;letter-spacing:-.045em}
+.g{font-family:ui-monospace,Menlo,monospace;letter-spacing:-.045em}
+.g .gn{border-radius:0;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+.r.r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.r.r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.tag,.st,.px,.tx{border-radius:0;border:1px solid;letter-spacing:-.02em}
+.tag{border-color:#2a3545;background:rgba(255,255,255,.03);color:#93a0b1}
+.s40{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4}
+.s53{background:rgba(255,46,110,.13);border-color:#FF2E6E;color:#FF2E6E}
+.st1{border-color:#4a3f6b;color:#A79BC4;background:rgba(167,155,196,.08)}
+.st2{border-color:#2a3545;color:#8B93A1;background:rgba(255,255,255,.03)}
+.r.r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:none}
+.r.r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:none}
+.px{border-color:#2a3545;color:#aab6c4;background:rgba(255,255,255,.03)}
+.px.p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.px.p2{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.px.p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.tx{border-color:#5c4a1c;color:#D9B96C;background:rgba(217,185,108,.06)}
+.b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.b-warn{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.b-bad{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.b-early{border-color:#1d5b78;color:#8FD2E6;background:rgba(143,210,230,.08)}
+/* 實心底上，小色塊墊一層黑才不會糊進底色 */
+.r.r40 .px,.r.r40 .tx,.r.r40 .st,
+.r.r53 .px,.r.r53 .tx,.r.r53 .st{background:rgba(0,0,0,.45);box-shadow:none}
+
+
+/* 341px 以上（手機／平板／電腦）才把字推到滿版；手錶維持原尺寸 */
+@media(min-width:341px){
+ .r{padding:5px 8px 5px 12px;gap:2px 8px;margin-bottom:6px}
+ b.t{font-size:38px;font-weight:800;line-height:1}
+ .f{font-size:32px;font-weight:800}
+ .cty{font-size:24px;margin-left:5px;vertical-align:-3px}
+ .g{font-size:38px;font-weight:800}
+ .g .gn{padding:0 5px}
+ .c{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em}
+ .tag{font-size:16.5px;font-weight:900;padding:2px 7px}
+ .st{font-size:16.5px;font-weight:900;padding:2px 6px;letter-spacing:-.02em}
+ .px,.tx{font-size:14.5px;padding:1px 4px;margin-left:2px;gap:1px;letter-spacing:-.04em}
+ .px u,.tx u{font-size:11px;letter-spacing:-.02em}
+}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) 74px;gap:2px 8px;padding:5px 8px 5px 12px}
+}
+@media(max-width:400px) and (min-width:341px){
+ b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
+ .r{grid-template-columns:86px minmax(0,1fr) 68px}
+}
 </style>
 </head>
 <body>
@@ -301,7 +375,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01a';
+var PAGE_V='2026-10-01b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */

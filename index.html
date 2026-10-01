@@ -342,6 +342,93 @@
       padding:11px 12px;border-radius:0 12px 12px 0;margin-top:12px;line-height:1.85;text-align:left}
     .notice b{color:#C3CAD4}
     .notice .lk{color:#E7C785;border-bottom:1px solid #5C4718;text-decoration:none}
+
+    /* ══════════════ 賽博皮膚 B3：分點色實心填滿 ＋ 字推到滿版 ══════════════
+       設計重點三個：
+       ① 卡片用分點色「整張填滿」，不漸層——掃過去的時候色塊比漸層快被認出來，
+          而且在陽光下比漸層撐得住（整片都有顏色可以對比）。
+       ② 數字全部換等寬字，時間／班號／登機門天然對齊。
+       ③ 字放到最大、內距砍到最小，讓字去吃掉留白而不是把卡片撐大。
+          實測 390 寬的手機高度反而少 3%，430 寬會高約 15%。 */
+    body{background:#05070a}
+    .wrap{position:relative}
+    .list{background:transparent}
+
+    .r{border-radius:0;padding:5px 7px 5px 12px;gap:1px 7px;margin-bottom:6px;
+       grid-template-columns:minmax(0,auto) minmax(0,1fr) 78px}
+    /* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成一個三角形。
+       刻意不用 clip-path——那會把「即將抵達」的外發光一起裁掉。 */
+    .r::after{content:"";position:absolute;width:22px;height:22px;right:-11px;top:-11px;
+      background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545;pointer-events:none}
+    .r{position:relative}
+
+    .r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 6px 0 0 #00EFD4,0 0 22px -12px #00EFD4}
+    .r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 6px 0 0 #FF2E6E,0 0 22px -12px #FF2E6E}
+    .r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+    .r:not(.r40):not(.r53):not(.head):not(.done){background:#0B1019;border-color:#1b2431;
+      box-shadow:inset 6px 0 0 #2a3545}
+    .r.r40 .c-city,.r.r53 .c-city{color:#DCE4EC}
+    .r.r40 .c-time i,.r.r53 .c-time i{color:#A6B5C2}
+
+    /* 等寬字＋滿版尺寸 */
+    .c-time b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+      font-size:40px;font-weight:800;letter-spacing:-.045em;line-height:1;color:#FFC53D;padding:0}
+    .c-time b.t-late{color:#FF8A3D} .c-time b.t-early{color:#5BD6FF}
+    .c-time b.t-same{color:#5BE8A8} .c-time b.t-plan{color:#FFC53D}
+    .c-time i{font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:800;
+      margin-top:0;letter-spacing:-.02em;color:#6b7686}
+    .c-fno b{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:34px;font-weight:800;
+      letter-spacing:-.05em;color:#fff}
+    .cty{font-size:25px;margin-left:5px;vertical-align:-3px}
+    .c-gate{font-family:ui-monospace,Menlo,monospace;font-size:40px}
+    .c-gate .gn{font-size:40px;font-weight:800;padding:0 5px;border-radius:0;letter-spacing:-.05em;
+      line-height:1.02;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+    .r.r40 .c-gate .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F;
+      box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+    .r.r53 .c-gate .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;
+      box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+    .c-city{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em;color:#8d99a9}
+
+    .tag{font-size:16.5px;font-weight:900;padding:2px 7px;border-radius:0;letter-spacing:-.02em;
+      border:1px solid #2a3545;background:rgba(255,255,255,.03);color:#93a0b1}
+    .r.r40 .c-shop .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:none}
+    .r.r53 .c-shop .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:none}
+    .badge{font-size:16.5px;font-weight:900;padding:2px 6px;border-radius:0;letter-spacing:-.02em;
+      border:1px solid}
+    .px,.tx{font-size:14.5px;font-weight:900;padding:1px 4px;margin-left:2px;border-radius:0;
+      letter-spacing:-.04em;border:1px solid;gap:1px}
+    .px u,.tx u{font-size:11px;font-weight:800;opacity:.8;margin-left:0;letter-spacing:-.02em}
+    .px{background:rgba(255,255,255,.03);border-color:#2a3545;color:#aab6c4}
+    .px.p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+    .px.p2{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+    .px.p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+    .tx{border-color:#5c4a1c;color:#D9B96C;background:rgba(217,185,108,.06)}
+    .b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+    .b-warn{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+    .b-bad{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+    .b-none{border-color:#2a3545;color:#8b94a1;background:rgba(255,255,255,.03)}
+    .b-early{border-color:#1d5b78;color:#8FD2E6;background:rgba(143,210,230,.08)}
+    /* 實心底上，這幾個小框原本的半透明底會糊掉，墊一層黑 */
+    .r.r40 .px,.r.r40 .tx,.r.r40 .badge,
+    .r.r53 .px,.r.r53 .tx,.r.r53 .badge{background:rgba(0,0,0,.45);box-shadow:none}
+
+
+    /* 即將抵達（45 分內）：金框＋外發光呼吸，左邊色帶維持分點色 */
+    .r.soon{--bar:#D9A441;background:#11151C;border-color:#FFC53D;
+      box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+    .r.soon.r40{--bar:#00EFD4;background:#064F47}
+    .r.soon.r53{--bar:#FF2E6E;background:#6B0F33}
+    .r.soon::after{border-bottom-color:#FFC53D}
+    @keyframes soonGlow{
+     0%,100%{box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 12px -6px rgba(255,197,61,.6)}
+     50%    {box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 32px -2px rgba(255,197,61,1)}}
+
+    /* 窄螢幕自動降一號，不然「東京成田」「大阪關西」會被擠成三行 */
+    @media (max-width:400px){
+      .c-time b{font-size:35px} .c-fno b{font-size:30px}
+      .c-gate,.c-gate .gn{font-size:35px} .c-city{font-size:18px} .cty{font-size:22px}
+      .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 74px}
+    }
   }
 
   /* ===== Apple Watch / 極窄螢幕：同一套視覺再縮一號 ===== */
@@ -500,7 +587,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01a';
+var PAGE_V='2026-10-01b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
