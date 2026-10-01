@@ -535,6 +535,70 @@ body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:
  .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
  .g{min-width:0} .tag{text-align:center;justify-self:stretch}
  .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
+}
+
+/* ══════════ 賽博皮膚 B3：分點色實心填滿 ＋ 字推到滿版 ══════════
+   跟手機網頁版同一套視覺。手錶（≤340px）只換配色和切角，字維持原尺寸——
+   那邊的字早就按小螢幕調過，再放大只會換行。 */
+body{background:#05070a}
+.r{border-radius:0;position:relative}
+/* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成三角形 */
+.r::after{content:"";position:absolute;width:20px;height:20px;right:-10px;top:-10px;
+ background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545;pointer-events:none}
+.r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 6px 0 0 #00EFD4,0 0 22px -12px #00EFD4}
+.r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 6px 0 0 #FF2E6E,0 0 22px -12px #FF2E6E}
+.r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+.r:not(.r40):not(.r53):not(.done){background:#0B1019;border-color:#1b2431;box-shadow:inset 6px 0 0 #2a3545}
+.r.r40 .c,.r.r53 .c{color:#DCE4EC}
+.r.r40 .px,.r.r53 .px{color:#fff}
+.r.r40 .tx,.r.r53 .tx{color:#FFE09A}
+.r.r40 .px u,.r.r40 .tx u,.r.r53 .px u,.r.r53 .tx u{color:rgba(255,255,255,.72)}
+.r.r40 .st,.r.r53 .st{color:#fff;border-left-color:rgba(255,255,255,.5)}
+.r.soon{background:#11151C;border-color:#FFC53D;
+ box-shadow:inset 6px 0 0 #D9A441,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r40{background:#064F47;box-shadow:inset 6px 0 0 #00EFD4,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r53{background:#6B0F33;box-shadow:inset 6px 0 0 #FF2E6E,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon::after{border-bottom-color:#FFC53D}
+/* 數字換等寬字：時間／班號／登機門天然對齊 */
+b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;letter-spacing:-.04em}
+.t-late{color:#FF8A3D} .t-early{color:#5BD6FF} .t-same{color:#5BE8A8} .t-plan{color:#FFC53D}
+.f{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:#fff;letter-spacing:-.045em}
+.g{font-family:ui-monospace,Menlo,monospace;letter-spacing:-.045em}
+.g .gn{border-radius:0;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+.r.r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.r.r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.tag{border-radius:0;border:1px solid #2a3545;background:rgba(255,255,255,.03);color:#93a0b1;letter-spacing:-.02em}
+.r.r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.r.r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.lv1>i{background:#49E3A3} .lv2>i:nth-child(-n+2){background:#FFC53D} .lv3>i{background:#FF7A95}
+.tx{color:#D9B96C}
+.b-ok{color:#49E3A3;border-left-color:#1e6b4d}
+.b-warn{color:#FFC53D;border-left-color:#7a5c12}
+.b-bad{color:#FF7A95;border-left-color:#8a2a3f}
+.b-early{color:#8FD2E6;border-left-color:#1d5b78}
+.b-none{color:#8b94a1;border-left-color:#2a3545}
+
+/* 341px 以上（手機／平板／電腦）才把字推到滿版；手錶維持原尺寸 */
+@media(min-width:341px){
+ .r{padding:5px 8px 5px 12px;gap:2px 8px;margin-bottom:6px}
+ b.t{font-size:38px;font-weight:800;line-height:1}
+ .f{font-size:32px;font-weight:800}
+ .cty{font-size:24px;margin-left:5px;vertical-align:-3px}
+ .g{font-size:38px;font-weight:800}
+ .g .gn{padding:0 5px}
+ .c{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em}
+ .tag{font-size:16.5px;font-weight:900;padding:2px 7px}
+ .st{font-size:16.5px;font-weight:900;letter-spacing:-.02em;padding-left:6px}
+ .px,.tx{font-size:15px;font-weight:900;letter-spacing:-.03em;margin-left:3px}
+ .px u,.tx u{font-size:11.5px;letter-spacing:0;margin-left:1px}
+ .bars>i{height:13px;width:3.5px}
+}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) 74px;gap:2px 8px;padding:5px 8px 5px 12px}
+}
+@media(max-width:400px) and (min-width:341px){
+ b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
+ .r{grid-template-columns:86px minmax(0,1fr) 68px}
 }`;
 
 
