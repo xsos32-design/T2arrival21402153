@@ -460,13 +460,21 @@
     .chip{background:#0B1019;border:1px solid #2a3545;border-radius:0;color:#93a0b1;font-weight:800}
     .chip.act{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
       box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
-    /* 分點鍵選起來＝實心，跟卡片同一個顏色邏輯 */
-    .cs0.act{background:#00EFD4;border-color:#00EFD4;color:#02241F;
-      box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
-    .cs1.act{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;
-      box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
-    .cs2.act{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
-    .cs3.act{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+    /* 選取中的分點鍵：亮字＋亮框＋外發光。
+       不用「亮底＋黑字」——黑字在亮底上看起來反而不明顯。 */
+    .cs0.act{background:rgba(0,239,212,.16);border-color:#00EFD4;color:#4DF6E2;
+      box-shadow:inset 0 0 0 1px #00EFD4,0 0 16px -3px rgba(0,239,212,.9)}
+    .cs1.act{background:rgba(255,46,110,.16);border-color:#FF2E6E;color:#FF7FA3;
+      box-shadow:inset 0 0 0 1px #FF2E6E,0 0 16px -3px rgba(255,46,110,.9)}
+    .cs2.act{background:rgba(167,155,196,.16);border-color:#A79BC4;color:#D3C8EC;
+      box-shadow:inset 0 0 0 1px #A79BC4}
+    .cs3.act{background:rgba(255,255,255,.09);border-color:#8d99a9;color:#DDE3EA;
+      box-shadow:inset 0 0 0 1px #8d99a9}
+    /* 按鍵整體：加大、加粗 */
+    .chip{font-weight:900;min-height:54px;font-size:16.5px}
+    .chip.shop{font-size:18.5px;min-height:58px}
+    .chip.zone{font-size:16px}
+    .cn{font-style:normal}
     .fabb{border-radius:0;background:rgba(11,16,25,.95);border:1px solid #2a3545;color:#AEB6C2;
       font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em}
     .fabb.on{background:rgba(0,239,212,.15);border-color:#00EFD4;color:#00EFD4}
@@ -513,8 +521,8 @@
     label{font-size:13px}
     input,select{font-size:17px;padding:11px 10px;min-height:48px;border-radius:11px}
     .chips{gap:7px;margin-top:10px}
-    .chip{flex:1 1 46%;min-height:48px;font-size:14.5px;border-radius:12px;padding:9px 3px}
-    .chip.shop{font-size:16px;min-height:52px}
+    .chip{flex:1 1 46%;min-height:54px;font-size:16.5px;font-weight:900;border-radius:0;padding:9px 3px}
+    .chip.shop{font-size:18px;min-height:58px}
     .chip.zone{flex:1 1 46%}
     button{padding:15px;font-size:19px;min-height:58px}
     details.cfg{display:none}
@@ -660,7 +668,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01d';
+var PAGE_V='2026-10-01e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1084,7 +1092,7 @@ function render(){
           + flagCell(f)
           + '<small>'+esc(f.AName)+'</small></div>'
         + '<div class="c-gate">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'<span style="color:#9aa3ae">—</span>')+tm+'</div>'
-        + '<div class="c-city">'+esc(f.CityName)+paxHtml(f)+'</div>'
+        + '<div class="c-city"><i class="cn">'+esc(f.CityName)+'</i>'+paxHtml(f)+'</div>'
         + '<div class="c-shop">'+tags+'</div>'
         + '<div class="c-st"><span class="badge '+st.cls+'">'
           + '<span class="full">'+esc(st.text)+'</span>'
