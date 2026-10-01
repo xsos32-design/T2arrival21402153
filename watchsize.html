@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>手錶版字級 · 預覽</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#05070a;color:#E8EDF3;
+ font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;
+ font-size:16px;font-weight:600;line-height:1.5;padding:14px 12px 40px}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.16em;color:#00EFD4;
+ text-transform:uppercase;margin:0 0 4px}
+.lead{font-size:13.5px;color:#8b94a1;line-height:1.8;margin:0 0 18px}
+.lead b{color:#cfd6e0}
+.row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.col{flex:0 0 auto;width:214px}
+.cap{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.1em;color:#6b7686;
+ text-align:center;margin-bottom:7px}
+.cap b{display:block;font-size:15px;color:#FFC53D;letter-spacing:.06em;margin-bottom:2px}
+.cap b.on{color:#00EFD4}
+/* 45mm Apple Watch 的實際可視範圍：198 × 242 CSS px */
+.screen{width:198px;height:242px;margin:0 auto;overflow:hidden;position:relative;
+ background:#05070a;border:1px solid #2a3545;border-radius:30px;padding:4px 3px}
+.screen::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+ background:linear-gradient(transparent,#05070a);pointer-events:none}
+.note{font-size:12.5px;color:#8b94a1;text-align:center;margin-top:8px;line-height:1.6}
+.note b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace}
+
+/* ───── 手錶卡片（跟線上同一套，只有字級用 --s 倍率縮放）───── */
+.r{display:grid;gap:2px 5px;padding:5px 6px 5px 10px;margin-bottom:5px;position:relative;overflow:hidden;
+ grid-template-columns:minmax(0,auto) minmax(0,1fr) minmax(48px,max-content);
+ grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
+ background:#0B1019;border:1px solid #1b2431}
+.r::after{content:"";position:absolute;width:18px;height:18px;right:-9px;top:-9px;
+ background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545}
+.r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 5px 0 0 #00EFD4}
+.r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 5px 0 0 #FF2E6E}
+.r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+.r:not(.r40):not(.r53){box-shadow:inset 5px 0 0 #2a3545}
+.r.soon{border-color:#FFC53D;box-shadow:inset 5px 0 0 #00EFD4,inset 0 0 0 2px #FFC53D}
+.r.soon::after{border-bottom-color:#FFC53D}
+b.t{grid-area:t;font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
+ line-height:1.02;letter-spacing:-.04em;font-size:calc(28px * var(--s))}
+.t-late{color:#FF8A3D} .t-early{color:#5BD6FF}
+.g{grid-area:g;font-family:ui-monospace,Menlo,monospace;text-align:right;white-space:nowrap;
+ line-height:1.02;letter-spacing:-.045em;font-weight:800;font-size:calc(29px * var(--s))}
+.g .gn{display:inline-block;padding:0 4px;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+.r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.f{grid-area:f;font-family:ui-monospace,Menlo,monospace;color:#fff;font-weight:800;text-align:left;
+ white-space:nowrap;letter-spacing:-.05em;line-height:1.1;font-size:calc(26px * var(--s))}
+.cty{font-style:normal;font-weight:800;white-space:nowrap;margin-left:5px;vertical-align:-2px;
+ font-size:calc(20px * var(--s))}
+.c{grid-area:c;color:#8d99a9;font-weight:800;line-height:1.25;letter-spacing:-.03em;min-width:0;
+ word-break:break-word;font-size:calc(15px * var(--s))}
+.r40 .c,.r53 .c{color:#DCE4EC}
+.tag{grid-area:tag;justify-self:start;align-self:center;white-space:nowrap;font-weight:900;
+ border:1px solid #2a3545;background:rgba(255,255,255,.03);color:#93a0b1;letter-spacing:-.02em;
+ font-size:calc(13px * var(--s));padding:2px calc(7px * var(--s))}
+.r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.st{grid-area:st;justify-self:end;align-self:center;white-space:nowrap;font-weight:900;
+ border:1px solid;letter-spacing:-.02em;min-width:0;max-width:100%;overflow:hidden;
+ font-size:calc(13.5px * var(--s));padding:2px calc(6px * var(--s))}
+.b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.b-warn{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.b-none{border-color:#2a3545;color:#8b94a1;background:rgba(255,255,255,.03)}
+.px{font-style:normal;font-weight:900;white-space:nowrap;display:inline-flex;align-items:baseline;gap:1px;
+ margin-left:3px;border:1px solid;letter-spacing:-.04em;
+ font-size:calc(13px * var(--s));padding:1px calc(4px * var(--s))}
+.px u{text-decoration:none;opacity:.8;font-size:calc(10.5px * var(--s))}
+.px.p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.px.p2{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.px.p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.r40 .px,.r53 .px{background:rgba(0,0,0,.45)}
+/* ───── D：大字＋三列（把「分點」挪到班號旁邊，省掉一整列）───── */
+.d3 .r{grid-template-areas:"t t g" "f f tag" "c c st";gap:1px 5px;padding:4px 6px 4px 10px}
+.d3 .tag{align-self:center;justify-self:end}
+.d3 .st{align-self:center}
+.d3 .c{align-self:center}
+/* 手錶這麼窄，「預估入境」四個字就吃掉一半，標籤縮成「入境」才排得進同一列
+   （手機／電腦維持「預估入境」）*/
+.d3 .px u::before{content:"入境"}
+.d3 .px u{font-size:0}
+.d3 .px u::before{font-size:calc(10.5px * var(--s))}
+@media (max-width:700px){ .col{width:100%;max-width:260px} }
+/* 直接拿手錶打開這一頁也行：框框改成滿版，往下捲就能一個一個比 */
+@media (max-width:340px){
+  body{padding:6px 5px 24px;font-size:14px}
+  h1{font-size:12.5px} .lead{font-size:12px;line-height:1.7;margin-bottom:12px}
+  .col{width:100%;max-width:none} .row{gap:14px}
+  .screen{width:100%;height:242px;border-radius:16px}
+  .cap{font-size:11px} .cap b{font-size:14px} .note{font-size:11.5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>手錶版字級 · 預覽</h1>
+<p class="lead">框框是 <b>45mm Apple Watch 的實際可視大小</b>（198 × 242）。三個都是同一批班機、同一套配色，
+<b>只有字級不一樣</b>。下面那行是實測一屏看得到幾班。</p>
+<div class="row" id="row"></div>
+</div>
+<script>
+var FL=[
+ {t:'19:05',tc:'t-late',f:'BR0028',flag:'🇯🇵',g:'C5',c:'東京成田',px:235,lv:2,tag:'2140',sh:'c0',st:'延遲',sc:'b-warn',cls:'soon'},
+ {t:'19:14',tc:'',f:'JX0025',flag:'🇺🇸',g:'A8',c:'鳳凰城',px:260,lv:3,tag:'2153',sh:'c1',st:'準時',sc:'b-ok',cls:''},
+ {t:'19:28',tc:'t-early',f:'CI0152',flag:'🇯🇵',g:'B3',c:'大阪關西',px:205,lv:2,tag:'待定',sh:'',st:'提早',sc:'b-none',cls:''},
+ {t:'19:40',tc:'',f:'BR0262',flag:'🇵🇭',g:'C9',c:'馬尼拉',px:130,lv:1,tag:'2140',sh:'c0',st:'準時',sc:'b-ok',cls:''}
+];
+function card(x){
+  var sh=x.sh==='c0'?' r40':(x.sh==='c1'?' r53':'');
+  return '<div class="r '+x.cls+sh+'">'
+   +'<b class="t '+x.tc+'">'+x.t+'</b>'
+   +'<span class="g"><b class="gn">'+x.g+'</b></span>'
+   +'<span class="f">'+x.f+'<i class="cty">'+x.flag+'</i></span>'
+   +'<span class="c">'+x.c+'<i class="px p'+x.lv+'">'+x.px+'<u>預估入境</u></i></span>'
+   +'<span class="tag">'+x.tag+'</span>'
+   +'<span class="st '+x.sc+'">'+x.st+'</span></div>';
+}
+var OPT=[
+ {k:'A',name:'現在',s:1,on:false,d3:false},
+ {k:'B',name:'大一號',s:1.16,on:false,d3:false},
+ {k:'C',name:'再大一號',s:1.30,on:false,d3:false},
+ {k:'D',name:'大一號＋三列',s:1.16,on:true,d3:true}
+];
+document.getElementById('row').innerHTML=OPT.map(function(o,i){
+  return '<div class="col"><div class="cap"><b class="'+(o.on?'on':'')+'">'+o.k+'　'+o.name+'</b>'
+   +'時間 '+Math.round(28*o.s)+'px ／ 班號 '+Math.round(26*o.s)+' ／ 門 '+Math.round(29*o.s)
+   +(o.d3?'<br>分點挪到班號旁，少一整列':'')+'</div>'
+   +'<div class="screen'+(o.d3?' d3':'')+'" id="s'+i+'" style="--s:'+o.s+'">'+FL.map(card).join('')+'</div>'
+   +'<div class="note" id="n'+i+'"></div></div>';
+}).join('');
+OPT.forEach(function(o,i){
+  var box=document.getElementById('s'+i);
+  var rs=[].slice.call(box.querySelectorAll('.r'));
+  var top=box.getBoundingClientRect().top+4, lim=top+242-8;
+  var h=0;
+  rs.forEach(function(r){ h+=r.getBoundingClientRect().height+5; });
+  var per=h/rs.length;
+  var fit=Math.round(242/per*10)/10;
+  document.getElementById('n'+i).innerHTML='一屏 <b>'+fit.toFixed(1)+'</b> 班　·　每張 <b>'+Math.round(per)+'px</b>';
+});
+</script>
+</body>
+</html>
