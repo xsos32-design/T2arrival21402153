@@ -10,6 +10,7 @@
  */
 
 import { mkdir, writeFile, copyFile, access, readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 /* 資料來源：桃園國際機場「開放資料平台」即時航班資料集（服務代碼 114002）
@@ -299,17 +300,39 @@ const TAG = {
   't2': { txt: '其他二航',  cls: 'st2' },
 };
 
-/* ── 預估下機人數（TDX 沒機型欄位，用航線推估；誤差約 ±15%）──
+/* ── 預估下機人數（TDX 沒機型欄位，座位數查 fleet.txt，查不到才用航線粗估）──
    負載條：1 格<150　2 格 150–250　3 格>250 */
 const LONGHAUL = new Set(['LAX','SFO','SEA','JFK','EWR','ORD','DFW','IAH','IAD','BOS','ATL','MSP','ONT',
   'YVR','YYZ','CDG','AMS','LHR','FRA','MXP','VIE','MUC','IST','PRG','BCN','SYD','BNE','MEL','AKL']);
 const MIDHAUL = new Set(['BKK','DMK','SIN','KUL','PEN','CGK','DPS','MNL','SGN','HAN','PNH','KTI','REP',
   'RGN','VTE','DAD','CEB','CRK','DEL','BOM']);
 const LCC = new Set(['BX','LJ','7C','TW','RS','ZE','VJ','VZ','AK','5J','DG','Z2','IT','MM','SL','OD','JQ','3K','TR','TT','IX']);
+/* 機隊表：班號 → 真實座位數。TDX 沒有機型欄位，所以先查這張表，
+   查不到才退回上面的航線粗估。表是用桃機回傳的真實機型資料產生的（fleet.txt），
+   同一個班號的機型其實相當固定，查表的準度遠高於照航線猜。 */
+const FLEET = (() => {
+  const m = new Map();
+  try {
+    const t = readFileSync('fleet.txt', 'utf8');
+    for (const g of t.split('|')) {
+      const i = g.indexOf(':'); if (i < 0) continue;
+      const s = +g.slice(0, i);
+      for (const c of g.slice(i + 1).trim().split(/\s+/)) if (c) m.set(c.toUpperCase(), s);
+    }
+    console.log('機隊表已載入：' + m.size + ' 個班號');
+  } catch { console.log('讀不到 fleet.txt，座位數改用航線粗估'); }
+  return m;
+})();
+function fleetSeats(code) {
+  let s = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const m = s.match(/^([A-Z]*)0*(\d+)$/); if (m) s = m[1] + m[2];
+  return FLEET.get(s) || 0;
+}
 function paxOf(f) {
   const dep = String(f.Dep || '').toUpperCase();
   const al  = String(f.flightCode || '').slice(0, 2).toUpperCase();
-  const seats = LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 295 : 250));
+  const seats = fleetSeats(f.flightCode)
+             || (LONGHAUL.has(dep) ? 333 : (LCC.has(al) ? 189 : (MIDHAUL.has(dep) ? 295 : 250)));
   /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
   const lf = LCC.has(al) ? 0.88 : (LONGHAUL.has(dep) ? 0.85 : (MIDHAUL.has(dep) ? 0.82 : 0.80));
   const est = Math.round(seats * lf / 5) * 5;        /* 機上總人數 */
@@ -640,7 +663,7 @@ ${SPRITE}
 <div class="sep"></div>
 ${body}
 <div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
-${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 ${full
   ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
@@ -1060,7 +1083,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
