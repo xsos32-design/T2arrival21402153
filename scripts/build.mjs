@@ -633,6 +633,64 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 .sep{border-top-color:#1b2431}
 .foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
 
+/* ══════════════ 手錶版（≤340px）：E 版型 ══════════════
+   兩列。第一列：時間 ＋ 班號（班號比舊版還大）。第二列：登機門／城市／人數／狀態。
+   國旗拿掉、分點標籤拿掉（卡片顏色本來就在講是哪一邊），省下來的寬度全給班號。
+   結果：每張卡 125px → 66px，一屏從 1.9 班變 3.7 班。 */
+@media(max-width:340px){
+ /* 用 flex 換行而不是 grid：grid 的欄寬會把兩列綁在一起，第一列的班號一寬，
+    第二列的城市就被擠掉。改成兩個 flex 行，各自算各自的寬度。
+    換行是拿已經隱藏的「分點標籤」當斷點（flex:1 0 100%），不用多包一層 div。 */
+ .r{display:flex;flex-wrap:wrap;align-items:center;
+    gap:1px 5px;padding:4px 6px 4px 10px;margin-bottom:4px}
+ b.t{order:1;font-size:24px;line-height:1;flex:0 0 auto}
+ .f{order:2;font-size:29px;line-height:1;letter-spacing:-.055em;flex:0 0 auto;margin-left:auto}
+ .cty{display:none}                 /* 國旗：手錶不顯示 */
+ .tag{order:3;flex:1 0 100%;height:0;min-height:0;padding:0;margin:0;border:0;
+      background:none;overflow:hidden;visibility:hidden}   /* 分點標籤：當換行點用，不顯示 */
+ .g{order:4;font-size:20px;line-height:1;flex:0 0 auto}
+ .g .gn{padding:0 5px}
+ /* flex-basis 要給 0，不然瀏覽器會先用「內容寬」決定要不要換行，
+    狀態就被擠到第三列去了（卡片也就跟著變高）。 */
+ .c{order:5;display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 0;
+    font-size:12px;line-height:1.2}
+ .cn{flex:1 1 auto;min-width:2.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .c .px{flex:0 0 auto;font-size:11px;padding:0 2px;margin-left:0;letter-spacing:-.05em}
+ /* 手錶只有 198px 寬，「預估入境」四個字就吃掉城市的位置，縮成「入境」
+    （手機／電腦維持「預估入境」）*/
+ .c .px u{font-size:0}
+ .c .px u::after{content:"入境";font-size:9px;letter-spacing:-.04em}
+ .st{order:6;flex:0 0 auto;margin-left:auto;font-size:11.5px;padding:1px 3px;letter-spacing:-.04em}
+ .bars{display:none}
+ /* 41mm 只有 176px 寬，大字要再降一階，不然城市會被吃掉 */
+ @media(max-width:190px){
+  .r{padding:4px 5px 4px 9px;gap:1px 4px}
+  b.t{font-size:20px} .f{font-size:24px} .g{font-size:16px} .g .gn{padding:0 4px}
+  .c{font-size:11px} .cn{min-width:2.6em}
+  .c .px{font-size:9.5px;padding:0 2px} .c .px u::after{font-size:7.5px}
+  .st{font-size:10px;padding:1px 2px}
+ }
+ /* 手錶的按鍵：加大、加粗、字不要黑的 */
+ .btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em;padding:8px 4px}
+ .btn.half,.btn.cat{font-size:15.5px}
+ .btn.zone,.btn.pre{font-size:14px;padding:8px 1px}
+ .btn.nav{font-size:19px} .btn.mid{font-size:15.5px}
+ #gextra{display:none}              /* 更新／開會時間：手錶不顯示 */
+ .btn.rl{display:none}              /* 產生版的更新鍵同理 */
+}
+/* 選取中的分點鍵：改成「亮字＋亮框＋外發光」，不要黑字壓在亮底上 */
+.btn.c40.on,.cat.cs0.on{background:rgba(0,239,212,.16);border-color:#00EFD4;color:#4DF6E2;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 16px -3px rgba(0,239,212,.9)}
+.btn.c53.on,.cat.cs1.on{background:rgba(255,46,110,.16);border-color:#FF2E6E;color:#FF7FA3;
+ box-shadow:inset 0 0 0 1px #FF2E6E,0 0 16px -3px rgba(255,46,110,.9)}
+.btn.ct1.on,.cat.cs2.on{background:rgba(167,155,196,.16);border-color:#A79BC4;color:#D3C8EC;
+ box-shadow:inset 0 0 0 1px #A79BC4}
+.btn.ct2.on,.cat.cs3.on{background:rgba(255,255,255,.09);border-color:#8d99a9;color:#DDE3EA;
+ box-shadow:inset 0 0 0 1px #8d99a9}
+/* 按鍵整體：大一點、粗一點 */
+.btn{font-weight:900}
+.cn{font-style:normal}
+
 /* 狀態欄不給死寬度：字多長就撐多寬，中間那欄讓位，不會壓到城市／人數 */
 .st{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .c{min-width:0}
@@ -699,7 +757,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
     const zg = String(f.Gate || '').trim().charAt(0).toUpperCase();
     return `<div class="r ${cls}${rowCls}" data-z="${zg}" data-fn="${esc(f.flightCode || '')}" data-o="${sch}">
 <b class="t t-${tc}">${big}${isNextDay(f) ? '<i class="nd">隔日</i>' : ''}</b><span class="f">${esc(fno4(f.flightCode || ''))}${flagCell(f)}</span><span class="g">${String(f.Gate || '').trim() ? `<b class="gn">${esc(f.Gate)}</b>` : ''}</span>
-<span class="tag ${tg.cls}">${tg.txt}</span><span class="c">${esc(f.CityName)}${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
+<span class="tag ${tg.cls}">${tg.txt}</span><span class="c"><i class="cn">${esc(f.CityName)}</i>${paxHtml(f)}</span><span class="st b-${st.cls}">${st.txt}</span>
 </div>`;
   }).join('');
 
@@ -728,7 +786,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
   const zoneBtns = ['A','B','C','D'].map(z => `<span class="btn zone on" data-z="${z}">✓ ${z}區</span>`).join('\n');
   /* 跟其他按鈕同尺寸的更新鍵（點自己＝重新載入最新一份） */
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide, full),
-                        IC('refresh') + ' 更新 ' + stamp + '<i id="age"></i>', false);
+                        IC('refresh') + ' 更新 ' + stamp + '<i id="age"></i>', false, 'half rl');
 
   const body = err
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
@@ -768,8 +826,7 @@ ${SPRITE}
 <div class="grp s">${catBtns}</div>
 <div class="grp">${shortcut}</div>
 <div class="grp s">${zoneBtns}</div>
-<div class="grp s">${hideBtn}</div>
-<div class="grp">${reloadBtn}</div>
+<div class="grp s">${hideBtn}${reloadBtn}</div>
 <div class="sep"></div>
 ${body}
 <div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
