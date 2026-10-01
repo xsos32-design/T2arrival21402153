@@ -423,6 +423,67 @@
      0%,100%{box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 12px -6px rgba(255,197,61,.6)}
      50%    {box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 32px -2px rgba(255,197,61,1)}}
 
+    /* ── 其餘介面跟著卡片走：直角、1px 細框、青色當作用中、標籤用等寬字 ── */
+    header{background:#080B11;border-bottom:1px solid #1b2431;padding:9px 12px}
+    h1{font-family:ui-monospace,Menlo,monospace;font-size:13.5px;font-weight:800;
+      letter-spacing:.16em;color:#00EFD4;text-transform:uppercase}
+    .live{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.08em;color:#6b7686}
+    .dot{border-radius:0;width:7px;height:7px;background:#2a3545;
+      clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+    .dot.on{background:#00EFD4;box-shadow:0 0 9px #00EFD4}
+    .dot.busy{background:#FFC53D;box-shadow:0 0 9px #FFC53D}
+    .dot.err{background:#FF2E6E;box-shadow:0 0 9px #FF2E6E}
+
+    /* 製作人警告帶：維持金色（它本來就該搶眼），只改成直角＋切角 */
+    .mk{background:linear-gradient(180deg,#140F05,#08060300);border-bottom:1px solid #8A7440;position:relative}
+    .mk b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#FFC53D}
+    .mk i{color:#A08E55;letter-spacing:.04em}
+
+    .card{background:#0B1019;border:1px solid #1b2431;border-radius:0;position:relative}
+    .card::after{content:"";position:absolute;width:24px;height:24px;right:-12px;top:-12px;
+      background:#05070a;transform:rotate(45deg);border-bottom:1px solid #1b2431;pointer-events:none}
+    .card{overflow:hidden}
+    label,.chiplabel,.status,#catmsg,#cpmsg{font-family:ui-monospace,Menlo,monospace;
+      letter-spacing:.1em;color:#6b7686}
+    input,select,.dqb,#cptxt,.btn2{background:#0B1019;border:1px solid #2a3545;border-radius:0;color:#E8EDF3}
+    input:focus,select:focus,#cptxt:focus{outline:none;border-color:#00EFD4;
+      box-shadow:0 0 0 1px #00EFD4}
+    button{background:rgba(0,239,212,.1);border:1px solid #00EFD4;border-radius:0;color:#00EFD4;
+      font-family:ui-monospace,Menlo,monospace;font-weight:800;letter-spacing:.1em}
+    button:active{background:rgba(0,239,212,.22)}
+
+    .chip{background:#0B1019;border:1px solid #2a3545;border-radius:0;color:#93a0b1;font-weight:800}
+    .chip.act{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
+      box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
+    /* 分點鍵選起來＝實心，跟卡片同一個顏色邏輯 */
+    .cs0.act{background:#00EFD4;border-color:#00EFD4;color:#02241F;
+      box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
+    .cs1.act{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;
+      box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
+    .cs2.act{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
+    .cs3.act{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+    .fabb{border-radius:0;background:rgba(11,16,25,.95);border:1px solid #2a3545;color:#AEB6C2;
+      font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em}
+    .fabb.on{background:rgba(0,239,212,.15);border-color:#00EFD4;color:#00EFD4}
+    .cllink a{background:#0B1019;border:1px solid #2a3545;border-radius:0;color:#93a0b1;
+      font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+
+    /* 訊息框：直角＋左邊一條色帶，跟卡片的燈條同一個語言 */
+    .empty,.pend,.errbox,.tdxbox,.daybreak,.notice{border-radius:0}
+    .empty,.pend{background:#0B1019;border:1px solid #1b2431;border-left:3px solid #2a3545;color:#8b94a1}
+    .pend b{color:#E8EDF3}
+    .errbox{background:#16060A;border:1px solid #8a2a3f;border-left:3px solid #FF2E6E;color:#FF7A95}
+    .tdxbox{background:#141004;border:1px solid #7a5c12;border-left:3px solid #FFC53D;color:#D9B96C}
+    .daybreak{background:#0B1019;border:1px solid #1b2431;border-left:3px solid #00EFD4;color:#B9C0CB;
+      font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em}
+    .notice{background:#0B1019;border:1px solid #1b2431;border-left:3px solid #7a5c12;color:#818A98}
+    .notice b{color:#C3CAD4}
+    .notice .lk{color:#FFC53D;border-bottom:1px solid #7a5c12}
+    details.cfg{border-top:1px dashed #2a3545}
+    details.cfg summary{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#6b7686}
+    .catno{border-radius:0}
+    .credit{font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#4e5968}
+
     /* 窄螢幕自動降一號，不然「東京成田」「大阪關西」會被擠成三行 */
     @media (max-width:400px){
       .c-time b{font-size:35px} .c-fno b{font-size:30px}
@@ -569,7 +630,7 @@
 
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 資料擷取自桃園機場公開航班資訊，僅供參考。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
-    <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+    <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估走證照查驗出來的人（已扣掉推估直接轉機的）。座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%<br>
     同一分鐘抵達時，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
     入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-none">已到</span><br>
     本頁固定不顯示 06:00–13:30 的班機
@@ -587,7 +648,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01b';
+var PAGE_V='2026-10-01c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -756,8 +817,8 @@ function paxOf(f){
 function IC(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
 function paxHtml(f){ var p=paxOf(f);
   if(!p.est) return ' <i class="px">'+IC('box')+'<u>貨機</u></i>';
-  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>入境</u></i>'
-       + (p.tx?' <i class="tx" title="推估轉機，不走入境">'+p.tx+'<u>轉機</u></i>':''); }
+  /* 只顯示預估入境。轉機人數還是有算（入境 = 機上總人數 − 轉機），只是不印出來。 */
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
 var TXHUB={BR:1,CI:1,JX:1};

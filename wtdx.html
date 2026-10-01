@@ -301,6 +301,41 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
  b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
  .r{grid-template-columns:86px minmax(0,1fr) 68px}
 }
+
+/* ── 其餘介面跟著卡片走：直角、1px 細框、青色當作用中、標籤用等寬字 ── */
+.mk{border-radius:0;background:linear-gradient(180deg,#140F05,#0A0804);border:1px solid #8A7440;border-top:2px solid #FFC53D}
+.mk b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#FFC53D}
+.mk i{color:#A08E55}
+.hd{border-radius:0;background:#080B11;border:1px solid #1b2431;border-top:2px solid #00EFD4;color:#6b7686;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.hd b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace;letter-spacing:.12em}
+.hd .u{color:#8d99a9}
+.hd .u.busy{color:#FFC53D} .hd .u.err{color:#FF2E6E} .hd .u.old{color:#FF8A3D}
+.btn{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#93a0b1;letter-spacing:-.01em}
+.btn.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
+/* 分點鍵選起來＝實心，跟卡片同一個顏色邏輯 */
+.cat.cs0.on{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
+.cat.cs1.on{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
+.cat.cs2.on{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
+.cat.cs3.on{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+.fabb{border-radius:0;background:rgba(11,16,25,.95);border:1px solid #2a3545;color:#AEB6C2;
+ font-family:ui-monospace,Menlo,monospace}
+.fabb.on{background:rgba(0,239,212,.15);border-color:#00EFD4;color:#00EFD4;box-shadow:0 4px 14px rgba(0,0,0,.55)}
+.cfgbox{border-radius:0;background:#0B1019;border:1px solid #1b2431}
+.cfgbox h4{font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#6b7686}
+.catrow input,.catrow select{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#E8EDF3}
+.catrow input:focus,.catrow select:focus{outline:none;border-color:#00EFD4;box-shadow:0 0 0 1px #00EFD4}
+.msg{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #2a3545;color:#8b94a1}
+.msg.err{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+.notice{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #7a5c12;color:#818A98}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#FFC53D;border-bottom:1px solid #7a5c12}
+#fb .fbx{border-radius:0;background:#141004;border:1px solid #7a5c12;border-left:3px solid #FFC53D;color:#D9B96C}
+#fb .fbx.hot{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+#fb .fbx b{color:#FFC2B8}
+.sep{border-top-color:#1b2431}
+.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
 </style>
 </head>
 <body>
@@ -362,7 +397,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <div id="list"><div class="msg">載入中…</div></div>
 
 <div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料。平常讀 GitHub 產生的小快照（省流量）；<b>快照超過 15 分鐘就自動改連即時</b>。GitHub 排程實際上常隔數小時才跑，所以標題列一定要看「幾分前」。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
-<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>入境</b>＝推估走證照查驗出來的人（座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估走證照查驗出來的人（已扣掉推估直接轉機的）。座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%<br>
 同一分鐘抵達時，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
 入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
 狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
@@ -375,7 +410,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01b';
+var PAGE_V='2026-10-01c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -651,8 +686,8 @@ function paxOf(f){
   return {est:est,tx:tx,inn:inn,lv:inn>250?3:(inn>=150?2:1)};
 }
 function paxHtml(f){ var p=paxOf(f);
-  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>入境</u></i>'
-       + (p.tx?' <i class="tx">'+p.tx+'<u>轉機</u></i>':''); }
+  /* 只顯示預估入境。轉機人數還是有算，只是不印出來。 */
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
 
 /* ── 畫面狀態 ── */
 /* 一開啟只勾自己的兩家分點（2140／2153）；其他一航／二航要看再自己按 */
