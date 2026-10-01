@@ -86,8 +86,8 @@ b.t{font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
 .two .l1,.two .l2{display:flex;align-items:center;gap:5px;min-width:0}
 .two .l1{margin-bottom:1px}
 .two .l1>*,.two .l2>*{flex:0 0 auto}
-/* 城市是唯一可以被壓縮的，擠不下就自己縮寫，不會把別人推出去 */
-.two .c{flex:1 1 auto;min-width:0}
+/* 城市是唯一可以被壓縮的，但有下限——最多縮成兩個字，不會整個被吃掉 */
+.two .c{flex:1 1 auto;min-width:2.6em}
 .two .tag{display:none}
 .two .px{font-size:11.5px;padding:0 3px}
 .two .px u{font-size:9.5px}
@@ -101,15 +101,33 @@ b.t{font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
 .vE .g{font-size:20px} .vE .g .gn{padding:0 5px}
 
 /* F：時間和門最大（第一列 時間＋門） */
-.vF b.t{font-size:29px}
-.vF .g{font-size:29px;margin-left:auto} .vF .g .gn{padding:0 5px}
+.vF b.t{font-size:26px}
+.vF .g{font-size:26px;margin-left:auto} .vF .g .gn{padding:0 5px}
 .vF .f{font-size:23px}
+.vF .l1 .px{margin-left:auto}
 
 /* G：班號當主角（第一列 班號＋門） */
-.vG .f{font-size:30px}
-.vG .g{font-size:23px;margin-left:auto} .vG .g .gn{padding:0 5px}
-.vG b.t{font-size:16px}
+.vG .f{font-size:29px}
+.vG .g{font-size:22px;margin-left:auto} .vG .g .gn{padding:0 5px}
+.vG b.t{font-size:13.5px}
+.vG .l2 .px{font-size:11px;padding:0 2px} .vG .l2 .px u{font-size:9px}
+.vG .l2 .st{font-size:11.5px;padding:1px 3px}
 
+/* 41mm 的錶只有 176px 寬，大字要再降一階，不然城市會被吃掉 */
+.sm.vE b.t{font-size:20px} .sm.vE .f{font-size:24px} .sm.vE .g{font-size:17px}
+.sm.vF b.t{font-size:22px} .sm.vF .g{font-size:22px} .sm.vF .f{font-size:20px}
+.sm.vG .f{font-size:25px} .sm.vG .g{font-size:19px} .sm.vG b.t{font-size:12px}
+.sm.two .c{font-size:11px} .sm.two .px{font-size:10px;padding:0 2px} .sm.two .px u{font-size:8px}
+.sm.two .st{font-size:10.5px;padding:1px 3px}
+.sm.two .l1,.sm.two .l2{gap:4px}
+.sm.two .r{padding:4px 5px 4px 9px}
+.sm.vA b.t{font-size:25px} .sm.vA .g{font-size:26px} .sm.vA .f{font-size:23px}
+.sm.vA .c{font-size:13.5px} .sm.vA .tag,.sm.vA .st{font-size:12px}
+.sizebar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
+.sizebar span{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;letter-spacing:.1em;color:#6b7686}
+.sw{font:inherit;font-size:13px;font-weight:800;padding:7px 11px;min-height:38px;cursor:pointer;
+ background:#0B1019;border:1px solid #2a3545;color:#93a0b1;letter-spacing:-.02em}
+.sw.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4}
 .btnbox{width:198px;margin:0 auto;background:#05070a;border:1px solid #2a3545;border-radius:16px;padding:5px 4px}
 .g2,.g4{display:flex;gap:4px;margin-bottom:4px}
 .g2.s,.g4.s{margin-top:8px}
@@ -136,6 +154,12 @@ b.t{font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
 <h1>手錶版排版 · 預覽</h1>
 <p class="lead">框框是 <b>45mm Apple Watch 的實際可視大小</b>（198 × 242）。國旗已拿掉。
 目標是<b>一屏 3 班</b>，所以每張卡要壓到 <b>78px 以內</b>。</p>
+<div class="sizebar" id="sizebar">
+  <span>錶的尺寸</span>
+  <button class="sw" data-w="176">41mm　176px</button>
+  <button class="sw on" data-w="198">45mm　198px</button>
+  <button class="sw" data-w="205">Ultra　205px</button>
+</div>
 <div class="row" id="row"></div>
 
 <h1 style="margin-top:34px">控制鍵 · 要拿掉的</h1>
@@ -191,20 +215,21 @@ function card(x,v){
   if(v==='A') return open+P.t+P.g+P.f+'<span class="c">'+x.c+P.p+'</span>'+P.tag+P.s+close;
   var L=function(a,b){ return '<div class="l1">'+a+'</div><div class="l2">'+b+'</div>'; };
   if(v==='E') return open+L(P.t+P.f, P.g+P.c+P.p+P.s)+close;
-  if(v==='F') return open+L(P.t+P.g, P.f+P.c+P.p+P.s)+close;
+  if(v==='F') return open+L(P.t+P.p+P.g, P.f+P.c+P.s)+close;
   return open+L(P.f+P.g, P.t+P.c+P.p+P.s)+close;
 }
 var OPT=[
  {k:'A',v:'A',name:'現在',desc:'四列　時間 28／班號 26／門 29',on:false},
  {k:'E',v:'E',name:'班號最大',desc:'第一列：時間 24 ＋ <b>班號 29</b><br>第二列：門 20 ／城市／人數／狀態',on:true},
- {k:'F',v:'F',name:'時間和門最大',desc:'第一列：時間 29 ＋ 門 29<br>第二列：<b>班號 23</b>／城市／人數／狀態',on:false},
- {k:'G',v:'G',name:'班號當主角',desc:'第一列：<b>班號 30</b> ＋ 門 23<br>第二列：時間 16／城市／人數／狀態',on:false}
+ {k:'F',v:'F',name:'時間和門最大',desc:'第一列：時間 26 ＋ 人數 ＋ 門 26<br>第二列：<b>班號 23</b>／城市／狀態',on:false},
+ {k:'G',v:'G',name:'班號當主角',desc:'第一列：<b>班號 29</b> ＋ 門 22<br>第二列：時間 13.5／城市／人數／狀態',on:false}
 ];
 document.getElementById('row').innerHTML=OPT.map(function(o,i){
   return '<div class="col"><div class="cap"><b class="'+(o.on?'on':'')+'">'+o.k+'　'+o.name+'</b>'+o.desc+'</div>'
    +'<div class="screen v'+o.v+(o.v==='A'?'':' two')+'" id="s'+i+'">'+FL.map(function(x){return card(x,o.v);}).join('')+'</div>'
    +'<div class="note" id="n'+i+'"></div></div>';
 }).join('');
+function measure(){
 OPT.forEach(function(o,i){
   var box=document.getElementById('s'+i);
   var rs=[].slice.call(box.querySelectorAll('.r'));
@@ -220,8 +245,23 @@ OPT.forEach(function(o,i){
   var per=h/rs.length, fit=242/per;
   document.getElementById('n'+i).innerHTML='一屏 <b'+(fit>=3?'':' class="warn"')+'>'+fit.toFixed(1)
    +'</b> 班　·　每張 <b>'+Math.round(per)+'px</b>'+(over?'<br><b class="warn">'+over+' 張爆版</b>':'')
-   +(cut?'<br>城市縮寫 '+cut+' 張':'');
+   +(cut?'<br><b class="warn">城市被切 '+cut+' 張</b>':'');
 });
+}
+function setW(w){
+  [].forEach.call(document.querySelectorAll('.screen'),function(sc){
+    sc.style.width=w+'px';
+    if(w<190) sc.classList.add('sm'); else sc.classList.remove('sm');
+  });
+  [].forEach.call(document.querySelectorAll('.sizebar .sw'),function(b){
+    b.className = (+b.getAttribute('data-w')===w) ? 'sw on' : 'sw';
+  });
+  measure();
+}
+[].forEach.call(document.querySelectorAll('.sizebar .sw'),function(b){
+  b.addEventListener('click',function(){ setW(+b.getAttribute('data-w')); });
+});
+measure();
 </script>
 </body>
 </html>
