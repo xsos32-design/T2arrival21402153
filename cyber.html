@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>賽博版樣子 · 班機看板</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#05070a;color:#e5e9ef;
+  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;
+  font-size:16px;line-height:1.45;font-weight:600;-webkit-text-size-adjust:100%}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+
+/* ───────── 控制列 ───────── */
+.ctl{position:sticky;top:0;z-index:50;background:#0a0d12;border-bottom:1px solid #1b2230;
+  padding:10px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ctl b{font-size:12px;color:#6b7686;font-weight:800;letter-spacing:.08em;margin-right:2px}
+.sw{font:inherit;font-size:13.5px;font-weight:800;padding:8px 12px;border-radius:10px;cursor:pointer;
+  background:#11151c;border:1px solid #262d3a;color:#8b94a1;min-height:42px}
+.sw.on{background:#15304a;border-color:#3b82f6;color:#bfdbfe}
+.sun.on{background:#4a3a10;border-color:#d9a441;color:#f5d98a}
+.note{max-width:960px;margin:14px auto 0;padding:0 12px;font-size:13px;color:#8b94a1;line-height:1.75}
+.note b{color:#cfd6e0}
+.wrap{max-width:960px;margin:0 auto;padding:14px 12px 40px}
+
+/* ───────── 共用卡片骨架 ───────── */
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 78px;gap:2px 9px;
+  grid-template-areas:"time fno gate" "shop city st";align-items:center;
+  padding:8px 10px 8px 13px;margin-bottom:7px;position:relative;overflow:hidden}
+.c-time{grid-area:time} .c-fno{grid-area:fno;text-align:center}
+.c-gate{grid-area:gate;text-align:right;white-space:nowrap}
+.c-shop{grid-area:shop} .c-city{grid-area:city} .c-st{grid-area:st;justify-self:end}
+.c-time b{display:block;font-size:31px;line-height:1.05;font-weight:700;font-variant-numeric:tabular-nums}
+.c-time i{display:block;font-style:normal;font-size:13px;font-weight:700;margin-top:1px;color:#8b94a1}
+.c-fno b{font-size:27px;font-weight:800;letter-spacing:-.02em}
+.cty{font-style:normal;font-size:20px;font-weight:800;margin-left:8px;vertical-align:-2px}
+.c-gate b{font-size:33px;font-weight:900;display:inline-block;padding:0 6px;border-radius:9px;line-height:1.05}
+.c-city{font-size:15.5px;font-weight:650;color:#98a2b0;line-height:1.35}
+.tag,.badge{display:inline-block;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;white-space:nowrap}
+.px,.tx{display:inline-block;font-size:12.5px;font-weight:800;padding:2px 7px;border-radius:7px;margin-left:5px}
+.px u,.tx u{text-decoration:none;font-size:10.5px;opacity:.72;margin-left:2px}
+
+/* ═════════ A：現在這一版 ═════════ */
+.v-now .r{background:#11151C;border:1px solid #1E242E;border-radius:12px}
+.v-now .r.r40{background:#0E5049;border-color:#2A9A90;box-shadow:inset 7px 0 0 #3DE0D5,0 4px 22px -10px rgba(61,224,213,.9)}
+.v-now .r.r53{background:#7A2440;border-color:#B83E5C;box-shadow:inset 7px 0 0 #F2506E,0 4px 22px -10px rgba(242,80,110,.9)}
+.v-now .r.plain{background:#0C1016;border-color:#1A1F27}
+.v-now .c-time b{color:#E7C785} .v-now .t-late{color:#E2A85C} .v-now .t-early{color:#8FC4D6}
+.v-now .c-fno b{color:#fff} .v-now .c-gate b{background:#2b313b;color:#e5e9ef}
+.v-now .r40 .c-gate b{background:#3DE0D5;color:#042321} .v-now .r53 .c-gate b{background:#F2506E;color:#2B0710}
+.v-now .r40 .tag{background:#3DE0D5;color:#042321} .v-now .r53 .tag{background:#F2506E;color:#2B0710}
+.v-now .plain .tag{background:#232830;color:#9aa3b0}
+.v-now .px{background:#1E242E;color:#C3CAD4} .v-now .p2{background:#3A2B0C;color:#F0C167}
+.v-now .p3{background:#3E1712;color:#F49B8D} .v-now .p1{background:#14352C;color:#79D8B0}
+.v-now .tx{background:#2A2216;color:#DFC079}
+.v-now .b-ok{background:#14352C;color:#79D8B0} .v-now .b-warn{background:#3A2B0C;color:#F0C167}
+.v-now .b-bad{background:#3E1712;color:#F49B8D} .v-now .b-none{background:#1E242E;color:#8B93A1}
+.v-now .r.soon{box-shadow:inset 7px 0 0 #D9A441,0 0 0 3px #D9A441,0 0 30px 2px rgba(217,164,65,.6)}
+.v-now .r.done{opacity:.45}
+.v-now .hdr{background:#0a0d12;border:1px solid #1E242E;border-radius:12px;padding:11px 13px;margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800}
+.v-now .hdr span{margin-left:auto;font-size:12px;color:#8b94a1;font-weight:700}
+
+/* ═════════ B/C 共用：賽博底 ═════════ */
+.cy{--c40:#00EFD4;--c53:#FF2E6E;--gold:#FFC53D;--dim:#5d6a7d;position:relative}
+.cy .wrapbg{position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(transparent 0 97%,rgba(0,239,212,.055) 97% 100%) 0 0/100% 34px,
+    linear-gradient(90deg,transparent 0 97%,rgba(0,239,212,.055) 97% 100%) 0 0/34px 100%;
+  mask-image:radial-gradient(120% 70% at 50% 0,#000 20%,transparent 85%)}
+/* HUD 標題列 */
+.cy .hdr{position:relative;background:linear-gradient(180deg,#0a1016,#070b10);
+  border:1px solid rgba(0,239,212,.3);padding:10px 13px;margin-bottom:13px;
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;letter-spacing:.14em;
+  color:var(--c40);text-transform:uppercase}
+.cy .hdr .t{font-size:15px;letter-spacing:.2em}
+.cy .hdr .sep{color:rgba(0,239,212,.4)}
+.cy .hdr .r8{margin-left:auto;color:#7b8798;letter-spacing:.1em;font-size:11.5px;display:flex;align-items:center;gap:7px}
+.cy .hdr .led{width:7px;height:7px;background:var(--c40);box-shadow:0 0 10px var(--c40);
+  clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);animation:blip 1.6s steps(1) infinite}
+@keyframes blip{0%,60%{opacity:1}61%,100%{opacity:.25}}
+
+/* 卡片：切角 HUD 面板 + 角標 */
+.cy .r{background:rgba(9,13,19,.9);border:1px solid #1b2431;border-radius:0;
+  clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px))}
+.cy .r::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#222c3a}
+.cy .r.r40{background:linear-gradient(100deg,rgba(0,239,212,.17),rgba(0,239,212,.03) 55%,transparent);
+  border-color:rgba(0,239,212,.5)}
+.cy .r.r40::before{background:var(--c40);box-shadow:0 0 14px 1px var(--c40)}
+.cy .r.r53{background:linear-gradient(100deg,rgba(255,46,110,.17),rgba(255,46,110,.03) 55%,transparent);
+  border-color:rgba(255,46,110,.5)}
+.cy .r.r53::before{background:var(--c53);box-shadow:0 0 14px 1px var(--c53)}
+.cy .r.plain{background:rgba(7,10,15,.9);border-color:#161d28}
+.cy .r.done{opacity:.4}
+/* 角標 */
+.cy .r .cor{position:absolute;right:0;top:0;width:13px;height:13px;
+  border-top:1px solid currentColor;opacity:.55;color:#2f3b4c}
+.cy .r40 .cor{color:var(--c40)} .cy .r53 .cor{color:var(--c53)}
+
+.cy .c-time b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color:var(--gold);letter-spacing:-.02em;font-size:30px;font-weight:700}
+.cy .t-late{color:#FF8A3D} .cy .t-early{color:#5BD6FF} .cy .t-same{color:#5BE8A8}
+.cy .c-time i{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#6b7686;letter-spacing:.02em}
+.cy .c-fno b{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:#fff;font-size:25px;letter-spacing:.02em}
+.cy .c-gate b{font-family:ui-monospace,Menlo,monospace;background:#161e29;color:#c6d1de;
+  border:1px solid #2a3545;border-radius:0;padding:0 7px;font-size:30px}
+.cy .r40 .c-gate b{background:rgba(0,239,212,.14);border-color:var(--c40);color:var(--c40);
+  text-shadow:0 0 12px rgba(0,239,212,.75)}
+.cy .r53 .c-gate b{background:rgba(255,46,110,.14);border-color:var(--c53);color:var(--c53);
+  text-shadow:0 0 12px rgba(255,46,110,.75)}
+.cy .c-city{color:#8d99a9}
+.cy .tag,.cy .badge,.cy .px,.cy .tx{border-radius:0;font-family:ui-monospace,Menlo,monospace;
+  letter-spacing:.03em;border:1px solid}
+.cy .tag{background:rgba(255,255,255,.03);border-color:#2a3545;color:#93a0b1}
+.cy .r40 .tag{background:rgba(0,239,212,.13);border-color:var(--c40);color:var(--c40)}
+.cy .r53 .tag{background:rgba(255,46,110,.13);border-color:var(--c53);color:var(--c53)}
+.cy .px{background:rgba(255,255,255,.03);border-color:#2a3545;color:#aab6c4}
+.cy .p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.cy .p2{border-color:#7a5c12;color:var(--gold);background:rgba(255,197,61,.08)}
+.cy .p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.cy .tx{border-color:#5c4a1c;color:#D9B96C;background:rgba(217,185,108,.06)}
+.cy .b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.cy .b-warn{border-color:#7a5c12;color:var(--gold);background:rgba(255,197,61,.08)}
+.cy .b-bad{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.cy .b-none{border-color:#2a3545;color:#8b94a1;background:rgba(255,255,255,.03)}
+/* 即將抵達：掃描線掠過 */
+.cy .r.soon{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 26px -6px rgba(255,197,61,.85)}
+.cy .r.soon::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,197,61,.22) 50%,transparent 65%);
+  background-size:260% 100%;animation:sweep 2.6s linear infinite}
+@keyframes sweep{0%{background-position:160% 0}100%{background-position:-60% 0}}
+
+/* ═════════ C：重口味加料 ═════════ */
+.v-hard .wrapbg{background-image:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.55) 0 1px,transparent 1px 3px),
+    linear-gradient(transparent 0 97%,rgba(0,239,212,.07) 97% 100%),
+    linear-gradient(90deg,transparent 0 97%,rgba(0,239,212,.07) 97% 100%);
+  background-size:100% 3px,100% 34px,34px 100%;mask-image:none;opacity:.9}
+.v-hard .c-time b{text-shadow:0 0 16px rgba(255,197,61,.85),2px 0 0 rgba(255,46,110,.5),-2px 0 0 rgba(0,239,212,.5)}
+.v-hard .c-fno b{text-shadow:0 0 14px rgba(255,255,255,.6),1.5px 0 0 rgba(255,46,110,.45),-1.5px 0 0 rgba(0,239,212,.45)}
+.v-hard .hdr .t{animation:glitch 4.5s steps(1) infinite}
+@keyframes glitch{0%,92%{transform:none;opacity:1}93%{transform:translateX(-2px);opacity:.75}
+  94%{transform:translateX(2px)}95%{transform:none}96%{transform:translateX(1px);opacity:.85}97%,100%{transform:none;opacity:1}}
+.v-hard .r.soon{animation:hardpulse 1.5s ease-in-out infinite}
+@keyframes hardpulse{0%,100%{box-shadow:0 0 0 1px var(--gold),0 0 18px -8px rgba(255,197,61,.7)}
+  50%{box-shadow:0 0 0 2px var(--gold),0 0 42px 0 rgba(255,197,61,1)}}
+.v-hard .r40{box-shadow:0 0 30px -14px var(--c40)} .v-hard .r53{box-shadow:0 0 30px -14px var(--c53)}
+/* CRT 掃描線疊在最上層（卡片也會被蓋到，才看得出來） */
+.v-hard::after{content:"";position:fixed;inset:0;z-index:30;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.42) 0 1px,transparent 1px 3px);
+  animation:roll 7s linear infinite}
+@keyframes roll{0%{background-position-y:0}100%{background-position-y:3px}}
+
+/* 模擬太陽下（整層洗白，看對比還撐不撐得住） */
+.sunon .wrap::after{content:"";position:fixed;inset:0;background:rgba(236,242,250,.52);pointer-events:none;z-index:40}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (max-width:360px){
+  .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 68px;
+     grid-template-areas:"time time gate" "fno fno fno" "city city city" "shop shop st"}
+  .c-time b{font-size:28px} .c-fno b{font-size:24px} .c-gate b{font-size:27px}
+}
+</style>
+</head>
+<body>
+
+<div class="ctl">
+  <b>樣式</b>
+  <button class="sw on" data-v="now">A 現在這版</button>
+  <button class="sw" data-v="soft">B 賽博·剛好</button>
+  <button class="sw" data-v="hard">C 賽博·全開</button>
+  <button class="sw sun" id="sun">☀ 模擬太陽下</button>
+</div>
+
+<div id="stage" class="v-now">
+  <div class="wrapbg"></div>
+  <div class="wrap" id="wrap"></div>
+</div>
+
+<div class="note" id="note"></div>
+
+<script>
+var FL=[
+ {t:'19:05',sub:'表定 +12',tc:'t-late',fno:'BR0028',flag:'🇯🇵',al:'長榮航空',gate:'C5',city:'東京成田',px:235,lv:2,tx:45,shop:'c0',st:'準備下機',sc:'b-warn',cls:'soon'},
+ {t:'19:14',sub:'表定',tc:'t-plan',fno:'JX0025',flag:'🇺🇸',al:'星宇航空',gate:'A8',city:'鳳凰城',px:260,lv:3,tx:35,shop:'c1',st:'已起飛',sc:'b-ok',cls:''},
+ {t:'19:28',sub:'表定 −6',tc:'t-early',fno:'CI0152',flag:'🇯🇵',al:'中華航空',gate:'B3',city:'大阪關西',px:205,lv:2,tx:25,shop:'',st:'已起飛',sc:'b-ok',cls:'plain'},
+ {t:'19:40',sub:'表定',tc:'t-plan',fno:'BR0262',flag:'🇵🇭',al:'長榮航空',gate:'C9',city:'馬尼拉',px:130,lv:1,tx:20,shop:'c0',st:'未起飛',sc:'b-none',cls:''},
+ {t:'18:33',sub:'表定 +3',tc:'t-late',fno:'TR0866',flag:'🇸🇬',al:'酷航',gate:'A2',city:'新加坡',px:300,lv:3,tx:30,shop:'c1',st:'已到站',sc:'b-ok',cls:'done'}
+];
+function card(f){
+  var sh=f.shop==='c0'?' r40':(f.shop==='c1'?' r53':'');
+  var tag=f.shop==='c0'?'2140':(f.shop==='c1'?'2153':'待定');
+  return '<div class="r '+(f.cls||'')+sh+'"><i class="cor"></i>'
+   +'<div class="c-time"><b class="'+f.tc+'">'+f.t+'</b><i>'+f.sub+'</i></div>'
+   +'<div class="c-fno"><b>'+f.fno+'</b><i class="cty">'+f.flag+'</i></div>'
+   +'<div class="c-gate"><b>'+f.gate+'</b></div>'
+   +'<div class="c-city">'+f.city
+     +'<i class="px p'+f.lv+'" style="font-style:normal">'+f.px+'<u>入境</u></i>'
+     +'<i class="tx" style="font-style:normal">'+f.tx+'<u>轉機</u></i></div>'
+   +'<div class="c-shop"><span class="tag">'+tag+'</span></div>'
+   +'<div class="c-st"><span class="badge '+f.sc+'">'+f.st+'</span></div></div>';
+}
+var HDR={
+ now:'<div class="hdr">桃機到站 · 2140 / 2153<span>更新於 19:02</span></div>',
+ cy :'<div class="hdr"><span class="t">TPE//T2</span><span class="sep">▸</span>ARRIVALS'
+     +'<span class="r8"><i class="led"></i>SYNC 19:02:41</span></div>'
+};
+var NOTE={
+ now:'<p>這是<b>你現在用的樣子</b>。按上面 B / C 看賽博版。</p>',
+ soft:'<p><b>B 賽博·剛好</b>：數字全部換成等寬字（時間、班號、登機門天然對齊）、卡片切角做成 HUD 面板、'
+     +'左側色帶改成發光燈條、標籤改成終端機風的方框、標題列變成狀態列。'
+     +'<b>顏色沒換意思</b>：2140 還是青、2153 還是桃紅，只是調到更亮的霓虹值。'
+     +'即將抵達從「呼吸光暈」改成<b>掃描線掠過</b>。重點是：字還是粗的、對比還是夠的。</p>',
+ hard:'<p><b>C 賽博·全開</b>：再加上 CRT 掃描線疊在整頁、數字加霓虹光暈和左右錯位（色差）、'
+     +'標題偶爾 glitch 抖一下、即將抵達改成強脈衝。<b>好看，但代價是清晰度</b>——'
+     +'光暈會讓數字邊緣糊掉，掃描線在手錶那種小螢幕上會變成一層灰網。</p>'
+     +'<p>按一下 <b>☀ 模擬太陽下</b>，就是你在 T2 門口陽光反射到螢幕上的狀況。'
+     +'A 和 B 還讀得到，C 的時間和班號會先消失。</p>'
+};
+var st=document.getElementById('stage'),wp=document.getElementById('wrap'),nt=document.getElementById('note');
+function paint(v){
+  st.className=(v==='now'?'v-now':(v==='soft'?'cy v-soft':'cy v-hard'));
+  wp.innerHTML=(v==='now'?HDR.now:HDR.cy)+FL.map(card).join('');
+  nt.innerHTML=NOTE[v];
+}
+[].forEach.call(document.querySelectorAll('.sw[data-v]'),function(b){
+  b.addEventListener('click',function(){
+    [].forEach.call(document.querySelectorAll('.sw[data-v]'),function(x){x.className='sw'});
+    b.className='sw on'; paint(b.getAttribute('data-v'));
+  });
+});
+document.getElementById('sun').addEventListener('click',function(){
+  var on=document.body.classList.toggle('sunon');
+  this.className=on?'sw sun on':'sw sun';
+});
+paint('now');
+</script>
+</body>
+</html>
