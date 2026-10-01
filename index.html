@@ -354,8 +354,13 @@
     .wrap{position:relative}
     .list{background:transparent}
 
+    /* 第三欄不給死寬度：狀態字多長就撐多寬，中間那欄讓位。
+       寫死 78px 時「已到 · 抵達機坪」會整個溢出去，壓在城市／人數上面。 */
     .r{border-radius:0;padding:5px 7px 5px 12px;gap:1px 7px;margin-bottom:6px;
-       grid-template-columns:minmax(0,auto) minmax(0,1fr) 78px}
+       grid-template-columns:minmax(0,auto) minmax(0,1fr) minmax(70px,max-content)}
+    .c-city{min-width:0}
+    .c-st{min-width:0;max-width:100%}
+    .badge{max-width:100%;overflow:hidden;text-overflow:ellipsis}
     /* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成一個三角形。
        刻意不用 clip-path——那會把「即將抵達」的外發光一起裁掉。 */
     .r::after{content:"";position:absolute;width:22px;height:22px;right:-11px;top:-11px;
@@ -484,11 +489,18 @@
     .catno{border-radius:0}
     .credit{font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#4e5968}
 
+    /* 手機寬度一律用狀態縮寫。字放大後「已到 · 抵達機坪」要 120px 以上，
+       擠掉城市和人數；縮寫（抵達／滑行／降落／已到／延遲…）照樣分得出是哪一種。
+       桌機（寬一點）維持完整敘述。 */
+    @media (max-width:700px){
+      .full{display:none} .short{display:inline}
+    }
+
     /* 窄螢幕自動降一號，不然「東京成田」「大阪關西」會被擠成三行 */
     @media (max-width:400px){
       .c-time b{font-size:35px} .c-fno b{font-size:30px}
       .c-gate,.c-gate .gn{font-size:35px} .c-city{font-size:18px} .cty{font-size:22px}
-      .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 74px}
+      .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) minmax(62px,max-content)}
     }
   }
 
@@ -648,7 +660,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01c';
+var PAGE_V='2026-10-01d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */

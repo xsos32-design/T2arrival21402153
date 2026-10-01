@@ -336,6 +336,19 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 #fb .fbx b{color:#FFC2B8}
 .sep{border-top-color:#1b2431}
 .foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
+
+/* 狀態欄不給死寬度：字多長就撐多寬，中間那欄讓位，不會壓到城市／人數 */
+.st{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.c{min-width:0}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) minmax(70px,max-content)}
+}
+@media(max-width:400px) and (min-width:341px){
+ .r{grid-template-columns:86px minmax(0,1fr) minmax(62px,max-content)}
+}
+@media(min-width:620px){
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) minmax(64px,max-content)}
+}
 </style>
 </head>
 <body>
@@ -410,7 +423,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01c';
+var PAGE_V='2026-10-01d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
