@@ -341,8 +341,8 @@ function paxOf(f) {
   return { est, tx, inn, lv: inn > 250 ? 3 : (inn >= 150 ? 2 : 1) };
 }
 function paxHtml(f) { const p = paxOf(f);
-  return ` <i class="px"><i class="bars lv${p.lv}"><i></i><i></i><i></i></i>${p.inn}<u>入境</u></i>`
-       + (p.tx ? ` <i class="tx">${p.tx}<u>轉機</u></i>` : ''); }
+  /* 只顯示預估入境。轉機人數還是有算，只是不印出來。 */
+  return ` <i class="px"><i class="bars lv${p.lv}"><i></i><i></i><i></i></i>${p.inn}<u>預估入境</u></i>`; }
 
 /* ---------- 時段 ----------
    注意：這裡刻意用「陣列」而不是物件。JavaScript 的物件會把 '1330'、'1800'
@@ -599,7 +599,39 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 @media(max-width:400px) and (min-width:341px){
  b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
  .r{grid-template-columns:86px minmax(0,1fr) 68px}
-}`;
+}
+
+/* ── 其餘介面跟著卡片走：直角、1px 細框、青色當作用中、標籤用等寬字 ── */
+.mk{border-radius:0;background:linear-gradient(180deg,#140F05,#0A0804);border:1px solid #8A7440;border-top:2px solid #FFC53D}
+.mk b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#FFC53D}
+.mk i{color:#A08E55}
+.hd{border-radius:0;background:#080B11;border:1px solid #1b2431;border-top:2px solid #00EFD4;color:#6b7686;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.hd b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace;letter-spacing:.12em}
+.hd .u{color:#8d99a9}
+.hd .u.busy{color:#FFC53D} .hd .u.err{color:#FF2E6E} .hd .u.old{color:#FF8A3D}
+.btn{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#93a0b1}
+.btn.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
+.btn.c40.on{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
+.btn.c53.on{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
+.btn.ct1.on{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
+.btn.ct2.on{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+.msg{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #2a3545;color:#8b94a1}
+.msg.err{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+.notice{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #7a5c12;color:#818A98}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#FFC53D;border-bottom:1px solid #7a5c12}
+#stale{border-radius:0;background:#16060A;border:1px solid #8a2a3f;border-left:3px solid #FF2E6E;color:#FF7A95}
+#stale b{color:#FFC2B8}
+#stale.bad{background:#1C0709;border-color:#A03B31;color:#FFC2B8}
+#stale.ok{background:#06150F;border-color:#1e6b4d;border-left-color:#49E3A3;color:#9FE3C6}
+#stale.ok b{color:#CFF5E4}
+.tst{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#00EFD4;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+#age{color:#00EFD4} #age.old{color:#FFC53D} #age.dead{color:#FF2E6E}
+.sep{border-top-color:#1b2431}
+.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}`;
 
 
 /* 表定今天、但延誤到隔天才會落地 */
@@ -727,7 +759,7 @@ ${SPRITE}
 <div class="sep"></div>
 ${body}
 <div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
-${IC('users')} <b>入境</b>＝推估走證照查驗出來的人（座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%）　<b>轉機</b>＝推估直接轉機不出來的人<br>
+${IC('users')} <b>預估入境</b>＝推估走證照查驗出來的人（已扣掉推估直接轉機的）。座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%<br>
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 ${full
   ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
