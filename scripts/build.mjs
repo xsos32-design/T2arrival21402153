@@ -631,7 +631,21 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
  font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
 #age{color:#00EFD4} #age.old{color:#FFC53D} #age.dead{color:#FF2E6E}
 .sep{border-top-color:#1b2431}
-.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}`;
+.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
+
+/* 狀態欄不給死寬度：字多長就撐多寬，中間那欄讓位，不會壓到城市／人數 */
+.st{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.c{min-width:0}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) minmax(70px,max-content)}
+}
+@media(max-width:400px) and (min-width:341px){
+ .r{grid-template-columns:86px minmax(0,1fr) minmax(62px,max-content)}
+}
+@media(min-width:620px){
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) minmax(64px,max-content)}
+}
+`;
 
 
 /* 表定今天、但延誤到隔天才會落地 */
