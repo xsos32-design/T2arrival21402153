@@ -3,38 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>手錶版字級 · 預覽</title>
+<title>手錶版排版 · 預覽</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{background:#05070a;color:#E8EDF3;
  font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",sans-serif;
  font-size:16px;font-weight:600;line-height:1.5;padding:14px 12px 40px}
-.wrap{max-width:980px;margin:0 auto}
+.wrap{max-width:1100px;margin:0 auto}
 h1{font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.16em;color:#00EFD4;
  text-transform:uppercase;margin:0 0 4px}
 .lead{font-size:13.5px;color:#8b94a1;line-height:1.8;margin:0 0 18px}
 .lead b{color:#cfd6e0}
 .row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
 .col{flex:0 0 auto;width:214px}
-.cap{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.1em;color:#6b7686;
- text-align:center;margin-bottom:7px}
-.cap b{display:block;font-size:15px;color:#FFC53D;letter-spacing:.06em;margin-bottom:2px}
+.cap{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;letter-spacing:.08em;color:#6b7686;
+ text-align:center;margin-bottom:7px;line-height:1.6;min-height:56px}
+.cap b{display:block;font-size:15px;color:#FFC53D;letter-spacing:.06em;margin-bottom:3px}
 .cap b.on{color:#00EFD4}
 /* 45mm Apple Watch 的實際可視範圍：198 × 242 CSS px */
 .screen{width:198px;height:242px;margin:0 auto;overflow:hidden;position:relative;
  background:#05070a;border:1px solid #2a3545;border-radius:30px;padding:4px 3px}
-.screen::after{content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+.screen::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22px;
  background:linear-gradient(transparent,#05070a);pointer-events:none}
 .note{font-size:12.5px;color:#8b94a1;text-align:center;margin-top:8px;line-height:1.6}
 .note b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace}
+.note b.warn{color:#FF7A95}
 
-/* ───── 手錶卡片（跟線上同一套，只有字級用 --s 倍率縮放）───── */
-.r{display:grid;gap:2px 5px;padding:5px 6px 5px 10px;margin-bottom:5px;position:relative;overflow:hidden;
- grid-template-columns:minmax(0,auto) minmax(0,1fr) minmax(48px,max-content);
- grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
+/* ───── 共用：卡片外觀（配色跟線上完全一樣）───── */
+.r{display:grid;position:relative;overflow:hidden;margin-bottom:4px;
  background:#0B1019;border:1px solid #1b2431}
-.r::after{content:"";position:absolute;width:18px;height:18px;right:-9px;top:-9px;
+.r::after{content:"";position:absolute;width:16px;height:16px;right:-8px;top:-8px;
  background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545}
 .r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 5px 0 0 #00EFD4}
 .r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 5px 0 0 #FF2E6E}
@@ -42,107 +41,186 @@ h1{font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.16em;
 .r:not(.r40):not(.r53){box-shadow:inset 5px 0 0 #2a3545}
 .r.soon{border-color:#FFC53D;box-shadow:inset 5px 0 0 #00EFD4,inset 0 0 0 2px #FFC53D}
 .r.soon::after{border-bottom-color:#FFC53D}
-b.t{grid-area:t;font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
- line-height:1.02;letter-spacing:-.04em;font-size:calc(28px * var(--s))}
+b.t{font-family:ui-monospace,Menlo,monospace;color:#FFC53D;font-weight:800;
+ line-height:1;letter-spacing:-.05em}
 .t-late{color:#FF8A3D} .t-early{color:#5BD6FF}
-.g{grid-area:g;font-family:ui-monospace,Menlo,monospace;text-align:right;white-space:nowrap;
- line-height:1.02;letter-spacing:-.045em;font-weight:800;font-size:calc(29px * var(--s))}
+.g{font-family:ui-monospace,Menlo,monospace;white-space:nowrap;line-height:1;
+ letter-spacing:-.05em;font-weight:800}
 .g .gn{display:inline-block;padding:0 4px;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
 .r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F}
 .r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
-.f{grid-area:f;font-family:ui-monospace,Menlo,monospace;color:#fff;font-weight:800;text-align:left;
- white-space:nowrap;letter-spacing:-.05em;line-height:1.1;font-size:calc(26px * var(--s))}
-.cty{font-style:normal;font-weight:800;white-space:nowrap;margin-left:5px;vertical-align:-2px;
- font-size:calc(20px * var(--s))}
-.c{grid-area:c;color:#8d99a9;font-weight:800;line-height:1.25;letter-spacing:-.03em;min-width:0;
- word-break:break-word;font-size:calc(15px * var(--s))}
+.f{font-family:ui-monospace,Menlo,monospace;color:#fff;font-weight:800;
+ white-space:nowrap;letter-spacing:-.055em;line-height:1}
+.c{color:#8d99a9;font-weight:800;line-height:1.2;letter-spacing:-.04em;min-width:0;
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .r40 .c,.r53 .c{color:#DCE4EC}
-.tag{grid-area:tag;justify-self:start;align-self:center;white-space:nowrap;font-weight:900;
- border:1px solid #2a3545;background:rgba(255,255,255,.03);color:#93a0b1;letter-spacing:-.02em;
- font-size:calc(13px * var(--s));padding:2px calc(7px * var(--s))}
+.tag{white-space:nowrap;font-weight:900;border:1px solid #2a3545;
+ background:rgba(255,255,255,.03);color:#93a0b1;letter-spacing:-.03em}
 .r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F}
 .r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
-.st{grid-area:st;justify-self:end;align-self:center;white-space:nowrap;font-weight:900;
- border:1px solid;letter-spacing:-.02em;min-width:0;max-width:100%;overflow:hidden;
- font-size:calc(13.5px * var(--s));padding:2px calc(6px * var(--s))}
+.st{white-space:nowrap;font-weight:900;border:1px solid;letter-spacing:-.03em;
+ min-width:0;max-width:100%;overflow:hidden}
 .b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
 .b-warn{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
 .b-none{border-color:#2a3545;color:#8b94a1;background:rgba(255,255,255,.03)}
-.px{font-style:normal;font-weight:900;white-space:nowrap;display:inline-flex;align-items:baseline;gap:1px;
- margin-left:3px;border:1px solid;letter-spacing:-.04em;
- font-size:calc(13px * var(--s));padding:1px calc(4px * var(--s))}
-.px u{text-decoration:none;opacity:.8;font-size:calc(10.5px * var(--s))}
+.px{font-style:normal;font-weight:900;white-space:nowrap;display:inline-block;
+ border:1px solid;letter-spacing:-.05em}
+.px u{text-decoration:none;opacity:.8}
 .px.p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
 .px.p2{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
 .px.p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
 .r40 .px,.r53 .px{background:rgba(0,0,0,.45)}
-/* ───── D：大字＋三列（把「分點」挪到班號旁邊，省掉一整列）───── */
-.d3 .r{grid-template-areas:"t t g" "f f tag" "c c st";gap:1px 5px;padding:4px 6px 4px 10px}
-.d3 .tag{align-self:center;justify-self:end}
-.d3 .st{align-self:center}
-.d3 .c{align-self:center}
-/* 手錶這麼窄，「預估入境」四個字就吃掉一半，標籤縮成「入境」才排得進同一列
-   （手機／電腦維持「預估入境」）*/
-.d3 .px u::before{content:"入境"}
-.d3 .px u{font-size:0}
-.d3 .px u::before{font-size:calc(10.5px * var(--s))}
+
+/* ═══ A：現在這版（四列）═══ */
+.vA .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) minmax(46px,max-content);
+ grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";gap:2px 5px;padding:5px 6px 5px 10px}
+.vA b.t{grid-area:t;font-size:28px} .vA .g{grid-area:g;text-align:right;font-size:29px}
+.vA .f{grid-area:f;font-size:26px} .vA .c{grid-area:c;font-size:15px;white-space:normal}
+.vA .tag{grid-area:tag;justify-self:start;align-self:center;font-size:13px;padding:2px 7px}
+.vA .st{grid-area:st;justify-self:end;align-self:center;font-size:13.5px;padding:2px 6px}
+.vA .px{font-size:13px;padding:1px 4px;margin-left:3px}
+.vA .px u{font-size:10.5px}
+
+/* ═══ 兩列版共用：兩行各自用 flex，欄寬不會互相綁住 ═══ */
+.two .r{display:block;padding:4px 6px 4px 10px}
+.two .l1,.two .l2{display:flex;align-items:center;gap:5px;min-width:0}
+.two .l1{margin-bottom:1px}
+.two .l1>*,.two .l2>*{flex:0 0 auto}
+/* 城市是唯一可以被壓縮的，擠不下就自己縮寫，不會把別人推出去 */
+.two .c{flex:1 1 auto;min-width:0}
+.two .tag{display:none}
+.two .px{font-size:11.5px;padding:0 3px}
+.two .px u{font-size:9.5px}
+.two .st{font-size:12px;padding:1px 4px}
+.two .c{font-size:12px}
+.two .spacer{flex:1 1 auto;min-width:0}
+
+/* E：班號最大（第一列 時間＋班號） */
+.vE b.t{font-size:24px}
+.vE .f{font-size:29px;margin-left:auto}
+.vE .g{font-size:20px} .vE .g .gn{padding:0 5px}
+
+/* F：時間和門最大（第一列 時間＋門） */
+.vF b.t{font-size:29px}
+.vF .g{font-size:29px;margin-left:auto} .vF .g .gn{padding:0 5px}
+.vF .f{font-size:23px}
+
+/* G：班號當主角（第一列 班號＋門） */
+.vG .f{font-size:30px}
+.vG .g{font-size:23px;margin-left:auto} .vG .g .gn{padding:0 5px}
+.vG b.t{font-size:16px}
+
+.btnbox{width:198px;margin:0 auto;background:#05070a;border:1px solid #2a3545;border-radius:16px;padding:5px 4px}
+.g2,.g4{display:flex;gap:4px;margin-bottom:4px}
+.g2.s,.g4.s{margin-top:8px}
+.bt{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;min-height:30px;
+ font-size:12px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;
+ background:#0B1019;border:1px solid #2a3545;color:#93a0b1}
+.bt.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4}
+.bt.c40{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.bt.c53{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.bt.del{background:rgba(255,46,110,.12);border-color:#FF2E6E;color:#FF7A95;
+ text-decoration:line-through;text-decoration-color:#FF2E6E}
 @media (max-width:700px){ .col{width:100%;max-width:260px} }
-/* 直接拿手錶打開這一頁也行：框框改成滿版，往下捲就能一個一個比 */
 @media (max-width:340px){
   body{padding:6px 5px 24px;font-size:14px}
   h1{font-size:12.5px} .lead{font-size:12px;line-height:1.7;margin-bottom:12px}
   .col{width:100%;max-width:none} .row{gap:14px}
   .screen{width:100%;height:242px;border-radius:16px}
-  .cap{font-size:11px} .cap b{font-size:14px} .note{font-size:11.5px}
+  .cap{font-size:11px;min-height:0} .cap b{font-size:14px} .note{font-size:11.5px}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>手錶版字級 · 預覽</h1>
-<p class="lead">框框是 <b>45mm Apple Watch 的實際可視大小</b>（198 × 242）。三個都是同一批班機、同一套配色，
-<b>只有字級不一樣</b>。下面那行是實測一屏看得到幾班。</p>
+<h1>手錶版排版 · 預覽</h1>
+<p class="lead">框框是 <b>45mm Apple Watch 的實際可視大小</b>（198 × 242）。國旗已拿掉。
+目標是<b>一屏 3 班</b>，所以每張卡要壓到 <b>78px 以內</b>。</p>
 <div class="row" id="row"></div>
+
+<h1 style="margin-top:34px">控制鍵 · 要拿掉的</h1>
+<p class="lead">一樣是手錶的實際寬度。右邊是拿掉<b>開會時間</b>和 A/B/C/D 區下面那顆<b>更新</b>之後。</p>
+<div class="row">
+  <div class="col"><div class="cap"><b>現在</b>按鍵區</div>
+    <div class="btnbox">
+      <div class="g2"><span class="bt">00–06</span><span class="bt">13:30–18</span><span class="bt on">18–24</span></div>
+      <div class="g2 s"><span class="bt c40">✓2140</span><span class="bt c53">✓2153</span></div>
+      <div class="g2"><span class="bt">其他一航</span><span class="bt">其他二航</span></div>
+      <div class="g2"><span class="bt">全部</span><span class="bt">2140+2153</span></div>
+      <div class="g4 s"><span class="bt on">✓A區</span><span class="bt on">✓B區</span><span class="bt on">✓C區</span><span class="bt on">✓D區</span></div>
+      <div class="g2 s"><span class="bt">隱藏抵達</span><span class="bt del">更新</span></div>
+      <div class="g2"><span class="bt del">開會時間</span><span class="bt">分類設定</span></div>
+    </div>
+    <div class="note">7 排　·　<b class="warn">紅色的要拿掉</b></div>
+  </div>
+  <div class="col"><div class="cap"><b class="on">改完</b>按鍵區</div>
+    <div class="btnbox">
+      <div class="g2"><span class="bt">00–06</span><span class="bt">13:30–18</span><span class="bt on">18–24</span></div>
+      <div class="g2 s"><span class="bt c40">✓2140</span><span class="bt c53">✓2153</span></div>
+      <div class="g2"><span class="bt">其他一航</span><span class="bt">其他二航</span></div>
+      <div class="g2"><span class="bt">全部</span><span class="bt">2140+2153</span></div>
+      <div class="g4 s"><span class="bt on">✓A區</span><span class="bt on">✓B區</span><span class="bt on">✓C區</span><span class="bt on">✓D區</span></div>
+      <div class="g2 s"><span class="bt">隱藏抵達</span><span class="bt">分類設定</span></div>
+    </div>
+    <div class="note">6 排　·　少一排，班機提早 <b>44px</b> 出現</div>
+  </div>
+</div>
 </div>
 <script>
 var FL=[
- {t:'19:05',tc:'t-late',f:'BR0028',flag:'🇯🇵',g:'C5',c:'東京成田',px:235,lv:2,tag:'2140',sh:'c0',st:'延遲',sc:'b-warn',cls:'soon'},
- {t:'19:14',tc:'',f:'JX0025',flag:'🇺🇸',g:'A8',c:'鳳凰城',px:260,lv:3,tag:'2153',sh:'c1',st:'準時',sc:'b-ok',cls:''},
- {t:'19:28',tc:'t-early',f:'CI0152',flag:'🇯🇵',g:'B3',c:'大阪關西',px:205,lv:2,tag:'待定',sh:'',st:'提早',sc:'b-none',cls:''},
- {t:'19:40',tc:'',f:'BR0262',flag:'🇵🇭',g:'C9',c:'馬尼拉',px:130,lv:1,tag:'2140',sh:'c0',st:'準時',sc:'b-ok',cls:''}
+ {t:'19:05',tc:'t-late',f:'BR0028',g:'C5',c:'東京成田',px:235,lv:2,tag:'2140',sh:'c0',st:'延遲',sc:'b-warn',cls:'soon'},
+ {t:'19:14',tc:'',f:'JX0025',g:'A8',c:'鳳凰城',px:260,lv:3,tag:'2153',sh:'c1',st:'準時',sc:'b-ok',cls:''},
+ {t:'19:28',tc:'t-early',f:'CI0152',g:'B3',c:'大阪關西',px:205,lv:2,tag:'待定',sh:'',st:'提早',sc:'b-none',cls:''},
+ {t:'19:40',tc:'',f:'BR0262',g:'C9',c:'馬尼拉',px:130,lv:1,tag:'2140',sh:'c0',st:'準時',sc:'b-ok',cls:''},
+ {t:'19:52',tc:'',f:'BR0802',g:'C7',c:'澳門',px:150,lv:2,tag:'2153',sh:'c1',st:'準時',sc:'b-ok',cls:''}
 ];
-function card(x){
-  var sh=x.sh==='c0'?' r40':(x.sh==='c1'?' r53':'');
-  return '<div class="r '+x.cls+sh+'">'
-   +'<b class="t '+x.tc+'">'+x.t+'</b>'
-   +'<span class="g"><b class="gn">'+x.g+'</b></span>'
-   +'<span class="f">'+x.f+'<i class="cty">'+x.flag+'</i></span>'
-   +'<span class="c">'+x.c+'<i class="px p'+x.lv+'">'+x.px+'<u>預估入境</u></i></span>'
-   +'<span class="tag">'+x.tag+'</span>'
-   +'<span class="st '+x.sc+'">'+x.st+'</span></div>';
+function parts(x){
+  return {
+    t:'<b class="t '+x.tc+'">'+x.t+'</b>',
+    f:'<span class="f">'+x.f+'</span>',
+    g:'<span class="g"><b class="gn">'+x.g+'</b></span>',
+    c:'<span class="c">'+x.c+'</span>',
+    p:'<i class="px p'+x.lv+'">'+x.px+'<u>入境</u></i>',
+    s:'<span class="st '+x.sc+'">'+x.st+'</span>',
+    tag:'<span class="tag">'+x.tag+'</span>'
+  };
+}
+function card(x,v){
+  var P=parts(x), sh=x.sh==='c0'?' r40':(x.sh==='c1'?' r53':'');
+  var open='<div class="r '+x.cls+sh+'">', close='</div>';
+  if(v==='A') return open+P.t+P.g+P.f+'<span class="c">'+x.c+P.p+'</span>'+P.tag+P.s+close;
+  var L=function(a,b){ return '<div class="l1">'+a+'</div><div class="l2">'+b+'</div>'; };
+  if(v==='E') return open+L(P.t+P.f, P.g+P.c+P.p+P.s)+close;
+  if(v==='F') return open+L(P.t+P.g, P.f+P.c+P.p+P.s)+close;
+  return open+L(P.f+P.g, P.t+P.c+P.p+P.s)+close;
 }
 var OPT=[
- {k:'A',name:'現在',s:1,on:false,d3:false},
- {k:'B',name:'大一號',s:1.16,on:false,d3:false},
- {k:'C',name:'再大一號',s:1.30,on:false,d3:false},
- {k:'D',name:'大一號＋三列',s:1.16,on:true,d3:true}
+ {k:'A',v:'A',name:'現在',desc:'四列　時間 28／班號 26／門 29',on:false},
+ {k:'E',v:'E',name:'班號最大',desc:'第一列：時間 24 ＋ <b>班號 29</b><br>第二列：門 20 ／城市／人數／狀態',on:true},
+ {k:'F',v:'F',name:'時間和門最大',desc:'第一列：時間 29 ＋ 門 29<br>第二列：<b>班號 23</b>／城市／人數／狀態',on:false},
+ {k:'G',v:'G',name:'班號當主角',desc:'第一列：<b>班號 30</b> ＋ 門 23<br>第二列：時間 16／城市／人數／狀態',on:false}
 ];
 document.getElementById('row').innerHTML=OPT.map(function(o,i){
-  return '<div class="col"><div class="cap"><b class="'+(o.on?'on':'')+'">'+o.k+'　'+o.name+'</b>'
-   +'時間 '+Math.round(28*o.s)+'px ／ 班號 '+Math.round(26*o.s)+' ／ 門 '+Math.round(29*o.s)
-   +(o.d3?'<br>分點挪到班號旁，少一整列':'')+'</div>'
-   +'<div class="screen'+(o.d3?' d3':'')+'" id="s'+i+'" style="--s:'+o.s+'">'+FL.map(card).join('')+'</div>'
+  return '<div class="col"><div class="cap"><b class="'+(o.on?'on':'')+'">'+o.k+'　'+o.name+'</b>'+o.desc+'</div>'
+   +'<div class="screen v'+o.v+(o.v==='A'?'':' two')+'" id="s'+i+'">'+FL.map(function(x){return card(x,o.v);}).join('')+'</div>'
    +'<div class="note" id="n'+i+'"></div></div>';
 }).join('');
 OPT.forEach(function(o,i){
   var box=document.getElementById('s'+i);
   var rs=[].slice.call(box.querySelectorAll('.r'));
-  var top=box.getBoundingClientRect().top+4, lim=top+242-8;
-  var h=0;
-  rs.forEach(function(r){ h+=r.getBoundingClientRect().height+5; });
-  var per=h/rs.length;
-  var fit=Math.round(242/per*10)/10;
-  document.getElementById('n'+i).innerHTML='一屏 <b>'+fit.toFixed(1)+'</b> 班　·　每張 <b>'+Math.round(per)+'px</b>';
+  var h=0, over=0, cut=0;
+  rs.forEach(function(r){ h+=r.getBoundingClientRect().height+4;
+    [].forEach.call(r.querySelectorAll('.l1,.l2'),function(ln){
+      if(ln.scrollWidth>ln.clientWidth+1) over++;
+    });
+    [].forEach.call(r.querySelectorAll('.c'),function(cc){
+      if(cc.scrollWidth>cc.clientWidth+1) cut++;
+    });
+  });
+  var per=h/rs.length, fit=242/per;
+  document.getElementById('n'+i).innerHTML='一屏 <b'+(fit>=3?'':' class="warn"')+'>'+fit.toFixed(1)
+   +'</b> 班　·　每張 <b>'+Math.round(per)+'px</b>'+(over?'<br><b class="warn">'+over+' 張爆版</b>':'')
+   +(cut?'<br>城市縮寫 '+cut+' 張':'');
 });
 </script>
 </body>
