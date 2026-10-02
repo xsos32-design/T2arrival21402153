@@ -492,21 +492,20 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 交通部 TDX 資料。平常讀 GitHub 產生的小快照（省流量）；<b>快照超過 15 分鐘就自動改連即時</b>。GitHub 排程實際上常隔數小時才跑，所以標題列一定要看「幾分前」。<b>實際登機門、時間、狀態一律以現場為準。</b><br>
-<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估走證照查驗出來的人（已扣掉推估直接轉機的）。座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%<br>
-同一分鐘抵達時，<b>入境人數多的排前面</b>（人多＝客人多）。順序是建議，現場你說了算<br>
+<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> TDX 資料。平常讀 GitHub 快照，<b>超過 15 分鐘自動改連即時</b>，<b>一律以現場為準</b><br>
+<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估的查驗人數（已扣轉機），約 ±15%。同分鐘抵達時入境多的排前面<br>
 入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
 狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
 本頁固定不顯示 06:00–13:30 的班機<br>
-此來源沒有「滑行中／抵達機坪」，抵達的班機一律顯示「已到」</div>
-<div class="foot">按「更新」或點最上面那條即可重讀最新一次的快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
+此來源沒有「滑行中／抵達機坪」，抵達一律顯示「已到」</div>
+<div class="foot">點最上面那條可重讀快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
 
 <script>
 /* ── 版本自動更新 ────────────────────────────────────────────
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-01f';
+var PAGE_V='2026-10-02a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
