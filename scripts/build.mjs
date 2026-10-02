@@ -953,20 +953,30 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
     var sb = document.getElementById('stale');
     if (b && sb && m >= 30){
       sb.innerHTML = '資料是 <b>' + ageTxt(m) + '</b> 抓的'
-        + '<br>登機門可能已經不是這樣，要準的開 TDX 版';
+        + '<br>正在跟 TDX 對時間和登機門…';
       if (m >= 120) sb.className = 'bad';
       sb.hidden = false;
     }
 
-    /* ── 資料超過 30 分鐘，就跟 TDX 對一次時間／登機門／狀態 ──────────
+    /* ── 每次開頁都跟 TDX 對一次時間／登機門／狀態 ────────────────────
+       原本只在「資料超過 30 分鐘」才對，但 GitHub 的排程實際上常常
+       隔好幾個小時才跑一次，等於每次開都是舊的，那就乾脆每次都對。
        畫面已經先出來了，這只是事後補正：抓不到、逾時、格式怪都維持原樣，
-       絕不會讓這一頁開不出來或卡住。只抓一次，沒有定時輪詢。          */
-    if (b && m >= 30) tdxPatch();
+       絕不會讓這一頁開不出來或卡住。只抓一次，沒有定時輪詢。
+       為了不把 TDX 的免登入額度打爆，兩分鐘內重開會直接用上次的結果，不再連線。 */
+    if (b && m >= 2) tdxPatch();
 
     function tdxPatch(){
       var day = document.body.getAttribute('data-day') || '';
       var box = document.getElementById('stale');
       if (!day) return;
+      /* 先看看兩分鐘內有沒有抓過，有就直接拿來用（省一次連線、也更快出來） */
+      try{
+        var c = JSON.parse(localStorage.getItem('tdxCache') || 'null');
+        if (c && c.day === day && (Date.now() - c.t) < 120000 && c.d && c.d.length){
+          apply(c.d, true); return;
+        }
+      }catch(e){}
       var url = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
               + '?%24format=JSON'
               + '&%24select=FlightNumber,AirlineID,ScheduleArrivalTime,EstimatedArrivalTime,'
@@ -982,6 +992,7 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
         fetch(url).then(function(r){ return r.ok ? r.json() : null; })
         .then(function(list){ finish(function(){
           if(!list || !list.length){ tail('TDX 沒回傳資料，畫面維持原樣'); return; }
+          try{ localStorage.setItem('tdxCache', JSON.stringify({ day: day, t: Date.now(), d: list })); }catch(e){}
           apply(list);
         }); })['catch'](function(){ finish(function(){ tail('TDX 連不到，畫面維持原樣'); }); });
       }catch(e){ finish(function(){}); }
@@ -1007,7 +1018,7 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
         return {txt:'預計', cls:'none', done:false};
       }
 
-      function apply(list){
+      function apply(list, fromCache){
         var map={}, i;
         for(i=0;i<list.length;i++){
           var r=list[i];
@@ -1038,7 +1049,7 @@ ${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾�
           box.className='ok';
           box.innerHTML='已用 <b>TDX 即時資料</b>校對過（'
             + (t.getHours()<10?'0':'') + t.getHours() + ':' + (t.getMinutes()<10?'0':'') + t.getMinutes()
-            + '）<br>對到 ' + hit + ' 班，其中 ' + chg + ' 班有變動'
+            + (fromCache ? '，兩分鐘內的快取' : '') + '）<br>對到 ' + hit + ' 班，其中 ' + chg + ' 班有變動'
             + '<br><small>人數推估仍是 ' + ageTxt(m) + '抓的</small>';
           box.hidden=false;
         }
