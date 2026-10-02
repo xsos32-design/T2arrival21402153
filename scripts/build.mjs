@@ -853,14 +853,14 @@ ${SPRITE}
 <div class="grp s">${hideBtn}${reloadBtn}</div>
 <div class="sep"></div>
 ${body}
-<div class="notice">${IC('alert')} 僅供參考，<b>一律以現場為準</b><br>
-${IC('users')} <b>預估入境</b>＝推估走證照查驗出來的人（已扣掉推估直接轉機的）。座位數查真實機型，載客率與轉機比例仍是推估，約 ±15%<br>
+<div class="notice">${IC('alert')} 僅供參考，<b>以現場為準</b><br>
+${IC('users')} <b>預估入境</b>＝推估的查驗人數（已扣轉機），約 ±15%<br>
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 ${full
   ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
   : '本頁固定不顯示 06:00–13:30 的班機'}</div>
-<div class="foot">本頁預先產生、<b>完全不連網</b>，所以一定不是即時的<br>
-${stamp} 為抓取時刻。GitHub 排程常隔數小時才跑，<b>先看「幾分前」再決定要不要信登機門</b><br>點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
+<div class="foot">本頁預先產生、<b>不連網</b>，${stamp} 為抓取時刻<br>
+<b>先看「幾分前」再決定要不要信登機門</b>　點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
 <script>
 /* 現在時間：整分鐘才更新一次（一分鐘只寫一次字，不會像以前的輪詢那樣卡捲動）。
    螢幕暗掉就停，亮起來立刻補上正確的時間。 */
