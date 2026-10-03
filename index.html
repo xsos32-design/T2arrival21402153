@@ -667,7 +667,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-02a';
+var PAGE_V='2026-10-03a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -955,6 +955,25 @@ function catsExpand(){
   });
 }
 var zoneShow={'A':true,'B':true,'C':true,'D':true};
+
+/* ── 個人偏好：分點勾選／A-D 區／隱藏已到，存在使用者自己的裝置裡 ──
+   localStorage 是「這台裝置的這個瀏覽器」專屬，不會上傳、不會跟同事互相影響。
+   無痕模式、清除瀏覽資料會消失，所以全部包 try/catch，讀不到就用預設值。
+   時段刻意不存：開頁自動落在現在所屬的時段，交接班時那才是對的行為。 */
+var PREF_KEY='tpePrefs1';
+function prefsLoad(){
+  try{
+    var p=JSON.parse(localStorage.getItem(PREF_KEY)||'null'); if(!p) return;
+    if(p.show) ['c0','c1','c2','c3'].forEach(function(k){ if(typeof p.show[k]==='boolean') show[k]=p.show[k]; });
+    if(p.zone) ['A','B','C','D'].forEach(function(k){ if(typeof p.zone[k]==='boolean') zoneShow[k]=p.zone[k]; });
+    if(typeof p.hide==='boolean') hideDone=p.hide;
+  }catch(e){}
+}
+function prefsSave(){
+  try{ localStorage.setItem(PREF_KEY,JSON.stringify({show:show,zone:zoneShow,hide:hideDone})); }catch(e){}
+}
+prefsLoad();
+
 var dayBreakMD='';   /* 跨日分隔列顯示的日期（run/runNow6 會設定） */   /* 登機門開頭字母（無字母的一律顯示） */
 
 /* 分類判斷：先比「有填登機門」的格子（航廈也要對），再比「留空」的格子（只看航廈）。
@@ -1584,15 +1603,15 @@ function paintShops(){
     el.addEventListener('click',function(){
       var i=+el.getAttribute('data-i');
       show['c'+i]=!show['c'+i];
-      paintShops(); render();
+      prefsSave(); paintShops(); render();
     });
   });
 }
 document.getElementById('sall').addEventListener('click',function(){
-  show={c0:true,c1:true,c2:true,c3:true}; paintShops(); render();
+  show={c0:true,c1:true,c2:true,c3:true}; prefsSave(); paintShops(); render();
 });
 document.getElementById('snone').addEventListener('click',function(){
-  show={c0:false,c1:false,c2:false,c3:false}; paintShops(); render();
+  show={c0:false,c1:false,c2:false,c3:false}; prefsSave(); paintShops(); render();
 });
 
 /* ── 分類設定編輯器 ── */
@@ -1635,7 +1654,7 @@ paintShops();
     zoneShow[p[1]]=!zoneShow[p[1]];
     this.textContent=(zoneShow[p[1]]?'✓ ':'　')+p[1]+'區';
     this.className=zoneShow[p[1]]?'chip zone act':'chip zone';
-    render();
+    prefsSave(); render();
   });
 });
 
@@ -1643,8 +1662,20 @@ document.getElementById('hide').addEventListener('click',function(){
   hideDone=!hideDone;
   this.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已抵達';
   this.className=hideDone?'chip act':'chip';
-  render();
+  prefsSave(); render();
 });
+
+/* 把存下來的偏好畫回按鈕上（分點鍵由 paintShops 處理，這裡補區域鍵和隱藏鍵） */
+(function(){
+  [['zA','A'],['zB','B'],['zC','C'],['zD','D']].forEach(function(p){
+    var el=document.getElementById(p[0]); if(!el) return;
+    el.textContent=(zoneShow[p[1]]?'✓ ':'　')+p[1]+'區';
+    el.className=zoneShow[p[1]]?'chip zone act':'chip zone';
+  });
+  var h=document.getElementById('hide'); if(!h) return;
+  h.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已抵達';
+  h.className=hideDone?'chip act':'chip';
+})();
 
 (function(){
   var n=new Date();

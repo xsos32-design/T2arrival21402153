@@ -505,7 +505,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-02a';
+var PAGE_V='2026-10-03a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -796,6 +796,25 @@ var hideDone=false;
 var DATA=[];
 var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
 
+/* ── 個人偏好：分點勾選／A-D 區／隱藏已到，存在使用者自己的裝置裡 ──
+   localStorage 是「這台裝置的這個瀏覽器」專屬，不會上傳、不會跟同事互相影響。
+   無痕模式、清除瀏覽資料會消失，所以全部包 try/catch，讀不到就用預設值。
+   時段刻意不存：開頁自動落在現在所屬的時段，交接班時那才是對的行為。 */
+var PREF_KEY='tpePrefs1';
+function prefsLoad(){
+  try{
+    var p=JSON.parse(localStorage.getItem(PREF_KEY)||'null'); if(!p) return;
+    if(p.show) ['c0','c1','c2','c3'].forEach(function(k){ if(typeof p.show[k]==='boolean') cats[k]=p.show[k]; });
+    if(p.zone) ['A','B','C','D'].forEach(function(k){ if(typeof p.zone[k]==='boolean') zones[k]=p.zone[k]; });
+    if(typeof p.hide==='boolean') hideDone=p.hide;
+  }catch(e){}
+}
+function prefsSave(){
+  try{ localStorage.setItem(PREF_KEY,JSON.stringify({show:cats,zone:zones,hide:hideDone})); }catch(e){}
+}
+prefsLoad();
+
+
 function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
 
 function paintBtns(){
@@ -811,7 +830,7 @@ function paintBtns(){
       var i=b.getAttribute('data-i'), on=0, k;
       for(k in cats) if(cats[k]) on++;
       if(cats['c'+i]&&on<=1) return;         /* 至少留一類 */
-      cats['c'+i]=!cats['c'+i]; render();
+      cats['c'+i]=!cats['c'+i]; prefsSave(); render();
     });
   });
   [].forEach.call(document.querySelectorAll('.zone'),function(b){
@@ -1217,17 +1236,17 @@ document.getElementById('hd').addEventListener('click',load);
 document.getElementById('breload').addEventListener('click',function(){ load(true); });
 document.getElementById('ball').addEventListener('click',function(){
   cats={c0:true,c1:true,c2:true,c3:true};
-  zones={'A':true,'B':true,'C':true,'D':true}; render();
+  zones={'A':true,'B':true,'C':true,'D':true}; prefsSave(); render();
 });
 document.getElementById('bnone').addEventListener('click',function(){
-  cats={c0:false,c1:false,c2:false,c3:false}; render();
+  cats={c0:false,c1:false,c2:false,c3:false}; prefsSave(); render();
 });
 [].forEach.call(document.querySelectorAll('.zone'),function(b){
   b.addEventListener('click',function(){
     var z=b.getAttribute('data-z');
     var onCount=Object.keys(zones).filter(function(k){return zones[k];}).length;
     if(zones[z]&&onCount<=1) return;      /* 至少留一區 */
-    zones[z]=!zones[z]; render();
+    zones[z]=!zones[z]; prefsSave(); render();
   });
 });
 /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
@@ -1380,7 +1399,7 @@ document.getElementById('fGo').addEventListener('click',function(){
 });
 
 document.getElementById('bhide').addEventListener('click',function(){
-  hideDone=!hideDone; render();
+  hideDone=!hideDone; prefsSave(); render();
 });
 
 /* 開頁：自動落在現在的六小時區間，然後抓資料 */
