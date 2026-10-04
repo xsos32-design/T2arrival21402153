@@ -513,20 +513,20 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <div id="fb"></div>
 <div id="list"><div class="msg">載入中…</div></div>
 
-<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> TDX 資料。平常讀 GitHub 快照，<b>超過 15 分鐘自動改連即時</b>，<b>一律以現場為準</b><br>
+<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> TDX 資料。開頁先給<b>上次存的</b>再抓新的；快照超過 15 分鐘自動改連即時，<b>一律以現場為準</b><br>
 <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估的查驗人數（已扣轉機），約 ±15%。同分鐘抵達時入境多的排前面<br>
 入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
 狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
 本頁固定不顯示 06:00–13:30 的班機<br>
 此來源沒有「滑行中／抵達機坪」，抵達一律顯示「已到」</div>
-<div class="foot">點最上面那條可重讀快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a></div>
+<div class="foot">點最上面那條可重讀快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a>　<a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="watch-static.html">預先產生版</a></div>
 
 <script>
 /* ── 版本自動更新 ────────────────────────────────────────────
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-04a';
+var PAGE_V='2026-10-04b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -628,7 +628,9 @@ function tdxNames(){
     }); }
     var x=(j&&j.x)||null;
     if(x) for(var k in x){ if(x.hasOwnProperty(k)) TXMAP[k]=x[k]; }
-    NAMES=m; return m;
+    NAMES=m;
+    try{ localStorage.setItem(META_KEY, JSON.stringify({n:m,x:TXMAP})); }catch(e){}
+    return m;
   };
   return fetch(mk).then(function(r){ if(!r.ok) throw new Error('meta '+r.status); return r.json(); })
     .then(take)
@@ -1162,6 +1164,67 @@ function fromSnap(r,base){
           Memo:r[8]||'', CurrentStatus:'', tx:(typeof r[9]==='number'?r[9]:0)};
 }
 
+
+/* ── 秒開：先畫上次看到的，再去抓新的 ────────────────────────────────────
+   手錶上最討厭的是開頁先空一兩秒。這裡把上一次成功讀到的快照存在裝置裡，
+   開頁瞬間直接畫出來（標清楚是「上次的」），同時背景照常去抓最新的蓋掉它。
+   存不住（無痕／空間滿）就當作沒有，走原本的流程，不會壞。 */
+var SNAP_KEY='tpeSnapCache1';
+var BOOTED=false;      /* 這次開頁有沒有先用裝置裡的舊資料墊檔 */
+var META_KEY='tpeMetaCache1';
+
+/* 把一份快照 j 變成畫面。cached=true 代表這是裝置裡的舊資料，要講清楚。 */
+function applySnap(j,cached){
+  var bs=String(j.d||'').split('/');
+  var base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
+  if(isNaN(base.getTime())) base=new Date();
+  var all=(j.f||[]).map(function(r){ return fromSnap(r,base); });
+  var n=new Date();
+  var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+  var m2=new Date(n.getTime()+86400000);
+  var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
+  DATA =all.filter(function(f){ return f.ODate===today||f.RDate===today; });
+  DATA2=all.filter(function(f){ return f.ODate===tm; });
+  DAYS={};
+  document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+
+  /* 這份資料放了多久？標題列一律標出來，不要只給一個時刻讓人自己換算 */
+  var age=snapAgeMin(j), at=ageText(age);
+  var hf=document.getElementById('hfreq');
+  if(hf) hf.textContent=at?((cached?'上次 ':'快照 ')+at):'快照';
+  var el=document.getElementById('hstamp');
+  el.textContent=(j.t||'')+(cached?'':' ↻');
+  el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
+
+  var stale=(age!==null&&age>SNAP_MAX_AGE);
+  document.getElementById('fb').innerHTML= cached
+    ? '<div class="fbx">'+IC('timer')+' 先給你看<b>上次的</b>（'+esc(at)+'），正在抓最新的…</div>'
+    : (stale
+      ? '<div class="fbx hot">'+IC('alert')+' 這份快照是 <b>'+esc(at)+'</b> 的資料'
+        +'<br>先讓你看個大概，<b>正在改抓即時資料</b>…登機門以即時的為準'
+      : '');
+  render();
+  /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它。
+     快取那一輪不做，因為後面馬上就會正常 load() 一次。 */
+  if(!cached && stale) loadLive(true);
+}
+
+/* 開頁第一件事：有存過就先畫出來。超過 12 小時的就不用了，那已經是別天的班表。 */
+function bootFromCache(){
+  try{
+    var m=JSON.parse(localStorage.getItem(META_KEY)||'null');
+    if(m&&m.n){ NAMES=m.n; if(m.x) for(var k in m.x){ if(m.x.hasOwnProperty(k)) TXMAP[k]=m.x[k]; } }
+  }catch(e){}
+  try{
+    var j=JSON.parse(localStorage.getItem(SNAP_KEY)||'null');
+    if(!j||!j.f||!j.f.length) return false;
+    var age=snapAgeMin(j);
+    if(age===null||age>720) return false;
+    applySnap(j,true); BOOTED=true;
+    return true;
+  }catch(e){ return false; }
+}
+
 function loadSnap(fresh){
   var el=document.getElementById('hstamp');
   el.textContent='讀取中…'; el.className='u busy';
@@ -1172,34 +1235,8 @@ function loadSnap(fresh){
     return fetch('snap.json?v='+v)
       .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
   }).then(function(j){
-    var bs=String(j.d||'').split('/');
-    var base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
-    if(isNaN(base.getTime())) base=new Date();
-    var all=(j.f||[]).map(function(r){ return fromSnap(r,base); });
-    var n=new Date();
-    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
-    var m2=new Date(n.getTime()+86400000);
-    var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
-    DATA =all.filter(function(f){ return f.ODate===today||f.RDate===today; });
-    DATA2=all.filter(function(f){ return f.ODate===tm; });
-    DAYS={};
-    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
-
-    /* 這份快照放了多久？標題列一律標出來，不要只給一個時刻讓人自己換算 */
-    var age=snapAgeMin(j), at=ageText(age);
-    var hf=document.getElementById('hfreq');
-    if(hf) hf.textContent=at?('快照 '+at):'快照';
-    el.textContent=(j.t||'')+' ↻';
-    el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
-
-    var stale=(age!==null&&age>SNAP_MAX_AGE);
-    document.getElementById('fb').innerHTML= stale
-      ? '<div class="fbx hot">'+IC('alert')+' 這份快照是 <b>'+esc(at)+'</b> 的資料（GitHub 排程沒準時跑）'
-        +'<br>先讓你看個大概，<b>正在改抓即時資料</b>…登機門以即時的為準'
-      : '';
-    render();
-    /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它 */
-    if(stale) loadLive(true);
+    try{ localStorage.setItem(SNAP_KEY, JSON.stringify(j)); }catch(e){}
+    applySnap(j,false);
   })['catch'](function(e){
     /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
     document.getElementById('fb').innerHTML=
@@ -1230,7 +1267,15 @@ function fallback(err){
     render();
   })
   ['catch'](function(e2){
-    el.textContent='失敗 ↻'; el.className='u err';
+    el.textContent='離線'; el.className='u err';
+    /* 畫面上已經有「上次存下來」的班機時，不要清掉改成錯誤訊息——
+       真的沒網路的時候，舊資料遠比一片空白有用，講清楚是舊的就好。 */
+    if(BOOTED && DATA.length){
+      document.getElementById('fb').innerHTML=
+        '<div class="fbx hot">'+IC('signal')+' <b>現在連不上</b>，下面是<b>上次存下來</b>的資料'
+        +'<br>登機門和時間一律以現場為準。有訊號後點最上面那條可重讀</div>';
+      return;
+    }
     document.getElementById('list').innerHTML=
       '<div class="msg err">即時（'+esc(err&&err.message||err)+'）和快照（'+esc(e2&&e2.message||e2)
       +'）都抓不到<br>正在自我診斷…</div>';
@@ -1435,6 +1480,7 @@ document.getElementById('bhide').addEventListener('click',function(){
 (function(){
   var h=new Date().getHours();
   win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
+  bootFromCache();          /* 先把上次的畫出來，不要讓畫面空著 */
   load();
 })();
 

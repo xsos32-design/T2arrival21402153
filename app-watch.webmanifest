@@ -1,7 +1,7 @@
 {
   "name": "韋 班機 手錶版",
   "short_name": "韋 手錶",
-  "start_url": "watch.html",
+  "start_url": "wtdx.html",
   "display": "standalone",
   "background_color": "#0b0d10",
   "theme_color": "#0b0d10",
