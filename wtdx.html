@@ -96,6 +96,27 @@ body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","N
  50%    {box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 34px 3px rgba(217,164,65,1)}}
 /* 系統開了「減少動態效果」就只留靜態光暈 */
 @media (prefers-reduced-motion:reduce){.r.soon{animation:none}}
+
+/* ── 快抵達（45 分內）：整張色卡從左到右掃過一道金光 ──
+   光條做在 ::before、用 transform 位移 → 交給 GPU 畫，不會卡捲動。
+   z-index:-1 壓在底色上面、文字下面，所以班號和登機門不會被洗白。
+   （.r.soon 本身有 position:relative + z-index，-1 不會跑到卡片後面去）
+   每張卡片差 0.35 秒（--d 由 JS 設），一張一張掃過去而不是整排一起閃。
+   手錶版（≤340px）不做，持續動畫吃電、卡片也太小看不出效果。 */
+.r.soon{overflow:hidden}
+.r.soon::before{content:"";position:absolute;top:0;bottom:0;left:0;width:46%;
+ z-index:-1;pointer-events:none;will-change:transform;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,197,61,.55) 50%,transparent 100%);
+ transform:translateX(-130%) skewX(-18deg);
+ animation:soonSweep 2.8s cubic-bezier(.4,0,.2,1) infinite;
+ animation-delay:var(--d,0s)}
+@keyframes soonSweep{
+ 0%  {transform:translateX(-130%) skewX(-18deg)}
+ 55% {transform:translateX(330%)  skewX(-18deg)}
+ 100%{transform:translateX(330%)  skewX(-18deg)}}
+@media (max-width:340px){ .r.soon::before{display:none} }
+@media (prefers-reduced-motion:reduce){ .r.soon::before{display:none} }
+
 b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
  display:inline-block;letter-spacing:-.01em;color:#E7C785}
 .t-late{color:#E2A85C}
@@ -505,7 +526,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-03a';
+var PAGE_V='2026-10-04a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -817,6 +838,13 @@ prefsLoad();
 
 function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
 
+/* 掃光錯開：第幾張快到的卡片就延後幾個 0.35 秒 */
+function sweepStagger(){
+  var n=document.querySelectorAll('.r.soon');
+  for(var i=0;i<n.length;i++) n[i].style.setProperty('--d',(i*0.35)+'s');
+}
+
+
 function paintBtns(){
   document.getElementById('ball').className='btn half'+(allOn()?' on':'');
   var slot=document.getElementById('catslot'), h='';
@@ -992,6 +1020,7 @@ function render(){
   if(!cats.c0&&!cats.c1&&!cats.c2&&!cats.c3)
     html='<div class="msg">分類全部關掉了<br>點上面的分類鍵選要看的</div>';
   document.getElementById('list').innerHTML=html;
+  sweepStagger();
   paintBtns();
 }
 /* ── 任意日期（◀▶ 選擇器用）───────────────────────── */
