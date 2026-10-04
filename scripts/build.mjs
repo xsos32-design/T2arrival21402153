@@ -857,7 +857,7 @@ ${body}
 ${IC('users')} <b>預估入境</b>＝推估的查驗人數（已扣轉機），約 ±15%<br>
 負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
 ${full
-  ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch.html">' + IC('lock') + ' 回一般版</a>'
+  ? IC('unlock') + ' 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="watch-static.html">' + IC('lock') + ' 回一般版</a>'
   : '本頁固定不顯示 06:00–13:30 的班機'}</div>
 <div class="foot">本頁預先產生、<b>不連網</b>，${stamp} 為抓取時刻<br>
 <b>先看「幾分前」再決定要不要信登機門</b>　點標題可重新載入<br><br><a class="tst" href="wtest.html">連線測試</a></div>
@@ -1095,6 +1095,23 @@ ${full
 </body></html>`;
 }
 
+
+/* 轉址頁：手錶版併進 TDX 版之後，舊網址／舊書籤／加到主畫面的圖示都還要能用。
+   meta refresh 當保險，JS 走 replace 才不會在上一頁堆一筆（按返回不會又彈回來）。
+   沒有 JS 也看得到一條可以點的連結。 */
+function redirectTo(to){
+  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="refresh" content="0;url=${to}">
+<title>前往班機版</title>
+<style>html,body{height:100%}body{margin:0;display:flex;align-items:center;justify-content:center;
+background:#070A0F;color:#9AA3B0;font-family:-apple-system,"PingFang TC",system-ui,sans-serif;
+font-size:14px;text-align:center;padding:16px}
+a{color:#00EFD4;font-weight:800}</style></head>
+<body><div>手錶版已經併進來了，正在前往…<br><br><a href="${to}">沒跳過去的話點這裡</a></div>
+<script>location.replace('${to}');</script></body></html>`;
+}
+
 /* ---------- 主程式 ---------- */
 /* ───────────── 解封印版：把「固定不顯示 06:00–13:30」拿掉，另存一份 ─────────────
    直接吃 repo 裡的 index.html / wtdx.html 再做字串取代，所以那兩個檔怎麼改，
@@ -1252,12 +1269,17 @@ async function main() {
       }
     }
   }
-  /* 預設入口：自動挑「現在所在的那個六小時區間」＋只勾 2140／2153＋不隱藏 */
-  await writeFile(join(OUT, 'watch.html'),
+  /* 預設入口：自動挑「現在所在的那個六小時區間」＋只勾 2140／2153＋不隱藏。
+     2026-10-04 起改名為 watch-static.html——手錶版跟 TDX 版合併成一個，
+     watch.html 本身變成一張轉址頁。這份預先產生版留著當逃生門，沒有刪。 */
+  await writeFile(join(OUT, 'watch-static.html'),
                   renderPage(flights, CURRENT_PRESET, ['40', '53'], false, err, false), 'utf8');
-  await writeFile(join(OUT, 'watchall.html'),
+  await writeFile(join(OUT, 'watchall-static.html'),
                   renderPage(flights, CURRENT_PRESET_FULL, ['40', '53'], false, err, true), 'utf8');
-  console.log(`watch.html 時段 = ${CURRENT_PRESET}／watchall.html 時段 = ${CURRENT_PRESET_FULL}（現在 ${stamp}）`);
+  await writeFile(join(OUT, 'watch.html'), redirectTo('wtdx.html'), 'utf8');
+  await writeFile(join(OUT, 'watchall.html'), redirectTo('wtdxall.html'), 'utf8');
+  console.log(`watch-static.html 時段 = ${CURRENT_PRESET}／watchall-static.html 時段 = ${CURRENT_PRESET_FULL}（現在 ${stamp}）`);
+  console.log('watch.html / watchall.html 已改成轉址頁 → wtdx.html / wtdxall.html');
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
   const snap = flights.concat(tomorrowSnap);
