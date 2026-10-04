@@ -728,6 +728,22 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 
 
 /* 表定今天、但延誤到隔天才會落地 */
+
+/* 「隱藏抵達」留 30 分鐘才藏：班機落地到客人走出來還有一段時間，
+   馬上藏掉等於自己把還要接的班機弄不見。
+   這份是預先產生的，所以用產生當下的時刻算（每 5 分鐘重算一次）。 */
+const DONE_KEEP = 30;
+function doneOld(f) {
+  if (!statusOf(f).done) return false;
+  const d = new Date(), nowM = d.getHours() * 60 + d.getMinutes();
+  const p = (hhmm(f.RTime) || hhmm(f.OTime)).split(':');
+  let t = (+p[0]) * 60 + (+p[1]);
+  if (isNextDay(f)) t += 1440;
+  let ago = nowM - t;
+  if (ago < -720) ago += 1440;      /* 跨午夜 */
+  else if (ago < 0) ago = 0;        /* 時刻在未來卻標成已到：當作剛到，留著 */
+  return ago > DONE_KEEP;
+}
 function isNextDay(f) {
   const rd = hhmm(f.RTime) ? (f.RDate || f.ODate) : f.ODate;
   return !!(f.ODate && rd && rd > f.ODate);
@@ -746,7 +762,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
       if (isNextDay(f)) { if (preset !== 'h18') return false; }
       else if (t < t1 || t > t2) return false;
       if (!codes.has(shopOf(f))) return false;
-      if (hide && statusOf(f).done) return false;
+      if (hide && doneOld(f)) return false;
       return true;
     })
     .sort((a, b) => {
@@ -813,7 +829,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
     ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
     : (rows.length
         ? cards
-        : `<div class="msg">這個區間沒有符合的班機${hide ? '<br><small>（目前隱藏了已抵達的班機）</small>' : ''}</div>`);
+        : `<div class="msg">這個區間沒有符合的班機${hide ? '<br><small>（已隱藏抵達超過 30 分的班機）</small>' : ''}</div>`);
 
   return `<!DOCTYPE html>
 <html lang="zh-Hant"><head>
