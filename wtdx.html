@@ -526,7 +526,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-04b';
+var PAGE_V='2026-10-04c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -894,6 +894,22 @@ function paintBtns(){
 function effTime(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
 /* 表定當天、實際落到隔天（延誤跨過午夜） */
 function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !!(f.ODate&&rd&&rd>f.ODate); }
+
+/* ── 「隱藏抵達」不是一標記已到就馬上藏 ──────────────────────────────
+   班機落地到客人走出證照查驗還有一段時間，馬上藏掉等於自己把還要接的班機弄不見。
+   所以抵達後先留 DONE_KEEP 分鐘，過了才藏。沒有實際抵達時刻就用表定時刻算。 */
+var DONE_KEEP=30;
+function doneOld(f){
+  if(!statusOf(f).done) return false;
+  var d=new Date(), nowM=d.getHours()*60+d.getMinutes();
+  var t=mins(hhmm(f.RTime)||hhmm(f.OTime));
+  if(isNextDay(f)) t+=1440;
+  var ago=nowM-t;
+  if(ago<-720) ago+=1440;   /* 跨午夜：23:50 到、現在 00:10 ＝ 20 分前 */
+  else if(ago<0) ago=0;     /* 時刻在未來卻標成已到（資料怪）：當作剛到，留著 */
+  return ago>DONE_KEEP;
+}
+
 function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate||''; }
 function dayStr(off){
   var d=new Date(Date.now()+off*86400000);
@@ -922,7 +938,7 @@ function rowsFor(list,lo,hi){
     if(!cats[shopOf(f)]) return false;
     var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
     if(/[A-D]/.test(zg)&&!zones[zg]) return false;
-    if(hideDone&&statusOf(f).done) return false;
+    if(hideDone&&doneOld(f)) return false;
     return true;
   }).sort(function(a,b){
     var ta=hhmm(a.RTime)||hhmm(a.OTime), tb=hhmm(b.RTime)||hhmm(b.OTime);
@@ -988,7 +1004,7 @@ function render(){
         list1=list1.concat(rowsFor(poolFor(dayOff+1).filter(isNextDay),'00:00','05:59'));
       }
       var part1=list1.map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
-      html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（目前隱藏了已抵達的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
+      html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（已隱藏抵達超過 30 分的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
     }
   }
   /* 尚未公布登機門的班機（跟網頁版一樣列出來 —— 隔日凌晨的班常常還沒派門，不列會整批看不到） */
