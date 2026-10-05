@@ -638,7 +638,7 @@
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
       <span class="chip" id="cpD"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兆豐D區</span>
       <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 2140+2153</span>
-      <span class="chip" id="cpM"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間 19:00–20:30</span>
+      <span class="chip" id="cpM"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間 18:00–20:30</span>
     </div>
     <div id="copybox"></div>
 
@@ -690,7 +690,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-04c';
+var PAGE_V='2026-10-05a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1349,7 +1349,7 @@ function reportText(kind){
   var d=new Date();
   var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var md=(d.getMonth()+1)+'/'+d.getDate();
-  var cut = kind==='M' ? '19:00' : '22:30';
+  var cut = kind==='M' ? '18:00' : '22:30';
   return getFlights(date).then(function(all){
     var want=date.replace(/-/g,'/');
     var seen={}, list=[];
@@ -1361,7 +1361,7 @@ function reportText(kind){
       var t=arrAt(f); if(t<cut) return;
       var k=hhmm(f.OTime)+'|'+g+'|'+(f.CityName||'');
       if(seen[k]) return; seen[k]=1;
-      /* （M＝開會用 19:00 起；D/S 回報維持 22:30 起，見上面 cut） */
+      /* （M＝開會用 18:00 起；D/S 回報維持 22:30 起，見上面 cut） */
       list.push({t:t,no:String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))),
                  city:String(f.CityName||'').replace(/市$/,''),g:g,ct:ctryOf(f)});
     });
@@ -1370,15 +1370,15 @@ function reportText(kind){
     var EXr=catsExpand();
     var g40=EXr[0].set, g53=EXr[1].set;
 
-    /* ── 開會時間：19:00–20:30，每家 15 分鐘，兩家不重疊 ──
-       把區間內所有可能的組合掃一遍（兩家各 76 個起點，約 5800 組，不到 0.1 毫秒），
+    /* ── 開會時間：18:00–20:30，每家 15 分鐘，兩家不重疊 ──
+       把區間內所有可能的組合掃一遍（兩家各 136 個起點，約 1.8 萬組，不到 1 毫秒），
        依這個優先順序挑最好的一組：
          ① 開會中間不能有自己的班機進來
          ② 兩場盡量接著開（間隔越小越好，最好是 0）
          ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
          ④ 越晚越好 */
     if(kind==='M'){
-      var LO='19:00', HI='20:30', DUR=15;
+      var LO='18:00', HI='20:30', DUR=15;
       var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
       var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
       var LOm=m2(LO), LASTm=m2(HI)-DUR;
