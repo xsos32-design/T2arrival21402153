@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>出發地圖示 · 預覽</title>
+<title>產值排名標記 · 預覽</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -12,35 +12,31 @@ body{margin:0;background:#070A0F;color:#C9D1DA;
  font-size:14px;line-height:1.55;padding:14px 12px 60px}
 h1{font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.14em;
  color:#00EFD4;text-transform:uppercase;margin:0 0 4px}
-.sub{font-size:12.5px;color:#6E7683;margin:0 0 16px;line-height:1.7}
+.sub{font-size:12.5px;color:#6E7683;margin:0 0 14px;line-height:1.75}
+.sub b{color:#C3CAD4}
 .bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;position:sticky;top:0;
  background:#070A0F;padding:8px 0;z-index:50;border-bottom:1px solid #161C25}
 .b{border:1px solid #2A323E;background:#0E131A;color:#AEB7C2;font:inherit;font-size:13px;
  font-weight:800;padding:8px 12px;cursor:pointer}
 .b.on{border-color:#00EFD4;color:#4DF6E2;background:rgba(0,239,212,.14);box-shadow:inset 0 0 0 1px #00EFD4}
 
-h2{font-size:16px;font-weight:900;color:#E7C785;margin:26px 0 2px;
+h2{font-size:16px;font-weight:900;color:#E7C785;margin:28px 0 2px;
  border-left:3px solid #E7C785;padding-left:9px}
-.now{font-size:12.5px;color:#8A94A1;margin:0 0 12px;padding-left:12px}
-.now b{color:#C3CAD4}
-
-.cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;margin-bottom:12px}
-.cd{border:1px solid #1E242E;background:#0C1016;padding:11px}
-.cd.r1{border-color:#FFC53D;box-shadow:inset 0 0 0 1px #FFC53D}
-.rk{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:900;letter-spacing:.1em;
- color:#0A0D12;background:#5B6675;padding:1px 7px;display:inline-block;margin-bottom:8px}
-.cd.r1 .rk{background:#FFC53D}
-.big{display:flex;align-items:center;gap:12px;margin-bottom:7px}
-.big svg{width:56px;height:56px;flex:0 0 auto}
-.sizes{display:flex;align-items:flex-end;gap:9px}
-.sizes span{display:flex;flex-direction:column;align-items:center;gap:2px;
- font-size:9px;color:#5A6472;font-family:ui-monospace,Menlo,monospace}
-.nm{font-size:13.5px;font-weight:900;color:#E7E9ED}
-.why{font-size:12px;color:#8A94A1;line-height:1.6}
+h2 em{font-style:normal;font-size:11.5px;font-weight:900;color:#0A0D12;background:#5B6675;
+ padding:1px 7px;margin-left:8px;vertical-align:2px}
+h2.rec em{background:#FFC53D}
+.why{font-size:12.5px;color:#8A94A1;margin:4px 0 10px;padding-left:12px;line-height:1.7}
 .why b{color:#C3CAD4}
 
-/* ───── 真實卡片（深色賽博皮） ───── */
-.wrap{padding:8px;margin-top:4px}
+.row3{display:flex;align-items:flex-end;gap:16px;padding-left:12px;margin-bottom:10px;flex-wrap:wrap}
+.one{display:flex;flex-direction:column;align-items:center;gap:4px}
+.one .lab{font-size:10.5px;color:#5A6472;font-family:ui-monospace,Menlo,monospace}
+.one .sz{display:flex;align-items:flex-end;gap:7px;margin-top:2px}
+.one .sz span{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:8.5px;
+ color:#4C5663;font-family:ui-monospace,Menlo,monospace}
+
+/* ───── 卡片：深色賽博皮 ───── */
+.wrap{padding:8px}
 .wrap.dark{background:#070A0F}
 .dark .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 76px;gap:2px 9px;
  grid-template-areas:"time fno gate" "shop city st";align-items:center;overflow:hidden;
@@ -49,19 +45,18 @@ h2{font-size:16px;font-weight:900;color:#E7C785;margin:26px 0 2px;
 .dark .r.r53{background:#6B0F33;border-color:#B83E5C;box-shadow:inset 6px 0 0 #FF2E6E}
 .dark .t{grid-area:time;font-family:ui-monospace,Menlo,monospace;font-size:21px;font-weight:900;color:#fff}
 .dark .f{grid-area:fno;font-family:ui-monospace,Menlo,monospace;font-size:19px;font-weight:900;
- color:#E7E9ED;letter-spacing:-.03em;display:flex;align-items:center;gap:5px}
+ color:#E7E9ED;letter-spacing:-.03em;display:flex;align-items:center;gap:6px}
 .dark .g{grid-area:gate;justify-self:end;font-family:ui-monospace,Menlo,monospace;
  font-size:17px;font-weight:900;padding:1px 7px;background:#232A34;color:#9AA3B0}
 .dark .r.r40 .g{background:#00EFD4;color:#042321}
 .dark .r.r53 .g{background:#FF2E6E;color:#2B0710}
 .dark .sh{grid-area:shop;font-size:11.5px;font-weight:900;padding:1px 6px;background:rgba(0,0,0,.45);color:#C9D1DA}
 .dark .ct{grid-area:city;font-size:13px;color:#C3CAD4}
-.dark .ct i{font-style:normal;font-size:11px;font-weight:900;padding:0 5px;margin-left:5px;
- background:rgba(0,0,0,.45);color:#FFC53D}
 .dark .st{grid-area:st;justify-self:end;font-size:11.5px;font-weight:900;padding:1px 6px;
  border:1px solid #2f6b3f;color:#86D9A0;background:rgba(134,217,160,.08)}
+.dark .fl{font-size:19px}
 
-/* ───── 真實卡片（淺色皮） ───── */
+/* ───── 卡片：淺色皮 ───── */
 .wrap.light{background:#eef1f4}
 .light .r{display:grid;grid-template-columns:58px 1fr 44px 62px;gap:8px;align-items:center;
  padding:9px 11px;border-top:1px solid #e3e7eb;background:#f6f8fa;color:#1f2933}
@@ -69,206 +64,198 @@ h2{font-size:16px;font-weight:900;color:#E7C785;margin:26px 0 2px;
 .light .r.r40{background:#cdf1ee;box-shadow:inset 8px 0 0 #17A9A0}
 .light .r.r53{background:#fbd9e3;box-shadow:inset 8px 0 0 #B81E4A}
 .light .t{font-size:17px;font-weight:800}
-.light .f{font-size:15px;font-weight:800;display:flex;align-items:center;gap:5px}
+.light .f{font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px}
 .light .g{font-size:13.5px;font-weight:900;padding:1px 6px;border-radius:6px;background:#e4e8ec;justify-self:start}
 .light .r.r40 .g{background:#17A9A0;color:#fff}
 .light .r.r53 .g{background:#B81E4A;color:#fff}
 .light .sh,.light .ct{display:none}
 .light .st{justify-self:end;font-size:11px;font-weight:900;padding:2px 6px;border-radius:6px;
  background:#e5f5ea;color:#14532d}
+.light .fl{font-size:17px}
 
-.flagslot{width:1.1em;height:1.1em;vertical-align:-.17em;flex:0 0 auto}
-.dark .f .flagslot{width:22px;height:22px}
-.light .f .flagslot{width:19px;height:19px}
-/* 「港日」字章是橫的（viewBox 40×24），不能壓成正方形 */
-.flagslot.wide,.sizes .wide{width:auto !important}
-.dark .f .flagslot.wide{height:22px;width:36.7px !important}
-.light .f .flagslot.wide{height:19px;width:31.7px !important}
+.slot{flex:0 0 auto}
+.dark .f .slot{height:22px}
+.light .f .slot{height:19px}
+.slot.sq{width:22px}  .light .f .slot.sq{width:19px}
+.slot.w28{width:25.7px} .light .f .slot.w28{width:22.2px}
+.slot.w40{width:36.7px} .light .f .slot.w40{width:31.7px}
+.slot.w27{width:25px}   .light .f .slot.w27{width:21.6px}
+.slot.w14{width:13.4px} .light .f .slot.w14{width:11.6px}
 
 .note{border-left:2px solid #5C4718;background:#0E1217;color:#818A98;
- font-size:12.5px;line-height:1.8;padding:11px 13px;margin-top:22px}
+ font-size:12.5px;line-height:1.85;padding:11px 13px;margin-top:24px}
 .note b{color:#C3CAD4}
+code{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#E7C785}
 </style>
 </head>
 <body>
 
-<svg class="sprite" width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 
-<!-- ───────── 大陸 ───────── -->
-<symbol id="cn1" viewBox="0 0 24 24"><!-- 熊貓 -->
-  <circle cx="6.4" cy="6.4" r="3.3" fill="#171C23"/>
-  <circle cx="17.6" cy="6.4" r="3.3" fill="#171C23"/>
-  <circle cx="12" cy="13.2" r="8.3" fill="#FFFFFF" stroke="#171C23" stroke-width="1.2"/>
-  <ellipse cx="8.5" cy="11.8" rx="2.3" ry="2.9" fill="#171C23" transform="rotate(-20 8.5 11.8)"/>
-  <ellipse cx="15.5" cy="11.8" rx="2.3" ry="2.9" fill="#171C23" transform="rotate(20 15.5 11.8)"/>
-  <ellipse cx="12" cy="16" rx="1.7" ry="1.2" fill="#171C23"/>
-  <path d="M12 17.2v1.1M12 18.3c-1 0-1.7-.5-2-1.1M12 18.3c1 0 1.7-.5 2-1.1"
-        stroke="#171C23" stroke-width="1" fill="none" stroke-linecap="round"/>
+<!-- ═════ 甲：金銀銅數字章（正方 24×24） ═════ -->
+<symbol id="a1" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10.6" fill="#FFC53D" stroke="#8A6212" stroke-width="1.3"/>
+  <text x="12" y="17.4" text-anchor="middle" font-size="15.5" font-weight="900" fill="#3A2A05"
+   font-family="ui-monospace,Menlo,monospace">1</text>
 </symbol>
-<symbol id="cn2" viewBox="0 0 24 24"><!-- 紅燈籠 -->
-  <path d="M12 1.2v2.1" stroke="#E0A92B" stroke-width="1.3" stroke-linecap="round"/>
-  <rect x="7.3" y="3.2" width="9.4" height="2" rx="1" fill="#E0A92B"/>
-  <ellipse cx="12" cy="11.6" rx="8.1" ry="6.5" fill="#D7263D"/>
-  <path d="M12 5.2v12.8M8.2 5.9v11.4M15.8 5.9v11.4" stroke="#90152A" stroke-width="1" opacity=".6"/>
-  <rect x="7.3" y="17.9" width="9.4" height="2" rx="1" fill="#E0A92B"/>
-  <path d="M12 19.9v3" stroke="#E0A92B" stroke-width="1.5" stroke-linecap="round"/>
+<symbol id="a2" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10.6" fill="#D4DAE2" stroke="#6E7683" stroke-width="1.3"/>
+  <text x="12" y="17.4" text-anchor="middle" font-size="15.5" font-weight="900" fill="#2A3038"
+   font-family="ui-monospace,Menlo,monospace">2</text>
 </symbol>
-<symbol id="cn3" viewBox="0 0 24 24"><!-- 中國結 -->
-  <g transform="rotate(45 12 10.5)" fill="none" stroke="#D7263D" stroke-width="2.1" stroke-linejoin="round">
-    <rect x="5.5" y="4" width="13" height="13" rx="2.6"/>
-    <rect x="9" y="7.5" width="6" height="6" rx="1.4"/>
-  </g>
-  <path d="M12 19.6v3.2" stroke="#D7263D" stroke-width="1.6" stroke-linecap="round"/>
+<symbol id="a3" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10.6" fill="#D08B4A" stroke="#7A4A18" stroke-width="1.3"/>
+  <text x="12" y="17.4" text-anchor="middle" font-size="15.5" font-weight="900" fill="#301A05"
+   font-family="ui-monospace,Menlo,monospace">3</text>
 </symbol>
 
-<!-- ───────── 吉隆坡 ───────── -->
-<symbol id="kl1" viewBox="0 0 24 24"><!-- 雙子星塔 -->
-  <g fill="#49C8E8">
-    <path d="M3.9 22h5.4V9.9L6.6 7.1 3.9 9.9z"/>
-    <path d="M14.7 22h5.4V9.9l-2.7-2.8-2.7 2.8z"/>
-    <rect x="9" y="12.4" width="6" height="1.9"/>
-  </g>
-  <path d="M6.6 7.1V1.6M17.4 7.1V1.6" stroke="#49C8E8" stroke-width="1.5" stroke-linecap="round"/>
-  <g stroke="#0B1A20" stroke-width=".85" opacity=".5">
-    <path d="M3.9 12.6h5.4M3.9 15.4h5.4M3.9 18.2h5.4M14.7 12.6h5.4M14.7 15.4h5.4M14.7 18.2h5.4"/>
-  </g>
+<!-- ═════ 乙：文字章「產1 產2 產3」（橫式 40×24） ═════ -->
+<symbol id="b1" viewBox="0 0 40 24">
+  <rect x="1" y="2.6" width="38" height="18.8" rx="2.5" fill="#FFC53D"/>
+  <text x="20" y="17" text-anchor="middle" font-size="14" font-weight="900" fill="#3A2A05"
+   font-family="-apple-system,'PingFang TC',sans-serif">產1</text>
 </symbol>
-<symbol id="kl2" viewBox="0 0 24 24"><!-- 大紅花（馬來西亞國花） -->
-  <g fill="#E8334A">
-    <ellipse cx="12" cy="5.6" rx="3.5" ry="4.3"/>
-    <ellipse cx="18.3" cy="10.2" rx="3.5" ry="4.3" transform="rotate(72 18.3 10.2)"/>
-    <ellipse cx="15.9" cy="17.6" rx="3.5" ry="4.3" transform="rotate(144 15.9 17.6)"/>
-    <ellipse cx="8.1" cy="17.6" rx="3.5" ry="4.3" transform="rotate(216 8.1 17.6)"/>
-    <ellipse cx="5.7" cy="10.2" rx="3.5" ry="4.3" transform="rotate(288 5.7 10.2)"/>
-  </g>
-  <circle cx="12" cy="11.6" r="2.5" fill="#FFD33D"/>
-  <path d="M12.8 12.4l5 5.6" stroke="#FFD33D" stroke-width="1.5" stroke-linecap="round"/>
-  <circle cx="18.3" cy="18.6" r="1.5" fill="#FFD33D"/>
+<symbol id="b2" viewBox="0 0 40 24">
+  <rect x="1" y="2.6" width="38" height="18.8" rx="2.5" fill="#D4DAE2"/>
+  <text x="20" y="17" text-anchor="middle" font-size="14" font-weight="900" fill="#2A3038"
+   font-family="-apple-system,'PingFang TC',sans-serif">產2</text>
 </symbol>
-<symbol id="kl3" viewBox="0 0 24 24"><!-- 吉隆坡塔 -->
-  <path d="M12 1.4v3.6" stroke="#49C8E8" stroke-width="1.4" stroke-linecap="round"/>
-  <path d="M8.4 7.4h7.2l-1.5 3.4H9.9z" fill="#49C8E8"/>
-  <path d="M10.5 5h3v2.4h-3z" fill="#49C8E8"/>
-  <path d="M10.6 10.8h2.8L14.6 22H9.4z" fill="#49C8E8"/>
-  <path d="M6.6 22h10.8" stroke="#49C8E8" stroke-width="1.8" stroke-linecap="round"/>
+<symbol id="b3" viewBox="0 0 40 24">
+  <rect x="1" y="2.6" width="38" height="18.8" rx="2.5" fill="#D08B4A"/>
+  <text x="20" y="17" text-anchor="middle" font-size="14" font-weight="900" fill="#2B1705"
+   font-family="-apple-system,'PingFang TC',sans-serif">產3</text>
 </symbol>
 
-<!-- ───────── 香港＋日本（共用） ───────── -->
-<symbol id="hj1" viewBox="0 0 24 24"><!-- 五瓣花：紫荊與櫻花都是五瓣 -->
-  <g fill="#FF5C8A">
-    <path d="M12 2.2c1.6 1.9 2.4 3.9 2.4 5.6 0 1.5-1 2.6-2.4 2.6s-2.4-1.1-2.4-2.6c0-1.7.8-3.7 2.4-5.6z"/>
-    <path d="M12 2.2c1.6 1.9 2.4 3.9 2.4 5.6 0 1.5-1 2.6-2.4 2.6s-2.4-1.1-2.4-2.6c0-1.7.8-3.7 2.4-5.6z" transform="rotate(72 12 12)"/>
-    <path d="M12 2.2c1.6 1.9 2.4 3.9 2.4 5.6 0 1.5-1 2.6-2.4 2.6s-2.4-1.1-2.4-2.6c0-1.7.8-3.7 2.4-5.6z" transform="rotate(144 12 12)"/>
-    <path d="M12 2.2c1.6 1.9 2.4 3.9 2.4 5.6 0 1.5-1 2.6-2.4 2.6s-2.4-1.1-2.4-2.6c0-1.7.8-3.7 2.4-5.6z" transform="rotate(216 12 12)"/>
-    <path d="M12 2.2c1.6 1.9 2.4 3.9 2.4 5.6 0 1.5-1 2.6-2.4 2.6s-2.4-1.1-2.4-2.6c0-1.7.8-3.7 2.4-5.6z" transform="rotate(288 12 12)"/>
-  </g>
-  <circle cx="12" cy="12" r="2.3" fill="#FFD33D"/>
+<!-- ═════ 丙：星星數 ★★★ / ★★ / ★ ═════ -->
+<symbol id="c1" viewBox="0 0 40 24">
+  <g fill="#FFC53D"><path id="st" d="M6.6 5.4l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4L1.7 9l3.4-.5z" transform="translate(0,3)"/>
+  <use href="#st" x="12.7"/><use href="#st" x="25.4"/></g>
 </symbol>
-<symbol id="hj2" viewBox="0 0 40 24"><!-- 「港日」字章 -->
-  <rect x="1" y="2.5" width="38" height="19" rx="3" fill="#E8334A"/>
-  <text x="20" y="17.4" text-anchor="middle" font-size="15" font-weight="900" fill="#FFFFFF"
-        font-family="-apple-system,'PingFang TC','Noto Sans TC',sans-serif">港日</text>
+<symbol id="c2" viewBox="0 0 27.3 24">
+  <g fill="#D4DAE2"><use href="#st"/><use href="#st" x="12.7"/></g>
 </symbol>
-<symbol id="hj3" viewBox="0 0 24 24"><!-- 日之丸裡放一朵五瓣花 -->
-  <circle cx="12" cy="12" r="10.4" fill="#FFFFFF" stroke="#C9CFD6" stroke-width="1"/>
-  <circle cx="12" cy="12" r="7.6" fill="#E8334A"/>
-  <g fill="#FFFFFF">
-    <path d="M12 6.4c.9 1.1 1.4 2.2 1.4 3.2 0 .9-.6 1.5-1.4 1.5s-1.4-.6-1.4-1.5c0-1 .5-2.1 1.4-3.2z"/>
-    <path d="M12 6.4c.9 1.1 1.4 2.2 1.4 3.2 0 .9-.6 1.5-1.4 1.5s-1.4-.6-1.4-1.5c0-1 .5-2.1 1.4-3.2z" transform="rotate(72 12 12)"/>
-    <path d="M12 6.4c.9 1.1 1.4 2.2 1.4 3.2 0 .9-.6 1.5-1.4 1.5s-1.4-.6-1.4-1.5c0-1 .5-2.1 1.4-3.2z" transform="rotate(144 12 12)"/>
-    <path d="M12 6.4c.9 1.1 1.4 2.2 1.4 3.2 0 .9-.6 1.5-1.4 1.5s-1.4-.6-1.4-1.5c0-1 .5-2.1 1.4-3.2z" transform="rotate(216 12 12)"/>
-    <path d="M12 6.4c.9 1.1 1.4 2.2 1.4 3.2 0 .9-.6 1.5-1.4 1.5s-1.4-.6-1.4-1.5c0-1 .5-2.1 1.4-3.2z" transform="rotate(288 12 12)"/>
-  </g>
+<symbol id="c3" viewBox="0 0 14.6 24">
+  <g fill="#D08B4A"><use href="#st"/></g>
+</symbol>
+
+<!-- ═════ 丁：錢袋＋數字（28×24） ═════ -->
+<symbol id="d1" viewBox="0 0 28 24">
+  <path d="M9.5 2h9l-2 3.2h-5z" fill="#C9961F"/>
+  <path d="M11.5 5.4h5c4.2 1.9 7 5.6 7 9.7 0 4.4-3.5 7.1-9.5 7.1S4.5 19.5 4.5 15.1c0-4.1 2.8-7.8 7-9.7z" fill="#FFC53D" stroke="#8A6212" stroke-width="1"/>
+  <text x="14" y="19.4" text-anchor="middle" font-size="12.5" font-weight="900" fill="#3A2A05"
+   font-family="ui-monospace,Menlo,monospace">1</text>
+</symbol>
+<symbol id="d2" viewBox="0 0 28 24">
+  <path d="M9.5 2h9l-2 3.2h-5z" fill="#9AA3B0"/>
+  <path d="M11.5 5.4h5c4.2 1.9 7 5.6 7 9.7 0 4.4-3.5 7.1-9.5 7.1S4.5 19.5 4.5 15.1c0-4.1 2.8-7.8 7-9.7z" fill="#D4DAE2" stroke="#6E7683" stroke-width="1"/>
+  <text x="14" y="19.4" text-anchor="middle" font-size="12.5" font-weight="900" fill="#2A3038"
+   font-family="ui-monospace,Menlo,monospace">2</text>
+</symbol>
+<symbol id="d3" viewBox="0 0 28 24">
+  <path d="M9.5 2h9l-2 3.2h-5z" fill="#9A6630"/>
+  <path d="M11.5 5.4h5c4.2 1.9 7 5.6 7 9.7 0 4.4-3.5 7.1-9.5 7.1S4.5 19.5 4.5 15.1c0-4.1 2.8-7.8 7-9.7z" fill="#D08B4A" stroke="#7A4A18" stroke-width="1"/>
+  <text x="14" y="19.4" text-anchor="middle" font-size="12.5" font-weight="900" fill="#301A05"
+   font-family="ui-monospace,Menlo,monospace">3</text>
 </symbol>
 </defs></svg>
 
-<h1>出發地圖示 · 預覽</h1>
+<h1>產值排名標記 · 預覽</h1>
 <p class="sub">
-大陸、吉隆坡、香港＋日本 三組換成圖示，<b>其他國家維持 emoji 國旗</b>。<br>
-每組三個候選，<b>1 是我推薦的</b>。下面有實際大小、也有放進真卡片的樣子。
+前面我會錯意了，做成「國家圖示」——<b>這版是你要的：標產值排名</b>。<br>
+<b>1 大陸　2 吉隆坡　3 香港／日本</b>，其他班機不標。<br>
+四種做法，每種都給 1/2/3 三顆。上面可切主題、也可切「取代國旗」或「國旗旁邊加」。
 </p>
 
 <div class="bar">
   <button class="b on" data-k="dark">深色（賽博皮）</button>
   <button class="b" data-k="light">淺色模式</button>
+  <button class="b on" data-k="replace">取代國旗</button>
 </div>
 
 <div id="host"></div>
 
 <div class="note">
 <b>幾件要先講的</b><br>
-① 這六個圖示<b>是我自己畫的 SVG path</b>，不是從 OpenMoji 或 Magnific 下載的——
-　<b>所以不用標示出處、不受 CC BY-SA 的「相同方式分享」限制</b>，也能直接進現有的 sprite。<br>
-② 國旗在卡片上的實際大小是 <b>19–25px</b>，上面「實際大小」那排就是照這個尺寸畫的。<br>
-③ <b>手錶版本來就不顯示國旗</b>（<code>.cty{display:none}</code>），所以這次改動跟手錶無關。<br>
-④ 選定之後，這幾個 symbol 會放進 sprite，<code>flagCell()</code> 依出發地代碼決定吐國旗還是吐圖示。
+① 這些都是<b>我自己畫的 SVG</b>，不用標示出處，可直接進現有 sprite。<br>
+② <b>金／銀／銅三色是故意挑的</b>：避開 2140 的青和 2153 的桃紅，不會跟分點顏色打架。<br>
+③ <b>手錶版本來就不顯示國旗那一格</b>，所以這次改動跟手錶無關。要手錶也標的話得另外處理，跟我說。<br>
+④ 還要確認<b>哪些機場算哪一組</b>：大陸＝所有中國大陸機場？吉隆坡＝只有 KUL？
+　日本＝全部日本機場（成田／羽田／關西／中部／福岡…）還是只有幾個？跟我說我照著設。
 </div>
 
 <script>
-var GROUPS=[
- {title:'大陸班機', now:'現在是 🇨🇳，在深色卡片上紅底不明顯，而且小尺寸下跟其他紅底旗難分',
-  items:[
-   {id:'cn1',name:'熊貓',  why:'<b>辨識度最高</b>。黑白對比強，19px 下還是一眼認得出來，深色淺色都不會糊掉。'},
-   {id:'cn2',name:'紅燈籠',why:'輪廓飽滿、顏色搶眼。缺點是<b>紅色跟 2153 的分點色有點近</b>，放在 2153 的卡片上會打架。'},
-   {id:'cn3',name:'中國結',why:'線條版，最乾淨。缺點是<b>小尺寸下中間的交織會糊成一團</b>，19px 比較吃力。'}]},
- {title:'吉隆坡', now:'現在是 🇲🇾，<b>小尺寸下跟 🇺🇸 幾乎分不出來</b>（都是紅白條紋＋左上藍底星），這組最該換',
-  items:[
-   {id:'kl1',name:'雙子星塔',why:'<b>兩座塔＋空橋的輪廓獨一無二</b>，不會跟任何其他城市搞混，縮到 19px 外形還在。'},
-   {id:'kl2',name:'大紅花',  why:'馬來西亞國花，五瓣＋長花蕊。好看，但<b>跟港日那組的五瓣花容易混</b>——兩個同時用要小心。'},
-   {id:'kl3',name:'吉隆坡塔',why:'單塔造型，比雙塔簡潔。缺點是<b>單塔跟很多城市的電視塔長得像</b>，辨識度輸雙塔。'}]},
- {title:'香港 ＋ 日本（共用一個）', now:'現在是 🇭🇰 和 🇯🇵，<b>兩個都是紅白配色，掃一眼根本分不出來</b>——你要的是合併，正好一次解決',
-  items:[
-   {id:'hj1',name:'五瓣花',why:'<b>紫荊和櫻花剛好都是五瓣</b>，一個圖示兩邊都說得通，不是硬湊。顏色也避開了 2140 的青和 2153 的桃紅。'},
-   {id:'hj2',name:'「港日」字章',why:'直接寫字，<b>零學習成本</b>，不用記圖示代表什麼。缺點是比較寬、而且混在圖示裡風格不統一。'},
-   {id:'hj3',name:'日之丸＋花',why:'紅圓裡放五瓣花，港日兩個元素都在。缺點是<b>元素多，19px 下中間的花會糊掉</b>。'}]}
+var SETS=[
+ {k:'a', title:'甲 · 金銀銅數字章', rec:true, w:'sq',
+  why:'<b>最直接也最耐小尺寸。</b>圓章＋大數字，19px 下數字還是清楚，金銀銅三色一眼分得出前後。佔的寬度跟原本的國旗一樣，排版完全不用動。'},
+ {k:'b', title:'乙 · 文字章「產1 產2 產3」', rec:false, w:'w40',
+  why:'<b>零學習成本</b>——寫著「產」就知道是產值，不用記圓章代表什麼。缺點是<b>比國旗寬快一倍</b>，班號長的時候會擠。'},
+ {k:'c', title:'丙 · 星星數 ★★★ / ★★ / ★', rec:false, w:'w40',
+  why:'不用看數字，星星多就是產值高。缺點是<b>星星在一般人眼裡是「評價」不是「產值」</b>，而且三顆星很寬。'},
+ {k:'d', title:'丁 · 錢袋＋數字', rec:false, w:'w28',
+  why:'<b>最直白地表達「錢」</b>。缺點是袋子的形狀在 19px 下細節會糊，只剩一團色塊，辨識靠的其實還是裡面那個數字。'}
 ];
-function ic(id,cls){ return '<svg class="'+(cls||'')+'"><use href="#'+id+'"/></svg>'; }
-function sizeRow(id){
-  return '<div class="sizes">'
-   + [25,22,19].map(function(s){
-       var w=(id==='hj2')?(s*40/24):s;
-       return '<span><svg style="width:'+w+'px;height:'+s+'px"><use href="#'+id+'"/></svg>'+s+'px</span>'; }).join('')
-   + '</div>';
+var ROWS=[
+ {cls:'r40', t:'21:03', f:'CA 188', g:'C5', sh:'2140', city:'上海浦東', flag:'🇨🇳', rank:1},
+ {cls:'r53', t:'21:14', f:'AK 126', g:'B9', sh:'2153', city:'吉隆坡',   flag:'🇲🇾', rank:2},
+ {cls:'r40', t:'21:26', f:'CX 466', g:'C7', sh:'2140', city:'香港',     flag:'🇭🇰', rank:3},
+ {cls:'',    t:'21:38', f:'BR 702', g:'B7', sh:'其他二航', city:'首爾仁川（沒排名，不標）', flag:'🇰🇷', rank:0}
+];
+var WIDTH={c:{1:'w40',2:'w27',3:'w14'}};
+function wOf(k,n,w){ return (WIDTH[k]&&WIDTH[k][n])||w; }
+var RATIO={sq:1,w28:28/24,w40:40/24,w27:27.3/24,w14:14.6/24};
+function sym(k,n,w){ var ww=wOf(k,n,w); return '<svg class="slot '+ww+'"><use href="#'+k+n+'"/></svg>'; }
+function sizes(k,n,w){
+  var ratio = RATIO[wOf(k,n,w)];
+  return '<div class="sz">'+[25,22,19].map(function(s){
+    return '<span><svg style="height:'+s+'px;width:'+(s*ratio)+'px"><use href="#'+k+n+'"/></svg>'+s+'</span>';
+  }).join('')+'</div>';
 }
-function card(cls,t,f,g,sh,city,st,icon){
-  return '<div class="r '+cls+'"><span class="t">'+t+'</span>'
-   +'<span class="f">'+f+(icon?'<svg class="flagslot'+(icon==='hj2'?' wide':'')+'"><use href="#'+icon+'"/></svg>':'')+'</span>'
-   +'<span class="g">'+g+'</span><span class="sh">'+sh+'</span>'
-   +'<span class="ct">'+city+'</span><span class="st">'+st+'</span></div>';
-}
-var SAMPLE={cn1:['CA 188','上海浦東'],cn2:['CA 188','上海浦東'],cn3:['CA 188','上海浦東'],
-            kl1:['AK 126','吉隆坡'],kl2:['AK 126','吉隆坡'],kl3:['AK 126','吉隆坡'],
-            hj1:['CX 466','香港'],hj2:['CX 466','香港'],hj3:['CX 466','香港']};
-document.getElementById('host').innerHTML = GROUPS.map(function(g){
-  return '<h2>'+g.title+'</h2><p class="now">'+g.now+'</p>'
-   + '<div class="cands">' + g.items.map(function(it,i){
-       return '<div class="cd'+(i===0?' r1':'')+'">'
-        + '<span class="rk">'+(i+1)+(i===0?' · 推薦':'')+'</span>'
-        + '<div class="big">'+ic(it.id, it.id==='hj2'?'wide':'')+'<div><div class="nm">'+it.name+'</div>'+sizeRow(it.id)+'</div></div>'
-        + '<div class="why">'+it.why+'</div></div>';
-     }).join('') + '</div>'
-   + '<div class="wrap dark">'
-   + g.items.map(function(it,i){
-       var s=SAMPLE[it.id];
-       return card(i===0?'r40':(i===1?'r53':''),'21:0'+(i+3),s[0],'C'+(i+5),'2140',s[1]+' · '+it.name,'準時',it.id);
+document.getElementById('host').innerHTML = SETS.map(function(S){
+  return '<h2'+(S.rec?' class="rec"':'')+'>'+S.title+'<em>'+(S.rec?'推薦':'候選')+'</em></h2>'
+   + '<p class="why">'+S.why+'</p>'
+   + '<div class="row3">'+[1,2,3].map(function(n){
+       var ww=wOf(S.k,n,S.w);
+       return '<div class="one">'+sym(S.k,n,S.w).replace('class="slot '+ww+'"','style="height:46px;width:'+(46*RATIO[ww])+'px"')
+         +'<div class="lab">第 '+n+' 名</div>'+sizes(S.k,n,S.w)+'</div>';
+     }).join('')+'</div>'
+   + '<div class="wrap dark" data-set="'+S.k+'" data-w="'+S.w+'">'
+   + ROWS.map(function(r){
+       var mark = r.rank? sym(S.k,r.rank,S.w) : '';
+       return '<div class="r '+r.cls+'"><span class="t">'+r.t+'</span>'
+        +'<span class="f">'+r.f+'<span class="fx"></span>'+mark+'</span>'
+        +'<span class="g">'+r.g+'</span><span class="sh">'+r.sh+'</span>'
+        +'<span class="ct">'+r.city+'</span><span class="st">準時</span></div>';
      }).join('')
-   + card('','21:30','BR 702','B7','2140','首爾仁川（維持國旗）','準時','')
    + '</div>';
 }).join('');
 
-/* 其他國家維持 emoji 國旗：補進最後那張卡 */
-[].forEach.call(document.querySelectorAll('.wrap .r:last-child .f'),function(e){
-  e.insertAdjacentHTML('beforeend','<span style="font-size:20px">🇰🇷</span>');
-});
+var FLAGS=ROWS.map(function(r){return r.flag;});
+function paintFlags(show){
+  [].forEach.call(document.querySelectorAll('.wrap'),function(w){
+    [].forEach.call(w.querySelectorAll('.r'),function(row,i){
+      row.querySelector('.fx').innerHTML = show? '<span class="fl">'+FLAGS[i]+'</span>' : '';
+    });
+  });
+}
+paintFlags(false);
 
 document.querySelector('.bar').addEventListener('click',function(e){
   var b=e.target.closest('.b'); if(!b) return;
-  [].forEach.call(document.querySelectorAll('.b'),function(x){x.classList.remove('on');});
-  b.classList.add('on');
-  var light=b.getAttribute('data-k')==='light';
-  [].forEach.call(document.querySelectorAll('.wrap'),function(w){
-    w.classList.toggle('light',light); w.classList.toggle('dark',!light);
-  });
+  var k=b.getAttribute('data-k');
+  if(k==='dark'||k==='light'){
+    document.querySelector('.b[data-k="dark"]').classList.toggle('on',k==='dark');
+    document.querySelector('.b[data-k="light"]').classList.toggle('on',k==='light');
+    [].forEach.call(document.querySelectorAll('.wrap'),function(w){
+      w.classList.toggle('light',k==='light'); w.classList.toggle('dark',k!=='light');
+    });
+    document.body.style.background = k==='light'?'#dfe4e9':'#070A0F';
+    document.body.style.color      = k==='light'?'#1f2933':'#C9D1DA';
+    document.querySelector('.bar').style.background = k==='light'?'#dfe4e9':'#070A0F';
+  } else {
+    var on=b.classList.toggle('on');
+    b.textContent = on?'取代國旗':'國旗旁邊加';
+    paintFlags(!on);
+  }
 });
 </script>
 </body>
