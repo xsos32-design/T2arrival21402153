@@ -1340,7 +1340,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html', 'soonsweep.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html', 'soonsweep.html', 'cityicon.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
