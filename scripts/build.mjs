@@ -502,6 +502,9 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
  font-size:15px;font-weight:800;text-decoration:none;text-align:center;padding:8px 4px;
  white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
 .btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe;box-shadow:0 0 13px -2px rgba(59,130,246,.7)}
+/* 來源全倒時那顆「改看即時版」：要大、要醒目、要一眼看到 */
+.btn.live{min-height:52px;font-size:16.5px;font-weight:900;white-space:normal;
+ background:#0E3A34;border-color:#2A9A90;color:#7FEDE0;box-shadow:0 0 16px -3px rgba(42,154,144,.8)}
 .btn:active{transform:scale(.97);filter:brightness(1.3)}
 .btn.half{flex:1 1 46%;font-size:13.5px}
 .btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
@@ -833,8 +836,13 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
   const reloadBtn = btn(fileFor(preset, idOf(cur), hide, full),
                         IC('refresh') + ' 更新 ' + stamp + '<i id="age"></i>', false, 'half rl');
 
+  /* 來源全倒時，這一頁只能是空的（它是事先算好的）。
+     不要只丟一句「失敗」讓人乾瞪眼——直接給一顆大按鍵跳到即時版，手錶自己讀得到 TDX。 */
   const body = err
-    ? `<div class="msg err">這次抓桃機資料失敗<br><small>${esc(err)}</small><br><br>下次排程會自動重試</div>`
+    ? `<div class="msg err">這份是事先算好的，<b>這次抓資料失敗所以是空的</b><br>
+        <small>${esc(err)}</small><br><br>
+        ${btn(full ? 'wtdxall.html' : 'wtdx.html', IC('signal') + ' 改看即時版（手錶讀得到）', false, 'live')}
+        <br><small style="opacity:.7">即時版是手錶自己連 TDX，不吃這份快照</small></div>`
     : (rows.length
         ? cards
         : `<div class="msg">這個區間沒有符合的班機${hide ? '<br><small>（已隱藏抵達超過 30 分的班機）</small>' : ''}</div>`);
