@@ -526,7 +526,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-05a';
+var PAGE_V='2026-10-07a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1213,16 +1213,22 @@ function applySnap(j,cached){
   el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
 
   var stale=(age!==null&&age>SNAP_MAX_AGE);
+  /* 快照可能「很新但是空的」——GitHub 那邊抓資料失敗（金鑰過期、來源逾時）也會準時產出一份 0 班的快照。
+     只看時間會以為沒問題，結果畫面一片空白。所以空的也當失敗，直接改抓即時。 */
+  var empty=!DATA.length&&!DATA2.length;
   document.getElementById('fb').innerHTML= cached
     ? '<div class="fbx">'+IC('timer')+' 先給你看<b>上次的</b>（'+esc(at)+'），正在抓最新的…</div>'
-    : (stale
+    : (empty
+      ? '<div class="fbx hot">'+IC('alert')+' GitHub 這份快照是<b>空的</b>（抓資料那端失敗了）'
+        +'<br><b>正在直接連 TDX 抓即時</b>…'
+      : (stale
       ? '<div class="fbx hot">'+IC('alert')+' 這份快照是 <b>'+esc(at)+'</b> 的資料'
         +'<br>先讓你看個大概，<b>正在改抓即時資料</b>…登機門以即時的為準'
-      : '');
+      : ''));
   render();
   /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它。
      快取那一輪不做，因為後面馬上就會正常 load() 一次。 */
-  if(!cached && stale) loadLive(true);
+  if(!cached && (stale||empty)) loadLive(true);
 }
 
 /* 開頁第一件事：有存過就先畫出來。超過 12 小時的就不用了，那已經是別天的班表。 */
@@ -1251,7 +1257,7 @@ function loadSnap(fresh){
     return fetch('snap.json?v='+v)
       .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
   }).then(function(j){
-    try{ localStorage.setItem(SNAP_KEY, JSON.stringify(j)); }catch(e){}
+    if(j&&j.f&&j.f.length){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(j)); }catch(e){} }
     applySnap(j,false);
   })['catch'](function(e){
     /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
