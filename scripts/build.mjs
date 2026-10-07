@@ -92,6 +92,14 @@ function mergeCodeshare(list) {
 }
 
 /* ---------- TDX（主要來源，用你設定的免費金鑰）---------- */
+/* TDX 的 FIDS 允許不帶金鑰的匿名查詢（額度較小）。金鑰掛掉時至少還有這條路，
+   不然來源全倒，排程還是會準時產出一份 0 班的空快照。 */
+function tdxHeaders(auth) {
+  const h = { Accept: 'application/json' };
+  if (auth) h.Authorization = auth;
+  return h;
+}
+
 async function tdxAuth() {
   if (!TDX_ID || !TDX_SECRET) throw new Error('沒有設定 TDX_ID / TDX_SECRET');
   const r = await fetch(TOKEN_URL, {
@@ -106,7 +114,7 @@ async function tdxAuth() {
 
 async function tdxNames(auth) {
   try {
-    const r = await fetch(TDX_AIRPORT, { headers: { Accept: 'application/json', Authorization: auth } });
+    const r = await fetch(TDX_AIRPORT, { headers: tdxHeaders(auth) });
     if (!r.ok) return {};
     const m = {};
     for (const a of await r.json()) {
@@ -1200,12 +1208,16 @@ async function main() {
   const tried = [];
   const why = e => { const c = e && e.cause; return e.message + (c ? '｜' + (c.code || c.message || '') : ''); };
 
-  /* ── 主要來源：TDX（政府官方，用金鑰，國外機房連得到）── */
+  /* ── 主要來源：TDX（政府官方，國外機房連得到）──
+     先用金鑰；金鑰過期或認證失敗就改用匿名查詢再試一次。
+     兩次都倒才往下掉到桃機開放資料。 */
+  for (const mode of ['key', 'anon']) {
+  if (flights.length) break;
   try {
-    const auth = await tdxAuth();
+    const auth = mode === 'key' ? await tdxAuth() : '';
     const names = await tdxNames(auth);
     const nameOf = id => names[id] || id || '';
-    const res = await fetch(TDX_FLIGHT, { headers: { Accept: 'application/json', Authorization: auth } });
+    const res = await fetch(TDX_FLIGHT, { headers: tdxHeaders(auth) });
     if (!res.ok) throw new Error('TDX 回應 ' + res.status);
     const tmD0 = new Date(nowTPE.getTime() + 86400000);
     const tomorrow0 = tmD0.getUTCFullYear() + '/' + pad(tmD0.getUTCMonth() + 1) + '/' + pad(tmD0.getUTCDate());
@@ -1219,7 +1231,7 @@ async function main() {
     const tomorrowSnapPre = mergeCodeshare(listAll.filter(f => f.ODate === tomorrow0));
     /* 出境班表：只拿來推估轉機，抓不到就沿用舊的時段判斷 */
     try {
-      const rd = await fetch(TDX_DEPART, { headers: { Accept: 'application/json', Authorization: auth } });
+      const rd = await fetch(TDX_DEPART, { headers: tdxHeaders(auth) });
       if (!rd.ok) throw new Error('回應 ' + rd.status);
       const rawDep = (await rd.json()).filter(f => !f.IsCargo);
       const dOf = x => String(x || '').split('T')[0].replace(/-/g, '/');
@@ -1246,10 +1258,12 @@ async function main() {
     /* 隔日班機留一份給 data.json 快照 —— wtdx 的「現在起6小時」跨日備援要用 */
     tomorrowSnap = tomorrowSnapPre;
     console.log(`共掛合併：${list.length} 筆 → ${flights.length} 班`);
-    console.log(`✅ TDX 成功，抓到 ${flights.length} 筆到站（${today}）`);
+    console.log(`✅ TDX 成功（${mode === 'key' ? '金鑰' : '匿名'}），抓到 ${flights.length} 筆到站（${today}）`);
+    if (mode === 'anon') console.log('⚠️ 這次是靠匿名查詢救回來的——金鑰已經失效，請盡快更新 TDX_ID / TDX_SECRET。');
   } catch (e) {
-    tried.push('TDX=' + why(e));
-    console.error('❌ TDX 失敗：' + why(e));
+    tried.push('TDX(' + mode + ')=' + why(e));
+    console.error(`❌ TDX ${mode === 'key' ? '金鑰' : '匿名'} 失敗：` + why(e));
+  }
   }
 
   /* ── 備援：桃機開放資料平台（鎖台灣 IP，國外通常連不到）── */
