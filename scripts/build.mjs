@@ -17,8 +17,22 @@ import { dirname, join } from 'node:path';
    政府資料開放平臺登錄的官方來源，跟桃機官網看板同一份資料、每 5 分鐘更新。
    關鍵是它在 odp 這台獨立主機，不像 www 那台會擋機房 IP。 */
 const ODP = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
-const TDX_FLIGHT  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON';
-const TDX_DEPART  = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Departure/TPE?%24format=JSON';
+/* ── TDX 流量：只拿用得到的，不要整包搬回來 ────────────────────────────
+   2026-10 的教訓：排程從「4～5 小時一次」改成「5 分鐘一次」之後，
+   每天呼叫從 113 次衝到 870 次、傳輸量 46MB/天，直接把免費額度打爆。
+   同樣一份資料，加上日期篩選＋濾掉貨機＋只取用得到的欄位：
+     到站 732KB → 382KB（省 48%）　出境 751KB → 150KB（省 80%）
+   （實測數字，不是估的） */
+const ARR_SEL = 'FlightDate,AirlineID,FlightNumber,DepartureAirportID,Terminal,Gate,'
+              + 'ScheduleArrivalTime,ActualArrivalTime,EstimatedArrivalTime,ArrivalRemark';
+const DEP_SEL = 'FlightDate,AirlineID,ArrivalAirportID,'
+              + 'ScheduleDepartureTime,ActualDepartureTime,EstimatedDepartureTime';
+const TDX_BASE = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/';
+function tdxURL(dir, filter, select) {
+  return TDX_BASE + dir + '/TPE?%24format=JSON'
+       + '&%24filter=' + encodeURIComponent(filter)
+       + '&%24select=' + encodeURIComponent(select);
+}
 const TDX_AIRPORT = 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24format=JSON';
 const TOKEN_URL   = 'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token';
 const TDX_ID      = process.env.TDX_ID || '';
@@ -75,7 +89,19 @@ const nowMin = H * 60 + M;
 const stamp  = pad(H) + ':' + pad(M);
 const todayISO = nowTPE.getUTCFullYear() + '-' + pad(nowTPE.getUTCMonth() + 1) + '-' + pad(nowTPE.getUTCDate());
 const today  = todayISO.replace(/-/g, '/');
+const _tm    = new Date(nowTPE.getTime() + 86400000);
+const tomorrowISO = _tm.getUTCFullYear() + '-' + pad(_tm.getUTCMonth() + 1) + '-' + pad(_tm.getUTCDate());
 const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
+
+/* ── 省流量：不是每一輪都要做全套 ──────────────────────────────────
+   HOURLY：每小時的第一輪（分鐘 < 5）才抓出境班表和機場中文名。
+   QUIET ：02:00–13:00 看板本來就不顯示 06:00–13:30 的班機，
+           這段時間沒人看，每五分鐘重建純粹是浪費額度 → 改成一小時一次。
+   FORCE ：推程式碼上來的那一次一定要重建，不然改了看不到。 */
+const FORCE  = process.env.FORCE_BUILD === '1';
+const HOURLY = FORCE || M < 5;
+const QUIET  = (H >= 2 && H < 13);
+const SKIP   = !FORCE && QUIET && M >= 5;
 
 /* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆。
    對現場作業來說那是同一班，所以依「時間＋登機門＋航廈＋出發地」合併成一列。 */
@@ -112,7 +138,11 @@ async function tdxAuth() {
   return 'Bearer ' + (await r.json()).access_token;
 }
 
+let NAMES_CACHE = null;
 async function tdxNames(auth) {
+  /* 機場中文名幾乎不會變，沒必要每五分鐘抓一次 */
+  if (!HOURLY) return {};
+  if (NAMES_CACHE) return NAMES_CACHE;
   try {
     const r = await fetch(TDX_AIRPORT, { headers: tdxHeaders(auth) });
     if (!r.ok) return {};
@@ -124,6 +154,7 @@ async function tdxNames(auth) {
       const v = c || (n ? (n.replace(/國際機場$|機場$/, '') || n) : '');
       if (a.AirportID && v) m[a.AirportID] = v;
     }
+    NAMES_CACHE = m;
     return m;
   } catch { return {}; }
 }
@@ -1212,6 +1243,17 @@ async function writeUnlocked() {
 }
 
 async function main() {
+  /* 離峰時段（02:00–13:00）只在整點跑一次。
+     直接結束、不產生 dist，workflow 會跳過部署，線上維持上一份，不會被清空。 */
+  if (SKIP) {
+    console.log(`⏭️ ${stamp} 離峰時段非整點，這一輪不抓資料也不重新部署（省 TDX 額度）`);
+    if (process.env.GITHUB_OUTPUT) {
+      await writeFile(process.env.GITHUB_OUTPUT, 'skip=true\n', { flag: 'a' });
+    }
+    return;
+  }
+  console.log(`▶️ ${stamp}　整點輪=${HOURLY ? '是（會抓出境班表和機場名）' : '否（只抓到站）'}　離峰=${QUIET ? '是' : '否'}`);
+
   let flights = [], tomorrowSnap = [], err = '';
   const tried = [];
   const why = e => { const c = e && e.cause; return e.message + (c ? '｜' + (c.code || c.message || '') : ''); };
@@ -1225,23 +1267,29 @@ async function main() {
     const auth = mode === 'key' ? await tdxAuth() : '';
     const names = await tdxNames(auth);
     const nameOf = id => names[id] || id || '';
-    const res = await fetch(TDX_FLIGHT, { headers: tdxHeaders(auth) });
+    /* 到站要今天＋明天（手錶「現在起6小時」跨日備援要用隔日那段） */
+    const arrURL = tdxURL('Arrival',
+      `date(FlightDate) ge ${todayISO} and date(FlightDate) le ${tomorrowISO} and IsCargo eq false`, ARR_SEL);
+    const res = await fetch(arrURL, { headers: tdxHeaders(auth) });
     if (!res.ok) throw new Error('TDX 回應 ' + res.status);
     const tmD0 = new Date(nowTPE.getTime() + 86400000);
     const tomorrow0 = tmD0.getUTCFullYear() + '/' + pad(tmD0.getUTCMonth() + 1) + '/' + pad(tmD0.getUTCDate());
     const listAll = (await res.json())
-      .filter(f => !f.IsCargo)
+      /* 貨機已經在 TDX 那端濾掉了 */
       .map(f => fromTDX(f, nameOf))
       .filter(f => f.OTime);
     const list = listAll.filter(f => f.ODate === today);
     if (!list.length) throw new Error('TDX 回傳 0 筆今日到站');
     flights = mergeCodeshare(list);
     const tomorrowSnapPre = mergeCodeshare(listAll.filter(f => f.ODate === tomorrow0));
-    /* 出境班表：只拿來推估轉機，抓不到就沿用舊的時段判斷 */
-    try {
-      const rd = await fetch(TDX_DEPART, { headers: tdxHeaders(auth) });
+    /* 出境班表：只拿來推估轉機比例，本來就是估的，一小時更新一次就夠。
+       每次都抓等於白白多花 150KB × 288 次／天。 */
+    if (!HOURLY) { DEPS = []; console.log('⏭️ 這一輪不抓出境班表（整點那一輪才抓），轉機推估沿用時段判斷'); }
+    else try {
+      const depURL = tdxURL('Departure', `date(FlightDate) eq ${todayISO} and IsCargo eq false`, DEP_SEL);
+      const rd = await fetch(depURL, { headers: tdxHeaders(auth) });
       if (!rd.ok) throw new Error('回應 ' + rd.status);
-      const rawDep = (await rd.json()).filter(f => !f.IsCargo);
+      const rawDep = await rd.json();
       const dOf = x => String(x || '').split('T')[0].replace(/-/g, '/');
       /* 只留「當天」：跨午夜的銜接靠下面的 +1440 處理，多帶一天會讓每班都被重複算 */
       const dayDep = rawDep.filter(f => dOf(f.ScheduleDepartureTime || f.FlightDate) === today);
