@@ -1,0 +1,26 @@
+name: 來源連線測試（手動按才跑）
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 測試 GitHub 這台機器連得到哪些航班來源
+        run: |
+          probe () {
+            echo "---- $1"
+            curl -sS -o /dev/null --max-time 20 \
+              -w "  HTTP=%{http_code}  大小=%{size_download}  花了=%{time_total}s\n" \
+              -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36' \
+              "$1" || echo "  連不到"
+          }
+          probe 'https://www.taoyuan-airport.com/flight_arrival'
+          probe 'https://www.taoyuan-airport.com/'
+          probe 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json'
+          probe 'https://www.taoyuan-airport.com/uploads/opendata/2025102001.json'
+          probe 'https://data.gov.tw/dataset/5894'
+          probe 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON&%24top=1'
+          echo "---- 這台機器的對外 IP 在哪個國家"
+          curl -sS --max-time 15 'https://ipinfo.io/json' || true
