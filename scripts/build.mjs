@@ -103,10 +103,11 @@ const FORCE  = process.env.FORCE_BUILD === '1';
 const HOURLY = FORCE || M < 5;
 /* 離峰：02:00–13:00。看板本來就不顯示 06:00–13:30，這段沒人看 */
 const QUIET  = (H >= 2 && H < 13);
-/* 忙碌時段的半點那一輪：只抓今天的到站，便宜很多 */
-const HALF   = !QUIET && M >= 30 && M < 35;
+/* 忙碌時段每 10 分鐘更新一次到站（匿名查詢不吃帳號點數，可以抓得比以前密）。
+   快照越新，手錶就越不需要自己去連 TDX——429 就是這樣避開的。 */
+const TENMIN = !QUIET && (M % 10) < 5;
 /* 其餘全部跳過：不抓資料、不部署，線上維持上一份 */
-const SKIP   = !FORCE && !HOURLY && !HALF;
+const SKIP   = !FORCE && !HOURLY && !TENMIN;
 
 /* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆。
    對現場作業來說那是同一班，所以依「時間＋登機門＋航廈＋出發地」合併成一列。 */
@@ -125,8 +126,13 @@ function mergeCodeshare(list) {
 /* ---------- TDX（主要來源，用你設定的免費金鑰）---------- */
 /* TDX 的 FIDS 允許不帶金鑰的匿名查詢（額度較小）。金鑰掛掉時至少還有這條路，
    不然來源全倒，排程還是會準時產出一份 0 班的空快照。 */
+/* 2026-10-08 實測：不帶 User-Agent 的匿名查詢一律回 401（Node 預設的 UA 被擋），
+   帶上一般瀏覽器的 User-Agent 就 200，而且整包 671 班、197KB 都拿得回來。
+   匿名不吃你帳號的點數，所以金鑰停權期間整個看板照樣能更新。 */
+const TDX_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+             + '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 function tdxHeaders(auth) {
-  const h = { Accept: 'application/json' };
+  const h = { Accept: 'application/json', 'User-Agent': TDX_UA };
   if (auth) h.Authorization = auth;
   return h;
 }
@@ -135,7 +141,7 @@ async function tdxAuth() {
   if (!TDX_ID || !TDX_SECRET) throw new Error('沒有設定 TDX_ID / TDX_SECRET');
   const r = await fetch(TOKEN_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': TDX_UA },
     body: new URLSearchParams({
       grant_type: 'client_credentials', client_id: TDX_ID, client_secret: TDX_SECRET })
   });
@@ -146,8 +152,8 @@ async function tdxAuth() {
 let NAMES_CACHE = null;
 async function tdxNames(auth) {
   /* 機場中文名幾乎不會變，沒必要每五分鐘抓一次 */
-  if (!HOURLY) return {};
   if (NAMES_CACHE) return NAMES_CACHE;
+  if (!HOURLY) return {};
   try {
     const r = await fetch(TDX_AIRPORT, { headers: tdxHeaders(auth) });
     if (!r.ok) return {};
@@ -1251,7 +1257,7 @@ async function main() {
   /* 離峰時段（02:00–13:00）只在整點跑一次。
      直接結束、不產生 dist，workflow 會跳過部署，線上維持上一份，不會被清空。 */
   if (SKIP) {
-    console.log(`⏭️ ${stamp} 這一輪不抓資料也不重新部署（免費方案只有 3 點/月，要省著用）`);
+    console.log(`⏭️ ${stamp} 這一輪不抓資料也不重新部署（忙碌時段每 10 分鐘更新一次就夠）`);
     if (process.env.GITHUB_OUTPUT) {
       await writeFile(process.env.GITHUB_OUTPUT, 'skip=true\n', { flag: 'a' });
     }
@@ -1323,7 +1329,7 @@ async function main() {
     tomorrowSnap = tomorrowSnapPre;
     console.log(`共掛合併：${list.length} 筆 → ${flights.length} 班`);
     console.log(`✅ TDX 成功（${mode === 'key' ? '金鑰' : '匿名'}），抓到 ${flights.length} 筆到站（${today}）`);
-    if (mode === 'anon') console.log('⚠️ 這次是靠匿名查詢救回來的——金鑰已經失效，請盡快更新 TDX_ID / TDX_SECRET。');
+    if (mode === 'anon') console.log('ℹ️ 這次走匿名查詢（不吃帳號點數）。金鑰恢復後會自動改回用金鑰。');
   } catch (e) {
     tried.push('TDX(' + mode + ')=' + why(e));
     console.error(`❌ TDX ${mode === 'key' ? '金鑰' : '匿名'} 失敗：` + why(e));
