@@ -526,7 +526,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-07a';
+var PAGE_V='2026-10-08a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1060,6 +1060,7 @@ function ensureDay(off){
   if(off===0) return;
   if(off===1){ ensureTomorrow(true); return; }
   if(DAYS.hasOwnProperty(off)) return;
+  if(blockLeft()){ DAYS[off]=[]; return; }
   var d=new Date(Date.now()+off*86400000);
   var iso=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var day=iso.replace(/-/g,'/');
@@ -1080,6 +1081,7 @@ function ensureTomorrow(force){
   var n=new Date();
   if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
   if(DATA2!==null) return;
+  if(blockLeft()){ DATA2=[]; return; }
   var m2=new Date(n.getTime()+86400000);
   var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
   var day=iso.replace(/-/g,'/');
@@ -1092,7 +1094,8 @@ function ensureTomorrow(force){
     DATA2=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
           .filter(function(f){ return f.ODate===day||f.RDate===day; });
     render();
-  })['catch'](function(){
+  })['catch'](function(e){
+    if(is429(e)) blockSet();
     fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():{d:[]}; }).then(function(j){
       DATA2=((j&&j.d)||[]).filter(function(f){ return f.ODate===day||f.RDate===day; });
       render();
@@ -1101,11 +1104,13 @@ function ensureTomorrow(force){
 }
 
 function load(fresh){
+  MANUAL=!!fresh;
   /* 一律先走節流：只讀 35KB 的小快照。快照讀不到、或快照已經超過
      SNAP_MAX_AGE 分鐘，才會自動改連 TDX（那包 214KB）。 */
   return loadSnap(fresh);
 }
 function loadLive(fresh){
+  if(liveSkip(fresh)) return;
   var el=document.getElementById('hstamp');
   el.textContent='更新中…'; el.className='u busy';
   var d0=new Date();
@@ -1132,13 +1137,14 @@ function loadLive(fresh){
     if(mode==='now6') ensureTomorrow();
     if(dayOff===1) ensureTomorrow(true);
     else if(dayOff!==0) ensureDay(dayOff);
+    blockClear(); liveSave();   /* 這次通了：解除冷卻，並把結果存進手錶 */
     render();   /* 班機先上畫面（出發地暫時顯示代碼） */
     tdxNames().then(function(nm){   /* 城市中文名背景補上，抓不到也不影響 */
       if(!nm) return;
       DATA.forEach(function(f){ if(f.Dep&&nm[f.Dep]) f.CityName=nm[f.Dep]; });
       render();
     });
-  })['catch'](function(e){ fallback(e); });
+  })['catch'](function(e){ if(is429(e)) blockSet(); fallback(e); });
 }
 
 /* ── 節流模式（固定，沒有開關） ──────────────────────────────────────────────
@@ -1191,6 +1197,10 @@ var META_KEY='tpeMetaCache1';
 
 /* 把一份快照 j 變成畫面。cached=true 代表這是裝置裡的舊資料，要講清楚。 */
 function applySnap(j,cached){
+  /* GitHub 那端抓不到時，snap.json 會是一份「準時產出但 0 班」的空快照。
+     手錶上已經有上次存下來的班機時，不能讓這份空的把畫面洗掉——
+     直接走即時那條路（可能被 liveSkip 擋下，那就維持現在畫面並說明原因）。 */
+  if(!cached && (!j||!j.f||!j.f.length) && DATA && DATA.length){ loadLive(MANUAL); return; }
   var bs=String(j.d||'').split('/');
   var base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
   if(isNaN(base.getTime())) base=new Date();
@@ -1228,7 +1238,7 @@ function applySnap(j,cached){
   render();
   /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它。
      快取那一輪不做，因為後面馬上就會正常 load() 一次。 */
-  if(!cached && (stale||empty)) loadLive(true);
+  if(!cached && (stale||empty)) loadLive(MANUAL);
 }
 
 /* 開頁第一件事：有存過就先畫出來。超過 12 小時的就不用了，那已經是別天的班表。 */
@@ -1247,6 +1257,58 @@ function bootFromCache(){
   }catch(e){ return false; }
 }
 
+/* ── TDX 匿名查詢有「每個 IP 每天幾十次」的上限，撞到就回 429 ───────────────
+   手錶常常跟別人共用同一個對外 IP（基地台、公司 Wi-Fi），別人用掉也算在你頭上。
+   所以：抓回來的即時資料一律存在手錶自己身上，LIVE_FRESH 分鐘內重開就直接用，
+   完全不碰 TDX；真的撞到 429 就冷卻 BLOCK_MIN 分鐘不連——一直重試只會讓封鎖續下去。 */
+var LIVE_FRESH=10;
+var BLOCK_MIN=20;
+var BLOCK_KEY='tpeTdxBlock1';
+var MANUAL=false;   /* 這一輪是不是「你自己按更新」：按了才准花一次 TDX */
+function blockLeft(){
+  try{ var t=+(localStorage.getItem(BLOCK_KEY)||0);
+       return t>Date.now()?Math.ceil((t-Date.now())/60000):0; }catch(e){ return 0; }
+}
+function blockSet(){ try{ localStorage.setItem(BLOCK_KEY,String(Date.now()+BLOCK_MIN*60000)); }catch(e){} }
+function blockClear(){ try{ localStorage.removeItem(BLOCK_KEY); }catch(e){} }
+function is429(e){ return /(^|\D)429(\D|$)/.test(String(e&&e.message||e)); }
+/* 即時抓回來的也存一份（跟快照同格式），下次開頁可以直接畫，不用再打 TDX */
+function liveSave(){
+  try{
+    var n=new Date();
+    localStorage.setItem(SNAP_KEY, JSON.stringify({
+      d:n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate()),
+      t:pad(n.getHours())+':'+pad(n.getMinutes()),
+      f:(DATA||[]).concat(DATA2||[])
+    }));
+  }catch(e){}
+}
+function liveAgeMin(){
+  try{ return snapAgeMin(JSON.parse(localStorage.getItem(SNAP_KEY)||'null')); }catch(e){ return null; }
+}
+/* 冷卻中、或手上這份還很新 → 不要連 TDX，畫面留著並說清楚為什麼 */
+function liveSkip(fresh){
+  var bl=blockLeft(), el=document.getElementById('hstamp');
+  if(bl){
+    el.textContent='暫停連線'; el.className='u err';
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx hot">'+IC('alert')+' TDX 回 <b>429（這個 IP 查太多次）</b>，先停 <b>'+bl+' 分鐘</b>不連'
+      +((DATA&&DATA.length)?'<br>下面是<b>上次存下來</b>的，登機門與時間一律以現場為準'
+                           :'<br>這段時間查不到班機，請看現場看板')+'</div>';
+    render(); return true;
+  }
+  if(!fresh){
+    var la=liveAgeMin();
+    if(la!==null&&la<LIVE_FRESH&&DATA&&DATA.length){
+      el.className='u'+(la>=8?' old':'');
+      document.getElementById('fb').innerHTML=
+        '<div class="fbx">'+IC('timer')+' 用 <b>'+la+' 分鐘前</b>存下來的，省 TDX 次數。要最新的請按「更新」</div>';
+      render(); return true;
+    }
+  }
+  return false;
+}
+
 function loadSnap(fresh){
   var el=document.getElementById('hstamp');
   el.textContent='讀取中…'; el.className='u busy';
@@ -1263,7 +1325,7 @@ function loadSnap(fresh){
     /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
     document.getElementById('fb').innerHTML=
       '<div class="fbx">'+IC('signal')+' 快照讀不到（'+esc(e&&e.message||e)+'），這次改直接連 TDX</div>';
-    loadLive(true);
+    loadLive(MANUAL);
   });
 }
 
