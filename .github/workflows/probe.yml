@@ -7,20 +7,45 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: 測試 GitHub 這台機器連得到哪些航班來源
+      - name: 匿名 TDX 加上瀏覽器 User-Agent，看能不能整包抓回來
         run: |
-          probe () {
-            echo "---- $1"
-            curl -sS -o /dev/null --max-time 20 \
-              -w "  HTTP=%{http_code}  大小=%{size_download}  花了=%{time_total}s\n" \
-              -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36' \
-              "$1" || echo "  連不到"
-          }
-          probe 'https://www.taoyuan-airport.com/flight_arrival'
-          probe 'https://www.taoyuan-airport.com/'
-          probe 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json'
-          probe 'https://www.taoyuan-airport.com/uploads/opendata/2025102001.json'
-          probe 'https://data.gov.tw/dataset/5894'
-          probe 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE?%24format=JSON&%24top=1'
-          echo "---- 這台機器的對外 IP 在哪個國家"
-          curl -sS --max-time 15 'https://ipinfo.io/json' || true
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+          TODAY=$(TZ=Asia/Taipei date +%F)
+          B='https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+          SEL='FlightDate,AirlineID,FlightNumber,DepartureAirportID,Terminal,Gate,ScheduleArrivalTime,ActualArrivalTime,EstimatedArrivalTime,ArrivalRemark'
+          FIL="date(FlightDate) eq ${TODAY} and IsCargo eq false"
+
+          echo "== 1. 有 UA 的完整查詢"
+          curl -sS -A "$UA" -H 'Accept: application/json' --max-time 40 \
+            --get "$B" --data-urlencode '$format=JSON' \
+            --data-urlencode "\$select=$SEL" --data-urlencode "\$filter=$FIL" \
+            -o a.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
+          echo "   班次數=$(grep -o 'FlightNumber' a.json | wc -l)"
+
+          echo "== 2. 沒有 UA 的同一個查詢（對照組）"
+          curl -sS -H 'Accept: application/json' --max-time 40 \
+            --get "$B" --data-urlencode '$format=JSON' \
+            --data-urlencode "\$select=$SEL" --data-urlencode "\$filter=$FIL" \
+            -o b.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
+
+          echo "== 3. 機場中文名（有 UA）"
+          curl -sS -A "$UA" -H 'Accept: application/json' --max-time 40 \
+            --get 'https://tdx.transportdata.tw/api/basic/v2/Air/Airport' \
+            --data-urlencode '$format=JSON' \
+            --data-urlencode '$select=AirportID,AirportName,AirportCityName' \
+            -o c.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
+
+          echo "== 4. 出境班表（有 UA）"
+          curl -sS -A "$UA" -H 'Accept: application/json' --max-time 40 \
+            --get 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Departure/TPE' \
+            --data-urlencode '$format=JSON' \
+            --data-urlencode '$select=FlightDate,AirlineID,ArrivalAirportID,ScheduleDepartureTime,ActualDepartureTime,EstimatedDepartureTime' \
+            --data-urlencode "\$filter=$FIL" \
+            -o d.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
+
+          echo "== 5. 連打五次看會不會被擋"
+          for i in 1 2 3 4 5; do
+            curl -sS -A "$UA" --max-time 30 -o /dev/null \
+              --get "$B" --data-urlencode '$format=JSON' --data-urlencode '$top=1' \
+              -w "   第 $i 次 HTTP=%{http_code}\n" || echo "   第 $i 次 連不到"
+          done
