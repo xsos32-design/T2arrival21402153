@@ -37,20 +37,28 @@ jobs:
         with:
           node-version: '20'
 
+      # 離峰時段（02:00-13:00）非整點那幾輪，build 會直接結束並輸出 skip=true，
+      # 下面三步就整個跳過 —— 線上維持上一份，不會被空的 dist 蓋掉。
       - name: 抓桃機資料並產生靜態頁
+        id: build
         run: node scripts/build.mjs
         env:
           TDX_ID: ${{ secrets.TDX_ID }}
           TDX_SECRET: ${{ secrets.TDX_SECRET }}
+          # 推程式碼上來的那一次一定要重建，不然改了看不到
+          FORCE_BUILD: ${{ github.event_name == 'push' && '1' || '0' }}
 
       - name: 設定 Pages
+        if: steps.build.outputs.skip != 'true'
         uses: actions/configure-pages@v5
 
       - name: 上傳產出
-        uses: actions/upload-pages-artifact@v3
+        if: steps.build.outputs.skip != 'true'
         with:
           path: dist
+        uses: actions/upload-pages-artifact@v3
 
       - name: 部署到 GitHub Pages
+        if: steps.build.outputs.skip != 'true'
         id: deploy
         uses: actions/deploy-pages@v4
