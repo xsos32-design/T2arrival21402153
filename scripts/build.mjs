@@ -99,9 +99,14 @@ const todayLabel = (nowTPE.getUTCMonth() + 1) + '/' + nowTPE.getUTCDate();
            這段時間沒人看，每五分鐘重建純粹是浪費額度 → 改成一小時一次。
    FORCE ：推程式碼上來的那一次一定要重建，不然改了看不到。 */
 const FORCE  = process.env.FORCE_BUILD === '1';
+/* 整點那一輪：抓完整的（今天＋明天、出境班表、機場中文名） */
 const HOURLY = FORCE || M < 5;
+/* 離峰：02:00–13:00。看板本來就不顯示 06:00–13:30，這段沒人看 */
 const QUIET  = (H >= 2 && H < 13);
-const SKIP   = !FORCE && QUIET && M >= 5;
+/* 忙碌時段的半點那一輪：只抓今天的到站，便宜很多 */
+const HALF   = !QUIET && M >= 30 && M < 35;
+/* 其餘全部跳過：不抓資料、不部署，線上維持上一份 */
+const SKIP   = !FORCE && !HOURLY && !HALF;
 
 /* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆。
    對現場作業來說那是同一班，所以依「時間＋登機門＋航廈＋出發地」合併成一列。 */
@@ -1246,13 +1251,13 @@ async function main() {
   /* 離峰時段（02:00–13:00）只在整點跑一次。
      直接結束、不產生 dist，workflow 會跳過部署，線上維持上一份，不會被清空。 */
   if (SKIP) {
-    console.log(`⏭️ ${stamp} 離峰時段非整點，這一輪不抓資料也不重新部署（省 TDX 額度）`);
+    console.log(`⏭️ ${stamp} 這一輪不抓資料也不重新部署（免費方案只有 3 點/月，要省著用）`);
     if (process.env.GITHUB_OUTPUT) {
       await writeFile(process.env.GITHUB_OUTPUT, 'skip=true\n', { flag: 'a' });
     }
     return;
   }
-  console.log(`▶️ ${stamp}　整點輪=${HOURLY ? '是（會抓出境班表和機場名）' : '否（只抓到站）'}　離峰=${QUIET ? '是' : '否'}`);
+  console.log(`▶️ ${stamp}　${HOURLY ? '整點輪：今天＋明天＋出境班表＋機場名' : '半點輪：只抓今天的到站'}　離峰=${QUIET ? '是' : '否'}`);
 
   let flights = [], tomorrowSnap = [], err = '';
   const tried = [];
@@ -1267,9 +1272,12 @@ async function main() {
     const auth = mode === 'key' ? await tdxAuth() : '';
     const names = await tdxNames(auth);
     const nameOf = id => names[id] || id || '';
-    /* 到站要今天＋明天（手錶「現在起6小時」跨日備援要用隔日那段） */
-    const arrURL = tdxURL('Arrival',
-      `date(FlightDate) ge ${todayISO} and date(FlightDate) le ${tomorrowISO} and IsCargo eq false`, ARR_SEL);
+    /* 隔日那段只有「現在起6小時」跨日備援會用到，整點抓一次就夠。
+       平常只抓今天 → 筆數少一半，流量也少一半。 */
+    const arrFilter = HOURLY
+      ? `date(FlightDate) ge ${todayISO} and date(FlightDate) le ${tomorrowISO} and IsCargo eq false`
+      : `date(FlightDate) eq ${todayISO} and IsCargo eq false`;
+    const arrURL = tdxURL('Arrival', arrFilter, ARR_SEL);
     const res = await fetch(arrURL, { headers: tdxHeaders(auth) });
     if (!res.ok) throw new Error('TDX 回應 ' + res.status);
     const tmD0 = new Date(nowTPE.getTime() + 86400000);
