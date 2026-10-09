@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>預覽：清楚奢華版 · 出境班機</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Noto+Serif+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ── 墨金（深色，預設） ─────────────────────────────── */
+  :root{
+    --bg:#0e0f12; --panel:#15171c; --panel2:#1b1e24; --line:rgba(212,175,55,.22); --line2:rgba(212,175,55,.45);
+    --gold:#d4af37; --gold2:#f1d87a; --ink:#f3ecd8; --muted:#a69c82; --dim:#6f6a5c;
+    --teal:#2fb3a8; --teal-bg:rgba(47,179,168,.10); --rose:#e0557d; --rose-bg:rgba(224,85,125,.10);
+    --ok:#7bd88f; --warn:#f0b35a; --bad:#ff7a7a; --early:#8fc6ff;
+    --shadow:0 20px 60px -30px rgba(0,0,0,.9);
+  }
+  /* ── 象牙（淺色） ───────────────────────────────────── */
+  html[data-theme="ivory"]{
+    --bg:#f6f1e7; --panel:#fffdf7; --panel2:#f3ecdc; --line:rgba(140,110,30,.18); --line2:rgba(140,110,30,.40);
+    --gold:#9c7a1e; --gold2:#b8912c; --ink:#1d1a14; --muted:#6f6450; --dim:#a39a86;
+    --teal:#0f8a80; --teal-bg:rgba(15,138,128,.10); --rose:#b61e4a; --rose-bg:rgba(182,30,74,.09);
+    --ok:#1f8f4a; --warn:#b26a00; --bad:#c62828; --early:#1d5fb8;
+    --shadow:0 20px 50px -30px rgba(60,40,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;}
+  body{background:
+    radial-gradient(1200px 500px at 50% -200px, rgba(212,175,55,.10), transparent 60%),
+    var(--bg);}
+  .num{font-family:"Cormorant Garamond","Noto Serif TC",Georgia,serif;font-variant-numeric:tabular-nums lining-nums;}
+
+  /* 頂欄 */
+  header{padding:26px 28px 18px;text-align:center;position:relative}
+  header:after{content:"";display:block;width:160px;height:1px;margin:16px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold2),transparent)}
+  h1{margin:0;font-size:30px;font-weight:700;letter-spacing:.22em;color:var(--ink)}
+  h1 small{display:block;margin-top:6px;font-size:12px;letter-spacing:.42em;color:var(--gold);font-weight:500}
+  .stamp{position:absolute;right:28px;top:30px;font-size:13px;color:var(--muted);letter-spacing:.1em}
+  .stamp i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:8px;box-shadow:0 0 10px var(--ok)}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:6px 24px 60px}
+
+  /* 控制區 */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow)}
+  .btn{display:block;width:100%;padding:13px;border-radius:10px;border:1px solid var(--line2);
+    background:linear-gradient(180deg,rgba(212,175,55,.16),rgba(212,175,55,.06));color:var(--gold2);
+    font:inherit;font-size:16px;font-weight:700;letter-spacing:.3em;cursor:pointer;margin-bottom:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+  .lab{font-size:12px;letter-spacing:.3em;color:var(--gold);margin-right:4px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-size:13.5px;
+    border:1px solid var(--line);background:transparent;color:var(--muted);letter-spacing:.08em;cursor:pointer}
+  .chip.on{border-color:var(--gold2);color:var(--ink);background:rgba(212,175,55,.10)}
+  .chip.t40.on{border-color:var(--teal);color:var(--teal)}
+  .chip.t53.on{border-color:var(--rose);color:var(--rose)}
+  .status{margin-top:12px;font-size:13px;color:var(--muted);letter-spacing:.06em}
+  .status b{color:var(--ink)}
+
+  /* 清單 */
+  .list{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  .r{display:grid;grid-template-columns:132px 180px 86px minmax(0,1fr) 100px 150px;gap:14px;align-items:center;
+    padding:14px 22px;border-top:1px solid var(--line);position:relative}
+  .r.head{border-top:none;background:var(--panel2);font-size:11.5px;letter-spacing:.32em;color:var(--gold);padding:12px 22px}
+  .r:not(.head):hover{background:rgba(212,175,55,.045)}
+  /* 分點：左側一條細金邊 + 很淡的底色，不用大色塊 */
+  .r.r40{background:var(--teal-bg);box-shadow:inset 3px 0 0 var(--teal)}
+  .r.r53{background:var(--rose-bg);box-shadow:inset 3px 0 0 var(--rose)}
+  .r.done{opacity:.42}
+  .r.done .c-time b{text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:var(--dim)}
+
+  .c-time b{display:block;font-size:30px;line-height:1;font-weight:700;color:var(--ink)}
+  .c-time i{display:block;margin-top:5px;font-size:12px;font-style:normal;color:var(--muted);letter-spacing:.08em}
+  .c-time b.late{color:var(--warn)} .c-time b.early{color:var(--early)}
+
+  .c-fno b{display:block;font-size:22px;font-weight:700;letter-spacing:.06em;color:var(--ink)}
+  .c-fno .cty{font-size:15px;margin-left:8px;vertical-align:1px}
+  .c-fno small{display:block;font-size:12px;color:var(--muted);letter-spacing:.1em;margin-top:2px}
+
+  .gn{display:inline-block;min-width:60px;text-align:center;padding:7px 10px;border-radius:8px;
+    font-size:21px;font-weight:700;letter-spacing:.06em;border:1px solid var(--line2);color:var(--gold2);
+    background:linear-gradient(180deg,rgba(212,175,55,.14),rgba(212,175,55,.04))}
+  .r.r40 .gn{border-color:var(--teal);color:var(--teal);background:var(--teal-bg)}
+  .r.r53 .gn{border-color:var(--rose);color:var(--rose);background:var(--rose-bg)}
+  .gn.na{color:var(--dim);border-color:var(--line);background:transparent}
+
+  .c-city{font-size:19px;font-weight:700;letter-spacing:.12em}
+  .c-city small{display:block;font-size:11.5px;color:var(--muted);letter-spacing:.2em;margin-top:2px;font-weight:500}
+
+  .tag{display:inline-block;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:.12em;border:1px solid}
+  .tag.t40{color:var(--teal);border-color:var(--teal)} .tag.t53{color:var(--rose);border-color:var(--rose)}
+  .tag.tx{color:var(--muted);border-color:var(--line)}
+
+  .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 13px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:.12em;border:1px solid var(--line);color:var(--muted)}
+  .badge:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+  .badge.ok{color:var(--ok);border-color:var(--ok)}
+  .badge.warn{color:var(--warn);border-color:var(--warn)}
+  .badge.bad{color:var(--bad);border-color:var(--bad)}
+  .badge.early{color:var(--early);border-color:var(--early)}
+  .badge.none:before{box-shadow:none}
+
+  /* 45 分鐘內起飛：金色細框＋一道金光掃過 */
+  .r.soon{z-index:1;overflow:hidden;box-shadow:inset 3px 0 0 var(--gold2), inset 0 0 0 1px var(--line2), 0 0 24px -6px rgba(212,175,55,.55)}
+  .r.soon.r40{box-shadow:inset 3px 0 0 var(--teal), inset 0 0 0 1px var(--line2), 0 0 24px -6px rgba(212,175,55,.55)}
+  .r.soon.r53{box-shadow:inset 3px 0 0 var(--rose), inset 0 0 0 1px var(--line2), 0 0 24px -6px rgba(212,175,55,.55)}
+  .r.soon::before{content:"";position:absolute;inset:0 auto 0 0;width:40%;z-index:-1;pointer-events:none;
+    background:linear-gradient(100deg,transparent 0%,rgba(241,216,122,.28) 50%,transparent 100%);
+    transform:translateX(-120%);animation:sweep 4.2s ease-in-out infinite;animation-delay:var(--d,0s)}
+  html[data-theme="ivory"] .r.soon::before{background:linear-gradient(100deg,transparent,rgba(184,145,44,.22) 50%,transparent)}
+  @keyframes sweep{0%{transform:translateX(-120%)}55%{transform:translateX(320%)}100%{transform:translateX(320%)}}
+  @media (prefers-reduced-motion:reduce){.r.soon::before{display:none}}
+
+  .daybreak{padding:9px 22px;font-size:12px;letter-spacing:.3em;color:var(--gold);background:var(--panel2);border-top:1px solid var(--line)}
+  .notice{margin-top:18px;font-size:12.5px;color:var(--muted);letter-spacing:.08em;line-height:1.9;text-align:center}
+  .notice b{color:var(--ink)}
+
+  /* 預覽用：主題切換 */
+  .pv{position:fixed;left:16px;bottom:16px;display:flex;gap:6px;background:var(--panel);border:1px solid var(--line2);border-radius:999px;padding:5px}
+  .pv button{font:inherit;font-size:12.5px;letter-spacing:.2em;padding:7px 14px;border-radius:999px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+  .pv button.on{background:var(--gold);color:#17130a;font-weight:700}
+  @media (max-width:900px){.r{grid-template-columns:100px 140px 70px minmax(0,1fr) 84px 120px;gap:10px;padding:12px 14px}.c-time b{font-size:24px}.c-fno b{font-size:18px}.c-city{font-size:16px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>出境班機<small>2140 ／ 2153 · DEPARTURES</small></h1>
+  <div class="stamp num"><i></i>15:03 已更新</div>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <button class="btn">更新班機</button>
+    <div class="chips">
+      <span class="chip">00–06</span><span class="chip on">13:30–18</span><span class="chip">18–24</span><span class="chip">整天</span>
+      <span style="width:14px"></span>
+      <span class="chip">現在 6 小時</span><span class="chip">隱藏已起飛</span>
+    </div>
+    <div class="chips">
+      <span class="lab">分類</span>
+      <span class="chip t40 on">✓ 2140</span><span class="chip t53 on">✓ 2153</span><span class="chip">其他一航</span><span class="chip">其他二航</span>
+      <span style="width:14px"></span>
+      <span class="lab">區域</span>
+      <span class="chip on">A</span><span class="chip on">B</span><span class="chip on">C</span><span class="chip on">D</span>
+    </div>
+    <div class="status num">2026-10-09 　13:30 – 17:59 　·　符合 <b>88</b> 班 　·　不含 06:00–13:30</div>
+  </div>
+
+  <div class="list" id="list">
+    <div class="r head"><div>起飛時間</div><div>航班</div><div>登機門</div><div>目的地</div><div>分類</div><div>狀態</div></div>
+
+    <div class="r r53 done"><div class="c-time num"><b>13:44</b><i>表定 +9</i></div>
+      <div class="c-fno"><b class="num">BR0130<span class="cty">🇯🇵</span></b><small>長榮航空</small></div>
+      <div><span class="gn num">C6</span></div><div class="c-city">大阪／關西<small>KIX</small></div>
+      <div><span class="tag t53">2153</span></div><div><span class="badge none">已起飛</span></div></div>
+
+    <div class="r r40 done"><div class="c-time num"><b>14:27</b><i>表定 +2</i></div>
+      <div class="c-fno"><b class="num">CI0194<span class="cty">🇯🇵</span></b><small>中華航空</small></div>
+      <div><span class="gn num">B9</span></div><div class="c-city">熊本<small>KMJ</small></div>
+      <div><span class="tag t40">2140</span></div><div><span class="badge none">登機結束</span></div></div>
+
+    <div class="r r53 soon" style="--d:0s"><div class="c-time num"><b>15:20</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">BR0385<span class="cty">🇻🇳</span></b><small>長榮航空</small></div>
+      <div><span class="gn num">C7</span></div><div class="c-city">河內<small>HAN</small></div>
+      <div><span class="tag t53">2153</span></div><div><span class="badge warn">最後登機</span></div></div>
+
+    <div class="r r40 soon" style="--d:.9s"><div class="c-time num"><b>15:35</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">CI0835<span class="cty">🇹🇭</span></b><small>中華航空</small></div>
+      <div><span class="gn num">B7</span></div><div class="c-city">曼谷<small>BKK</small></div>
+      <div><span class="tag t40">2140</span></div><div><span class="badge ok">登機中</span></div></div>
+
+    <div class="r r53 soon" style="--d:1.8s"><div class="c-time num"><b class="late">15:48</b><i>表定 +18</i></div>
+      <div class="c-fno"><b class="num">JX0742<span class="cty">🇯🇵</span></b><small>星宇航空</small></div>
+      <div><span class="gn num">C9</span></div><div class="c-city">東京／成田<small>NRT</small></div>
+      <div><span class="tag t53">2153</span></div><div><span class="badge warn">延遲</span></div></div>
+
+    <div class="r r40"><div class="c-time num"><b>16:05</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">BR0211<span class="cty">🇭🇰</span></b><small>長榮航空</small></div>
+      <div><span class="gn num">B2</span></div><div class="c-city">香港<small>HKG</small></div>
+      <div><span class="tag t40">2140</span></div><div><span class="badge">預計</span></div></div>
+
+    <div class="r r53"><div class="c-time num"><b class="early">16:10</b><i>表定 −5</i></div>
+      <div class="c-fno"><b class="num">CI0051<span class="cty">🇺🇸</span></b><small>中華航空</small></div>
+      <div><span class="gn num">C5</span></div><div class="c-city">舊金山<small>SFO</small></div>
+      <div><span class="tag t53">2153</span></div><div><span class="badge early">提早</span></div></div>
+
+    <div class="r"><div class="c-time num"><b>16:30</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">SQ0879<span class="cty">🇸🇬</span></b><small>新加坡航空</small></div>
+      <div><span class="gn num">D3</span></div><div class="c-city">新加坡<small>SIN</small></div>
+      <div><span class="tag tx">其他二航</span></div><div><span class="badge">預計</span></div></div>
+
+    <div class="r r40"><div class="c-time num"><b>16:55</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">CI0027<span class="cty">🇯🇵</span></b><small>中華航空</small></div>
+      <div><span class="gn num">B6</span></div><div class="c-city">福岡<small>FUK</small></div>
+      <div><span class="tag t40">2140</span></div><div><span class="badge bad">取消</span></div></div>
+
+    <div class="r r53"><div class="c-time num"><b>17:25</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">BR0075<span class="cty">🇫🇷</span></b><small>長榮航空</small></div>
+      <div><span class="gn num">C10</span></div><div class="c-city">巴黎<small>CDG</small></div>
+      <div><span class="tag t53">2153</span></div><div><span class="badge">預計</span></div></div>
+
+    <div class="daybreak">10／10 班機</div>
+    <div class="r"><div class="c-time num"><b>00:15</b><i>表定</i></div>
+      <div class="c-fno"><b class="num">BR0225<span class="cty">🇲🇾</span></b><small>長榮航空</small></div>
+      <div><span class="gn num na">—</span></div><div class="c-city">吉隆坡<small>KUL</small></div>
+      <div><span class="tag tx">待定</span></div><div><span class="badge">預計</span></div></div>
+  </div>
+
+  <div class="notice">桃機公開資料，僅供參考，<b>一律以現場為準</b>　·　本頁固定不顯示 06:00–13:30 的班機<br>
+    <span style="color:var(--gold)">預覽用的範例資料</span>，不是即時班機</div>
+</div>
+
+<div class="pv">
+  <button class="on" data-t="ink">墨金</button>
+  <button data-t="ivory">象牙</button>
+</div>
+<script>
+document.querySelectorAll('.pv button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.pv button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    if(b.dataset.t==='ivory') document.documentElement.setAttribute('data-theme','ivory');
+    else document.documentElement.removeAttribute('data-theme');
+  });
+});
+</script>
+</body>
+</html>
