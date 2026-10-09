@@ -48,7 +48,18 @@ li b{color:#E7E9ED}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>10/8</b><em>不用金鑰也能更新了：少一行 User-Agent 害了兩天</em><i class="new">最新</i></div>
+<div class="day"><b>10/9</b><em>新增出境班機頁（電腦版）</em><i class="new">最新</i></div>
+<div class="card hi"><ul>
+  <li><b>新頁面 <a href="depart.html">depart.html</a>：出境班機</b>，版面跟網頁版一模一樣——時段、現在6小時、分類、區域、登機門設定都照舊，
+      只把「抵達時間／出發地」換成「起飛時間／目的地」。</li>
+  <li><b>沒有群組回報那一排</b>，也沒有入境人數（出境用不到）。</li>
+  <li>狀態改用出境的字眼：<b>登機中</b>（綠）、<b>最後登機</b>（橘）、登機結束、已起飛、取消、延遲／提早。
+      起飛 30 分鐘後才會被「隱藏已起飛」收掉。</li>
+  <li>45 分鐘內要起飛的班機會有那道金光掃過。</li>
+  <li>資料來源一樣：桃機公開資料為主，讀不到自動改用 TDX。分類（2140／2153 的登機門設定）跟網頁版共用，改一邊兩邊都會變。</li>
+</ul></div>
+
+<div class="day"><b>10/8</b><em>不用金鑰也能更新了：少一行 User-Agent 害了兩天</em></div>
 <div class="card hi"><ul>
   <li><b>GitHub 那端現在不用你的金鑰也抓得到資料了。</b>原因很蠢：TDX 的匿名查詢會擋
       「看起來不像瀏覽器」的連線，而 GitHub 送出去的請求沒帶 User-Agent，所以一律被回 401。
