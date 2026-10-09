@@ -1040,12 +1040,12 @@ function flagOf(name){
   var c=FLAG[String(name||'').trim()]; if(!c) return '';
   return String.fromCharCode(0xD83C,0xDDE6+c.charCodeAt(0)-65,0xD83C,0xDDE6+c.charCodeAt(1)-65);
 }
-/* 出發地一律帶國旗。對照表查不到就給地球，格式才會統一（滑上去看得到代碼，回報給我就能補） */
+/* 目的地一律帶國旗。對照表查不到就給地球，格式才會統一（滑上去看得到代碼，回報給我就能補） */
 function flagCell(f){
   var ct=ctryOf(f), fg=flagOf(ct);
   if(fg) return '<i class="cty" title="'+esc(ct)+'">'+fg+'</i>';
   var code=String(f.CityCode||f.Dep||'').trim().toUpperCase();
-  return '<i class="cty" title="'+esc(code||'出發地不明')+' 還沒對照到國家">\uD83C\uDF10</i>';
+  return '<i class="cty" title="'+esc(code||'目的地不明')+' 還沒對照到國家">\uD83C\uDF10</i>';
 }
 function ctryOf(f){
   var c=String(f.CityCode||f.Dep||'').trim().toUpperCase();
@@ -1515,7 +1515,7 @@ paintShops();
 
 document.getElementById('hide').addEventListener('click',function(){
   hideDone=!hideDone;
-  this.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已抵達';
+  this.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已起飛';
   this.className=hideDone?'chip act':'chip';
   prefsSave(); render();
 });
@@ -1528,7 +1528,7 @@ document.getElementById('hide').addEventListener('click',function(){
     el.className=zoneShow[p[1]]?'chip zone act':'chip zone';
   });
   var h=document.getElementById('hide'); if(!h) return;
-  h.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已抵達';
+  h.innerHTML=hideDone?IC('show')+' 全部顯示':IC('hide')+' 隱藏已起飛';
   h.className=hideDone?'chip act':'chip';
 })();
 
