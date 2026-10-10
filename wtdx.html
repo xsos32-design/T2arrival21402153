@@ -449,6 +449,39 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 @media(min-width:620px){
  .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) minmax(64px,max-content)}
 }
+/* ── 2026-10-10 優化：下一班卡／⋯ 收納／已抵達收成一行 ── */
+#catslot2{display:contents}
+.grp.s1{margin-top:4px}
+.grp.s1 .btn.cat{flex:1 1 30%;min-width:0}
+.btn.more{flex:0 0 42px;font-size:20px;letter-spacing:0;padding:8px 0;position:relative}
+.btn.more.dot::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#FFC53D;box-shadow:0 0 6px #FFC53D}
+#more{border-left:2px solid #1b2431;padding-left:6px;margin:6px 0 2px}
+#nx:empty{display:none}
+#nx{border:1.5px solid #FFC53D;background:linear-gradient(180deg,rgba(255,197,61,.13),rgba(255,197,61,.03));
+ padding:6px 9px 7px;margin-bottom:7px;box-shadow:0 0 16px -6px rgba(255,197,61,.7)}
+#nx .nxk{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;letter-spacing:.14em;color:#FFC53D}
+#nx .nxl1{display:flex;align-items:center;gap:7px;margin-top:1px}
+#nx .nxt{font-size:30px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#F3F5F7}
+#nx .nxt.late{color:#FF8A3D} #nx .nxt.early{color:#7CC4FF}
+#nx .nxf{font-size:17px;font-weight:800;color:#DDE3EA;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nx .nxg{margin-left:auto;flex:0 0 auto;font-size:26px;font-weight:900;line-height:1;padding:2px 7px;background:#1c2430;color:#E8EAED}
+#nx .nxg.s0{background:#00EFD4;color:#02241F} #nx .nxg.s1{background:#FF2E6E;color:#2B0411}
+#nx .nxl2{display:flex;align-items:baseline;gap:7px;margin-top:3px;font-size:14px;color:#93a0b1}
+#nx .nxc{margin-left:auto;color:#FFC53D;font-weight:900;font-size:15px}
+.fold{display:flex;align-items:center;gap:6px;background:#0B1019;border:1px solid #2a3545;color:#93a0b1;
+ font-size:14px;font-weight:800;padding:9px 10px;margin-bottom:4px;cursor:pointer;user-select:none}
+.fold i{font-style:normal;margin-left:auto;color:#00EFD4;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.fold:active{filter:brightness(1.3)}
+@media(max-width:340px){
+ /* 手錶：製作人標記縮成一行，把位置讓給班機 */
+ .mk{padding:4px 4px 5px;margin-bottom:5px;white-space:nowrap;overflow:hidden}
+ .mk b{display:inline;font-size:15px;letter-spacing:.08em}
+ .mk i{display:inline;font-size:9.5px;margin:0 0 0 4px;letter-spacing:0}
+ .mk i .ic{display:none}
+ #nx{padding:5px 7px 6px} #nx .nxl1{gap:5px} #nx .nxt{font-size:23px} #nx .nxf{font-size:13px} #nx .nxg{font-size:20px;padding:2px 5px}
+ #nx .nxl2{font-size:12.5px} #nx .nxc{font-size:13px}
+ .fold{font-size:12.5px;padding:7px 8px}
+}
 </style>
 </head>
 <body>
@@ -469,19 +502,26 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 </div>
 <div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
-<div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
+<div id="nx"></div>
 <div class="grp">
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
   <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
   <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
 </div>
+<div class="grp s1">
+  <span id="catslot"></span>
+  <span class="btn more" id="bmore">⋯</span>
+</div>
+<!-- 其他按鍵都收在「⋯」裡：手錶一打開就看得到班機，不用先捲過十排按鍵 -->
+<div id="more" hidden>
+<div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
 <div class="grp">
   <span class="btn nav" id="dPrev"><svg class="ic" viewBox="0 0 24 24"><use href="#i-left"/></svg></span>
   <span class="btn mid" id="dMid"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cal"/></svg> 今天</span>
   <span class="btn nav" id="dNext"><svg class="ic" viewBox="0 0 24 24"><use href="#i-right"/></svg></span>
 </div>
 <div class="grp s">
-  <span id="catslot"></span>
+  <span id="catslot2"></span>
 </div>
 <div class="grp">
   <span class="btn half" id="ball">全部</span>
@@ -507,6 +547,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
   <div id="catbox"></div>
   <span class="btn" id="catReset" style="min-height:40px;font-size:13px"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg> 恢復預設</span>
 </div>
+</div>
 
 <div class="sep"></div>
 <div id="mb"></div>
@@ -526,7 +567,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-10a';
+var PAGE_V='2026-10-10b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -850,13 +891,18 @@ function sweepStagger(){
 
 function paintBtns(){
   document.getElementById('ball').className='btn half'+(allOn()?' on':'');
-  var slot=document.getElementById('catslot'), h='';
+  var slot=document.getElementById('catslot'), slot2=document.getElementById('catslot2'), h='', h2='';
   CATS.forEach(function(c,i){
-    h+='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
+    var x='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
       +(cats['c'+i]?'✓ ':'　')+esc(c.name)+'</span>';
+    if(i<2) h+=x; else h2+=x;
   });
-  slot.innerHTML=h;
-  [].forEach.call(slot.querySelectorAll('.cat'),function(b){
+  slot.innerHTML=h; slot2.innerHTML=h2;
+  /* 「⋯」裡有改過東西就亮一個小點，提醒畫面被篩過 */
+  var zoff=false, zk; for(zk in zones) if(!zones[zk]) zoff=true;
+  var tweaked=dayOff!==0||mode==='now6'||hideDone||zoff||cats.c2||cats.c3;
+  document.getElementById('bmore').className='btn more'+(tweaked?' dot':'')+(document.getElementById('more').hidden?'':' on');
+  [].forEach.call(document.querySelectorAll('#catslot .cat,#catslot2 .cat'),function(b){
     b.addEventListener('click',function(){
       var i=b.getAttribute('data-i'), on=0, k;
       for(k in cats) if(cats[k]) on++;
@@ -969,6 +1015,46 @@ function rowHtml(f,nowMin){
     +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c"><i class="cn">'+esc(f.CityName)+'</i>'+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
+/* 抵達超過 30 分鐘的收成一行「已抵達 N 班」，點了才展開。
+   跟「隱藏抵達」不同：不用自己按、也不會整個不見。只對今天生效。 */
+var FOLD_OPEN=false;
+function foldRows(list,nowMin){
+  if(hideDone||nowMin<0) return list.map(function(f){ return rowHtml(f,nowMin); }).join('');
+  var old=[], rest=[];
+  list.forEach(function(f){ (doneOld(f)?old:rest).push(f); });
+  var h='';
+  if(old.length) h+='<div class="fold" data-fold="1">'+IC('check')+' 已抵達 '+old.length+' 班<i>'+(FOLD_OPEN?'▾ 收起':'▸ 展開')+'</i></div>'
+    +(FOLD_OPEN?old.map(function(f){ return rowHtml(f,nowMin); }).join(''):'');
+  return h+rest.map(function(f){ return rowHtml(f,nowMin); }).join('');
+}
+/* 下一班：今天、從現在起最近一班還沒到、沒取消、有登機門的 2140／2153（照分類、區域的勾選） */
+var NX_SKIP_DAY=true;   /* 一般版不看 06:00–13:30；解封印版會改成 false */
+function paintNext(){
+  var el=document.getElementById('nx'); if(!el) return;
+  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
+  var best=null;
+  poolFor(0).forEach(function(f){
+    var g=String(f.Gate||'').trim(); if(!g) return;
+    var sh=shopOf(f); if(sh!=='c0'&&sh!=='c1') return;
+    if(!cats[sh]) return;
+    var zg=g.charAt(0).toUpperCase(); if(/[A-D]/.test(zg)&&!zones[zg]) return;
+    if(noGo(f)) return;
+    var t=effTime(f); if(!t) return;
+    if(NX_SKIP_DAY&&t>='06:00'&&t<='13:30') return;
+    if(isNextDay(f)) return;
+    if(mins(t)<nowMin-5) return;
+    if(!best||t<effTime(best)) best=f;
+  });
+  if(!best){ el.innerHTML=''; return; }
+  var t=effTime(best), cd=mins(t)-nowMin, sh=shopOf(best);
+  var d=hhmm(best.RTime)?mins(best.RTime)-mins(best.OTime):0;
+  el.innerHTML='<div class="nxk">下一班</div>'
+    +'<div class="nxl1"><b class="nxt'+(d>0?' late':(d<0?' early':''))+'">'+t+'</b><span class="nxf">'+esc(fno4(best.flightCode))+'</span>'
+    +'<b class="nxg '+(sh==='c0'?'s0':'s1')+'">'+esc(String(best.Gate).trim())+'</b></div>'
+    +'<div class="nxl2"><span>'+esc(best.CityName)+'</span><span>'+esc(CATS[sh==='c0'?0:1].name)+'</span>'
+    +'<span class="nxc">'+(cd<=0?'就是現在':'還有 '+cd+' 分')+'</span></div>';
+}
+setInterval(paintNext,60000);
 function render(){
   var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
   var html='';
@@ -978,7 +1064,7 @@ function render(){
     var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
     var endRaw=nowMin+360, cross=endRaw>=1440;
     var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
-    html=rowsFor(poolFor(0),lo,hi).map(function(f){ return rowHtml(f,nowMin); }).join('');
+    html=foldRows(rowsFor(poolFor(0),lo,hi),nowMin);
     if(!html) html='<div class="msg">今天接下來這段沒有符合的班機</div>';
     if(cross){
       var m2=new Date(n.getTime()+86400000);
@@ -1004,7 +1090,7 @@ function render(){
       if(win[1]>='23:00'){   /* 晚班時段：把延誤跨過午夜的班機接在最後，不然整班消失 */
         list1=list1.concat(rowsFor(poolFor(dayOff+1).filter(isNextDay),'00:00','05:59'));
       }
-      var part1=list1.map(function(f){ return rowHtml(f,dayOff===0?nowMin:-1); }).join('');
+      var part1=foldRows(list1,dayOff===0?nowMin:-1);
       html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（已隱藏抵達超過 30 分的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
     }
   }
@@ -1041,6 +1127,7 @@ function render(){
   document.getElementById('list').innerHTML=html;
   sweepStagger();
   paintBtns();
+  paintNext();
 }
 /* ── 任意日期（◀▶ 選擇器用）───────────────────────── */
 function dataFor(off){
@@ -1504,6 +1591,13 @@ function paintCatBox(){
     el.addEventListener('change',function(){ CATS[+el.getAttribute('data-i')].term=el.value; touch(); });
   });
 }
+document.getElementById('bmore').addEventListener('click',function(){
+  var m=document.getElementById('more'); m.hidden=!m.hidden; paintBtns();
+});
+document.getElementById('list').addEventListener('click',function(e){
+  var t=e.target; while(t&&t!==this&&!(t.getAttribute&&t.getAttribute('data-fold'))) t=t.parentNode;
+  if(t&&t!==this){ FOLD_OPEN=!FOLD_OPEN; render(); }
+});
 document.getElementById('bcfg').addEventListener('click',function(){
   var b=document.getElementById('cfgbox');
   b.hidden=!b.hidden;
