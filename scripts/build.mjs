@@ -151,12 +151,21 @@ async function tdxAuth() {
 
 let NAMES_CACHE = null;
 async function tdxNames(auth) {
-  /* 機場中文名幾乎不會變，沒必要每五分鐘抓一次 */
+  /* 2026-10-10 修正：以前只有整點那一輪才抓機場中文名，其餘每 10 分鐘那幾輪
+     產出的 meta.json 是 0 個城市名，手錶就只剩 HKG、AOJ 這種代碼。
+     匿名查詢不吃點數，每一輪都抓（約 80KB）；抓不到就沿用線上那份 meta.json。 */
   if (NAMES_CACHE) return NAMES_CACHE;
-  if (!HOURLY) return {};
+  const fallback = async () => {
+    try {
+      const r = await fetch('https://xsos32-design.github.io/T2arrival21402153/meta.json?cb=' + Date.now());
+      const j = r.ok ? await r.json() : null;
+      if (j && j.n && Object.keys(j.n).length) { NAMES_CACHE = j.n; return j.n; }
+    } catch {}
+    return {};
+  };
   try {
     const r = await fetch(TDX_AIRPORT, { headers: tdxHeaders(auth) });
-    if (!r.ok) return {};
+    if (!r.ok) return await fallback();
     const m = {};
     for (const a of await r.json()) {
       /* 優先用城市名（曼谷），沒有才退回機場名去掉「國際機場」（蘇萬那普） */
@@ -165,9 +174,10 @@ async function tdxNames(auth) {
       const v = c || (n ? (n.replace(/國際機場$|機場$/, '') || n) : '');
       if (a.AirportID && v) m[a.AirportID] = v;
     }
+    if (!Object.keys(m).length) return await fallback();
     NAMES_CACHE = m;
     return m;
-  } catch { return {}; }
+  } catch { return await fallback(); }
 }
 
 function fromTDX(f, nameOf) {
@@ -1424,7 +1434,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html', 'soonsweep.html', 'cityicon.html', 'depart.html', 'luxe.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html', 'soonsweep.html', 'cityicon.html', 'depart.html', 'luxe.html', 'tune.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
