@@ -1241,6 +1241,7 @@ const UNLOCK = {
     ['function autoWin(){\n',
      'function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }\n'
    + 'function autoWin(){\n', 1],
+    ['var NX_SKIP_DAY=true;', 'var NX_SKIP_DAY=false;', 1],
     ['本頁固定不顯示 06:00–13:30 的班機<br>\n',
      '這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="wtdx.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a><br>\n', 1],
   ]},
