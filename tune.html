@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>優化預覽 · 手錶版</title>
+<style>
+:root{--bg:#05070a;--panel:#0b0f14;--panel2:#111720;--line:#1d2633;--ink:#e6edf3;--muted:#8b98a8;
+  --teal:#19d3c5;--teal-d:#0b3a36;--rose:#ff5a83;--rose-d:#3d1424;--gold:#f5c04a;--ok:#5be08a;--warn:#ffb547;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0a0d12;color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.top{max-width:1100px;margin:0 auto;padding:22px 18px 6px}
+h1{margin:0 0 6px;font-size:22px}
+.sub{color:var(--muted);font-size:14px;line-height:1.7}
+.sub b{color:var(--ink)}
+.stage{max-width:1100px;margin:0 auto;padding:14px 18px 10px;display:flex;gap:36px;justify-content:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center}
+.lab{font-size:15px;font-weight:800;margin-bottom:10px;letter-spacing:.06em}
+.lab.old{color:var(--muted)} .lab.new{color:var(--teal)}
+/* 手錶外框：實際 205px 寬，放大 1.5 倍給電腦看 */
+.watch{width:calc(205px*1.5 + 28px);height:calc(470px*1.5 + 28px);border-radius:46px;padding:14px;background:#000;
+  box-shadow:0 0 0 3px #2a2f37,0 0 0 9px #111,0 30px 60px -20px rgba(0,0,0,.8);overflow:hidden;position:relative}
+.screen{width:205px;height:470px;transform:scale(1.5);transform-origin:0 0;border-radius:26px;overflow:hidden;background:var(--bg);position:relative}
+.screen iframe{width:205px;height:470px;border:0;display:block;background:var(--bg)}
+.scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.hint{margin-top:12px;font-size:12.5px;color:var(--muted);text-align:center;max-width:300px;line-height:1.6}
+
+/* ── 優化版（畫在 205px 的手錶裡） ── */
+.w{font-size:12px;padding:6px 6px 40px}
+.bar{display:flex;align-items:center;gap:5px;padding:3px 2px 6px}
+.bar b{font-size:14px;letter-spacing:.04em}
+.bar .age{font-size:10px;color:var(--ok);margin-left:auto}
+.bar .age.old{color:var(--warn)}
+.next{border:1.5px solid var(--gold);border-radius:12px;padding:6px 8px 7px;background:linear-gradient(180deg,rgba(245,192,74,.14),rgba(245,192,74,.03));margin-bottom:6px}
+.next .k{font-size:10px;color:var(--gold);letter-spacing:.12em}
+.next .l1{display:flex;align-items:baseline;gap:6px;margin-top:1px}
+.next .t{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.next .g{margin-left:auto;font-size:22px;font-weight:900;padding:0 6px;border-radius:7px}
+.next .g.s40{background:var(--teal);color:#001a17} .next .g.s53{background:var(--rose);color:#2a0010}
+.next .l2{display:flex;gap:6px;font-size:12px;color:var(--muted);margin-top:1px}
+.next .l2 .cd{margin-left:auto;color:var(--gold);font-weight:800}
+.seg{display:flex;gap:3px;margin-bottom:4px}
+.seg button{flex:1;font:inherit;font-size:11.5px;font-weight:800;padding:6px 0;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+.seg button.on{border-color:var(--teal);color:var(--teal);background:var(--teal-d)}
+.seg button.r.on{border-color:var(--rose);color:var(--rose);background:var(--rose-d)}
+.seg button.more{flex:0 0 34px}
+.drawer{display:none;border:1px dashed var(--line);border-radius:9px;padding:6px;margin-bottom:5px;color:var(--muted);font-size:11px;line-height:1.7}
+.drawer.open{display:block}
+.fold{display:flex;align-items:center;gap:6px;padding:6px 8px;margin:4px 0;border-radius:8px;background:var(--panel);color:var(--muted);font-size:11.5px;font-weight:700;cursor:pointer}
+.fold i{font-style:normal;margin-left:auto}
+.row{display:grid;grid-template-columns:44px 1fr 36px;align-items:center;gap:4px;padding:5px 5px 5px 7px;margin-bottom:3px;border-radius:8px;background:var(--panel);border-left:4px solid #3a4553;position:relative;overflow:hidden}
+.row.s40{border-left-color:var(--teal);background:#08231f}
+.row.s53{border-left-color:var(--rose);background:#24101a}
+.row .t{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums}
+.row .t small{display:block;font-size:9px;font-weight:600;color:var(--muted)}
+.row .t.late{color:var(--warn)} .row .t.early{color:#8fc6ff}
+.row .f{min-width:0}
+.row .f b{display:block;font-size:12.5px;letter-spacing:.02em}
+.row .f span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .g{font-size:14px;font-weight:900;text-align:center;border-radius:6px;padding:2px 0;background:#1c2430}
+.row.s40 .g{background:var(--teal);color:#001a17} .row.s53 .g{background:var(--rose);color:#2a0010}
+.row.done{opacity:.45}
+.row.soon{box-shadow:inset 0 0 0 1.5px var(--gold),0 0 10px -2px rgba(245,192,74,.5)}
+.row.soon::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:40%;
+  background:linear-gradient(100deg,transparent,rgba(255,214,110,.35),transparent);animation:sw 3.6s ease-in-out infinite}
+@keyframes sw{0%{left:-40%}60%,100%{left:110%}}
+.row .st{position:absolute;right:42px;top:4px;font-size:9px;font-weight:800;color:var(--ok)}
+.row .st.bad{color:var(--bad)} .row .st.warn{color:var(--warn)}
+.empty{padding:20px 6px;text-align:center;color:var(--muted)}
+
+/* 清單說明 */
+.list{max-width:1100px;margin:6px auto 0;padding:0 18px 50px}
+.card{background:#0f141b;border:1px solid #1d2633;border-radius:14px;padding:14px 18px;margin-top:14px}
+.card h2{margin:0 0 8px;font-size:16px}
+.card h2 em{font-style:normal;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;vertical-align:2px}
+.fix{background:rgba(91,224,138,.15);color:var(--ok)} .pv{background:rgba(25,211,197,.15);color:var(--teal)} .idea{background:rgba(245,192,74,.15);color:var(--gold)}
+.card p,.card li{color:#c3ccd6;font-size:14px;line-height:1.75;margin:0}
+.card ul{margin:0;padding-left:20px}
+.card b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>手錶版 · 優化預覽</h1>
+  <div class="sub">左邊是<b>現在線上的手錶版</b>（真的在跑），右邊是<b>優化後</b>的樣子，兩邊都讀同一份即時快照。
+    放大 1.5 倍顯示，實際是 205px 寬。兩邊都可以捲動、點按。</div>
+</div>
+
+<div class="stage">
+  <div class="col">
+    <div class="lab old">現在</div>
+    <div class="watch"><div class="screen"><iframe src="wtdx.html" title="現在的手錶版"></iframe></div></div>
+    <div class="hint">打開第一個畫面幾乎都是按鈕，<b>要往下捲才看得到班機</b></div>
+  </div>
+  <div class="col">
+    <div class="lab new">優化後</div>
+    <div class="watch"><div class="screen"><div class="scroll"><div class="w" id="w"><div class="empty">讀取中…</div></div></div></div></div>
+    <div class="hint">一打開就是<b>下一班</b>＋班機清單；按鈕只留一排，其他收進「⋯」</div>
+  </div>
+</div>
+
+<div class="list">
+  <div class="card">
+    <h2>① 城市名變成代碼（HKG、AOJ…）<em class="fix">已修好</em></h2>
+    <p>手錶版城市欄顯示機場代碼，不是中文。查到兩個原因：GitHub 那端只有<b>整點那一輪</b>才抓城市中文名，
+      其他每 10 分鐘那幾輪產出的對照表是空的；手錶又把<b>空的對照表存起來就不再重抓</b>。
+      兩邊都改了，下一輪更新後就會恢復成「香港、青森、旭川」。</p>
+  </div>
+  <div class="card">
+    <h2>② 班機在前，按鈕收起來<em class="pv">右邊預覽</em></h2>
+    <ul>
+      <li>現在一打開是 <b>10 排按鈕</b>（時段、日期、分類、區域、隱藏、設定、更新、開會），手錶要捲兩三下才看到第一班。</li>
+      <li>優化後只留<b>一排</b>：時段三顆＋2140／2153 兩顆＋「⋯」。日期、區域、開會時間、分類設定收進「⋯」，功能一個都沒少。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>③ 最上面一張「下一班」<em class="pv">右邊預覽</em></h2>
+    <p>自動挑 2140／2153 <b>最近一班還沒到的</b>：時間、班號、登機門大字、<b>還有幾分鐘</b>。抬手一看就知道下一個要去哪個門。</p>
+  </div>
+  <div class="card">
+    <h2>④ 已到的班機收成一行<em class="pv">右邊預覽</em></h2>
+    <p>到了超過 30 分鐘的不再一列一列佔畫面，收成「<b>已抵達 N 班 ▸</b>」一行，點了才展開。
+      跟「隱藏抵達」不同：不用自己去按，也不會整個消失。剛到 30 分鐘內的照樣留著（還在出關）。</p>
+  </div>
+  <div class="card">
+    <h2>⑤ 網頁版／出境頁也可以套<em class="idea">建議</em></h2>
+    <ul>
+      <li>④「已到收成一行」電腦版一樣有用——晚上打開，前面一整排都是已到。</li>
+      <li>出境頁的「已起飛」同理。</li>
+      <li>③「下一班」可以做成網頁版最上面一條橫幅。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+function pad(n){return (n<10?'0':'')+n}
+var CAT=[{id:'s40',name:'2140',spec:'C1-C4, C5R, B7-B9',term:'2'},{id:'s53',name:'2153',spec:'B6, C5, C6-C10',term:'2'}];
+var ORDER=(function(){var o=[],i;for(i=1;i<=10;i++)o.push('A'+i);
+  ['B1','B1R','B2','B3','B4','B5','B6','B7','B8','B9'].forEach(function(g){o.push(g)});
+  ['C1','C2','C3','C4','C5','C5R','C6','C7','C8','C9','C10'].forEach(function(g){o.push(g)});
+  var d=['D1','D2','D3','D4','D5','D5R'];for(i=6;i<=18;i++)d.push('D'+i);return o.concat(d);})();
+function expand(spec){var set={};spec.split(',').forEach(function(p){p=p.trim().toUpperCase();if(!p)return;
+  var m=p.match(/^([A-D]\d+R?)\s*-\s*([A-D]\d+R?)$/);
+  if(m){var a=ORDER.indexOf(m[1]),b=ORDER.indexOf(m[2]);for(var i=Math.min(a,b);i<=Math.max(a,b);i++)set[ORDER[i]]=1;}else set[p]=1;});return set;}
+CAT.forEach(function(c){c.set=expand(c.spec)});
+function shop(f){var g=(f.gate||'').toUpperCase();if(f.term==='1')return '';for(var i=0;i<CAT.length;i++)if(CAT[i].set[g])return CAT[i].id;return ''}
+
+var NAMES={},ROWS=[],AGE=null;
+var h=new Date().getHours();
+var WIN=h<6?0:(h<18?1:2), SHOW={s40:true,s53:true}, OPEN=false, DRAWER=false;
+var WINS=[['00:00','05:59','00–06'],['13:30','17:59','13:30–18'],['18:00','23:59','18–24']];
+
+function load(){
+  Promise.all([
+    fetch('snap.json?v='+Math.floor(Date.now()/60000)).then(function(r){return r.json()}),
+    fetch('meta.json?v='+Math.floor(Date.now()/60000)).then(function(r){return r.json()})['catch'](function(){return {}})
+  ]).then(function(res){
+    var s=res[0]; NAMES=(res[1]&&res[1].n)||{};
+    var bs=String(s.d||'').split('/'), base=new Date(+bs[0],bs[1]-1,+bs[2]);
+    var today=new Date(); today=today.getFullYear()+'/'+pad(today.getMonth()+1)+'/'+pad(today.getDate());
+    var ds=String(s.d||'').split('/'),ts=String(s.t||'').split(':');
+    AGE=Math.max(0,Math.floor((Date.now()-new Date(+ds[0],ds[1]-1,+ds[2],+ts[0],+ts[1]).getTime())/60000));
+    function dOf(o){var d=new Date(base.getTime()+(o||0)*86400000);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate())}
+    function hm(v){return v?String(v).slice(0,2)+':'+String(v).slice(2,4):''}
+    ROWS=(s.f||[]).map(function(r){
+      var o=hm(r[4]), a=hm(r[5]);
+      return {code:r[0],dep:r[1],gate:r[2]||'',term:String(r[3]||''),o:o,a:a,od:dOf(r[6]),ad:r[5]?dOf(r[7]):'',memo:r[8]||''};
+    }).filter(function(f){return (f.ad||f.od)===today});
+    ROWS.forEach(function(f){f.s=shop(f);f.t=f.a||f.o;});
+    ROWS.sort(function(a,b){return a.t.localeCompare(b.t)});
+    draw();
+  })['catch'](function(e){document.getElementById('w').innerHTML='<div class="empty">讀不到快照</div>'});
+}
+function mins(t){var p=t.split(':');return +p[0]*60+ +p[1]}
+function fno(c){var m=String(c).match(/^(.*?)(\d{1,4})$/);if(!m)return c;var d=m[2];while(d.length<4)d='0'+d;return m[1]+d}
+function city(f){return NAMES[f.dep]||f.dep}
+
+function draw(){
+  var n=new Date(), now=n.getHours()*60+n.getMinutes();
+  var w=WINS[WIN];
+  var rows=ROWS.filter(function(f){return f.s&&SHOW[f.s]&&f.t>=w[0]&&f.t<=w[1]&&!(f.t>='06:00'&&f.t<='13:30')});
+  var done=function(f){return /已到/.test(f.memo)};
+  var old=rows.filter(function(f){return done(f)&&now-mins(f.t)>30});
+  var live=rows.filter(function(f){return old.indexOf(f)<0});
+  /* 下一班：不分時段，從現在起最近一班還沒到、沒取消的 2140／2153 */
+  var nx=ROWS.filter(function(f){return f.s&&!done(f)&&!/取消/.test(f.memo)&&mins(f.t)>=now-5})[0];
+
+  var html='<div class="bar"><b>✈ 班機</b><span class="age'+(AGE>20?' old':'')+'">● '+(AGE===null?'':AGE+'分前')+'</span></div>';
+  if(nx){
+    var cd=mins(nx.t)-now;
+    html+='<div class="next"><div class="k">下一班</div>'
+      +'<div class="l1"><span class="t">'+nx.t+'</span><b>'+fno(nx.code)+'</b><span class="g '+nx.s+'">'+(nx.gate||'—')+'</span></div>'
+      +'<div class="l2"><span>'+city(nx)+'</span><span>'+(nx.s==='s40'?'2140':'2153')+'</span><span class="cd">'+(cd<=0?'就是現在':'還有 '+cd+' 分')+'</span></div></div>';
+  }
+  html+='<div class="seg">'+WINS.map(function(x,i){return '<button data-w="'+i+'" class="'+(i===WIN?'on':'')+'">'+x[2]+'</button>'}).join('')+'</div>';
+  html+='<div class="seg"><button data-s="s40" class="'+(SHOW.s40?'on':'')+'">✓ 2140</button><button data-s="s53" class="r '+(SHOW.s53?'on':'')+'">✓ 2153</button><button class="more" data-more="1">⋯</button></div>';
+  html+='<div class="drawer'+(DRAWER?' open':'')+'">收在這裡：◀ 日期 ▶、A–D 區、其他一航／二航、開會時間、分類設定、更新<br>（預覽只示意位置）</div>';
+  if(old.length) html+='<div class="fold" data-fold="1">已抵達 '+old.length+' 班<i>'+(OPEN?'▾ 收起':'▸ 展開')+'</i></div>';
+  var list=(OPEN?old:[]).concat(live);
+  if(!list.length) html+='<div class="empty">這個時段沒有 2140／2153 的班機</div>';
+  html+=list.map(function(f){
+    var d=f.a?mins(f.a)-mins(f.o):0, eta=mins(f.t)-now;
+    var cls='row '+f.s+(done(f)?' done':'')+(!done(f)&&eta>=0&&eta<=45?' soon':'');
+    var st=/取消/.test(f.memo)?'<span class="st bad">取消</span>':(done(f)?'<span class="st">已到</span>':(d>0?'<span class="st warn">晚'+d+'</span>':''));
+    return '<div class="'+cls+'"><div class="t'+(d>0?' late':(d<0?' early':''))+'">'+f.t+'<small>'+(d?'表定'+(d>0?'+':'')+d:'表定')+'</small></div>'
+      +'<div class="f"><b>'+fno(f.code)+'</b><span>'+city(f)+'</span></div><div class="g">'+(f.gate||'—')+'</div>'+st+'</div>';
+  }).join('');
+  var el=document.getElementById('w'); el.innerHTML=html;
+  el.querySelectorAll('[data-w]').forEach(function(b){b.onclick=function(){WIN=+b.dataset.w;draw()}});
+  el.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){SHOW[b.dataset.s]=!SHOW[b.dataset.s];draw()}});
+  el.querySelector('[data-more]').onclick=function(){DRAWER=!DRAWER;draw()};
+  var fd=el.querySelector('[data-fold]'); if(fd) fd.onclick=function(){OPEN=!OPEN;draw()};
+}
+load(); setInterval(draw,60000);
+})();
+</script>
+</body>
+</html>

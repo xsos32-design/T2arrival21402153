@@ -526,7 +526,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-08b';
+var PAGE_V='2026-10-10a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -615,7 +615,8 @@ var TDX_AP='https://tdx.transportdata.tw/api/basic/v2/Air/Airport'
 var NAMES=null;
 var TXMAP={};   /* 班號 → 轉機比例。GitHub 那邊已經拿出境班表算好了，這裡直接抄 */
 function tdxNames(){
-  if(NAMES) return Promise.resolve(NAMES);
+  /* 空的對照表（{}）不算數——以前存到空的就再也不重抓，城市一直顯示代碼 */
+  if(NAMES && Object.keys(NAMES).length) return Promise.resolve(NAMES);
   /* 只抓小檔 meta.json（約 12KB）：機場中文名＋GitHub 依出境班表算好的轉機比例。
      網址上的編號每 5 分鐘才換一次，中間重開都吃手錶自己的快取，不會重複下載。
      抓不到就退回完整快照 data.json。 */
@@ -1245,7 +1246,7 @@ function applySnap(j,cached){
 function bootFromCache(){
   try{
     var m=JSON.parse(localStorage.getItem(META_KEY)||'null');
-    if(m&&m.n){ NAMES=m.n; if(m.x) for(var k in m.x){ if(m.x.hasOwnProperty(k)) TXMAP[k]=m.x[k]; } }
+    if(m&&m.n&&Object.keys(m.n).length){ NAMES=m.n; if(m.x) for(var k in m.x){ if(m.x.hasOwnProperty(k)) TXMAP[k]=m.x[k]; } }
   }catch(e){}
   try{
     var j=JSON.parse(localStorage.getItem(SNAP_KEY)||'null');

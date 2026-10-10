@@ -48,7 +48,15 @@ li b{color:#E7E9ED}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>10/9</b><em>新增出境班機頁（電腦版）</em><i class="new">最新</i></div>
+<div class="day"><b>10/10</b><em>手錶城市名變成代碼（HKG、AOJ）已修好</em><i class="new">最新</i></div>
+<div class="card hi"><ul>
+  <li>手錶版城市欄顯示機場代碼，不是中文。原因有兩個：GitHub 那端<b>只有整點那一輪</b>才抓城市中文名，
+      其他每 10 分鐘那幾輪產出的對照表是空的；手錶又把<b>空的對照表存起來就不再重抓</b>。</li>
+  <li>現在每一輪都抓（匿名查詢，不吃點數），抓不到就沿用線上那份；手錶遇到空的對照表會重抓。</li>
+  <li>另外放了一個<b>優化預覽 <a href="tune.html">tune.html</a></b>：現在的手錶版跟優化後並排比較。</li>
+</ul></div>
+
+<div class="day"><b>10/9</b><em>新增出境班機頁（電腦版）</em></div>
 <div class="card hi"><ul>
   <li><b>新頁面 <a href="depart.html">depart.html</a>：出境班機</b>，版面跟網頁版一模一樣——時段、現在6小時、分類、區域、登機門設定都照舊，
       只把「抵達時間／出發地」換成「起飛時間／目的地」。</li>
