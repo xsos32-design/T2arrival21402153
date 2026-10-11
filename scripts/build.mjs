@@ -388,7 +388,70 @@ function fleetSeats(code) {
   const m = s.match(/^([A-Z]*)0*(\d+)$/); if (m) s = m[1] + m[2];
   return FLEET.get(s) || 0;
 }
+/* ── 桃機官方「機場人潮預測」：每小時、分航廈的抵達／出發人次（含轉機人數）────
+   2026-10-12 加入。來源是桃機官網「搭機指南 → 機場人潮預測」背後的資料，
+   以航班預計起降時間統計、會隨航班動態更新。GitHub 的機器連得到（移民署那支連不到）。
+   用法：同一小時、第二航廈的所有班機，依各班「座位×載客率×不轉機比例」的比重，
+   把官方的「抵達 − 轉機」總數分回每一班。每小時合計＝官方數字。 */
+const PAXAPI = 'https://www.taoyuanairport.com.tw/backend/adip/getPredictionOfFlightCapacityOnTheHour';
+async function officialPax(iso) {
+  try {
+    const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 20000);
+    const r = await fetch(PAXAPI, { method: 'POST', signal: ac.signal,
+      headers: { 'Content-Type': 'application/json', 'User-Agent': TDX_UA,
+                 Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/hfpv' },
+      body: JSON.stringify({ date: iso }) });
+    clearTimeout(tm);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const ds = j && j.data && j.data.dataset;
+    if (!Array.isArray(ds) || !ds.length) return null;
+    const o = {};
+    for (const x of ds) {
+      const h = +String(x.hourStart || '').slice(0, 2); if (isNaN(h)) continue;
+      const A = +x.t2ArrivalNum || 0;
+      const X = Math.max(0, (+x.arrivalTransferNum || 0) - (+x.t1ArrivalTransferNum || 0));
+      o[h] = [A, Math.min(X, A), +x.t2DepartureNum || 0, +x.t2DepartureTransferNum || 0];
+    }
+    let any = false; for (const k in o) if (o[k][0] || o[k][2]) any = true;
+    return any ? o : null;
+  } catch { return null; }
+}
+/* 把官方每小時「抵達−轉機」分回每一班（寫在 f._cal） */
+function calibrate(list, iso, H) {
+  if (!H || !list) return 0;
+  const want = iso.replace(/-/g, '/'), byH = {};
+  let n = 0;
+  for (const f of list) {
+    delete f._cal;
+    if (String(f.BNO) !== '2') continue;
+    if (/取消/.test(String(f.Memo || ''))) continue;
+    const t = (String(f.RTime || '').slice(0, 5)) || (String(f.OTime || '').slice(0, 5)); if (!t) continue;
+    const d = f.RTime ? (f.RDate || f.ODate) : f.ODate; if (d !== want) continue;
+    const p = paxRaw(f); if (!p.est) continue;
+    const w = Math.max(0, p.est - p.tx) || 1;
+    const h = +t.slice(0, 2); (byH[h] = byH[h] || []).push({ f, w, est: p.est });
+  }
+  for (const h in byH) {
+    const row = H[h]; if (!row || row[0] <= 0) continue;
+    const target = Math.max(0, row[0] - row[1]);
+    let sw = 0; for (const x of byH[h]) sw += x.w; if (!sw) continue;
+    for (const x of byH[h]) {
+      const v = Math.min(target * x.w / sw, Math.round(x.est * 1.15));   /* 一班最多不超過機位 */
+      x.f._cal = v >= 50 ? Math.round(v / 5) * 5 : Math.round(v); n++;
+    }
+  }
+  return n;
+}
 function paxOf(f) {
+  const p = paxRaw(f);
+  if (typeof f._cal === 'number') {
+    const inn = f._cal;
+    return { est: p.est, tx: Math.max(0, p.est - inn), inn, lv: inn > 250 ? 3 : (inn >= 150 ? 2 : 1), cal: true };
+  }
+  return p;
+}
+function paxRaw(f) {
   const dep = String(f.Dep || '').toUpperCase();
   const al  = String(f.flightCode || '').slice(0, 2).toUpperCase();
   const seats = fleetSeats(f.flightCode)
@@ -1366,6 +1429,20 @@ async function main() {
 
   if (!flights.length) err = '所有來源都失敗｜' + tried.join('；');
 
+  /* 桃機官方每小時人數：今天＋明天（明天的 19:00 後才有）。抓不到就沿用線上那份 pax.json */
+  let OFF = {};
+  for (const iso of [todayISO, tomorrowISO]) { const o = await officialPax(iso); if (o) OFF[iso] = o; }
+  if (!OFF[todayISO]) {
+    try {
+      const r = await fetch('https://xsos32-design.github.io/T2arrival21402153/pax.json?cb=' + Date.now());
+      const j = r.ok ? await r.json() : null;
+      if (j && j.days) for (const k in j.days) if (!OFF[k]) OFF[k] = j.days[k];
+      if (OFF[todayISO]) console.log('ℹ️ 官方人數這輪抓不到，沿用線上那份 pax.json');
+    } catch {}
+  }
+  const nCal = calibrate(flights, todayISO, OFF[todayISO]);
+  console.log(`👥 官方每小時人數：${Object.keys(OFF).join('、') || '沒有'}；今天校正了 ${nCal} 班`);
+
   await mkdir(OUT, { recursive: true });
 
   let n = 0;
@@ -1394,6 +1471,8 @@ async function main() {
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
   const snap = flights.concat(tomorrowSnap);
+  /* 官方每小時人數給網頁／手錶自己校正用（同網域，小檔） */
+  await writeFile(join(OUT, 'pax.json'), JSON.stringify({ t: stamp, days: OFF }), 'utf8');
   await writeFile(join(OUT, 'data.json'), JSON.stringify({ t: stamp, d: snap }), 'utf8');
   /* 手錶版每次開啟其實只要兩張對照表：機場中文名、轉機比例。
      單獨存一份小檔（約 12KB），它就不用每次拖 128KB 的完整快照下來。 */
