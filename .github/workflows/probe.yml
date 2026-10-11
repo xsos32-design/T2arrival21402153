@@ -7,22 +7,24 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: 桃機人潮預測、移民署人次預報 連不連得到
+      - name: 移民署連線診斷
         run: |
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-          TODAY=$(TZ=Asia/Taipei date +%F)
-          echo "== 1. 桃機 機場人潮預測（每小時、分航廈）"
-          curl -sS -A "$UA" --max-time 30 -X POST -H 'Content-Type: application/json' \
-            -H 'Origin: https://www.taoyuan-airport.com' -H 'Referer: https://www.taoyuan-airport.com/hfpv' \
-            -d "{\"date\":\"$TODAY\"}" \
-            'https://www.taoyuanairport.com.tw/backend/adip/getPredictionOfFlightCapacityOnTheHour' \
-            -o a.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
-          echo "   筆數=$(grep -o 'hourStart' a.json | wc -l)"
-          echo "== 2. 移民署 入境人次預報 TPE1"
-          curl -sS -A "$UA" --max-time 30 'https://opendata.immigration.gov.tw/APIS/TPE1' \
-            -o b.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
-          echo "   筆數=$(grep -o 'paxCnt' b.json | wc -l)"
-          echo "== 3. 移民署 出境人次預報 TPE5"
-          curl -sS -A "$UA" --max-time 30 'https://opendata.immigration.gov.tw/APIS/TPE5' \
-            -o c.json -w "   HTTP=%{http_code} 大小=%{size_download}\n" || echo "   連不到"
-          echo "   筆數=$(grep -o 'paxCnt' c.json | wc -l)"
+          echo "== DNS"
+          getent hosts opendata.immigration.gov.tw || echo "   DNS 失敗"
+          echo "== 本機對外 IP 國家"
+          curl -sS --max-time 10 https://ipinfo.io/country || true
+          for p in TPE12 TPE52 TWTPE1; do
+            echo "== https $p"
+            curl -sS -A "$UA" --max-time 60 -o /dev/null \
+              -w "   HTTP=%{http_code} 連線=%{time_connect}s TLS=%{time_appconnect}s 總=%{time_total}s 大小=%{size_download}\n" \
+              "https://opendata.immigration.gov.tw/APIS/$p" || echo "   失敗 code=$?"
+          done
+          echo "== http TPE12"
+          curl -sS -A "$UA" --max-time 30 -o /dev/null -w "   HTTP=%{http_code} 連線=%{time_connect}s 總=%{time_total}s\n" \
+            "http://opendata.immigration.gov.tw/APIS/TPE12" || echo "   失敗 code=$?"
+          echo "== 移民署主站"
+          curl -sS -A "$UA" --max-time 30 -o /dev/null -w "   HTTP=%{http_code} 連線=%{time_connect}s 總=%{time_total}s\n" \
+            "https://www.immigration.gov.tw/" || echo "   失敗 code=$?"
+          echo "== TCP 443 連得上嗎"
+          timeout 15 bash -c 'cat < /dev/null > /dev/tcp/opendata.immigration.gov.tw/443' && echo "   TCP OK" || echo "   TCP 不通"
