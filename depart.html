@@ -580,6 +580,8 @@
       box-shadow:0 4px 14px rgba(0,0,0,.5)}
     .fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
   }
+  #offnote{font-size:12.5px;color:#0f766e;margin-top:4px}
+  #offnote:empty{display:none}
 </style>
 </head>
 <body>
@@ -666,6 +668,7 @@
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 桃機公開資料，僅供參考，<b>一律以現場為準</b><br>
     狀態 <span class="badge b-ok">登機中</span> <span class="badge b-warn">最後登機</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-none">已起飛</span><br>
+    <b>出境人數</b>＝桃機官方每小時出發人次（含轉機），依機型大小分到各班<br>
     本頁固定不顯示 06:00–13:30 的班機
   </div>
 
@@ -681,7 +684,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-08b';
+var PAGE_V='2026-10-12a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -848,10 +851,10 @@ function paxOf(f){
           lv:(est-tx)>250?3:((est-tx)>=150?2:1)};
 }
 function IC(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
-function paxHtml(f){ return ''; var p=paxOf(f);
-  if(!p.est) return ' <i class="px">'+IC('box')+'<u>貨機</u></i>';
-  /* 只顯示預估入境。轉機人數還是有算（入境 = 機上總人數 − 轉機），只是不印出來。 */
-  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
+function paxHtml(f){ var p=paxOf(f);
+  /* 出境人數：只有拿到桃機官方每小時數字時才顯示（沒有官方數字就不亂猜） */
+  if(!p.cal) return '';
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>出境</u></i>'; }
 
 /* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
 var TXHUB={BR:1,CI:1,JX:1};
@@ -1548,6 +1551,69 @@ document.getElementById('hide').addEventListener('click',function(){
   /* 先把「班號→座位數」機隊表載進來，再第一次算，避免第一屏用到舊的粗估值 */
   loadFleet().then(run,run);
 })();
+</script>
+<script>
+/* ── 桃機官方「每小時人數」校正（2026-10-12）────────────────────────────
+   桃機官網「機場人潮預測」有每小時、分航廈的抵達／出發人次，還分得出轉機。
+   GitHub 每 10 分鐘抓一次存成同網域的 pax.json。這裡把同一小時、第二航廈的班機
+   加總，依各班「座位×載客率（×不轉機比例）」的比重，把官方總數分回每一班。
+   每小時合計＝官方數字；個別班機仍是依比重分配，不是逐班實數。 */
+var OFFPAX=null, OFFPAX_T='', OFFPAX_N=0;
+var _paxOfRaw=paxOf;
+paxOf=function(f){
+  var p=_paxOfRaw(f);
+  if(typeof f._cal==='number'){
+    var n=f._cal;
+    return {est:p.est, tx:Math.max(0,p.est-n), inn:n, lv:n>250?3:(n>=150?2:1), cal:1};
+  }
+  return p;
+};
+function offCalib(list, iso, kind){
+  if(!list) return 0;
+  var H=OFFPAX&&OFFPAX[iso], want=iso.replace(/-/g,'/'), byH={}, n=0;
+  list.forEach(function(f){
+    delete f._cal;
+    if(!H) return;
+    if(String(f.BNO)!=='2') return;
+    if(/取消/.test(String(f.Memo||''))) return;
+    var t=hhmm(f.RTime)||hhmm(f.OTime); if(!t) return;
+    var d=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; if(d!==want) return;
+    var p=_paxOfRaw(f); if(!p.est) return;
+    var w=kind==='D'?p.est:(Math.max(0,p.est-p.tx)||1);
+    var h=+t.slice(0,2); (byH[h]=byH[h]||[]).push({f:f,w:w,est:p.est});
+  });
+  for(var h in byH){
+    var row=H[h]; if(!row) continue;
+    if((kind==='D'?row[2]:row[0])<=0) continue;   /* 官方那小時是 0 班但我們有班機＝時間對不上，維持原本估法 */
+    var target=kind==='D'?row[2]:Math.max(0,row[0]-row[1]);
+    var sw=0; byH[h].forEach(function(x){ sw+=x.w; }); if(!sw) continue;
+    byH[h].forEach(function(x){
+      var v=target*x.w/sw, cap=Math.round(x.est*1.15);      /* 一班最多不超過機位（避免那小時漏抓班機時灌到某一班） */
+      v=Math.min(v,cap); x.f._cal=v>=50?Math.round(v/5)*5:Math.round(v); n++; });
+  }
+  return n;
+}
+function offLoad(cb){
+  try{
+    fetch('pax.json?v='+Math.floor(Date.now()/300000)).then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ OFFPAX=(j&&j.days)||null; OFFPAX_T=(j&&j.t)||''; if(cb) cb(); })['catch'](function(){});
+  }catch(e){}
+}
+function isoOf(off){ var d=new Date(Date.now()+off*86400000); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+</script>
+<script>
+var ALLDAY={};
+var _gfr=getFlightsRaw;
+getFlightsRaw=function(date){ return _gfr(date).then(function(list){ ALLDAY[date]=list||[]; return list; }); };
+var _render0=render;
+render=function(){
+  OFFPAX_N=0; try{ for(var k in ALLDAY) OFFPAX_N+=offCalib(ALLDAY[k],k,'D'); }catch(e){}
+  _render0();
+  var note=document.getElementById('offnote');
+  if(!note){ note=document.createElement('div'); note.id='offnote'; var st=document.getElementById('status'); if(st) st.parentNode.insertBefore(note,st.nextSibling); }
+  note.innerHTML=OFFPAX_N?(IC('users')+' 出境人數＝<b>桃機官方每小時出發人次</b>依機型大小分到各班（含轉機，'+esc(OFFPAX_T)+' 更新）'):'';
+};
+offLoad(function(){ if(lastRows.length) render(); });
 </script>
 </body>
 </html>
