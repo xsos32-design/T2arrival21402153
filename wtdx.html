@@ -497,7 +497,6 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 </div>
 <div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
-<div id="nx"></div>
 <div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
 <div class="grp">
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
@@ -562,7 +561,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-10c';
+var PAGE_V='2026-10-11a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1049,7 +1048,6 @@ function paintNext(){
     +'<div class="nxl2"><span>'+esc(best.CityName)+'</span><span>'+esc(CATS[sh==='c0'?0:1].name)+'</span>'
     +'<span class="nxc">'+(cd<=0?'就是現在':'還有 '+cd+' 分')+'</span></div>';
 }
-setInterval(paintNext,60000);
 function render(){
   var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
   var html='';
@@ -1122,7 +1120,6 @@ function render(){
   document.getElementById('list').innerHTML=html;
   sweepStagger();
   paintBtns();
-  paintNext();
 }
 /* ── 任意日期（◀▶ 選擇器用）───────────────────────── */
 function dataFor(off){
