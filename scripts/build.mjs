@@ -429,15 +429,15 @@ function calibrate(list, iso, H) {
     const t = (String(f.RTime || '').slice(0, 5)) || (String(f.OTime || '').slice(0, 5)); if (!t) continue;
     const d = f.RTime ? (f.RDate || f.ODate) : f.ODate; if (d !== want) continue;
     const p = paxRaw(f); if (!p.est) continue;
-    const w = Math.max(0, p.est - p.tx) || 1;
-    const h = +t.slice(0, 2); (byH[h] = byH[h] || []).push({ f, w, est: p.est });
+    const w = p.est, keep = p.est ? Math.max(0, 1 - p.tx / p.est) : 1;
+    const h = +t.slice(0, 2); (byH[h] = byH[h] || []).push({ f, w, est: p.est, keep });
   }
   for (const h in byH) {
     const row = H[h]; if (!row || row[0] <= 0) continue;
-    const target = Math.max(0, row[0] - row[1]);
+    const target = row[0];   /* 抵達＝機上總人數；桃機的轉機欄清晨不可信，不採用 */
     let sw = 0; for (const x of byH[h]) sw += x.w; if (!sw) continue;
     for (const x of byH[h]) {
-      const v = Math.min(target * x.w / sw, Math.round(x.est * 1.15));   /* 一班最多不超過機位 */
+      const v = Math.min(target * x.w / sw, Math.round(x.est * 1.25)) * x.keep;   /* 不超過機位，再扣轉機 */
       x.f._cal = v >= 50 ? Math.round(v / 5) * 5 : Math.round(v); n++;
     }
   }
