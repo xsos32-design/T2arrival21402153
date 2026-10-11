@@ -1,0 +1,82 @@
+name: 移民署人數（用你的電腦抓）
+
+# 移民署的「入出境人次預報」只開放台灣的網路連線，GitHub 自己的機器（在美國）連不到。
+# 所以這支工作流程指定在「你的電腦」上跑（self-hosted runner）。電腦關機時它就排隊等，
+# 看板會自動退回只用桃機的數字，不會壞。
+on:
+  schedule:
+    - cron: '4,34 * * * *'      # 每半小時一次（移民署每小時整點更新）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: imm
+  cancel-in-progress: true
+
+jobs:
+  imm:
+    runs-on: [self-hosted, Windows]
+    timeout-minutes: 6
+    steps:
+      - name: 抓移民署入出境人次，存到 data/imm.json
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+          $tw = [DateTime]::UtcNow.AddHours(8)
+          $stamp = $tw.ToString('yyyy-MM-dd HH:mm')
+
+          function Get-Imm([string]$code, [int]$topN) {
+            $rows = @(Invoke-RestMethod -Uri ("https://opendata.immigration.gov.tw/APIS/" + $code) -TimeoutSec 60)
+            $tot = 0; $nat = @{}; $age = @{}
+            foreach ($r in $rows) {
+              $n = [int]$r.paxCnt; $tot += $n
+              $k = [string]$r.nationality; if ($nat.ContainsKey($k)) { $nat[$k] += $n } else { $nat[$k] = $n }
+              $a = [string]$r.age;         if ($age.ContainsKey($a)) { $age[$a] += $n } else { $age[$a] = $n }
+            }
+            $top = [ordered]@{}
+            $nat.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First $topN | ForEach-Object { $top[$_.Key] = $_.Value }
+            return [ordered]@{ total = $tot; nat = $top; age = $age }
+          }
+
+          $cur = [ordered]@{
+            t     = $stamp
+            in2   = Get-Imm 'TPE12' 15     # 第二航廈 入境
+            out2  = Get-Imm 'TPE52' 15     # 第二航廈 出境
+            in1   = (Get-Imm 'TPE11' 0).total
+            out1  = (Get-Imm 'TPE51' 0).total
+            trans = (Get-Imm 'TPE3' 10)    # 全機場 過境
+          }
+
+          # 讀現有的檔，保留歷史（每小時一筆，留 7 天）——之後拿來對時段、校正用
+          $api = "https://api.github.com/repos/$env:REPO/contents/data/imm.json"
+          $hdr = @{ Authorization = "Bearer $env:GH_TOKEN"; 'User-Agent' = 'imm-relay'; Accept = 'application/vnd.github+json' }
+          $sha = $null; $hist = @()
+          try {
+            $old = Invoke-RestMethod -Uri ($api + '?ref=main') -Headers $hdr
+            $sha = $old.sha
+            $txt = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(($old.content -replace '\s','')))
+            $o = $txt | ConvertFrom-Json
+            if ($o.hist) { $hist = @($o.hist) }
+          } catch { }
+
+          $row = @($stamp, $cur.in2.total, $cur.out2.total, $cur.in1, $cur.out1, $cur.trans.total)
+          $hour = $stamp.Substring(0, 13)
+          $hist = @($hist | Where-Object { ([string]$_[0]).Substring(0, 13) -ne $hour }) + ,$row
+          if ($hist.Count -gt 168) { $hist = $hist[($hist.Count - 168)..($hist.Count - 1)] }
+          $cur['hist'] = $hist
+
+          $json = $cur | ConvertTo-Json -Depth 6 -Compress
+          $body = @{
+            message = "移民署人次 $stamp（第二航廈 入境 $($cur.in2.total)／出境 $($cur.out2.total)）"
+            content = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($json))
+            branch  = 'main'
+          }
+          if ($sha) { $body['sha'] = $sha }
+          Invoke-RestMethod -Method Put -Uri $api -Headers $hdr -Body ($body | ConvertTo-Json -Compress) -ContentType 'application/json; charset=utf-8' | Out-Null
+          Write-Host "OK $stamp  T2入境=$($cur.in2.total)  T2出境=$($cur.out2.total)  過境=$($cur.trans.total)"
