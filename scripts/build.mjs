@@ -1522,6 +1522,9 @@ async function main() {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
+  /* 移民署人數：由你電腦上的 self-hosted runner 寫進 repo 的 data/imm.json，這裡原樣發佈 */
+  try { await access('data/imm.json'); await copyFile('data/imm.json', join(OUT, 'imm.json')); console.log('已複製 data/imm.json → imm.json'); }
+  catch { console.log('還沒有 data/imm.json（移民署中繼還沒跑過），略過'); }
 
   console.log(`產生 ${n + 2} 個靜態頁 → ${OUT}/`);
   if (err) process.exitCode = 0; // 抓取失敗也要部署（頁面會顯示錯誤訊息）
