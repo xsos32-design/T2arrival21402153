@@ -684,7 +684,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-12a';
+var PAGE_V='2026-10-12b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1554,10 +1554,11 @@ document.getElementById('hide').addEventListener('click',function(){
 </script>
 <script>
 /* ── 桃機官方「每小時人數」校正（2026-10-12）────────────────────────────
-   桃機官網「機場人潮預測」有每小時、分航廈的抵達／出發人次，還分得出轉機。
-   GitHub 每 10 分鐘抓一次存成同網域的 pax.json。這裡把同一小時、第二航廈的班機
-   加總，依各班「座位×載客率（×不轉機比例）」的比重，把官方總數分回每一班。
-   每小時合計＝官方數字；個別班機仍是依比重分配，不是逐班實數。 */
+   桃機官網「機場人潮預測」有每小時、分航廈的抵達／出發人次。GitHub 每 10 分鐘抓一次
+   存成同網域的 pax.json。同一小時、第二航廈所有班機，依機型座位比重把官方「抵達人次」
+   分回每一班（＝機上總人數），再扣掉各航線的轉機比例得到入境。
+   10/12 更正：桃機另外給的「轉機人數」清晨幾乎等於全部（05 時 3,081 人裡 3,047 人），
+   但移民署同時段的入境名單有 1,260 位本國籍旅客——明顯不合，所以轉機那欄不採用。 */
 var OFFPAX=null, OFFPAX_T='', OFFPAX_N=0;
 var _paxOfRaw=paxOf;
 paxOf=function(f){
@@ -1579,17 +1580,18 @@ function offCalib(list, iso, kind){
     var t=hhmm(f.RTime)||hhmm(f.OTime); if(!t) return;
     var d=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; if(d!==want) return;
     var p=_paxOfRaw(f); if(!p.est) return;
-    var w=kind==='D'?p.est:(Math.max(0,p.est-p.tx)||1);
-    var h=+t.slice(0,2); (byH[h]=byH[h]||[]).push({f:f,w:w,est:p.est});
+    var w=p.est, keep=kind==='D'?1:(p.est?Math.max(0,1-p.tx/p.est):1);
+    var h=+t.slice(0,2); (byH[h]=byH[h]||[]).push({f:f,w:w,est:p.est,keep:keep});
   });
   for(var h in byH){
     var row=H[h]; if(!row) continue;
     if((kind==='D'?row[2]:row[0])<=0) continue;   /* 官方那小時是 0 班但我們有班機＝時間對不上，維持原本估法 */
-    var target=kind==='D'?row[2]:Math.max(0,row[0]-row[1]);
+    var target=kind==='D'?row[2]:row[0];   /* 抵達＝機上總人數（含轉機） */
     var sw=0; byH[h].forEach(function(x){ sw+=x.w; }); if(!sw) continue;
     byH[h].forEach(function(x){
-      var v=target*x.w/sw, cap=Math.round(x.est*1.15);      /* 一班最多不超過機位（避免那小時漏抓班機時灌到某一班） */
-      v=Math.min(v,cap); x.f._cal=v>=50?Math.round(v/5)*5:Math.round(v); n++; });
+      var v=Math.min(target*x.w/sw, Math.round(x.est*1.25));   /* 一班最多不超過機位 */
+      v=v*x.keep;                                               /* 扣轉機（出境不扣） */
+      x.f._cal=v>=50?Math.round(v/5)*5:Math.round(v); n++; });
   }
   return n;
 }
