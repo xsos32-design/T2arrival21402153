@@ -587,6 +587,9 @@
   .foldline i{margin-left:auto;font-style:normal;color:#0f766e}
   #offnote{font-size:12.5px;color:#0f766e;margin-top:4px}
   #offnote:empty{display:none}
+  #immnote{font-size:12.5px;color:#334155;margin-top:4px;line-height:1.6}
+  #immnote b{color:#0f172a} #immnote i{font-style:normal;color:#64748b}
+  #immnote:empty{display:none}
 </style>
 </head>
 <body>
@@ -696,7 +699,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-12b';
+var PAGE_V='2026-10-12c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1836,6 +1839,50 @@ render=function(){
   try{ webPost(); }catch(e){}
 };
 offLoad(function(){ if(lastRows.length) render(); });
+</script>
+<script>
+/* ── 移民署「入出境人次預報」（2026-10-12）───────────────────────────────
+   移民署只開放台灣的網路連線，所以由小韋電腦上的 GitHub 中繼每半小時抓一次，
+   存成同網域的 imm.json。資料是移民署依旅客名單算的「近 3 小時」人次（含國籍）。
+   電腦沒開、資料超過 3 小時就不顯示，看板照常用桃機的數字。 */
+var IMM=null;
+var NAT_ZH={TWN:'本國',USA:'美國',PHL:'菲律賓',JPN:'日本',KOR:'韓國',VNM:'越南',CHN:'中國',HKG:'香港',MAC:'澳門',THA:'泰國',
+  IDN:'印尼',MYS:'馬來西亞',SGP:'新加坡',AUS:'澳洲',CAN:'加拿大',DEU:'德國',GBR:'英國',FRA:'法國',BRA:'巴西',TUR:'土耳其',
+  IND:'印度',NZL:'紐西蘭',ITA:'義大利',NLD:'荷蘭',ESP:'西班牙',MMR:'緬甸',KHM:'柬埔寨',RUS:'俄羅斯',MEX:'墨西哥',CHE:'瑞士',
+  AUT:'奧地利',ISR:'以色列',ARE:'阿聯',SAU:'沙烏地',PAK:'巴基斯坦',BGD:'孟加拉',NPL:'尼泊爾',LKA:'斯里蘭卡',MNG:'蒙古',POL:'波蘭',
+  SWE:'瑞典',NOR:'挪威',DNK:'丹麥',FIN:'芬蘭',BEL:'比利時',IRL:'愛爾蘭',PRT:'葡萄牙',CZE:'捷克',HUN:'匈牙利',ZAF:'南非',ARG:'阿根廷',CHL:'智利'};
+function immAge(){
+  if(!IMM||!IMM.t) return 1e9;
+  var m=String(IMM.t).match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/); if(!m) return 1e9;
+  var t=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]).getTime();
+  return Math.round((Date.now()-t)/60000);
+}
+function immLine(key,label,topN,compact){
+  var d=IMM&&IMM[key]; if(!d||!d.total) return '';
+  var age=immAge(); if(age>180) return '';
+  var nat=[], k, i=0;
+  for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(i++>=topN) break; nat.push((NAT_ZH[k]||k)+' '+Number(d.nat[k]).toLocaleString()); }
+  var hm=String(IMM.t).slice(11,16);
+  if(compact) return '<b>移民署</b> '+label+' '+Number(d.total).toLocaleString()+' 人'+(nat.length?'（'+nat.slice(0,2).join('、')+'）':'')+' <i>'+hm+'</i>';
+  return IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<b>'+Number(d.total).toLocaleString()+' 人</b>'
+    +(nat.length?'　'+nat.join('　·　'):'')+'　<i>'+hm+' 更新'+(age>75?'，較舊':'')+'</i>';
+}
+function immLoad(cb){
+  try{
+    fetch('imm.json?v='+Math.floor(Date.now()/300000)).then(function(r){ return r.ok?r.json():null; })
+      .then(function(j){ IMM=j; if(cb) cb(); })['catch'](function(){});
+  }catch(e){}
+}
+function immPaint(id,anchorSel,key,label,topN,compact){
+  var el=document.getElementById(id);
+  if(!el){ var a=document.querySelector(anchorSel); if(!a) return;
+    el=document.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
+  el.innerHTML=immLine(key,label,topN,compact);
+}
+</script>
+<script>
+immLoad(function(){ immPaint('immnote','#status','in2','第二航廈入境',6,false); });
+setInterval(function(){ immLoad(function(){ immPaint('immnote','#status','in2','第二航廈入境',6,false); }); },600000);
 </script>
 </body>
 </html>
