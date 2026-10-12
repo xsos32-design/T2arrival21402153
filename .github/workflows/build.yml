@@ -25,7 +25,8 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    # 固定版本：GitHub 10/19 起 ubuntu-latest 會換成 Ubuntu 26，先鎖住免得哪天突然壞
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -47,6 +48,15 @@ jobs:
       - name: 取出程式碼
         uses: actions/checkout@v4
 
+      # 剛改過程式（12 分鐘內有新 commit）就一定重建。
+      # 不然推上來那次常被「每 5 分鐘」那輪擠掉，接手的那輪又剛好在離峰略過，改了要等很久才看得到。
+      - name: 檢查是不是剛改過
+        id: fresh
+        run: |
+          AGE=$(( $(date +%s) - $(git log -1 --format=%ct) ))
+          echo "最新 commit 是 $AGE 秒前"
+          if [ "$AGE" -lt 720 ]; then echo "force=1" >> "$GITHUB_OUTPUT"; else echo "force=0" >> "$GITHUB_OUTPUT"; fi
+
       - name: 安裝 Node
         uses: actions/setup-node@v4
         with:
@@ -61,7 +71,7 @@ jobs:
           TDX_ID: ${{ secrets.TDX_ID }}
           TDX_SECRET: ${{ secrets.TDX_SECRET }}
           # 推程式碼上來的那一次一定要重建，不然改了看不到
-          FORCE_BUILD: ${{ github.event_name == 'push' && '1' || '0' }}
+          FORCE_BUILD: ${{ (github.event_name == 'push' || steps.fresh.outputs.force == '1') && '1' || '0' }}
 
       - name: 設定 Pages
         if: steps.build.outputs.skip != 'true'

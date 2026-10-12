@@ -58,18 +58,44 @@ jobs:
             // 讀現有的檔，保留歷史（每小時一筆，留 7 天）——之後拿來對時段、校正用
             const { owner, repo } = context.repo;
             const path = 'data/imm.json';
-            let sha, hist = [];
+            let sha, hist = [], prevTpe = {};
             try {
               const { data } = await github.rest.repos.getContent({ owner, repo, path, ref: 'main' });
               sha = data.sha;
               const o = JSON.parse(Buffer.from(data.content, 'base64').toString('utf8'));
               if (Array.isArray(o.hist)) hist = o.hist;
+              if (o.tpe && typeof o.tpe === 'object') prevTpe = o.tpe;
             } catch (e) { core.info('沒有舊檔，從頭開始'); }
+
+            // 順便存桃機官方每小時人數（今天），之後拿來跟移民署對時段、算比例。留 7 天。
+            let tpe = {};
+            try {
+              const r = await fetch('https://www.taoyuanairport.com.tw/backend/adip/getPredictionOfFlightCapacityOnTheHour', {
+                method: 'POST', signal: AbortSignal.timeout(30000),
+                headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                           Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/hfpv' },
+                body: JSON.stringify({ date: stamp.slice(0, 10) }),
+              });
+              const j = r.ok ? await r.json() : null;
+              const ds = j && j.data && j.data.dataset;
+              if (Array.isArray(ds) && ds.length) {
+                const o = {};
+                for (const x of ds) {
+                  const h = +String(x.hourStart || '').slice(0, 2); if (isNaN(h)) continue;
+                  o[h] = [+x.t1ArrivalNum || 0, +x.t2ArrivalNum || 0, +x.t1DepartureNum || 0, +x.t2DepartureNum || 0,
+                          +x.arrivalTransferNum || 0, +x.t1ArrivalTransferNum || 0];
+                }
+                tpe[stamp.slice(0, 10)] = o;
+              }
+            } catch (e) { core.info('桃機每小時人數這次抓不到：' + e.message); }
 
             const row = [stamp, cur.in2.total, cur.out2.total, cur.in1, cur.out1, cur.trans.total];
             const hour = stamp.slice(0, 13);
             hist = hist.filter(h => String(h[0]).slice(0, 13) !== hour).concat([row]).slice(-168);
             cur.hist = hist;
+            const tpeAll = Object.assign({}, prevTpe, tpe);
+            cur.tpe = {};
+            Object.keys(tpeAll).sort().slice(-7).forEach(k => { cur.tpe[k] = tpeAll[k]; });
 
             await github.rest.repos.createOrUpdateFileContents({
               owner, repo, path, branch: 'main', sha,
