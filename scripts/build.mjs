@@ -9,7 +9,7 @@
  * 這裡把「要資料」這件事整個搬到 GitHub 的機器上做，手錶只負責顯示文字。
  */
 
-import { mkdir, writeFile, copyFile, access, readFile } from 'node:fs/promises';
+import { mkdir, writeFile, copyFile, access, readFile, readdir } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
@@ -1514,7 +1514,7 @@ async function main() {
   } catch { console.log('讀不到 index.html，略過 ver.json'); }
 
   /* 把有 JavaScript 的手機／電腦版一起帶上（如果存在的話） */
-  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'cyber.html', 'watchsize.html', 'watchclock.html', 'soonsweep.html', 'cityicon.html', 'depart.html', 'luxe.html', 'tune.html', 'preview.html',
+  for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'depart.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
                    'app-tdx.webmanifest', 'app-tdxall.webmanifest',
@@ -1522,6 +1522,13 @@ async function main() {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
+  /* 試作／預覽頁：10/13 起都收在 preview/ 資料夾，整包照原樣發佈 */
+  try {
+    const pv = await readdir('preview');
+    await mkdir(join(OUT, 'preview'), { recursive: true });
+    for (const f of pv) if (/\.(html|png|json|txt)$/.test(f)) await copyFile(join('preview', f), join(OUT, 'preview', f));
+    console.log('已複製 preview/（' + pv.length + ' 個檔）');
+  } catch { console.log('沒有 preview/ 資料夾，略過'); }
   /* 移民署人數：由你電腦上的 self-hosted runner 寫進 repo 的 data/imm.json，這裡原樣發佈 */
   try { await access('data/imm.json'); await copyFile('data/imm.json', join(OUT, 'imm.json')); console.log('已複製 data/imm.json → imm.json'); }
   catch { console.log('還沒有 data/imm.json（移民署中繼還沒跑過），略過'); }
