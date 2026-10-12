@@ -14,6 +14,7 @@ on:
 # 部署到 GitHub Pages 需要的權限
 permissions:
   contents: read
+  actions: write     # 讓這支能叫醒「移民署人數」那支（GitHub 自己的排程在這個專案不會跑）
   pages: write
   id-token: write
 
@@ -29,6 +30,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      # GitHub 內建排程在這個專案不會觸發，所以由這支（外部每 5 分鐘叫一次）
+      # 每半小時叫醒一次「移民署人數」（在小韋電腦上跑）。失敗也不影響看板。
+      - name: 每半小時叫醒移民署抓取
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          M=$((10#$(date -u +%M)))
+          if [ $((M % 30)) -ge 5 ] && [ $((M % 30)) -lt 10 ]; then
+            gh workflow run imm.yml --ref main -R "$GITHUB_REPOSITORY" && echo "已叫醒移民署抓取"
+          else
+            echo "這輪不用（分鐘=$M）"
+          fi
+
       - name: 取出程式碼
         uses: actions/checkout@v4
 
