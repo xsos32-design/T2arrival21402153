@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>快抵達掃光 · 預覽</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:#070A0F;color:#C9D1DA;
+ font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;
+ font-size:14px;line-height:1.5;padding:14px 12px 60px}
+h1{font-family:ui-monospace,Menlo,monospace;font-size:14px;letter-spacing:.14em;
+ color:#00EFD4;text-transform:uppercase;margin:0 0 4px}
+.sub{font-size:12.5px;color:#6E7683;margin:0 0 14px;line-height:1.6}
+.bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;position:sticky;top:0;
+ background:#070A0F;padding:8px 0;z-index:50;border-bottom:1px solid #161C25}
+.b{border:1px solid #2A323E;background:#0E131A;color:#AEB7C2;font:inherit;font-size:13px;
+ font-weight:800;padding:8px 12px;cursor:pointer;border-radius:0}
+.b.on{border-color:#00EFD4;color:#4DF6E2;background:rgba(0,239,212,.14);
+ box-shadow:inset 0 0 0 1px #00EFD4}
+section{margin:0 0 26px}
+.tt{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:0 0 7px}
+.tt b{font-size:16px;font-weight:900;color:#E7C785}
+.tt em{font-style:normal;font-size:12.5px;color:#8A94A1;flex:1 1 auto;min-width:0}
+.pick{border:1px solid #3A4453;background:#0E131A;color:#AEB7C2;font:inherit;font-size:12px;
+ font-weight:800;padding:5px 11px;cursor:pointer}
+.pick.on{border-color:#FFC53D;color:#0A0D12;background:#FFC53D}
+
+/* ───────── 卡片：深色賽博皮（照抄現行樣式的骨架） ───────── */
+.wrap.dark{background:#070A0F;padding:8px}
+.dark .r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 76px;gap:2px 9px;
+ grid-template-areas:"time fno gate" "shop city st";align-items:center;overflow:hidden;
+ background:#0C1016;border:1px solid #1A1F27;padding:8px 10px 8px 13px;margin-bottom:6px;
+ position:relative;border-radius:0}
+.dark .r.r40{background:#064F47;border-color:#2A9A90;box-shadow:inset 6px 0 0 #00EFD4}
+.dark .r.r53{background:#6B0F33;border-color:#B83E5C;box-shadow:inset 6px 0 0 #FF2E6E}
+.dark .r.soon{--bar:#D9A441;border-color:#FFC53D;z-index:2;
+ box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.dark .r.soon.r40{--bar:#00EFD4}
+.dark .r.soon.r53{--bar:#FF2E6E}
+.dark .t{grid-area:time;font-family:ui-monospace,Menlo,monospace;font-size:21px;font-weight:900;
+ color:#fff;letter-spacing:-.02em}
+.dark .f{grid-area:fno;font-family:ui-monospace,Menlo,monospace;font-size:19px;font-weight:900;
+ color:#E7E9ED;letter-spacing:-.03em}
+.dark .g{grid-area:gate;justify-self:end;font-family:ui-monospace,Menlo,monospace;
+ font-size:17px;font-weight:900;padding:1px 7px;background:#232A34;color:#9AA3B0}
+.dark .r.r40 .g{background:#00EFD4;color:#042321}
+.dark .r.r53 .g{background:#FF2E6E;color:#2B0710}
+.dark .sh{grid-area:shop;font-size:11.5px;font-weight:900;padding:1px 6px;
+ background:rgba(0,0,0,.45);color:#C9D1DA}
+.dark .ct{grid-area:city;font-size:13px;color:#C3CAD4;min-width:0;overflow:hidden;
+ text-overflow:ellipsis;white-space:nowrap}
+.dark .ct i{font-style:normal;font-size:11px;font-weight:900;padding:0 5px;margin-left:5px;
+ background:rgba(0,0,0,.45);color:#FFC53D}
+.dark .st{grid-area:st;justify-self:end;font-size:11.5px;font-weight:900;padding:1px 6px;
+ border:1px solid #2f6b3f;color:#86D9A0;background:rgba(134,217,160,.08)}
+
+/* ───────── 卡片：淺色皮 ───────── */
+.wrap.light{background:#eef1f4;padding:8px}
+.light .r{display:grid;grid-template-columns:58px 78px 44px minmax(0,1fr) 62px;gap:7px;
+ align-items:center;padding:9px 10px;border-top:1px solid #e3e7eb;background:#f6f8fa;
+ position:relative;overflow:hidden;color:#1f2933}
+.light .r:first-child{border-top:none}
+.light .r.r40{background:#cdf1ee;box-shadow:inset 8px 0 0 #17A9A0}
+.light .r.r53{background:#fbd9e3;box-shadow:inset 8px 0 0 #B81E4A}
+.light .r.soon{--bar:0 0 0 0 transparent;background:#fffbe8;z-index:2;
+ box-shadow:inset 0 0 0 3px #eab308,0 0 14px 0 rgba(234,179,8,.45)}
+.light .r.soon.r40{--bar:inset 8px 0 0 #17A9A0;box-shadow:inset 8px 0 0 #17A9A0,inset 0 0 0 3px #eab308,0 0 14px 0 rgba(234,179,8,.45)}
+.light .r.soon.r53{--bar:inset 8px 0 0 #B81E4A;box-shadow:inset 8px 0 0 #B81E4A,inset 0 0 0 3px #eab308,0 0 14px 0 rgba(234,179,8,.45)}
+.light .t{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums}
+.light .f{font-size:15px;font-weight:800}
+.light .g{font-size:13.5px;font-weight:900;padding:1px 7px;border-radius:6px;background:#e4e8ec}
+.light .r.r40 .g{background:#17A9A0;color:#fff}
+.light .r.r53 .g{background:#B81E4A;color:#fff}
+.light .sh{display:none}
+.light .ct{font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.light .ct i{font-style:normal;font-size:11.5px;font-weight:900;padding:0 5px;margin-left:5px;
+ border-radius:5px;background:#fde9b0;color:#7a5a08}
+.light .st{justify-self:end;font-size:11px;font-weight:900;padding:2px 5px;border-radius:6px;
+ background:#e5f5ea;color:#14532d}
+
+/* ═════════════ 掃光本體 ═════════════
+   做法：在 .r.soon 上加一個 ::before 當光條，用 transform 位移（GPU 合成，不會卡捲動）。
+   z-index:-1 讓它壓在底色上面、文字下面——文字永遠不會被洗掉。
+   .r.soon 本來就有 position:relative + z-index，所以 -1 不會跑到卡片後面去。 */
+.r.soon::before{content:"";position:absolute;top:0;bottom:0;left:0;width:46%;
+ z-index:-1;pointer-events:none;will-change:transform;
+ transform:translateX(-130%) skewX(-18deg);
+ animation:sweep var(--spd,2.8s) var(--ease,cubic-bezier(.4,0,.2,1)) infinite}
+@keyframes sweep{
+ 0%  {transform:translateX(-130%) skewX(-18deg)}
+ 55% {transform:translateX(330%)  skewX(-18deg)}
+ 100%{transform:translateX(330%)  skewX(-18deg)}}
+
+/* 甲：白光一道 */
+.v-a .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.42) 50%,transparent 100%)}
+.light.v-a .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.95) 50%,transparent 100%)}
+/* 乙：金光一道 */
+.v-b .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(255,197,61,.55) 50%,transparent 100%)}
+.light.v-b .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(250,204,21,.70) 50%,transparent 100%)}
+/* 丙：寬掃＋柔亮 */
+.v-c .r.soon::before{width:85%;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,221,130,.16) 25%,rgba(255,235,180,.42) 50%,rgba(255,221,130,.16) 75%,transparent 100%)}
+.light.v-c .r.soon::before{width:85%;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.4) 25%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.4) 75%,transparent 100%)}
+/* 丁：雙細線 */
+.v-d .r.soon::before{width:34%;
+ background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 42%,transparent 50%,transparent 58%,rgba(255,197,61,.8) 70%,transparent 80%)}
+.light.v-d .r.soon::before{width:34%;
+ background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,1) 42%,transparent 50%,transparent 58%,rgba(250,204,21,.9) 70%,transparent 80%)}
+/* 戊：金光掃過＋原本的呼吸光暈一起 */
+.v-e .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(255,197,61,.5) 50%,transparent 100%)}
+.light.v-e .r.soon::before{background:linear-gradient(100deg,transparent 0%,rgba(250,204,21,.7) 50%,transparent 100%)}
+.dark.v-e .r.soon{animation:glowD 2.4s ease-in-out infinite}
+.light.v-e .r.soon{animation:glowL 2.4s ease-in-out infinite}
+@keyframes glowD{
+ 0%,100%{box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 12px -6px rgba(255,197,61,.6)}
+ 50%    {box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 32px -2px rgba(255,197,61,1)}}
+@keyframes glowL{
+ 0%,100%{box-shadow:var(--bar),inset 0 0 0 3px #eab308,0 0 8px 0 rgba(234,179,8,.3)}
+ 50%    {box-shadow:var(--bar),inset 0 0 0 3px #eab308,0 0 20px 2px rgba(234,179,8,.75)}}
+/* 無：不掃，就是現在的樣子 */
+.v-none .r.soon::before{display:none}
+
+/* 錯開：每張卡片差 0.35 秒，像波浪一張一張掃過去 */
+.stag .r.soon:nth-of-type(2)::before{animation-delay:.35s}
+.stag .r.soon:nth-of-type(3)::before{animation-delay:.7s}
+.stag .r.soon:nth-of-type(4)::before{animation-delay:1.05s}
+.stag .r.soon:nth-of-type(5)::before{animation-delay:1.4s}
+
+.note{border-left:2px solid #5C4718;background:#0E1217;color:#818A98;
+ font-size:12.5px;line-height:1.75;padding:10px 12px;margin-top:18px}
+.note b{color:#C3CAD4}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#E7C785}
+@media (prefers-reduced-motion:reduce){
+ .r.soon::before{animation:none;opacity:0}
+ .v-e .r.soon{animation:none}}
+</style>
+</head>
+<body>
+
+<h1>快抵達掃光 · 預覽</h1>
+<p class="sub">
+45 分鐘內要到的班機（金框那幾張）整張色卡從左到右掃過一道光。<br>
+五種做法擺一起比，<b>上面的鍵可以切速度、主題、同步／錯開</b>。手錶版不做。
+</p>
+
+<div class="bar">
+  <button class="b on" data-spd="2.8s">中速</button>
+  <button class="b" data-spd="4.2s">慢</button>
+  <button class="b" data-spd="1.8s">快</button>
+  <button class="b on" data-k="stag">錯開</button>
+  <button class="b" data-k="light">淺色模式</button>
+</div>
+
+<div id="host"></div>
+
+<div class="note">
+<b>幾件先講清楚的事</b><br>
+① 光條用 <code>transform</code> 位移，瀏覽器丟給 GPU 畫，<b>不會像以前的輪詢那樣卡捲動</b>。<br>
+② 光條壓在底色上面、<b>文字下面</b>，所以班號和登機門不會被洗白。<br>
+③ 系統開「<b>減少動態效果</b>」的人完全看不到掃光，只剩現在的金框。這是故意的。<br>
+④ 同時有好幾張快到的時候，<b>錯開</b>比較不會整排一起閃；要整齊的話選同步。<br>
+⑤ <b>手錶版不加</b>——持續動畫會吃電，而且 198px 的卡片掃不出效果。
+</div>
+
+<script>
+var VARIANTS=[
+ ['v-none','無（現在的樣子）','只有金框和呼吸光暈，沒有掃光。當對照組用'],
+ ['v-a','甲 · 白光一道','最經典的那種反光。深色上面很明顯，淺色上面比較含蓄'],
+ ['v-b','乙 · 金光一道','跟現有的金框同一個色系，整體最協調'],
+ ['v-c','丙 · 寬掃＋柔亮','光條很寬，像整張卡片被照亮再暗下去。最不刺眼'],
+ ['v-d','丁 · 雙細線','一白一金兩道細線，科技感最強，也最跳'],
+ ['v-e','戊 · 金光掃過＋呼吸光暈','乙 再疊上現在的呼吸效果。最明顯，也最吵']
+];
+function card(cls,t,f,g,sh,city,pax,st){
+ return '<div class="r '+cls+'">'
+  +'<span class="t">'+t+'</span>'
+  +'<span class="f">'+f+'</span>'
+  +'<span class="g">'+g+'</span>'
+  +'<span class="sh">'+sh+'</span>'
+  +'<span class="ct">'+city+'<i>'+pax+'</i></span>'
+  +'<span class="st">'+st+'</span></div>';
+}
+var ROWS =
+  card('r40 soon','21:05','BR 68','C5','2140','東京成田','238 預估入境','準時')
++ card('r53 soon','21:12','CI 101','B9','2153','首爾仁川','176 預估入境','提早')
++ card('soon','21:20','JX 721','D4','其他二航','河內','141 預估入境','準時')
++ card('r40','22:40','BR 226','C7','2140','曼谷','203 預估入境','準時')
++ card('r53','23:15','CI 783','B6','2153','新加坡','188 預估入境','延遲');
+
+var host=document.getElementById('host');
+host.innerHTML=VARIANTS.map(function(v){
+ return '<section>'
+  +'<div class="tt"><b>'+v[1]+'</b><em>'+v[2]+'</em></div>'
+  +'<div class="wrap dark stag '+v[0]+'">'+ROWS+'</div>'
+  +'</section>';
+}).join('');
+
+function apply(){
+ var light=document.querySelector('.b[data-k="light"]').classList.contains('on');
+ var stag =document.querySelector('.b[data-k="stag"]').classList.contains('on');
+ var spd  =document.querySelector('.b.on[data-spd]').getAttribute('data-spd');
+ [].forEach.call(document.querySelectorAll('.wrap'),function(w){
+  w.classList.toggle('light',light); w.classList.toggle('dark',!light);
+  w.classList.toggle('stag',stag);
+  w.style.setProperty('--spd',spd);
+ });
+ document.body.style.background=light?'#dfe4e9':'#070A0F';
+ document.body.style.color=light?'#1f2933':'#C9D1DA';
+ document.querySelector('.bar').style.background=light?'#dfe4e9':'#070A0F';
+}
+[].forEach.call(document.querySelectorAll('.b[data-spd]'),function(b){
+ b.addEventListener('click',function(){
+  [].forEach.call(document.querySelectorAll('.b[data-spd]'),function(x){x.classList.remove('on');});
+  b.classList.add('on'); apply();
+ });
+});
+[].forEach.call(document.querySelectorAll('.b[data-k]'),function(b){
+ b.addEventListener('click',function(){ b.classList.toggle('on'); apply(); });
+});
+apply();
+</script>
+</body>
+</html>
