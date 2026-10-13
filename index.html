@@ -723,7 +723,7 @@
   <div class="notice">
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 桃機公開資料，僅供參考，<b>一律以現場為準</b><br>
     <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝已扣轉機的入境人數。<b>機上人數用桃機官方每小時抵達人次</b>依機型分到各班，再扣各航線轉機比例。同分鐘抵達時入境多的排前面<br>
-    入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-taxi">滑行中</span> <span class="badge b-none">已到</span><br>
+    入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i>　狀態 <span class="badge b-ok">準時</span> <span class="badge b-early">提早</span> <span class="badge b-warn">延遲</span> <span class="badge b-bad">取消</span> <span class="badge b-taxi">滑行</span> <span class="badge b-ok">抵達</span><br>
     本頁固定不顯示 06:00–13:30 的班機
   </div>
 
@@ -739,7 +739,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-13f';
+var PAGE_V='2026-10-13g';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -992,16 +992,14 @@ function statusOf(f){
      另外用藍色實心標籤標出來（桃機原始資料才有，TDX 沒有這欄） */
   var taxi=!/取消/.test(memo)&&/滑行/.test(cur);
   if(/取消/.test(memo)) cls='b-bad';
-  else if(taxi){ cls='b-taxi'; text='落地・滑行中'; }
+  else if(taxi){ cls='b-taxi'; text='滑行'; }
   else if(/延遲|延誤|提早|變更/.test(memo)) cls='b-warn';
-  else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; }
+  else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; text='抵達'; }  /* 落地後只分兩種：滑行／抵達 */
   if(!text) text='預計';
   /* 極窄螢幕用的縮寫，但仍保留「哪一種狀態」的區別 */
   var short = /取消/.test(memo)     ? '取消'
-            : /抵達機坪/.test(cur)  ? '抵達'
-            : /滑行/.test(cur)      ? '滑行'
-            : /降落/.test(cur)      ? '降落'
-            : /已到/.test(memo)     ? '已到'
+            : taxi                  ? '滑行'
+            : done                  ? '抵達'
             : /提早/.test(memo)     ? '提早'
             : /延遲|延誤/.test(memo)? '延遲'
             : /準時/.test(memo)     ? '準時'

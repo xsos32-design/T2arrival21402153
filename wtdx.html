@@ -566,9 +566,9 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> TDX 資料。開頁先給<b>上次存的</b>再抓新的；快照超過 15 分鐘自動改連即時，<b>一律以現場為準</b><br>
 <svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝已扣轉機的入境人數。<b>機上人數用桃機官方每小時抵達人次</b>依機型分到各班，再扣各航線轉機比例。同分鐘抵達時入境多的排前面<br>
 入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
-狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-none">已到</span><br>
+狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-taxi">滑行</span> <span class="st b-ok">抵達</span><br>
 本頁固定不顯示 06:00–13:30 的班機<br>
-此來源沒有「滑行中／抵達機坪」，抵達一律顯示「已到」</div>
+「滑行」另外向桃機即時查：你的班機快落地時才查（省流量），查不到就照常顯示「抵達」</div>
 <div class="foot">點最上面那條可重讀快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="wtest.html">連線測試</a>　<a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="watch-static.html">預先產生版</a></div>
 
 <script>
@@ -576,7 +576,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-13f';
+var PAGE_V='2026-10-13g';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -748,10 +748,15 @@ function setBtn(id,icon,txt){
   if(b) b.innerHTML=IC(icon)+' '+esc(txt);
 }
 
+/* 班號統一成「航空公司＋去掉前導 0 的號碼」：TDX 的 CI0112、桃機的 CI 112 都變 CI112 */
+var TAXI={};
+function codeKey(c){ c=String(c||'').toUpperCase().replace(/\s+/g,''); var m=c.match(/^([A-Z0-9]{2})0*(\d+[A-Z]?)$/); return m?m[1]+m[2]:c; }
 function statusOf(f){
   var memo=f.Memo||'';
   if(/取消/.test(memo)) return {txt:'取消', cls:'bad', done:false};
-  if(/已到/.test(memo)) return {txt:'已到', cls:'ok',  done:true };
+  /* 滑行：TDX 沒有這欄，另外向桃機即時查（見最下面 taxiLoad）。已落地、還沒靠橋，不算抵達 */
+  if(TAXI[codeKey(f.flightCode)]) return {txt:'滑行', cls:'taxi', done:false};
+  if(/已到/.test(memo)) return {txt:'抵達', cls:'ok',  done:true };
   if(/延遲|延誤/.test(memo)) return {txt:'延遲', cls:'warn',done:false};
   /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
   if(/更改|變更/.test(memo)){
@@ -1016,7 +1021,7 @@ function rowHtml(f,nowMin){
     sub='表定'+(d?(d>0?' +':' −')+Math.abs(d):'');
   } else { big=sch; tc='plan'; sub='表定'; }
   var eta=mins(big)-nowMin;
-  var cls=st.done?'done':((nowMin>=0&&eta>=0&&eta<=45)?'soon':'');
+  var cls=st.done?'done':(st.cls==='taxi'?'taxi':((nowMin>=0&&eta>=0&&eta<=45)?'soon':''));
   var shop=shopOf(f);
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
@@ -1934,5 +1939,58 @@ render=function(){ _renderG(); try{ gateTrack('.f','.g .gn',true); }catch(e){} }
 </script>
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
 <link rel="stylesheet" href="ds/board.css">
+<style>
+/* 滑行中：藍色實心＋卡片藍框，不變暗 */
+.st.b-taxi{background:#4da3ff!important;color:#fff!important;border-color:#4da3ff!important;animation:taxiPulse 1.6s ease-in-out infinite}
+@keyframes taxiPulse{0%,100%{box-shadow:0 0 0 0 rgba(77,163,255,0)}50%{box-shadow:0 0 12px 2px rgba(77,163,255,.8)}}
+.r.taxi{outline:2px solid #4da3ff;outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.st.b-taxi{animation:none}}
+</style>
+<script>
+/* ── 手錶版「滑行」（2026-10-13）──────────────────────────────────────
+   TDX 沒有「地面滑行」，桃機官網的即時資料才有。那包約 190KB，手錶不能一直抓，
+   所以只在「2140／2153 有班機 40 分鐘前～10 分鐘後落地」時才查，最多 2 分鐘一次，
+   螢幕暗掉就不查。查不到（斷線、被擋）就當作沒有滑行，畫面照常。 */
+(function(){
+  var API='https://www.taoyuan-airport.com/api/api/flight/a_flight', last=0, busy=false;
+  function near(){
+    var d=new Date(), now=d.getHours()*60+d.getMinutes(), hit=false;
+    (DATA||[]).forEach(function(f){
+      if(hit||/取消/.test(String(f.Memo||''))) return;
+      var sh; try{ sh=shopOf(f); }catch(e){ return; }
+      if(sh!=='c0'&&sh!=='c1') return;
+      var t=hhmm(f.RTime)||hhmm(f.OTime); if(!t) return;
+      var dt=mins(t)-now; if(dt<-720) dt+=1440; if(dt>720) dt-=1440;
+      if(dt>=-40&&dt<=10) hit=true;
+    });
+    return hit;
+  }
+  function taxiLoad(force){
+    if(busy||document.hidden) return;
+    if(!force&&Date.now()-last<120000) return;
+    if(!near()){ if(Object.keys(TAXI).length){ TAXI={}; render(); } return; }
+    busy=true; last=Date.now();
+    var d=new Date(), od=d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate()), done=false;
+    var to=setTimeout(function(){ done=true; busy=false; },20000);
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({AState:'A',ODate:od,language:'ch'})})
+      .then(function(r){ return r.json(); })
+      .then(function(a){
+        if(done) return; clearTimeout(to); busy=false;
+        var m={};
+        (a||[]).forEach(function(f){
+          if(!/滑行/.test(String(f.CurrentStatus||''))) return;
+          m[codeKey(String(f.ACode||'')+String(f.FlightNo||''))]=1;
+          (f.sharing||[]).forEach(function(x){ var c=typeof x==='string'?x:((x&&(x.flightCode||((x.ACode||'')+(x.FlightNo||''))))||''); if(c) m[codeKey(c)]=1; });
+        });
+        var changed=JSON.stringify(m)!==JSON.stringify(TAXI);
+        TAXI=m; if(changed) render();
+      })['catch'](function(){ if(!done){ clearTimeout(to); busy=false; } });
+  }
+  window.taxiLoad=taxiLoad;
+  setTimeout(function(){ taxiLoad(true); },3000);
+  setInterval(function(){ taxiLoad(false); },30000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) taxiLoad(false); });
+})();
+</script>
 </body>
 </html>
