@@ -127,7 +127,7 @@ function v2Next(){
     if(!t||!tg) return;
     var m=String(t.textContent).match(/(\d\d):(\d\d)/); if(!m) return;
     var eta=(+m[1])*60+(+m[2])-nowM; if(eta<-720) eta+=1440;
-    if(eta<0||eta>60) return;
+    if((eta<0&&!r.classList.contains('taxi'))||eta>60) return;
     var k=String(tg.textContent).trim(), n=px?parseInt(px.textContent,10)||0:0;
     if(!sum[k]) sum[k]={f:0,p:0}; sum[k].f++; sum[k].p+=n;
   });
