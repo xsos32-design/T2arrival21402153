@@ -485,6 +485,10 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 #immnote .imold{color:#FF7A95;font-weight:700;font-size:12.5px}
 .nat{display:inline-block;font-style:normal;font-weight:800;font-size:12.5px;margin-left:4px;padding:0 5px;
   background:rgba(255,197,61,.14);color:#FFC53D;border:1px solid #7a5c12;vertical-align:middle;white-space:nowrap}
+#holnote:empty{display:none}
+#holnote .holi{font-size:13px;color:#C3CAD4;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #4DA3FF;padding:5px 8px;margin:-3px 0 7px;line-height:1.45}
+#holnote .holi b{color:#fff} #holnote .holi i{font-style:normal;color:#FFC53D;font-weight:800}
+.gchg{display:block;font-style:normal;font-size:11px;font-weight:900;color:#fff;background:#FF2E6E;padding:0 4px;margin-top:2px;text-align:center;white-space:nowrap}
 #immnote:empty{display:none}
 </style>
 </head>
@@ -570,7 +574,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-13a';
+var PAGE_V='2026-10-13b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1761,14 +1765,21 @@ function immAge(){
 }
 function immLine(key,label,topN,compact){
   var d=IMM&&IMM[key]; if(!d||!d.total) return '';
-  var age=immAge(); if(age>180) return '';
+  var age=immAge();
+  /* 超過 3 小時沒更新：不再整行消失，改成明講「電腦沒開」，免得以為壞了 */
+  if(age>180){
+    if(!IMM||!IMM.t) return '';
+    var st=String(IMM.t).slice(5,16).replace('-','/');
+    return compact?'<span class="imold">⚠ 移民署停在 '+st+'</span>'
+      :'<span class="imold">⚠ 移民署資料停在 '+st+'；人數照常用桃機官方數字。</span>';
+  }
   var nat=[], k, i=0;
   for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(compact&&k==='TWN') continue; if(i++>=topN) break;
     nat.push('<span class="imc">'+(NAT_ZH[k]||k)+' <b>'+Number(d.nat[k]).toLocaleString()+'</b></span>'); }
   var hm=String(IMM.t).slice(11,16);
   /* 超過 75 分鐘沒更新＝小韋電腦可能睡著了，直接寫出來，不要只是變淡 */
   var old=age>75;
-  var when=old?'<span class="imold">⚠ '+hm+' 的資料（'+age+' 分鐘前，電腦可能沒開）</span>':'<i>'+hm+' 更新</i>';
+  var when=old?'<span class="imold">⚠ '+hm+' 的資料（'+age+' 分鐘前）</span>':'<i>'+hm+' 更新</i>';
   if(compact) return '<b>移民署</b> '+label+' <em>'+Number(d.total).toLocaleString()+'</em> 人'
     +(nat.length?' <span class="imn">'+nat.slice(0,1).join(' ')+'</span>':'')+' '+(old?'<span class="imold">⚠ '+hm+'</span>':'<i>'+hm+'</i>');
   return '<div class="imh">'+IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<em>'+Number(d.total).toLocaleString()+' 人</em> '+when+'</div>'
@@ -1826,6 +1837,98 @@ function natTag(f){
 /* 手錶太窄，每班的國籍標籤會壓到狀態，所以手錶只顯示上面那行總數 */
 immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); });
 setInterval(function(){ immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); }); },600000);
+</script>
+<script>
+/* ── 各國連假提醒（2026-10-13）──────────────────────────────────────────
+   日本／韓國／中國的連假開始前 5 天到結束，在上面顯示一行。
+   連假頭一兩天外國旅客「入境」多，最後一兩天他們「回國（出境）」多。
+   日期來源：日本內閣府祝日、韓國官方公休日；中國 2027 年的放假安排要等國務院 11 月公布，
+   標「預估」的是照往例推的，公布後再改。這張表要每年更新一次。 */
+var HOLS=[
+  ['JP','日本','三連休','2026-11-21','2026-11-23'],
+  ['KR','韓國','聖誕三連休','2026-12-25','2026-12-27'],
+  ['JP','日本','年末年始','2026-12-26','2027-01-03'],
+  ['KR','韓國','元旦三連休','2027-01-01','2027-01-03'],
+  ['CN','中國','元旦三連休','2027-01-01','2027-01-03'],
+  ['JP','日本','成人之日三連休','2027-01-09','2027-01-11'],
+  ['KR','韓國','春節連假','2027-02-05','2027-02-08'],
+  ['CN','中國','春節（預估）','2027-02-05','2027-02-13'],
+  ['KR','韓國','三一節三連休','2027-02-27','2027-03-01'],
+  ['JP','日本','春分三連休','2027-03-20','2027-03-22'],
+  ['CN','中國','清明（預估）','2027-04-03','2027-04-05'],
+  ['JP','日本','黃金週','2027-05-01','2027-05-05'],
+  ['CN','中國','五一（預估）','2027-05-01','2027-05-05'],
+  ['KR','韓國','中秋連假','2027-09-14','2027-09-16']
+];
+var HOL_FLAG={JP:'🇯🇵',KR:'🇰🇷',CN:'🇨🇳'};
+var HOL_WHO={JP:'日客',KR:'韓客',CN:'陸客'};
+function holList(){
+  var d=new Date(); d.setHours(0,0,0,0);
+  var out=[];
+  HOLS.forEach(function(h){
+    var s=new Date(h[3]+'T00:00:00'), e=new Date(h[4]+'T00:00:00');
+    var toS=Math.round((s-d)/86400000), toE=Math.round((e-d)/86400000);
+    if(toS<=5&&toE>=0) out.push({h:h,toS:toS,toE:toE});
+  });
+  return out.slice(0,3);
+}
+function holLine(kind,compact){
+  var L=holList(); if(!L.length) return '';
+  var md=function(iso){ return (+iso.slice(5,7))+'/'+(+iso.slice(8,10)); };
+  return L.map(function(x){
+    var h=x.h, who=HOL_WHO[h[0]]||'', when;
+    if(x.toS>0) when=x.toS+' 天後';
+    else if(x.toE===0) when='今天最後一天';
+    else when='進行中';
+    var tip;
+    if(kind==='D') tip=(x.toE<=1?'這兩天'+who+'回國多':'最後一兩天'+who+'回國多');
+    else tip=(x.toS>0?'頭一兩天'+who+'入境多':(x.toS>=-1?'這兩天'+who+'入境多':who+'陸續回國中'));
+    if(compact) return '<div class="holi">'+(HOL_FLAG[h[0]]||'')+' <b>'+h[1]+h[2]+'</b> '+md(h[3])+'–'+md(h[4])+' <i>'+when+'</i></div>';
+    return '<div class="holi">'+(HOL_FLAG[h[0]]||'')+' <b>'+h[1]+h[2]+'</b> '+md(h[3])+'–'+md(h[4])
+      +'<i>（'+when+'）</i>　<span>'+tip+'</span></div>';
+  }).join('');
+}
+function holPaint(id,anchorSel,kind,compact){
+  var el=document.getElementById(id);
+  if(!el){ var a=document.querySelector(anchorSel); if(!a) return;
+    el=document.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
+  el.innerHTML=holLine(kind,compact);
+}
+</script>
+<script>
+/* ── 登機門變更提示（2026-10-13）────────────────────────────────────────
+   每次畫完就把「今天每班的登機門」記在這台裝置上。下次再開，門跟上次記的不一樣，
+   就在門旁邊標「門改 C5→C8」，標 3 小時。第一次看到的班機只記下來，不標。
+   記錄只放在你自己的手機／手錶裡（localStorage），跨日自動清掉。 */
+var GATE_KEY='gateMemo1';
+function gateTrack(codeSel,gateSel,compact){
+  var d=new Date(), day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(), now=Date.now();
+  var m=null; try{ m=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+  if(!m||m.day!==day) m={day:day,g:{}};
+  [].forEach.call(document.querySelectorAll('.r:not(.head)'),function(r){
+    var c=r.querySelector(codeSel), g=r.querySelector(gateSel);
+    var code=c?(String(c.textContent||'').toUpperCase().match(/[A-Z0-9]{2}\d{1,4}/)||[''])[0]:'';
+    var gate=g?String(g.textContent||'').trim().toUpperCase():'';
+    if(!code||!gate) return;
+    var rec=m.g[code];
+    if(!rec){ m.g[code]={g:gate}; return; }
+    if(rec.g!==gate){ rec.from=rec.g; rec.g=gate; rec.at=now; }
+    if(rec.from&&now-rec.at<3*3600000&&!g.parentNode.querySelector('.gchg')){
+      var t=document.createElement('i'); t.className='gchg';
+      t.textContent=compact?('原'+rec.from):('門改 '+rec.from+'→'+gate);
+      g.parentNode.appendChild(t);
+      r.classList.add('gmoved');
+    }
+  });
+  try{ localStorage.setItem(GATE_KEY,JSON.stringify(m)); }catch(e){}
+}
+</script>
+<script>
+/* 連假提醒＋登機門變更（2026-10-13） */
+holPaint('holnote','#hd','A',true);
+setInterval(function(){ holPaint('holnote','#hd','A',true); },3600000);
+var _renderG=render;
+render=function(){ _renderG(); try{ gateTrack('.f','.g .gn',true); }catch(e){} };
 </script>
 </body>
 </html>
