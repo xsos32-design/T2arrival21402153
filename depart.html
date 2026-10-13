@@ -731,7 +731,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-13d';
+var PAGE_V='2026-10-13e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2015,9 +2015,9 @@ function v2Next(){
     if(!sum[k]) sum[k]={f:0,p:0}; sum[k].f++; sum[k].p+=n;
   });
   var keys=Object.keys(sum).sort();
-  el.innerHTML=keys.length?('<span class="nn-h">接下來 1 小時</span>'+keys.map(function(k){
-    return '<span class="nn'+(k==='2140'?' k40':(k==='2153'?' k53':''))+'">'+k+'　'+sum[k].f+' 班・約 <b>'+sum[k].p.toLocaleString()+'</b> 人</span>'; }).join(''))
-    :'<span class="nn-h">接下來 1 小時</span><span class="nn">沒有你負責的班機</span>';
+  el.innerHTML='<div class="nn-h">接下來 1 小時</div><div class="nn-g">'+(keys.length?keys.map(function(k){
+    return '<div class="nn'+(k==='2140'?' k40':(k==='2153'?' k53':''))+'"><span class="nn-k">'+k+'</span><b>'+sum[k].p.toLocaleString()+'</b><span class="nn-u">人・'+sum[k].f+' 班</span></div>'; }).join('')
+    :'<div class="nn none">沒有你負責的班機</div>')+'</div>';
 }
 /* 今天每小時 T2 入境（桃機官方），現在這小時標金色 */
 function v2Hours(kind){
@@ -2043,5 +2043,6 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 </script>
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
 <link rel="stylesheet" href="ds/board.css">
+<link rel="stylesheet" href="ds/polish.css">
 </body>
 </html>
