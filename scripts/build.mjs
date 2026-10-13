@@ -1522,6 +1522,12 @@ async function main() {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
   }
+  /* 設計系統（小韋班機看板）：tokens.css＋board.css，所有頁面共用 */
+  try {
+    await mkdir(join(OUT, 'ds'), { recursive: true });
+    for (const f of await readdir('ds')) if (/\.css$/.test(f)) await copyFile(join('ds', f), join(OUT, 'ds', f));
+    console.log('已複製 ds/（設計系統樣式）');
+  } catch { console.log('沒有 ds/ 資料夾，略過'); }
   /* 試作／預覽頁：10/13 起都收在 preview/ 資料夾，整包照原樣發佈 */
   try {
     const pv = await readdir('preview');
