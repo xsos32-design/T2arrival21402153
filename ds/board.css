@@ -1,0 +1,108 @@
+/* 小韋班機看板 — 設計系統元件樣式（board.css）
+   跟設計系統頁 https://claude.ai/artifact/G14T9xAJpySgbGvejF4Z8x 的 components/bundle.css 同一份。
+   只管「顏色、框線、字體」，版面（格線、大小、排列）留給各頁自己。
+   顏色一律用 tokens.css 的變數；要改顏色改 tokens，不要改這裡的數值。 */
+
+/* ── 頁面底 ── */
+body{background:var(--ground);color:var(--ink)}
+header{background:var(--surface-head);border-bottom:1px solid var(--hairline)}
+header h1{color:var(--k40);font-family:var(--font-mono);letter-spacing:.14em}
+.live{color:var(--faint);font-family:var(--font-mono)}
+.dot{background:var(--border)} .dot.on{background:var(--k40)} .dot.busy{background:var(--gold)} .dot.err{background:var(--k53)}
+.mk{background:var(--ground);border-bottom:1px solid var(--gold-line)}
+.mk b{color:var(--gold);font-family:var(--font-mono);letter-spacing:.18em}
+.mk i{color:var(--gold-dim)}
+.card,.list,#infobox,.empty,.pend{background:var(--surface);border:1px solid var(--hairline);border-radius:0}
+label,.chiplabel,.status,.v2lab,#catmsg,#cpmsg{color:var(--faint);font-family:var(--font-mono);letter-spacing:.08em}
+.pend b{color:var(--ink)}
+
+/* ── 按鈕 ── */
+button,#go{background:rgba(0,239,212,.1);border:1px solid var(--k40);border-radius:0;color:var(--k40);font-family:var(--font-mono)}
+.btn2,.dqb{background:var(--surface);border:1px solid var(--border);border-radius:0;color:var(--ink-2)}
+.fabb{background:rgba(11,16,25,.95);border:1px solid var(--border);border-radius:0;color:var(--ink-2)}
+.fabb.on{background:rgba(0,239,212,.15);border-color:var(--k40);color:var(--k40)}
+input,select,#cptxt{background:var(--surface);border:1px solid var(--border);border-radius:0;color:var(--ink)}
+input:focus,select:focus,#cptxt:focus{outline:none;border-color:var(--k40);box-shadow:0 0 0 1px var(--k40)}
+
+/* ── 切換鍵 chip ── */
+.chip,summary.cfgbtn{background:var(--surface);border:1px solid var(--border);border-radius:0;color:var(--muted)}
+.chip.act{background:rgba(0,239,212,.13);border-color:var(--k40);color:var(--k40);box-shadow:inset 0 0 0 1px var(--k40),var(--glow-k40)}
+.chip.cs0.act{background:rgba(0,239,212,.16);border-color:var(--k40);color:var(--k40)}
+.chip.cs1.act{background:rgba(255,46,110,.16);border-color:var(--k53);color:var(--k53-text);box-shadow:inset 0 0 0 1px var(--k53),var(--glow-k53)}
+.chip.cs2.act{background:rgba(167,155,196,.16);border-color:var(--other-t1);color:var(--other-t1);box-shadow:inset 0 0 0 1px var(--other-t1)}
+.chip.cs3.act{background:rgba(255,255,255,.09);border-color:var(--muted);color:var(--ink);box-shadow:inset 0 0 0 1px var(--muted)}
+.chip.shop{color:var(--muted)}
+
+/* ── 班機列 ── */
+.r{border-color:var(--hairline);color:var(--ink)}
+.r.head{background:var(--surface-head);color:var(--faint);font-family:var(--font-mono);border-color:var(--hairline)}
+.r:not(.r40):not(.r53):not(.head):not(.done){background:var(--surface);box-shadow:inset 6px 0 0 var(--border)}
+.r.r40{background:var(--k40-row);box-shadow:inset 6px 0 0 var(--k40)}
+.r.r53{background:var(--k53-row);box-shadow:inset 6px 0 0 var(--k53)}
+.c-time b{font-family:var(--font-mono);color:var(--gold);background:none}
+.c-time b.t-plan{color:var(--gold);background:none}
+.c-time b.t-late{color:var(--late);background:none}
+.c-time b.t-early{color:var(--early);background:none}
+.c-time b.t-same{color:var(--ok);background:none}
+.c-time i,.c-fno small,.tm{color:var(--faint)}
+.c-fno b{font-family:var(--font-mono);color:var(--ink)}
+.cty,.c-city,.cn{color:var(--ink)}
+
+/* ── 登機門方塊 ── */
+.c-gate .gn{background:var(--surface-raised);border:1px solid var(--border);border-radius:0;color:var(--ink-2);font-family:var(--font-mono)}
+.r.r40 .c-gate .gn{background:var(--k40);border-color:var(--k40);color:var(--on-k40);box-shadow:var(--glow-k40)}
+.r.r53 .c-gate .gn{background:var(--k53);border-color:var(--k53);color:var(--on-k53);box-shadow:var(--glow-k53)}
+.gchg{background:var(--k53);color:#fff;border-radius:0}
+
+/* ── 分點標籤、人數、國籍、狀態 ── */
+.tag{border-radius:0;background:var(--surface-raised);color:var(--ink-2)}
+.r.r40 .c-shop .tag,.tag.t40{background:var(--k40);color:var(--on-k40)}
+.r.r53 .c-shop .tag,.tag.t53{background:var(--k53);color:var(--on-k53)}
+.px,.tx{border-radius:0;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--ink-2)}
+.px u,.tx u{color:var(--faint)}
+.px.p1{border-color:var(--ok-line);color:var(--ok);background:rgba(73,227,163,.08)}
+.px.p2{border-color:var(--gold-line);color:var(--gold);background:rgba(255,197,61,.08)}
+.px.p3{border-color:var(--bad-line);color:var(--bad);background:rgba(255,46,110,.09)}
+.nat{border-radius:0;border:1px solid var(--gold-line);color:var(--gold);background:rgba(255,197,61,.14)}
+.badge{border-radius:0;border:1px solid var(--border)}
+.b-ok{border-color:var(--ok-line);color:var(--ok);background:rgba(73,227,163,.08)}
+.b-warn{border-color:var(--gold-line);color:var(--gold);background:rgba(255,197,61,.08)}
+.b-bad{border-color:var(--bad-line);color:var(--bad);background:rgba(255,46,110,.09)}
+.b-none{border-color:var(--border);color:var(--faint);background:rgba(255,255,255,.03)}
+.b-early{border-color:#1d5b78;color:var(--early);background:rgba(91,214,255,.08)}
+.r.r40 .px,.r.r40 .badge,.r.r53 .px,.r.r53 .badge{background:rgba(0,0,0,.45)}
+
+/* ── 清單上的記號 ── */
+.nowline{color:var(--now-red)} .nowline:before,.nowline:after{background:var(--now-red)}
+.foldline{background:var(--surface);border:1px solid var(--border);color:var(--ink-2)}
+.foldline i{color:var(--k40)}
+.daybreak{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--k40);border-radius:0;color:var(--ink-2)}
+
+/* ── 資訊卡 ── */
+#immnote{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--gold);border-radius:0;color:var(--ink-2)}
+#immnote .imh b,#immnote .imc b{color:var(--ink)} #immnote em{color:var(--gold)} #immnote i{color:var(--faint)}
+#immnote .imc{color:var(--ink-2)} #immnote .imold{color:var(--bad)}
+#offnote{color:var(--k40)}
+#holnote .holi{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--info);border-radius:0;color:var(--ink-2)}
+#holnote .holi b{color:var(--ink)} #holnote .holi i{color:var(--faint)} #holnote .holi span{color:var(--gold)}
+#nextnote .nn-h{color:var(--ink)}
+#nextnote .nn{border-radius:0;background:var(--surface-raised);color:var(--ink-2)}
+#nextnote .nn.k40{background:rgba(0,239,212,.13);color:var(--k40)} #nextnote .nn.k53{background:rgba(255,46,110,.15);color:var(--k53-text)}
+#hourbar .hb-t{color:var(--faint)} #hourbar .hb-t b{color:var(--gold)}
+#hourbar .hb i{background:var(--surface-raised);border-radius:0} #hourbar .hb i.in{background:#3d5068} #hourbar .hb i.now{background:var(--gold)}
+#hourbar .hb-x{color:var(--faint)}
+#ctlbar{background:var(--surface);border:1px solid var(--border);border-radius:0}
+.card.open #ctlbar{border-color:var(--k40)}
+#ctlbar .cb-pill{border-radius:0;background:var(--surface-raised);color:var(--ink-2)}
+#ctlbar .cb-pill.k40{background:rgba(0,239,212,.13);color:var(--k40)} #ctlbar .cb-pill.k53{background:rgba(255,46,110,.15);color:var(--k53-text)}
+#ctlbar .cb-act{color:var(--k40)}
+
+/* ── 頁尾、提醒框 ── */
+.notice{background:var(--surface);border:1px solid var(--hairline);border-left:3px solid var(--gold-line);border-radius:0;color:var(--ink-2)}
+.notice b{color:var(--ink)} .notice .lk{color:var(--gold)}
+.errbox{background:#16060a;border:1px solid var(--bad-line);border-left:3px solid var(--k53);border-radius:0;color:var(--bad)}
+.tdxbox{background:#141004;border:1px solid var(--gold-line);border-left:3px solid var(--gold);border-radius:0;color:#d9b96c}
+.cllink a{background:var(--surface);border:1px solid var(--hairline);border-radius:0;color:var(--ink-2)}
+.credit{color:var(--faint)}
+.mt{background:var(--surface)} .mt th,.mt td{border-color:var(--border)} .mt th{background:var(--surface-head);color:var(--faint)}
+a{color:var(--k40)}

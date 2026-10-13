@@ -1,0 +1,54 @@
+/* 小韋班機看板 — generated from tokens.json */
+:root, [data-theme="night"] {
+  --ground: #05070a;
+  --surface: #0b1019;
+  --surface-head: #080b11;
+  --surface-raised: #161e29;
+  --hairline: #1b2431;
+  --border: #2a3545;
+  --ink: #e8edf3;
+  --ink-2: #c3cad4;
+  --muted: #93a0b1;
+  --faint: #8b94a1;
+  --k40: #00efd4;
+  --k40-row: #064f47;
+  --on-k40: #02241f;
+  --k53: #ff2e6e;
+  --k53-row: #6b0f33;
+  --on-k53: #2b0411;
+  --k53-text: #ff7fa3;
+  --gold: #ffc53d;
+  --gold-line: #7a5c12;
+  --gold-dim: #a08e55;
+  --ok: #49e3a3;
+  --ok-line: #1e6b4d;
+  --bad: #ff7a95;
+  --bad-line: #8a2a3f;
+  --late: #ff8a3d;
+  --early: #5bd6ff;
+  --info: #4da3ff;
+  --other-t1: #a79bc4;
+  --now-red: #f05252;
+  --glow-k40: 0 0 14px -4px rgba(0,239,212,0.85);
+  --glow-k53: 0 0 16px -3px rgba(255,46,110,0.9);
+  --glow-soon: 0 0 26px -4px rgba(255,197,61,0.9);
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius-0: 0px;
+  --radius-cut: 12px;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+.ds-flight-time { font-family: var(--font-mono); font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.045em; }
+.ds-flight-no { font-family: var(--font-mono); font-size: 34px; line-height: 1.05; font-weight: 800; letter-spacing: -0.05em; }
+.ds-gate { font-family: var(--font-mono); font-size: 40px; line-height: 1.02; font-weight: 800; letter-spacing: -0.05em; }
+.ds-maker { font-family: var(--font-mono); font-size: 38px; line-height: 1.1; font-weight: 900; letter-spacing: 0.18em; }
+.ds-label { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.4; font-weight: 700; letter-spacing: 0.1em; }
+.ds-chip { font-family: var(--font-sans); font-size: 16.5px; line-height: 1.2; font-weight: 900; }
+.ds-city { font-family: var(--font-sans); font-size: 18px; line-height: 1.3; font-weight: 800; }
+.ds-body { font-family: var(--font-sans); font-size: 14.5px; line-height: 1.6; font-weight: 500; }
+.ds-pill { font-family: var(--font-sans); font-size: 14.5px; line-height: 1.2; font-weight: 900; }
