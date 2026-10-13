@@ -477,8 +477,14 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
  #nx .nxl2{font-size:12.5px} #nx .nxc{font-size:13px}
  .fold{font-size:12.5px;padding:7px 8px}
 }
-#immnote{font-size:12.5px;color:#93a0b1;background:#0B1019;border:1px solid #1b2431;padding:5px 8px;margin:-3px 0 7px;font-family:ui-monospace,Menlo,monospace}
-#immnote b{color:#00EFD4} #immnote i{font-style:normal;color:#6b7686}
+#immnote{font-size:14px;color:#C3CAD4;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #FFC53D;
+  padding:6px 9px;margin:-3px 0 7px;line-height:1.5}
+#immnote b{color:#E8EDF3} #immnote em{font-style:normal;font-weight:900;font-size:17px;color:#FFC53D}
+#immnote i{font-style:normal;color:#8b94a1;font-size:12.5px}
+#immnote .imn{color:#B9C0CB;font-size:13px} #immnote .imc{margin-right:6px} #immnote .imc b{color:#fff}
+#immnote .imold{color:#FF7A95;font-weight:700;font-size:12.5px}
+.nat{display:inline-block;font-style:normal;font-weight:800;font-size:12.5px;margin-left:4px;padding:0 5px;
+  background:rgba(255,197,61,.14);color:#FFC53D;border:1px solid #7a5c12;vertical-align:middle;white-space:nowrap}
 #immnote:empty{display:none}
 </style>
 </head>
@@ -564,7 +570,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-12d';
+var PAGE_V='2026-10-13a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1757,11 +1763,16 @@ function immLine(key,label,topN,compact){
   var d=IMM&&IMM[key]; if(!d||!d.total) return '';
   var age=immAge(); if(age>180) return '';
   var nat=[], k, i=0;
-  for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(i++>=topN) break; nat.push((NAT_ZH[k]||k)+' '+Number(d.nat[k]).toLocaleString()); }
+  for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(compact&&k==='TWN') continue; if(i++>=topN) break;
+    nat.push('<span class="imc">'+(NAT_ZH[k]||k)+' <b>'+Number(d.nat[k]).toLocaleString()+'</b></span>'); }
   var hm=String(IMM.t).slice(11,16);
-  if(compact) return '<b>移民署</b> '+label+' '+Number(d.total).toLocaleString()+' 人'+(nat.length?'（'+nat.slice(0,2).join('、')+'）':'')+' <i>'+hm+'</i>';
-  return IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<b>'+Number(d.total).toLocaleString()+' 人</b>'
-    +(nat.length?'　'+nat.join('　·　'):'')+'　<i>'+hm+' 更新'+(age>75?'，較舊':'')+'</i>';
+  /* 超過 75 分鐘沒更新＝小韋電腦可能睡著了，直接寫出來，不要只是變淡 */
+  var old=age>75;
+  var when=old?'<span class="imold">⚠ '+hm+' 的資料（'+age+' 分鐘前，電腦可能沒開）</span>':'<i>'+hm+' 更新</i>';
+  if(compact) return '<b>移民署</b> '+label+' <em>'+Number(d.total).toLocaleString()+'</em> 人'
+    +(nat.length?' <span class="imn">'+nat.slice(0,1).join(' ')+'</span>':'')+' '+(old?'<span class="imold">⚠ '+hm+'</span>':'<i>'+hm+'</i>');
+  return '<div class="imh">'+IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<em>'+Number(d.total).toLocaleString()+' 人</em> '+when+'</div>'
+    +(nat.length?'<div class="imn">'+nat.join('')+'</div>':'');
 }
 function immLoad(cb){
   try{
@@ -1775,10 +1786,46 @@ function immPaint(id,anchorSel,key,label,topN,compact){
     el=document.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
   el.innerHTML=immLine(key,label,topN,compact);
 }
+/* ── 每班預估國籍（2026-10-13）────────────────────────────────────────
+   移民署給的是整個第二航廈的國籍人數，沒有分到每一班。做法：
+   外籍旅客幾乎都搭「從自己國家飛來」的班機（日本人搭日本來的班），
+   所以把移民署那段時間的「日本籍人數」，按入境人數比例分給那段時間從日本來的班機。
+   用的是比例（日籍佔全部 ÷ 日本班佔全部），不受兩邊總數單位不同影響。 */
+var NAT_JI={JPN:'日籍',KOR:'韓籍',CHN:'陸籍',USA:'美籍',HKG:'港籍',MAC:'澳門籍',PHL:'菲籍',VNM:'越籍',THA:'泰籍',
+  IDN:'印尼籍',MYS:'馬籍',SGP:'星籍',AUS:'澳籍',CAN:'加籍',GBR:'英籍',DEU:'德籍',FRA:'法籍',IND:'印籍',NZL:'紐籍'};
+var NATP={sig:'',map:{}};
+function natPlan(lists,key){
+  var d=IMM&&IMM[key];
+  if(!d||!d.total||!d.nat||immAge()>180){ NATP={sig:'',map:{}}; return; }
+  var day=String(IMM.t).slice(0,10), h0=+String(IMM.t).slice(11,13);
+  var tot={}, all=0;
+  lists.forEach(function(list){ (list||[]).forEach(function(f){
+    if(String(f.BNO)!=='2') return;
+    if(String(f.ODate||'').replace(/\//g,'-').slice(0,10)!==day) return;
+    var h=+String(hhmm(f.OTime)||'').slice(0,2); if(isNaN(h)||h<h0||h>h0+2) return;
+    var p=paxOf(f).inn; if(!p) return;
+    var c=ctryOf(f); if(!c) return;
+    tot[c]=(tot[c]||0)+p; all+=p;
+  }); });
+  var map={}, k;
+  if(all>0) for(k in d.nat){
+    if(!d.nat.hasOwnProperty(k)||k==='TWN') continue;
+    var c=NAT_ZH[k]; if(!c||!tot[c]) continue;
+    var frac=Math.min(0.95,(d.nat[k]/d.total)/(tot[c]/all));
+    if(!map[c]||map[c].frac<frac) map[c]={n:k,frac:frac};
+  }
+  NATP={sig:IMM.t,map:map};
+}
+function natTag(f){
+  var m=NATP.map[ctryOf(f)]; if(!m) return '';
+  var n=Math.round(paxOf(f).inn*m.frac/5)*5; if(n<10) return '';
+  return ' <i class="nat" title="依移民署國籍人數推估">'+(NAT_JI[m.n]||((NAT_ZH[m.n]||m.n)+'籍'))+'約'+n+'</i>';
+}
 </script>
 <script>
-immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); });
-setInterval(function(){ immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); }); },600000);
+/* 手錶太窄，每班的國籍標籤會壓到狀態，所以手錶只顯示上面那行總數 */
+immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); });
+setInterval(function(){ immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); }); },600000);
 </script>
 </body>
 </html>
