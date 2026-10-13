@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: 取出程式碼
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 剛改過程式（12 分鐘內有新 commit）就一定重建。
       # 不然推上來那次常被「每 5 分鐘」那輪擠掉，接手的那輪又剛好在離峰略過，改了要等很久才看得到。
@@ -58,9 +58,9 @@ jobs:
           if [ "$AGE" -lt 720 ]; then echo "force=1" >> "$GITHUB_OUTPUT"; else echo "force=0" >> "$GITHUB_OUTPUT"; fi
 
       - name: 安裝 Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       # 離峰時段（02:00-13:00）非整點那幾輪，build 會直接結束並輸出 skip=true，
       # 下面三步就整個跳過 —— 線上維持上一份，不會被空的 dist 蓋掉。
@@ -75,15 +75,15 @@ jobs:
 
       - name: 設定 Pages
         if: steps.build.outputs.skip != 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: 上傳產出
         if: steps.build.outputs.skip != 'true'
         with:
           path: dist
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
 
       - name: 部署到 GitHub Pages
         if: steps.build.outputs.skip != 'true'
         id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
