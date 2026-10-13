@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070a">
 <title>更新日誌 · 韋 班機</title>
-<link rel="stylesheet" href="ds/tokens.css">
+<link rel="stylesheet" href="ds/tokens.css?v=13h">
 <style>
 /* 套用設計系統「小韋班機看板」：顏色都來自 ds/tokens.css */
 *{box-sizing:border-box;-webkit-text-size-adjust:100%}
@@ -49,8 +49,13 @@ a{color:var(--k40)}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>10/13</b><em>入境班機落地後只顯示「滑行」或「抵達」，手錶也有滑行</em><i class="new">最新</i></div>
+<div class="day"><b>10/13</b><em>字體全部改成微軟正黑體</em><i class="new">最新</i></div>
 <div class="card hi"><ul>
+  <li>所有頁面（含班機時間、班號、登機門的數字）都改用<b>微軟正黑體</b>。</li>
+  <li>微軟正黑體只有 Windows 電腦內建；iPhone 會用蘋方、Android 和手錶會用思源黑體，都是同一類的正黑體，看起來很接近。</li>
+</ul></div>
+<div class="day"><b>10/13</b><em>入境班機落地後只顯示「滑行」或「抵達」，手錶也有滑行</em></div>
+<div class="card"><ul>
   <li>飛機落地、還在<b>滑行</b>（還沒靠橋）：藍色實心「<b>滑行</b>」，整張卡片加藍框，不會變暗，也算進「接下來 1 小時」。</li>
   <li>靠橋之後一律寫「<b>抵達</b>」（以前會寫「已到 · 抵達機坪」，電腦版很長）。</li>
   <li><b>手錶版也有滑行了</b>：手錶的資料來源沒有這欄，所以 2140／2153 有班機快落地時（前 10 分～後 40 分），手錶會另外向桃機查一次，最多 2 分鐘一次，螢幕暗掉不查，省流量。查不到就照常顯示。</li>
