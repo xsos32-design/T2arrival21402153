@@ -740,7 +740,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-15a';
+var PAGE_V='2026-10-15b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2427,7 +2427,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 #bigbtn.on{background:rgba(0,239,212,.15);border-color:#00efd4;color:#00efd4}
 body.bigtxt .r .c-city .cn{font-size:21px!important}
 body.bigtxt .r .px{font-size:18px!important}
-body.bigtxt .r .px u{font-size:12.5px!important}
+body.dep.bigtxt .r .px u{font-size:12.5px!important}
 body.bigtxt .r .nat{font-size:14.5px!important}
 body.bigtxt .r .badge{font-size:17px!important}
 body.bigtxt .r .c-time i{font-size:15.5px!important}
