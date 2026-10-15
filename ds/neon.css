@@ -1,0 +1,89 @@
+/* 小韋班機看板 — 霓虹駕駛艙風格（neon.css，2026-10-15）
+   字體維持微軟正黑體、全部加粗；只換顏色、背景、框線、發光。放在 polish.css 後面載入。
+   2140 霓虹青、2153 霓虹粉、時間霓虹黃、提醒紫。 */
+:root{--nc:#00f0ff;--nm:#ff2a6d;--ny:#f5ee0b;--np:#b026ff;--ng:#3dff8f}
+
+/* ── 加粗：一般文字至少粗體 ── */
+body{font-weight:700}
+.c-time i,.c-fno small,.status,.v2lab,label,.notice,.live,.hb-x,.hb-t,#remain,.dt,.px u,small{font-weight:800!important}
+
+/* ── 背景：深紫黑＋霓虹格線＋上方紫光；很淡的掃描線 ── */
+body{background:
+  linear-gradient(180deg,rgba(10,6,20,0) 55%,rgba(176,38,255,.10) 100%),
+  repeating-linear-gradient(90deg,rgba(255,42,109,.06) 0 1px,transparent 1px 48px),
+  repeating-linear-gradient(0deg,rgba(0,240,255,.045) 0 1px,transparent 1px 48px),
+  radial-gradient(120% 55% at 50% -10%,rgba(176,38,255,.26),transparent 60%),
+  #0a0614!important;background-attachment:fixed!important}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:400;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px)}
+
+/* ── 浮水印：霓虹黃＋青粉錯位，偶爾閃一下 ── */
+.mk{background:linear-gradient(180deg,rgba(255,42,109,.12),rgba(10,6,20,.92))!important;border-bottom:2px solid var(--nm)!important;box-shadow:0 6px 30px -12px var(--nm)}
+.mk b{color:var(--ny)!important;text-shadow:2px 0 0 var(--nm),-2px 0 0 var(--nc),0 0 22px rgba(245,238,11,.55)!important;animation:nflick 5s infinite steps(1)}
+.mk i{color:#ff9ec0!important}
+@keyframes nflick{0%,93%,100%{opacity:1;transform:none}94%{opacity:.6;transform:translateX(2px)}96%{opacity:1;transform:translateX(-2px)}98%{opacity:.85}}
+@media (prefers-reduced-motion:reduce){.mk b{animation:none}}
+
+/* ── 標題列 ── */
+header{background:rgba(18,10,31,.88)!important;border-bottom:1px solid var(--nc)!important;box-shadow:0 0 18px -8px var(--nc)}
+header h1{color:var(--nc)!important;text-shadow:0 0 10px rgba(0,240,255,.7)}
+
+/* ── 面板：斜切角＋青色細框＋四角駕駛艙瞄準框 ── */
+.card,#infobox{background:rgba(18,10,31,.84)!important;border:1px solid rgba(0,240,255,.4)!important;position:relative;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));box-shadow:inset 0 0 30px rgba(176,38,255,.12)}
+#infobox::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(var(--ng),var(--ng)) 0 0/16px 2px,linear-gradient(var(--ng),var(--ng)) 0 0/2px 16px,
+  linear-gradient(var(--ng),var(--ng)) 100% 100%/16px 2px,linear-gradient(var(--ng),var(--ng)) 100% 100%/2px 16px;background-repeat:no-repeat;opacity:.8}
+#immnote{border-left-color:var(--ny)!important;background:rgba(245,238,11,.05)!important}
+#remain,#nextnote .nn{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+#remain b,#hourbar .hb-t b{color:var(--ny)!important}
+#hourbar .hb i{background:linear-gradient(180deg,var(--np),#3a1460)!important}
+#hourbar .hb i.in{background:linear-gradient(180deg,#d77bff,#5a1f8f)!important}
+#hourbar .hb i.now{background:linear-gradient(180deg,#fff,var(--ny))!important;box-shadow:0 0 16px var(--ny)!important}
+#prog .p.a .bar i{background:var(--nc)!important;box-shadow:0 0 10px var(--nc)} #prog .p.b .bar i{background:var(--nm)!important;box-shadow:0 0 10px var(--nm)}
+#nextnote .nn.k40{border-color:rgba(0,240,255,.6)!important;box-shadow:inset 4px 0 0 var(--nc),0 0 16px -8px var(--nc)!important}
+#nextnote .nn.k53{border-color:rgba(255,42,109,.6)!important;box-shadow:inset 4px 0 0 var(--nm),0 0 16px -8px var(--nm)!important}
+
+/* ── 班機卡片：斜切角、霓虹框、細斜紋 ── */
+.r:not(.head){clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.r::after{display:none!important}
+.r.r40{background:linear-gradient(105deg,rgba(0,240,255,.26),rgba(0,240,255,.05) 45%,rgba(18,10,31,.95)),
+  repeating-linear-gradient(135deg,rgba(0,240,255,.05) 0 2px,transparent 2px 9px),#120a1f!important;
+  border-color:transparent!important;box-shadow:inset 4px 0 0 var(--nc),inset 0 0 0 1px rgba(0,240,255,.55)!important}
+.r.r53{background:linear-gradient(105deg,rgba(255,42,109,.28),rgba(255,42,109,.06) 45%,rgba(18,10,31,.95)),
+  repeating-linear-gradient(135deg,rgba(255,42,109,.05) 0 2px,transparent 2px 9px),#120a1f!important;
+  border-color:transparent!important;box-shadow:inset 4px 0 0 var(--nm),inset 0 0 0 1px rgba(255,42,109,.6)!important}
+.r.soon{box-shadow:inset 4px 0 0 var(--ny),inset 0 0 0 2px var(--ny)!important}
+.r.taxi{outline:none!important;box-shadow:inset 4px 0 0 #4da3ff,inset 0 0 0 2px #4da3ff!important}
+.c-time b.t-plan,.c-time b:not([class*="t-"]){color:var(--ny)!important;text-shadow:0 0 12px rgba(245,238,11,.5)!important}
+.c-time b.t-early{color:var(--nc)!important;text-shadow:0 0 12px rgba(0,240,255,.55)!important}
+.c-time b.t-late{color:#ff9a3d!important;text-shadow:0 0 12px rgba(255,154,61,.5)!important}
+.c-time b.t-same{color:var(--ng)!important;text-shadow:0 0 12px rgba(61,255,143,.45)!important}
+.c-fno b{text-shadow:0 0 10px rgba(255,255,255,.3)}
+.c-gate .gn{clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%)}
+.r.r40 .c-gate .gn,.r.r40 .c-shop .tag{background:var(--nc)!important;border-color:var(--nc)!important;color:#00161a!important;box-shadow:0 0 16px var(--nc)!important}
+.r.r53 .c-gate .gn,.r.r53 .c-shop .tag{background:var(--nm)!important;border-color:var(--nm)!important;color:#1a0010!important;box-shadow:0 0 16px var(--nm)!important}
+.nat{color:var(--ny)!important;border-color:rgba(245,238,11,.5)!important;background:rgba(245,238,11,.08)!important}
+.gapline{color:#d9a6ff!important} .gapline b{color:#f2d9ff!important}
+.gapline:before,.gapline:after{border-top-color:var(--np)!important}
+.nowline{color:var(--nm)!important;text-shadow:0 0 8px var(--nm)}
+.nowline:before,.nowline:after{background:var(--nm)!important;box-shadow:0 0 8px var(--nm);opacity:1!important}
+.foldline{border-color:rgba(0,240,255,.35)!important;background:rgba(18,10,31,.85)!important}
+
+/* ── 按鈕：斜切角、作用中發光 ── */
+.chip,.fabb,#ctlbar{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.chip.act{box-shadow:inset 0 0 0 1px currentColor,0 0 14px -2px currentColor!important}
+.fabb{background:rgba(18,10,31,.88)!important;border-color:var(--nm)!important;color:#ffc1d6!important}
+#ctlbar{border-color:rgba(0,240,255,.5)!important}
+
+/* ── 手錶版（wtdx） ── */
+.r.r40 .g .gn{background:var(--nc)!important;color:#00161a!important;box-shadow:0 0 12px var(--nc)!important}
+.r.r53 .g .gn{background:var(--nm)!important;color:#1a0010!important;box-shadow:0 0 12px var(--nm)!important}
+b.t{color:var(--ny)!important;text-shadow:0 0 10px rgba(245,238,11,.45)}
+b.t.t-early{color:var(--nc)!important} b.t.t-late{color:#ff9a3d!important}
+.hd{border-color:var(--nc)!important}
+
+/* 標題列不換行：窄螢幕時標題自動縮成「…」，「大字」鍵和時間固定在同一行 */
+header{flex-wrap:nowrap!important}
+header h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header .live{flex:none}
