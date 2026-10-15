@@ -1265,7 +1265,7 @@ a{color:#00EFD4;font-weight:800}</style></head>
    解封印版都會跟著變，不會有兩份程式碼各改各的問題。
    任何一條規則對不上就整份跳過並印出警告，正常版不受影響。            */
 const T1EXTRA = '<option value="06:00">06 時</option><option value="07:00">07 時</option><option value="08:00">08 時</option><option value="09:00">09 時</option><option value="10:00">10 時</option><option value="11:00">11 時</option><option value="12:00">12 時</option><option value="13:00">13 時</option>';
-const T2EXTRA = '<option value="06:59">07 時</option><option value="07:59">08 時</option><option value="08:59">09 時</option><option value="09:59">10 時</option><option value="10:59">11 時</option><option value="11:59">12 時</option><option value="12:59">13 時</option>';
+const T2EXTRA = '<option value="06:59">07 時</option><option value="07:59">08 時</option><option value="08:59">09 時</option><option value="09:59">10 時</option><option value="10:59">11 時</option><option value="11:59">12 時</option><option value="12:59">13 時</option><option value="13:29">13:30</option>';
 
 const UNLOCK = {
   'index.html': { out: 'all.html', rules: [
