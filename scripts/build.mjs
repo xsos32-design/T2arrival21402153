@@ -1464,10 +1464,8 @@ async function main() {
                   renderPage(flights, CURRENT_PRESET, ['40', '53'], false, err, false), 'utf8');
   await writeFile(join(OUT, 'watchall-static.html'),
                   renderPage(flights, CURRENT_PRESET_FULL, ['40', '53'], false, err, true), 'utf8');
-  await writeFile(join(OUT, 'watch.html'), redirectTo('wtdx.html'), 'utf8');
-  await writeFile(join(OUT, 'watchall.html'), redirectTo('wtdxall.html'), 'utf8');
+  /* 2026-10-15：watch.html／watchall.html 轉址頁刪除，手錶只用 wtdx.html */
   console.log(`watch-static.html 時段 = ${CURRENT_PRESET}／watchall-static.html 時段 = ${CURRENT_PRESET_FULL}（現在 ${stamp}）`);
-  console.log('watch.html / watchall.html 已改成轉址頁 → wtdx.html / wtdxall.html');
 
   /* 給 wtdx.html 當備援的資料快照：手錶連不上 TDX 時改讀這份（同網域一定通） */
   const snap = flights.concat(tomorrowSnap);
