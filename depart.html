@@ -732,7 +732,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-15c';
+var PAGE_V='2026-10-15d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1149,7 +1149,7 @@ function render(){
   });
   var out=document.getElementById('out');
   if(!show.c0 && !show.c1 && !show.c2 && !show.c3){
-    out.innerHTML='<div class="empty">四個分類都沒勾選 — 請至少勾一個。</div>';
+    out.innerHTML='<div class="empty">四個分類都沒勾選 — 請至少勾一個。<br><button type="button" style="margin-top:10px;min-height:44px;padding:0 16px;font-size:16px;font-weight:900" onclick="show.c0=true;show.c1=true;prefsSave();paintShops();render();">勾回 2140＋2153</button></div>';
     document.getElementById('pending').innerHTML=''; return;
   }
   if(!rows.length){
@@ -1976,7 +1976,8 @@ render=function(){ _renderG(); try{ gateTrack('.c-fno b','.c-gate .gn',false); }
   function paintBar(){
     var t1=document.getElementById('t1'), t2=document.getElementById('t2');
     var pre=ctl.querySelector('.chips .chip.act[data-t]'), n6=document.getElementById('now6');
-    var range=(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre):((t1?t1.value:'')+'–'+(t2?t2.value.replace(':59',''):'')));
+    var e2=t2?String(t2.value||''):'', m2=e2.match(/^(\d\d):59$/); if(m2) e2=('0'+(+m2[1]+1)).slice(-2)+':00';
+    var range=(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre):((t1?t1.value:'')+'–'+e2));
     var cats=[].map.call(ctl.querySelectorAll('#shopslot .chip.act, .chip.shop.act'),function(c){ return txt(c); })
       .filter(function(v,i,a){ return v&&a.indexOf(v)===i; });
     var zs=[].filter.call(ctl.querySelectorAll('.chip.zone'),function(z){ return z.classList.contains('act'); })
@@ -1987,7 +1988,8 @@ render=function(){ _renderG(); try{ gateTrack('.c-fno b','.c-gate .gn',false); }
     if(zs.length&&zs.length<4) html+='<span class="cb-pill">'+zs.join('')+' 區</span>';
     if(hid) html+='<span class="cb-pill">'+(/出境/.test(document.title)?'隱藏已起飛':'隱藏已抵達')+'</span>';
     bar.innerHTML='<div class="cb-main">'+html+'</div><span class="cb-act">'+(open?'收起':'設定')+' <b>▾</b></span>';
-  }
+  }  window.v2PaintBar=paintBar;
+
   bar.addEventListener('click',function(){ setOpen(!open); });
   ctl.addEventListener('click',function(){ setTimeout(paintBar,30); });
   ctl.addEventListener('change',function(){ setTimeout(paintBar,30); });
@@ -2039,7 +2041,7 @@ function v2Hours(kind){
 <script>
 /* 設計第二版：每次畫完更新「接下來 1 小時」和每小時長條 */
 var _renderV=render;
-render=function(){ _renderV(); try{ v2Next(); v2Hours('D'); }catch(e){} };
+render=function(){ _renderV(); try{ v2Next(); v2Hours('D'); if(window.v2PaintBar) v2PaintBar(); }catch(e){} };
 setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 </script>
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
