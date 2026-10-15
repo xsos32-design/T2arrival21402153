@@ -576,7 +576,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-15b';
+var PAGE_V='2026-10-15c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1485,7 +1485,7 @@ function diag(cb){
       ['catch'](function(er){ if(f)return; f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); });
     }catch(er){ if(!f){ f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); } }
   }
-  t('same','watch.html?nc='+Date.now());
+  t('same','ver.json?nc='+Date.now());
   t('tdx','https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24top=1&%24format=JSON&nc='+Date.now());
 }
 
