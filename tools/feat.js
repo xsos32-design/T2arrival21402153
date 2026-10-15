@@ -21,7 +21,7 @@
 .r .dt .x{grid-column:1/-1;text-align:center;color:#8b94a1;font-size:12px;margin-top:2px;cursor:pointer}
 @media (max-width:820px){.r.open{grid-template-areas:"time fno gate" "shop city st" "dt dt dt"!important}}
 /* A5 滑行提醒 */
-.btoast{position:fixed;left:10px;right:10px;top:10px;z-index:300;background:#4da3ff;color:#fff;padding:12px 14px;font-weight:900;font-size:16px;
+.btoast{position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:300;background:#4da3ff;color:#fff;padding:12px 14px;font-weight:900;font-size:16px;
   box-shadow:0 10px 40px rgba(0,0,0,.7);border-left:6px solid #fff;animation:btIn .25s ease-out;cursor:pointer}
 @media (min-width:821px){.btoast{left:auto;width:380px}}
 .btoast small{display:block;font-size:12.5px;opacity:.92;margin-top:2px}

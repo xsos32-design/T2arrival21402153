@@ -1,5 +1,5 @@
 <style>
-/* ══ 新功能第二輪（2026-10-15）：E1 下一班大卡、E2 預估到店、E7 大字模式、E9 今日進度 ══ */
+/* ══ 新功能第二輪（2026-10-15）：E2 預估到店、E7 大字模式、E9 今日進度（E1 下一班大卡已拿掉） ══ */
 /* E1 下一班大卡（只在入境頁） */
 #hero{margin:10px 0;padding:12px 14px;border:1px solid #2a3545;background:linear-gradient(120deg,#101826,#0b1019);position:relative;overflow:hidden}
 #hero.k40{border-color:rgba(0,239,212,.6);background:linear-gradient(120deg,rgba(0,239,212,.2),rgba(11,16,25,.95) 60%);box-shadow:inset 6px 0 0 #00efd4}
@@ -40,7 +40,7 @@
 #bigbtn.on{background:rgba(0,239,212,.15);border-color:#00efd4;color:#00efd4}
 body.bigtxt .r .c-city .cn{font-size:21px!important}
 body.bigtxt .r .px{font-size:18px!important}
-body.bigtxt .r .px u{font-size:12.5px!important}
+body.dep.bigtxt .r .px u{font-size:12.5px!important}
 body.bigtxt .r .nat{font-size:14.5px!important}
 body.bigtxt .r .badge{font-size:17px!important}
 body.bigtxt .r .c-time i{font-size:15.5px!important}
@@ -81,20 +81,8 @@ body.bigtxt .r .dt{font-size:15.5px!important}
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
       if(t>=nm-10||taxi) next={r:r,t:t,k:a?'k40':'k53',taxi:taxi,px:parseInt((r.querySelector('.px')||{}).textContent,10)||0};
     });
-    /* E1＋E2 下一班大卡：資訊卡和班機清單中間 */
-    var hero=document.getElementById('hero');
-    if(!DEP&&next){
-      if(!hero){ hero=document.createElement('div'); hero.id='hero'; out.parentNode.insertBefore(hero,out); }
-      var r=next.r, fn=(r.querySelector('.c-fno b')||{}).textContent||'', gt=(r.querySelector('.gn')||{}).textContent||'—', city=(r.querySelector('.cn')||{}).textContent||'';
-      var n=next.t-nm; if(n<-720) n+=1440;
-      var stage=next.taxi?2:(n<=0?1:0);
-      var cls=function(i){ return i<stage?'on':(i===stage?'now':''); };
-      hero.className=next.k;
-      hero.innerHTML='<div class="h1">下一班　'+(next.k==='k40'?'2140':'2153')+'</div>'
-        +'<div class="h2"><span class="cd">'+(next.taxi?'滑行中':(n>0?left(n):'剛落地'))+'</span><span class="fn">'+fn+'</span><span class="gt">'+gt+'</span></div>'
-        +'<div class="h3">'+city+'・約 <b>'+next.px+'</b> 人・預估到店 <b>'+fmt(next.t+SHOP_MIN)+'</b></div>'
-        +'<div class="steps"><span class="'+cls(0)+'">飛行中</span><span class="'+cls(1)+'">落地</span><span class="'+cls(2)+'">滑行</span><span>靠橋</span><span>到店</span></div>';
-    } else if(hero) hero.remove();
+    /* 下一班大卡（E1）10/15 拿掉：只能顯示一班、同時落地會漏，小韋說沒用 */
+    var hero=document.getElementById('hero'); if(hero) hero.remove();
     /* E2 點卡片展開裡也加「預估到店」 */
     if(!DEP) rows.forEach(function(r){ var dt=r.querySelector('.dt'); if(!dt||dt.querySelector('.eta2')) return;
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
