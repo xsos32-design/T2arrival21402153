@@ -92,7 +92,8 @@
   function paintBar(){
     var t1=document.getElementById('t1'), t2=document.getElementById('t2');
     var pre=ctl.querySelector('.chips .chip.act[data-t]'), n6=document.getElementById('now6');
-    var range=(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre):((t1?t1.value:'')+'–'+(t2?t2.value.replace(':59',''):'')));
+    var e2=t2?String(t2.value||''):'', m2=e2.match(/^(\d\d):59$/); if(m2) e2=('0'+(+m2[1]+1)).slice(-2)+':00';
+    var range=(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre):((t1?t1.value:'')+'–'+e2));
     var cats=[].map.call(ctl.querySelectorAll('#shopslot .chip.act, .chip.shop.act'),function(c){ return txt(c); })
       .filter(function(v,i,a){ return v&&a.indexOf(v)===i; });
     var zs=[].filter.call(ctl.querySelectorAll('.chip.zone'),function(z){ return z.classList.contains('act'); })
@@ -103,7 +104,8 @@
     if(zs.length&&zs.length<4) html+='<span class="cb-pill">'+zs.join('')+' 區</span>';
     if(hid) html+='<span class="cb-pill">'+(/出境/.test(document.title)?'隱藏已起飛':'隱藏已抵達')+'</span>';
     bar.innerHTML='<div class="cb-main">'+html+'</div><span class="cb-act">'+(open?'收起':'設定')+' <b>▾</b></span>';
-  }
+  }  window.v2PaintBar=paintBar;
+
   bar.addEventListener('click',function(){ setOpen(!open); });
   ctl.addEventListener('click',function(){ setTimeout(paintBar,30); });
   ctl.addEventListener('change',function(){ setTimeout(paintBar,30); });
