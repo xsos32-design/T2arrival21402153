@@ -732,7 +732,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-15g';
+var PAGE_V='2026-10-16a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2024,22 +2024,24 @@ render=function(){ _renderG(); try{ gateTrack('.c-fno b','.c-gate .gn',false); }
 /* 接下來 1 小時：從畫面上的班機算（2140／2153 各幾班、約幾人） */
 function v2Next(){
   var el=document.getElementById('nextnote'); if(!el) return;
-  var d=new Date(), nowM=d.getHours()*60+d.getMinutes(), sum={};
+  var d=new Date(), nowM=d.getHours()*60+d.getMinutes(), sum={}, SEL=selCats();
   [].forEach.call(document.querySelectorAll('#out .r:not(.head)'),function(r){
-    if(r.classList.contains('done')) return;
+    if(r.classList.contains('done')||r.style.display==='none') return;
     var t=r.querySelector('.c-time b'), tg=r.querySelector('.c-shop .tag'), px=r.querySelector('.px');
     if(!t||!tg) return;
     var m=String(t.textContent).match(/(\d\d):(\d\d)/); if(!m) return;
     var eta=(+m[1])*60+(+m[2])-nowM; if(eta<-720) eta+=1440;
     if((eta<0&&!r.classList.contains('taxi'))||eta>60) return;
     var k=String(tg.textContent).trim(), n=px?parseInt(px.textContent,10)||0:0;
+    if(SEL.indexOf(k)<0) return;   /* 只算有勾選的分類（「待定」不算） */
     if(!sum[k]) sum[k]={f:0,p:0}; sum[k].f++; sum[k].p+=n;
   });
-  var keys=Object.keys(sum).sort();
+  var keys=SEL.filter(function(k){ return sum[k]; });
   el.innerHTML='<div class="nn-h">接下來 1 小時</div><div class="nn-g">'+(keys.length?keys.map(function(k){
     return '<div class="nn'+(k==='2140'?' k40':(k==='2153'?' k53':''))+'"><span class="nn-k">'+k+'</span><b>'+sum[k].p.toLocaleString()+'</b><span class="nn-u">人・'+sum[k].f+' 班</span></div>'; }).join('')
-    :'<div class="nn none">沒有你負責的班機</div>')+'</div>';
+    :'<div class="nn none">'+(SEL.length?SEL.join('、')+' 都沒有班機':'分類都沒勾選')+'</div>')+'</div>';
 }
+function selCats(){ try{ return CATS.map(function(c,i){ return show['c'+i]?c.name:null; }).filter(Boolean); }catch(e){ return ['2140','2153']; } }
 /* 今天每小時 T2 入境（桃機官方），現在這小時標金色 */
 function v2Hours(kind){
   var el=document.getElementById('hourbar'); if(!el) return;
@@ -2065,7 +2067,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
 <link rel="stylesheet" href="ds/board.css">
 <link rel="stylesheet" href="ds/polish.css?v=14a">
-<link rel="stylesheet" href="ds/neon.css?v=15e">
+<link rel="stylesheet" href="ds/neon.css?v=16a">
 
 <!-- 新功能：tools/feat.js -->
 <style>
@@ -2157,11 +2159,13 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
   function paint(){
     var out=document.getElementById('out'); if(!out) return;
     var M=map(), rows=[].slice.call(out.querySelectorAll('.r:not(.head)'));
+    var SELC=(typeof selCats==='function')?selCats():['2140','2153'], SELN=SELC.join('＋')||'未勾選';
     var now=new Date(), nm=now.getHours()*60+now.getMinutes(), prev=null, n=0, pax=0;
     var t2el=document.getElementById('t2'), t2=(t2el&&t2el.value)||'23:59', end=hm(t2);
     rows.forEach(function(r){
       var fb=r.querySelector('.c-fno b'); if(!fb) return;
-      var k=key(fb.textContent), f=M[k], mine=r.classList.contains('r40')||r.classList.contains('r53');
+      var tgel=r.querySelector('.c-shop .tag'), tgt=tgel?tgel.textContent.trim():'';
+      var k=key(fb.textContent), f=M[k], mine=SELC.indexOf(tgt)>=0;   /* 跟著上面分類勾選走 */
       r.setAttribute('data-k',k);
       /* A2 */
       if(f&&f.PlaneNo&&f.PlaneNo!=='-'&&!r.querySelector('.ac')){
@@ -2173,7 +2177,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
       /* A6 展開狀態跟著重畫保留 */
       if(OPEN[k]) detail(r,f);
       /* A5 */
-      if(!DEP&&mine&&r.classList.contains('taxi')&&!TOLD[k]){ TOLD[k]=1; var g=r.querySelector('.gn'); toast(fb.textContent,g?g.textContent:'',r.classList.contains('r40')?'k40':'k53'); }
+      if(!DEP&&mine&&r.classList.contains('taxi')&&!TOLD[k]){ TOLD[k]=1; var g=r.querySelector('.gn'); toast(fb.textContent,g?g.textContent:'',r.classList.contains('r40')?'k40':(r.classList.contains('r53')?'k53':'')); }
       if(r.classList.contains('done')) return;
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
       /* A1 */
@@ -2189,8 +2193,8 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
     var old=document.getElementById('remain'); if(old) old.remove();
     var nn=document.getElementById('nextnote');
     if(nn){ var rm=document.createElement('div'); rm.id='remain';
-      rm.innerHTML=n?('到 '+t2.replace(':59',':59')+' 前還有 <b>'+n+'</b> 班　約 <b>'+pax.toLocaleString()+'</b> 人'+(DEP?'出境':'入境')+'（2140＋2153）')
-                    :('到 '+t2+' 前沒有你負責的班機了');
+      rm.innerHTML=n?('到 '+t2.replace(':59',':59')+' 前還有 <b>'+n+'</b> 班　約 <b>'+pax.toLocaleString()+'</b> 人'+(DEP?'出境':'入境')+'（'+SELN+'）')
+                    :('到 '+t2+' 前 '+SELN+' 沒有班機了');
       nn.parentNode.insertBefore(rm,nn.nextSibling); }
     /* B3 開頁第一次畫完：跳到「現在」 */
     if(!SCROLLED&&rows.length){
@@ -2245,7 +2249,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 #prog .p{font-size:13px;font-weight:900;color:#c3cad4;white-space:nowrap}
 #prog .bar{height:8px;background:#161e29;margin-top:3px;position:relative}
 #prog .bar i{position:absolute;left:0;top:0;bottom:0}
-#prog .p.a .bar i{background:#00efd4} #prog .p.b .bar i{background:#ff2e6e}
+#prog .p.a .bar i{background:#00efd4} #prog .p.b .bar i{background:#ff2e6e} #prog .p.o .bar i{background:#b026ff}
 /* 卡片欄寬固定：右欄一律 86px（有「門改」標籤也一樣），每張卡的城市、人數、國籍都在同一個位置 */
 @media (max-width:820px){
   .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 86px!important}
@@ -2294,11 +2298,12 @@ body.bigtxt .r .dt{font-size:15.5px!important}
   function paint(){
     var out=document.getElementById('out'); if(!out) return;
     var rows=[].slice.call(out.querySelectorAll('.r:not(.head)'));
-    var d=new Date(), nm=d.getHours()*60+d.getMinutes(), next=null, prog={a:[0,0],b:[0,0]};
+    var d=new Date(), nm=d.getHours()*60+d.getMinutes(), next=null, prog={}, SELC=(typeof selCats==='function')?selCats():['2140','2153'];
     rows.forEach(function(r){
-      var a=r.classList.contains('r40'), b=r.classList.contains('r53'); if(!a&&!b) return;
+      var a=r.classList.contains('r40'), b=r.classList.contains('r53');
+      var tg=r.querySelector('.c-shop .tag'), tn=tg?tg.textContent.trim():''; if(SELC.indexOf(tn)<0) return;
       var done=r.classList.contains('done'), taxi=r.classList.contains('taxi');
-      prog[a?'a':'b'][done?0:1]++;
+      if(!prog[tn]) prog[tn]=[0,0]; prog[tn][done?0:1]++;
       if(done||next) return;
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
       if(t>=nm-10||taxi) next={r:r,t:t,k:a?'k40':'k53',taxi:taxi,px:parseInt((r.querySelector('.px')||{}).textContent,10)||0};
@@ -2315,8 +2320,9 @@ body.bigtxt .r .dt{font-size:15.5px!important}
     var info=document.getElementById('infobox'); if(!info) return;
     var old=document.getElementById('prog'); if(old) old.remove();
     var pg=document.createElement('div'); pg.id='prog';
-    pg.innerHTML=[['a','2140'],['b','2153']].map(function(x){ var dn=prog[x[0]][0], tot=dn+prog[x[0]][1];
-      return '<div class="p '+x[0]+'">'+x[1]+'　'+(DEP?'已飛':'已到')+' '+dn+'／'+tot+' 班<div class="bar"><i style="width:'+(tot?Math.round(dn/tot*100):0)+'%"></i></div></div>'; }).join('');
+    pg.innerHTML=SELC.map(function(nm){ var p=prog[nm]||[0,0], dn=p[0], tot=dn+p[1];
+      var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===nm&&ci<0) ci=i; }); }catch(e){}
+      return '<div class="p '+(ci===0?'a':(ci===1?'b':'o'))+'">'+nm+'　'+(DEP?'已飛':'已到')+' '+dn+'／'+tot+' 班<div class="bar"><i style="width:'+(tot?Math.round(dn/tot*100):0)+'%"></i></div></div>'; }).join('');
     var anchor=document.getElementById('remain')||document.getElementById('nextnote');
     if(anchor&&anchor.parentNode===info) info.insertBefore(pg,anchor.nextSibling); else info.appendChild(pg);
   }
