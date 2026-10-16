@@ -732,7 +732,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-15f';
+var PAGE_V='2026-10-15g';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1119,11 +1119,26 @@ function setDot(k,msg){
   document.getElementById('live').textContent=msg;
 }
 
+/* 晚了幾分鐘（有預計時間才算；跨午夜照 statusOf 的算法補一天） */
+function delayOf(f){
+  if(!hhmm(f.RTime)||!hhmm(f.OTime)) return 0;
+  var d=mins(f.RTime)-mins(f.OTime); if(isNextDay(f)) d+=1440; return d;
+}
+var BIGDLY_MIN=180, BIGDLY_OPEN=false, bigDly=[];
+function bigDlyLine(){
+  var old=document.getElementById('bigdly'); if(old) old.remove();
+  if(!bigDly.length) return;
+  var out=document.getElementById('out'), list=out&&out.querySelector('.list'); 
+  var d=document.createElement('div'); d.id='bigdly'; d.className='foldline';
+  d.innerHTML='⏳ 大延誤 '+bigDly.length+' 班・晚 3 小時以上<i style="white-space:nowrap">'+(BIGDLY_OPEN?'▾ 收起':'▸ 展開')+'</i>';
+  d.onclick=function(){ BIGDLY_OPEN=!BIGDLY_OPEN; render(); };
+  if(list) list.appendChild(d); else if(out) out.appendChild(d);
+}
 function render(){
   var EX=catsExpand();
   var now=new Date(), nowM=now.getHours()*60+now.getMinutes();
 
-  var rows=[];
+  var rows=[]; bigDly=[];
   lastRows.forEach(function(f){
     var hasGate=(f.Gate||'').trim();
     if(hasGate){
@@ -1136,6 +1151,8 @@ function render(){
     } else {
       /* 還沒派登機門（隔日班機幾乎都是）：照樣顯示，分類標「待定」，不吃分類／區域篩選 */
       if(hideDone && doneOld(f)) return;
+      /* 大延誤（晚 3 小時以上）又還沒派門：多半是前一天的班改到今天，先收起來（10/15） */
+      if(delayOf(f)>=BIGDLY_MIN){ bigDly.push(f); if(!BIGDLY_OPEN) return; }
       rows.push({f:f, shop:null});
     }
   });
@@ -1202,6 +1219,7 @@ function render(){
     out.innerHTML='<div class="list">'+head+body+'</div>';
     sweepStagger();
   }
+  try{ bigDlyLine(); }catch(e){}
 
   document.getElementById('pending').innerHTML = lastPending.length
     ? '<div class="pend"><b>尚未公布登機門：'+lastPending.length+' 班</b> — '
