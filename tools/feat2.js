@@ -23,7 +23,7 @@
 #prog .p{font-size:13px;font-weight:900;color:#c3cad4;white-space:nowrap}
 #prog .bar{height:8px;background:#161e29;margin-top:3px;position:relative}
 #prog .bar i{position:absolute;left:0;top:0;bottom:0}
-#prog .p.a .bar i{background:#00efd4} #prog .p.b .bar i{background:#ff2e6e}
+#prog .p.a .bar i{background:#00efd4} #prog .p.b .bar i{background:#ff2e6e} #prog .p.o .bar i{background:#b026ff}
 /* 卡片欄寬固定：右欄一律 86px（有「門改」標籤也一樣），每張卡的城市、人數、國籍都在同一個位置 */
 @media (max-width:820px){
   .r{grid-template-columns:minmax(0,auto) minmax(0,1fr) 86px!important}
@@ -72,11 +72,12 @@ body.bigtxt .r .dt{font-size:15.5px!important}
   function paint(){
     var out=document.getElementById('out'); if(!out) return;
     var rows=[].slice.call(out.querySelectorAll('.r:not(.head)'));
-    var d=new Date(), nm=d.getHours()*60+d.getMinutes(), next=null, prog={a:[0,0],b:[0,0]};
+    var d=new Date(), nm=d.getHours()*60+d.getMinutes(), next=null, prog={}, SELC=(typeof selCats==='function')?selCats():['2140','2153'];
     rows.forEach(function(r){
-      var a=r.classList.contains('r40'), b=r.classList.contains('r53'); if(!a&&!b) return;
+      var a=r.classList.contains('r40'), b=r.classList.contains('r53');
+      var tg=r.querySelector('.c-shop .tag'), tn=tg?tg.textContent.trim():''; if(SELC.indexOf(tn)<0) return;
       var done=r.classList.contains('done'), taxi=r.classList.contains('taxi');
-      prog[a?'a':'b'][done?0:1]++;
+      if(!prog[tn]) prog[tn]=[0,0]; prog[tn][done?0:1]++;
       if(done||next) return;
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
       if(t>=nm-10||taxi) next={r:r,t:t,k:a?'k40':'k53',taxi:taxi,px:parseInt((r.querySelector('.px')||{}).textContent,10)||0};
@@ -93,8 +94,9 @@ body.bigtxt .r .dt{font-size:15.5px!important}
     var info=document.getElementById('infobox'); if(!info) return;
     var old=document.getElementById('prog'); if(old) old.remove();
     var pg=document.createElement('div'); pg.id='prog';
-    pg.innerHTML=[['a','2140'],['b','2153']].map(function(x){ var dn=prog[x[0]][0], tot=dn+prog[x[0]][1];
-      return '<div class="p '+x[0]+'">'+x[1]+'　'+(DEP?'已飛':'已到')+' '+dn+'／'+tot+' 班<div class="bar"><i style="width:'+(tot?Math.round(dn/tot*100):0)+'%"></i></div></div>'; }).join('');
+    pg.innerHTML=SELC.map(function(nm){ var p=prog[nm]||[0,0], dn=p[0], tot=dn+p[1];
+      var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===nm&&ci<0) ci=i; }); }catch(e){}
+      return '<div class="p '+(ci===0?'a':(ci===1?'b':'o'))+'">'+nm+'　'+(DEP?'已飛':'已到')+' '+dn+'／'+tot+' 班<div class="bar"><i style="width:'+(tot?Math.round(dn/tot*100):0)+'%"></i></div></div>'; }).join('');
     var anchor=document.getElementById('remain')||document.getElementById('nextnote');
     if(anchor&&anchor.parentNode===info) info.insertBefore(pg,anchor.nextSibling); else info.appendChild(pg);
   }

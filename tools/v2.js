@@ -122,22 +122,24 @@
 /* 接下來 1 小時：從畫面上的班機算（2140／2153 各幾班、約幾人） */
 function v2Next(){
   var el=document.getElementById('nextnote'); if(!el) return;
-  var d=new Date(), nowM=d.getHours()*60+d.getMinutes(), sum={};
+  var d=new Date(), nowM=d.getHours()*60+d.getMinutes(), sum={}, SEL=selCats();
   [].forEach.call(document.querySelectorAll('#out .r:not(.head)'),function(r){
-    if(r.classList.contains('done')) return;
+    if(r.classList.contains('done')||r.style.display==='none') return;
     var t=r.querySelector('.c-time b'), tg=r.querySelector('.c-shop .tag'), px=r.querySelector('.px');
     if(!t||!tg) return;
     var m=String(t.textContent).match(/(\d\d):(\d\d)/); if(!m) return;
     var eta=(+m[1])*60+(+m[2])-nowM; if(eta<-720) eta+=1440;
     if((eta<0&&!r.classList.contains('taxi'))||eta>60) return;
     var k=String(tg.textContent).trim(), n=px?parseInt(px.textContent,10)||0:0;
+    if(SEL.indexOf(k)<0) return;   /* 只算有勾選的分類（「待定」不算） */
     if(!sum[k]) sum[k]={f:0,p:0}; sum[k].f++; sum[k].p+=n;
   });
-  var keys=Object.keys(sum).sort();
+  var keys=SEL.filter(function(k){ return sum[k]; });
   el.innerHTML='<div class="nn-h">接下來 1 小時</div><div class="nn-g">'+(keys.length?keys.map(function(k){
     return '<div class="nn'+(k==='2140'?' k40':(k==='2153'?' k53':''))+'"><span class="nn-k">'+k+'</span><b>'+sum[k].p.toLocaleString()+'</b><span class="nn-u">人・'+sum[k].f+' 班</span></div>'; }).join('')
-    :'<div class="nn none">沒有你負責的班機</div>')+'</div>';
+    :'<div class="nn none">'+(SEL.length?SEL.join('、')+' 都沒有班機':'分類都沒勾選')+'</div>')+'</div>';
 }
+function selCats(){ try{ return CATS.map(function(c,i){ return show['c'+i]?c.name:null; }).filter(Boolean); }catch(e){ return ['2140','2153']; } }
 /* 今天每小時 T2 入境（桃機官方），現在這小時標金色 */
 function v2Hours(kind){
   var el=document.getElementById('hourbar'); if(!el) return;

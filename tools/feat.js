@@ -87,11 +87,13 @@
   function paint(){
     var out=document.getElementById('out'); if(!out) return;
     var M=map(), rows=[].slice.call(out.querySelectorAll('.r:not(.head)'));
+    var SELC=(typeof selCats==='function')?selCats():['2140','2153'], SELN=SELC.join('＋')||'未勾選';
     var now=new Date(), nm=now.getHours()*60+now.getMinutes(), prev=null, n=0, pax=0;
     var t2el=document.getElementById('t2'), t2=(t2el&&t2el.value)||'23:59', end=hm(t2);
     rows.forEach(function(r){
       var fb=r.querySelector('.c-fno b'); if(!fb) return;
-      var k=key(fb.textContent), f=M[k], mine=r.classList.contains('r40')||r.classList.contains('r53');
+      var tgel=r.querySelector('.c-shop .tag'), tgt=tgel?tgel.textContent.trim():'';
+      var k=key(fb.textContent), f=M[k], mine=SELC.indexOf(tgt)>=0;   /* 跟著上面分類勾選走 */
       r.setAttribute('data-k',k);
       /* A2 */
       if(f&&f.PlaneNo&&f.PlaneNo!=='-'&&!r.querySelector('.ac')){
@@ -103,7 +105,7 @@
       /* A6 展開狀態跟著重畫保留 */
       if(OPEN[k]) detail(r,f);
       /* A5 */
-      if(!DEP&&mine&&r.classList.contains('taxi')&&!TOLD[k]){ TOLD[k]=1; var g=r.querySelector('.gn'); toast(fb.textContent,g?g.textContent:'',r.classList.contains('r40')?'k40':'k53'); }
+      if(!DEP&&mine&&r.classList.contains('taxi')&&!TOLD[k]){ TOLD[k]=1; var g=r.querySelector('.gn'); toast(fb.textContent,g?g.textContent:'',r.classList.contains('r40')?'k40':(r.classList.contains('r53')?'k53':'')); }
       if(r.classList.contains('done')) return;
       var t=hm((r.querySelector('.c-time b')||{}).textContent); if(t===null) return;
       /* A1 */
@@ -119,8 +121,8 @@
     var old=document.getElementById('remain'); if(old) old.remove();
     var nn=document.getElementById('nextnote');
     if(nn){ var rm=document.createElement('div'); rm.id='remain';
-      rm.innerHTML=n?('到 '+t2.replace(':59',':59')+' 前還有 <b>'+n+'</b> 班　約 <b>'+pax.toLocaleString()+'</b> 人'+(DEP?'出境':'入境')+'（2140＋2153）')
-                    :('到 '+t2+' 前沒有你負責的班機了');
+      rm.innerHTML=n?('到 '+t2.replace(':59',':59')+' 前還有 <b>'+n+'</b> 班　約 <b>'+pax.toLocaleString()+'</b> 人'+(DEP?'出境':'入境')+'（'+SELN+'）')
+                    :('到 '+t2+' 前 '+SELN+' 沒有班機了');
       nn.parentNode.insertBefore(rm,nn.nextSibling); }
     /* B3 開頁第一次畫完：跳到「現在」 */
     if(!SCROLLED&&rows.length){

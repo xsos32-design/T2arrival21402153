@@ -9,11 +9,7 @@
 #immnote .imn,#immnote>i{display:none!important}
 #immnote b,#immnote em{font-size:12px!important}
 .grp.s1 .btn{min-height:40px!important}
-body{padding-bottom:46px!important}
-#fab{display:flex!important;flex-direction:row!important;align-items:stretch;gap:3px;padding:3px!important}
-#fab .fabrow{flex:1;display:flex;gap:3px;width:auto!important}
-#fab .fabb{min-height:34px!important;padding:0!important;flex:1}
-#fab .fclock{flex:0 0 auto;display:flex;align-items:center;padding:0 5px!important;font-size:15px!important;min-height:34px!important;margin:0!important}
+/* 10/16 浮動按鈕改回原樣：上面三個鍵、下面時間單獨一行（小韋指定，不要再改） */
 </style>
 <script>
 /* B1：「現在起 6 小時」和三個時段鍵搬進「⋯」裡，打開手錶第一眼就是班機 */
