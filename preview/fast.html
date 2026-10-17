@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>速度・版面・文字・美術 預覽</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:#0a0614;color:#e8e3f5;font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",sans-serif;font-weight:700;-webkit-text-size-adjust:100%;display:flex;flex-direction:column}
+.ctl{flex:none;background:#120a1f;border-bottom:1px solid #00f0ff;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:5px}
+.row{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center}
+.row::-webkit-scrollbar{display:none}
+.ttl{font-size:13px;color:#f5ee0b;font-weight:900;white-space:nowrap}
+.ttl a{color:#9a8fb5;font-size:12px;margin-left:8px}
+.tip{font-size:12px;color:#b9aed6;line-height:1.5}
+.tip b{color:#f5ee0b}
+#spd{font-size:12.5px;color:#d7f6ff;white-space:nowrap}
+#spd b{color:#f5ee0b}
+button{flex:none;font:inherit;font-size:13.5px;font-weight:900;padding:6px 10px;min-height:38px;cursor:pointer;background:#1a1030;border:1px solid #3a2a5a;color:#8a7fa8;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+button.on{background:rgba(0,240,255,.16);border-color:#00f0ff;color:#00f0ff}
+button.pg.on{background:rgba(255,42,109,.18);border-color:#ff2a6d;color:#ff9ec0}
+button.go{background:rgba(245,238,11,.14);border-color:#f5ee0b;color:#f5ee0b}
+.stage{flex:1;min-height:0;position:relative;overflow:auto}
+#f{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0a0614}
+#f.watch{position:relative;inset:auto;width:200px;height:240px;margin:24px auto 0;display:block;border:6px solid #222;border-radius:34px;transform:scale(1.45);transform-origin:top center;background:#000}
+</style>
+</head>
+<body>
+<div class="ctl">
+  <div class="ttl">⚡ 速度・版面・文字・美術（新版還沒上線）<a href="../index.html">回正式版</a></div>
+  <div class="row" id="pgs"></div>
+  <div class="row" id="ab"></div>
+  <div class="tip" id="tip"></div>
+</div>
+<div class="stage"><iframe id="f"></iframe></div>
+<script>
+var PAGES=[
+ ['all','全時段','../all.html','n17e-all.html','<b>版面</b>：招牌變矮；資訊卡的今天人數、每小時長條收進「更多」，班機往上移。<b>文字</b>：「23:59 前還有 19 班・2,985 人」、日期 10/17、「N 班」、搜尋提示變短。<b>速度</b>：第二次開馬上有班機。'],
+ ['dep','出境','../depart.html','n17e-depart.html','跟全時段一樣的版面／文字／速度，外加<b>夜間起飛</b>背景（入境維持航廈夜景）。'],
+ ['watch','手錶','../wtdx.html','n17e-wtdx.html','只加一層<b>很淡的航廈夜景</b>背景；按鈕（置頂／6H／更新一排、時間單獨一行）<b>完全不動</b>。放大 1.45 倍給你看。'],
+ ['log','更新日誌','../changelog.html','n17e-log.html','霓虹招牌、金屬按鈕、玻璃卡片，跟看板同一套。最上面多一條這次的更新說明。']
+], CUR='all', NEW=true, T={};
+var pgs=document.getElementById('pgs'), ab=document.getElementById('ab'), f=document.getElementById('f');
+pgs.innerHTML=PAGES.map(function(p){ return '<button class="pg" data-p="'+p[0]+'">'+p[1]+'</button>'; }).join('');
+function P(){ return PAGES.filter(function(x){ return x[0]===CUR; })[0]; }
+function paint(){
+  [].forEach.call(pgs.querySelectorAll('button'),function(b){ b.classList.toggle('on',b.dataset.p===CUR); });
+  var fl=(CUR==='all'||CUR==='dep');
+  ab.innerHTML='<button data-v="0" class="'+(NEW?'':'on')+'">現在</button><button data-v="1" class="'+(NEW?'on':'')+'">新版</button>'
+    +(fl?'<button class="go" id="again">再開一次（測速度）</button><span id="spd"></span>':'');
+  document.getElementById('tip').innerHTML=P()[4];
+  f.className=CUR==='watch'?'watch':'';
+  spd();
+}
+function spd(){ var s=document.getElementById('spd'); if(!s) return; var k=CUR+(NEW?'n':'o'), o=T[CUR+'o'], n=T[CUR+'n'];
+  s.innerHTML=(o?'現在 <b>'+o+'</b> 秒':'')+(o&&n?'　':'')+(n?'新版 <b>'+n+'</b> 秒':'')+(!o&&!n?'按「再開一次」看班機多久出現':''); }
+var t0=0, poll=0;
+function load(){ var u=P()[NEW?3:2]; var old=null; try{ old=f.contentDocument; }catch(e){} t0=performance.now(); f.setAttribute('src',u+(u.indexOf('?')<0?'?':'&')+'pv='+Date.now()); watch(old); }
+function watch(old){ clearInterval(poll); if(!(CUR==='all'||CUR==='dep')) return; var key=CUR+(NEW?'n':'o');
+  poll=setInterval(function(){ var d; try{ d=f.contentDocument; }catch(e){ return; }
+    if(d&&d!==old&&d.querySelector&&d.querySelector('#out .r:not(.head)')){ clearInterval(poll); T[key]=((performance.now()-t0)/1000).toFixed(1); spd(); }
+    if(performance.now()-t0>30000) clearInterval(poll); },50); }
+pgs.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; CUR=b.dataset.p; paint(); load(); });
+ab.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+  if(b.id==='again'){ load(); return; }
+  NEW=b.dataset.v==='1'; paint(); load(); });
+paint(); load();
+</script>
+</body>
+</html>
