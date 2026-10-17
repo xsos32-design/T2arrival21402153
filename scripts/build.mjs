@@ -1271,6 +1271,9 @@ const UNLOCK = {
   'index.html': { out: 'all.html', rules: [
     ['<title>班機網頁版 · 2140 / 2153</title>', '<title>班機網頁版 · 全時段</title>', 1],
     ['<link rel="manifest" href="app.webmanifest">', '<link rel="manifest" href="app-all.webmanifest">', 1],
+    ['img/og-arr.jpg', 'img/og-all.jpg', 2],
+    ['content="入境班機 · 2140 / 2153"', 'content="入境班機 · 全時段"', 1],
+    ['T2arrival21402153/index.html">', 'T2arrival21402153/all.html">', 1],
     ['content="韋 班機"', 'content="韋 全時段"', 1],
     ['班機網頁版 2140 / 2153</h1>', '班機網頁版 · 全時段</h1>', 1],
     ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
@@ -1290,6 +1293,9 @@ const UNLOCK = {
     ['content="韋 TDX"', 'content="韋 TDX全"', 1],
     ['<link rel="manifest" href="app-tdx.webmanifest">',
      '<link rel="manifest" href="app-tdxall.webmanifest">', 1],
+    ['img/og-watch.jpg', 'img/og-watchall.jpg', 2],
+    ['content="手錶版 · 2140 / 2153"', 'content="手錶版 · 全時段"', 1],
+    ['T2arrival21402153/wtdx.html">', 'T2arrival21402153/wtdxall.html">', 1],
     ['班機TDX版</b>', 'TDX版</b>', 1],
     ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
      '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
@@ -1515,7 +1521,7 @@ async function main() {
   for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'depart.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
-                   'app-tdx.webmanifest', 'app-tdxall.webmanifest',
+                   'app-tdx.webmanifest', 'app-tdxall.webmanifest', 'app-dep.webmanifest',
                    'app-watch.webmanifest', 'app-watchall.webmanifest']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
@@ -1526,6 +1532,13 @@ async function main() {
     for (const f of await readdir('ds')) if (/\.css$/.test(f)) await copyFile(join('ds', f), join(OUT, 'ds', f));
     console.log('已複製 ds/（設計系統樣式）');
   } catch { console.log('沒有 ds/ 資料夾，略過'); }
+  /* 圖示、分享縮圖：10/17 起收在 img/ 資料夾（每頁各自的主畫面圖示＋LINE／FB 分享縮圖），整包照原樣發佈 */
+  try {
+    const im = await readdir('img');
+    await mkdir(join(OUT, 'img'), { recursive: true });
+    for (const f of im) if (/\.(png|jpg|jpeg|webp)$/.test(f)) await copyFile(join('img', f), join(OUT, 'img', f));
+    console.log('已複製 img/（' + im.length + ' 個檔）');
+  } catch { console.log('沒有 img/ 資料夾，略過'); }
   /* 試作／預覽頁：10/13 起都收在 preview/ 資料夾，整包照原樣發佈 */
   try {
     const pv = await readdir('preview');
