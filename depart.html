@@ -732,7 +732,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-17a';
+var PAGE_V='2026-10-17b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2357,6 +2357,8 @@ body.bigtxt .r .dt{font-size:15.5px!important}
 .gtoast small{display:block;font-size:12.5px;opacity:.92;margin-top:4px}
 @media (min-width:821px){.gtoast{left:auto;width:390px}}
 .btoast~.gtoast,.gtoast~.btoast{top:auto;bottom:calc(70px + env(safe-area-inset-bottom))}
+/* iPhone：打字時（鍵盤開著）先把浮動按鈕藏起來，免得浮在畫面中間 */
+body.kbd #fab{display:none!important}
 </style>
 <script>
 (function(){
@@ -2426,6 +2428,17 @@ body.bigtxt .r .dt{font-size:15.5px!important}
     GATES=cur;
     if(items.length) gtoast(items);
   }
+
+  /* ── iPhone 浮動按鈕跑位修正 ──
+     iOS 收鍵盤、切回 App、網址列伸縮後，有時「固定在底部」的按鈕會卡在畫面中間；
+     打字時先藏起來，收鍵盤／畫面大小一變就輕推一下捲動，讓 iOS 重新排好位置 */
+  function nudge(){ setTimeout(function(){ var y=scrollY; scrollTo(scrollX,y+1); scrollTo(scrollX,y); },60); }
+  D.addEventListener('focusin',function(e){ if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) D.body.classList.add('kbd'); });
+  D.addEventListener('focusout',function(){ D.body.classList.remove('kbd'); nudge(); setTimeout(nudge,350); });
+  if(window.visualViewport) visualViewport.addEventListener('resize',function(){ if(!D.body.classList.contains('kbd')) nudge(); });
+  addEventListener('orientationchange',function(){ setTimeout(nudge,300); });
+  addEventListener('pageshow',nudge);
+  D.addEventListener('visibilitychange',function(){ if(!D.hidden) nudge(); });
 
   function paint(){ try{ f1(); }catch(e){ console.log('f1',e); } }
   var wait=setInterval(function(){
