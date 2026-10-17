@@ -1,0 +1,22 @@
+{
+  "name": "韋 班機 出境 2140 / 2153",
+  "short_name": "韋 出境",
+  "start_url": "depart.html",
+  "display": "standalone",
+  "background_color": "#0a0614",
+  "theme_color": "#0a0614",
+  "icons": [
+    {
+      "src": "img/icon-dep-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/icon-dep-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
