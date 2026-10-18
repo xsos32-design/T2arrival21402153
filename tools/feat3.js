@@ -17,6 +17,8 @@
 .gtoast small{display:block;font-size:12.5px;opacity:.92;margin-top:4px}
 @media (min-width:821px){.gtoast{left:auto;width:390px}}
 .btoast~.gtoast,.gtoast~.btoast{top:auto;bottom:calc(70px + env(safe-area-inset-bottom))}
+/* iPhone：打字時（鍵盤開著）先把浮動按鈕藏起來，免得浮在畫面中間 */
+body.kbd #fab{display:none!important}
 </style>
 <script>
 (function(){
@@ -30,7 +32,7 @@
     var out=D.getElementById('out'); if(!out) return;
     var sb=D.getElementById('fsearch');
     if(!sb){ sb=D.createElement('div'); sb.id='fsearch';
-      sb.innerHTML='<input type="search" placeholder="搜尋班號或城市（例如 BR23、大阪）" enterkeyhint="search" autocomplete="off"><button type="button">清除</button>';
+      sb.innerHTML='<input type="search" placeholder="搜班號或城市（BR23、大阪）" enterkeyhint="search" autocomplete="off"><button type="button">清除</button>';
       out.parentNode.insertBefore(sb,out);
       var inp=sb.querySelector('input');
       inp.addEventListener('input',function(){ Q=norm(inp.value); f1(); });
@@ -86,6 +88,17 @@
     GATES=cur;
     if(items.length) gtoast(items);
   }
+
+  /* ── iPhone 浮動按鈕跑位修正 ──
+     iOS 收鍵盤、切回 App、網址列伸縮後，有時「固定在底部」的按鈕會卡在畫面中間；
+     打字時先藏起來，收鍵盤／畫面大小一變就輕推一下捲動，讓 iOS 重新排好位置 */
+  function nudge(){ setTimeout(function(){ var y=scrollY; scrollTo(scrollX,y+1); scrollTo(scrollX,y); },60); }
+  D.addEventListener('focusin',function(e){ if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) D.body.classList.add('kbd'); });
+  D.addEventListener('focusout',function(){ D.body.classList.remove('kbd'); nudge(); setTimeout(nudge,350); });
+  if(window.visualViewport) visualViewport.addEventListener('resize',function(){ if(!D.body.classList.contains('kbd')) nudge(); });
+  addEventListener('orientationchange',function(){ setTimeout(nudge,300); });
+  addEventListener('pageshow',nudge);
+  D.addEventListener('visibilitychange',function(){ if(!D.hidden) nudge(); });
 
   function paint(){ try{ f1(); }catch(e){ console.log('f1',e); } }
   var wait=setInterval(function(){
