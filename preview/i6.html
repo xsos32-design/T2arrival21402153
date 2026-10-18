@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gemini 美術 · 班機看板</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:#0a0614;color:#e8e3f5;font-family:"Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",sans-serif;font-weight:700;-webkit-text-size-adjust:100%;display:flex;flex-direction:column}
+.ctl{flex:none;background:#120a1f;border-bottom:1px solid #00f0ff;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:6px}
+.row{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;align-items:center}
+.row::-webkit-scrollbar{display:none}
+.ttl{font-size:13px;color:#f5ee0b;font-weight:900;white-space:nowrap}
+.ttl a{color:#9a8fb5;font-size:12px;margin-left:8px}
+button{flex:none;font:inherit;font-size:14px;font-weight:900;padding:7px 10px;min-height:40px;cursor:pointer;background:#1a1030;border:1px solid #3a2a5a;color:#8a7fa8;
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+button.on{background:rgba(0,240,255,.16);border-color:#00f0ff;color:#00f0ff;box-shadow:0 0 12px -3px #00f0ff}
+button.sim{background:rgba(176,38,255,.2);border-color:#b026ff;color:#e3b6ff}
+.pg.on{background:rgba(255,42,109,.18);border-color:#ff2a6d;color:#ff9ec0;box-shadow:none}
+.tip{font-size:12.5px;color:#b9aed6;line-height:1.5;min-height:1.5em}
+.tip b{color:#f5ee0b}
+.stage{flex:1;min-height:0;position:relative}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0a0614}
+</style>
+</head>
+<body>
+<div class="ctl">
+  <div class="ttl">🎨 Gemini 美術：按鈕小圖、寬版招牌（還沒上線，點按鈕開關看前後）<a href="../index.html">回正式版</a></div>
+  <div class="row"><button class="pg on" data-u="../all.html">全時段</button><button class="pg" data-u="../index.html">一般時段</button><button class="pg" data-u="../depart.html">出境</button></div>
+  <div class="row" id="sw"></div>
+  <div class="tip" id="tip"></div>
+</div>
+<div class="stage"><iframe id="f" src="../all.html"></iframe></div>
+<script>
+var FEAT=[["I1", "按鈕小圖", "所有按鈕上的小圖示（置頂、6小時、更新、隱藏已抵達、選日期、分類設定、複製、開會時間、恢復預設、標題的飛機、招牌的⚠）換成 Gemini 生成的霓虹線條圖示；顏色照原本按鈕走（2140 青、2153 粉），外加一點光暈"], ["I2", "寬版霓虹招牌", "最上面「小韋製作」的霓虹框換成 Gemini 專為矮招牌重畫的寬版框：左邊粉色飛機、右邊塔台、上下有支架和電線，不會像舊框被壓扁"]], I6JS="/* ══ 第六輪：Gemini 美術（I1 按鈕小圖、I2 寬版招牌）：只在 preview/i6.html 裡注入 ══ */\n(function(){\n  var W=window, D=document, R=D.documentElement;\n  if(W.__i6) return; W.__i6=1; W.__I=W.__I||{};\n  var css=D.createElement('style'); css.textContent=\"/* I1 按鈕小圖：Gemini 生成的霓虹線條圖示，顏色跟著按鈕（2140 青、2153 粉、選中黃…）走，外加一點光暈 */\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-land\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-plane\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-timer\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-refresh\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-up\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-hide\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-copy\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-clock\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-cal\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-cog\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-undo\\\"]),html.hI1 svg.ic:has(use[href=\\\"#i-alert\\\"]){background:currentColor;-webkit-mask-image:url(img/ic.webp);mask-image:url(img/ic.webp);-webkit-mask-size:1200% 100%;mask-size:1200% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;filter:drop-shadow(0 0 2px currentColor);stroke:none!important;width:1.22em!important;height:1.22em!important;vertical-align:-.2em}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-land\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-plane\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-timer\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-refresh\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-up\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-hide\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-copy\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-clock\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-cal\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-cog\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-undo\\\"]) use,html.hI1 svg.ic:has(use[href=\\\"#i-alert\\\"]) use{display:none}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-land\\\"]){-webkit-mask-position:0.0000% 0;mask-position:0.0000% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-plane\\\"]){-webkit-mask-position:9.0909% 0;mask-position:9.0909% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-timer\\\"]){-webkit-mask-position:18.1818% 0;mask-position:18.1818% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-refresh\\\"]){-webkit-mask-position:27.2727% 0;mask-position:27.2727% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-up\\\"]){-webkit-mask-position:36.3636% 0;mask-position:36.3636% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-hide\\\"]){-webkit-mask-position:45.4545% 0;mask-position:45.4545% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-copy\\\"]){-webkit-mask-position:54.5455% 0;mask-position:54.5455% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-clock\\\"]){-webkit-mask-position:63.6364% 0;mask-position:63.6364% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-cal\\\"]){-webkit-mask-position:72.7273% 0;mask-position:72.7273% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-cog\\\"]){-webkit-mask-position:81.8182% 0;mask-position:81.8182% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-undo\\\"]){-webkit-mask-position:90.9091% 0;mask-position:90.9091% 0}\\nhtml.hI1 svg.ic:has(use[href=\\\"#i-alert\\\"]){-webkit-mask-position:100.0000% 0;mask-position:100.0000% 0}\\n/* I2 招牌：換成 Gemini 生成的寬版霓虹框（為變矮後的招牌重做，比例不會被壓扁） */\\nhtml.hI2:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) center/100% 100% no-repeat,#07040e!important;padding-left:56px!important;padding-right:56px!important}\\n@media (min-width:821px){html.hI2:is(.arr,.dep) body:not(.mkslim) .mk{background-size:auto 100%!important}}\"; D.head.appendChild(css);\n  function paint(){ for(var k in W.__I) R.classList.toggle('h'+k,!!W.__I[k]); }\n  W.__i6paint=paint; paint();\n})();\n";
+var ON={}; FEAT.forEach(function(f){ ON[f[0]]=true; }); var LAST='I1';
+var sw=document.getElementById('sw');
+sw.innerHTML=FEAT.map(function(f){ return '<button class="on" data-k="'+f[0]+'">'+f[0]+' '+f[1]+'</button>'; }).join('');
+function paint(){
+  [].forEach.call(sw.querySelectorAll('[data-k]'),function(b){ b.classList.toggle('on',!!ON[b.dataset.k]); });
+  
+  var f=FEAT.filter(function(x){ return x[0]===LAST; })[0];
+  document.getElementById('tip').innerHTML='<b>'+f[0]+' '+f[1]+'</b>（'+(ON[f[0]]?'開':'關')+'）：'+f[2];
+}
+function apply(){
+  var w, d; try{ w=document.getElementById('f').contentWindow; d=w.document; }catch(e){ return; } if(!d||!d.body) return;
+  w.__I=JSON.parse(JSON.stringify(ON));
+  if(!w.__i6){ var s=d.createElement('script'); s.textContent=I6JS; d.body.appendChild(s); }
+  try{ if(w.__i6paint) w.__i6paint(); }catch(e){}
+}
+[].forEach.call(document.querySelectorAll('.pg'),function(b){ b.onclick=function(){ [].forEach.call(document.querySelectorAll('.pg'),function(x){ x.classList.toggle('on',x===b); }); document.getElementById('f').src=b.dataset.u; }; });
+sw.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.s){ try{ document.getElementById('f').contentWindow[b.dataset.s](); }catch(_){ } return; }
+  var k=b.dataset.k; ON[k]=!ON[k]; LAST=k; paint(); apply(); });
+document.getElementById('f').addEventListener('load',function(){ setTimeout(apply,800); setTimeout(apply,4000); });
+paint();
+</script>
+</body>
+</html>
