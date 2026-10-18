@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-18c';
+var PAGE_V='2026-10-18d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2871,6 +2871,28 @@ html.hH8 .gapline{padding:3px 10px!important;font-size:12.5px!important;margin:6
   },100);
 })();
 </script>
+<!-- Gemini 美術：tools/feat6.js（按鈕小圖、寬版招牌） -->
+<style>
+/* ══ Gemini 美術（2026-10-18）：I1 按鈕小圖（img/ic.webp）、I2 寬版霓虹招牌（img/neon-wide.webp）。入境頁、出境頁共用 ══ */
+/* I1 按鈕小圖：Gemini 生成的霓虹線條圖示，顏色跟著按鈕（2140 青、2153 粉、選中黃…）走，外加一點光暈 */
+svg.ic:has(use[href="#i-land"]),svg.ic:has(use[href="#i-plane"]),svg.ic:has(use[href="#i-timer"]),svg.ic:has(use[href="#i-refresh"]),svg.ic:has(use[href="#i-up"]),svg.ic:has(use[href="#i-hide"]),svg.ic:has(use[href="#i-copy"]),svg.ic:has(use[href="#i-clock"]),svg.ic:has(use[href="#i-cal"]),svg.ic:has(use[href="#i-cog"]),svg.ic:has(use[href="#i-undo"]),svg.ic:has(use[href="#i-alert"]){background:currentColor;-webkit-mask-image:url(img/ic.webp);mask-image:url(img/ic.webp);-webkit-mask-size:1200% 100%;mask-size:1200% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;filter:drop-shadow(0 0 2px currentColor);stroke:none!important;width:1.22em!important;height:1.22em!important;vertical-align:-.2em}
+svg.ic:has(use[href="#i-land"]) use,svg.ic:has(use[href="#i-plane"]) use,svg.ic:has(use[href="#i-timer"]) use,svg.ic:has(use[href="#i-refresh"]) use,svg.ic:has(use[href="#i-up"]) use,svg.ic:has(use[href="#i-hide"]) use,svg.ic:has(use[href="#i-copy"]) use,svg.ic:has(use[href="#i-clock"]) use,svg.ic:has(use[href="#i-cal"]) use,svg.ic:has(use[href="#i-cog"]) use,svg.ic:has(use[href="#i-undo"]) use,svg.ic:has(use[href="#i-alert"]) use{display:none}
+svg.ic:has(use[href="#i-land"]){-webkit-mask-position:0.0000% 0;mask-position:0.0000% 0}
+svg.ic:has(use[href="#i-plane"]){-webkit-mask-position:9.0909% 0;mask-position:9.0909% 0}
+svg.ic:has(use[href="#i-timer"]){-webkit-mask-position:18.1818% 0;mask-position:18.1818% 0}
+svg.ic:has(use[href="#i-refresh"]){-webkit-mask-position:27.2727% 0;mask-position:27.2727% 0}
+svg.ic:has(use[href="#i-up"]){-webkit-mask-position:36.3636% 0;mask-position:36.3636% 0}
+svg.ic:has(use[href="#i-hide"]){-webkit-mask-position:45.4545% 0;mask-position:45.4545% 0}
+svg.ic:has(use[href="#i-copy"]){-webkit-mask-position:54.5455% 0;mask-position:54.5455% 0}
+svg.ic:has(use[href="#i-clock"]){-webkit-mask-position:63.6364% 0;mask-position:63.6364% 0}
+svg.ic:has(use[href="#i-cal"]){-webkit-mask-position:72.7273% 0;mask-position:72.7273% 0}
+svg.ic:has(use[href="#i-cog"]){-webkit-mask-position:81.8182% 0;mask-position:81.8182% 0}
+svg.ic:has(use[href="#i-undo"]){-webkit-mask-position:90.9091% 0;mask-position:90.9091% 0}
+svg.ic:has(use[href="#i-alert"]){-webkit-mask-position:100.0000% 0;mask-position:100.0000% 0}
+/* I2 招牌：換成 Gemini 生成的寬版霓虹框（為變矮後的招牌重做，比例不會被壓扁） */
+html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) center/100% 100% no-repeat,#07040e!important;padding-left:56px!important;padding-right:56px!important}
+@media (min-width:821px){html:is(.arr,.dep) body:not(.mkslim) .mk{background-size:auto 100%!important}}
+</style>
 
 <script src="https://xsos32-design.github.io/job/kv.js" defer></script>
 </body>
