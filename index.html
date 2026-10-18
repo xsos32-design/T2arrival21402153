@@ -17,6 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://xsos32-design.github.io/T2arrival21402153/img/og-arr.jpg">
 <meta name="description" content="桃園機場第二航廈入境班機：即時班機、登機門、預估入境人數。小韋製作。">
+<link rel="preconnect" href="https://www.taoyuan-airport.com" crossorigin>
 <link rel="manifest" href="app.webmanifest">
 <meta name="apple-mobile-web-app-title" content="韋 班機">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -751,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-17d';
+var PAGE_V='2026-10-17e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1407,7 +1408,7 @@ function runNow6(){
     var n2=new Date();
     setDot('on',pad(n2.getHours())+':'+pad(n2.getMinutes()));
     st.innerHTML=IC('timer')+' 現在 <b>'+press+'</b> 按下　範圍 '+lo+'–'+(cross?'(隔日)':'')+(cross?hi2:hi)
-                +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
+                +'　·　<b>'+sel.length+'</b> 班　·　不含06:00–13:30'
                 +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
@@ -1650,8 +1651,8 @@ function run(){
     setDot('on',pad(n.getHours())+':'+pad(n.getMinutes()));
     st.innerHTML=(cross
         ? date.slice(5).replace('-','/')+' '+t1+' – <b>'+date2.slice(5).replace('-','/')+' '+t2+'</b>（跨日）'
-        : date+'　'+t1+'–'+t2)
-      +'　·　符合 <b>'+sel.length+'</b> 班　·　不含06:00–13:30'
+        : date.slice(5).replace('-','/')+'　'+t1+'–'+t2)
+      +'　·　<b>'+sel.length+'</b> 班　·　不含06:00–13:30'
       +(srcLabel==='TDX'?'　·　<b style="color:#b45309">TDX</b>':'');
     document.getElementById('srcslot').innerHTML=
       srcLabel==='TDX'
@@ -1877,6 +1878,57 @@ function isoOf(off){ var d=new Date(Date.now()+off*86400000); return d.getFullYe
 var ALLDAY={};
 var _gfr=getFlightsRaw;
 getFlightsRaw=function(date){ return _gfr(date).then(function(list){ ALLDAY[date]=list||[]; return list; }); };
+/* ── 秒開（10/17）：上次抓到的班機先顯示，同時在背景抓最新的，抓到就自動換掉 ──
+   1. 每天的班機表存在這支手機（localStorage），6 小時內的才拿來用
+   2. 同一天同時有好幾個地方要資料，只送一次請求（例如開頁時、按更新時）
+   3. 開頁就先開始抓今天的班機，不用等機隊表下載完 */
+(function(){
+  var KIND=/出境/.test(document.title)?'D':'A', PRE='fc1_'+KIND+'_', MAXAGE=6*3600000;
+  var _raw=getFlightsRaw, inflight={}, served={};
+  function today(){ var n=new Date(); return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate()); }
+  function save(date,list){
+    try{
+      for(var i=localStorage.length-1;i>=0;i--){ var k=localStorage.key(i);
+        if(k&&k.indexOf('fc1_')===0){ var d=k.slice(6); var age=(new Date(today())-new Date(d))/86400000; if(age>1||age<-2) localStorage.removeItem(k); } }
+      localStorage.setItem(PRE+date,JSON.stringify({t:Date.now(),s:srcLabel,d:list}));
+    }catch(e){}
+  }
+  function real(date){
+    var m=inflight[date];
+    if(m&&(m.pending||Date.now()-m.t<15000)) return m.p;
+    var o={t:Date.now(),pending:true};
+    o.p=_raw(date).then(function(list){ o.pending=false; o.t=Date.now(); if(list&&list.length) save(date,list); return list; },
+                        function(e){ o.pending=false; o.t=0; throw e; });
+    inflight[date]=o; return o.p;
+  }
+  getFlightsRaw=function(date){
+    var p=real(date);
+    if(!served[date]){
+      served[date]=1;
+      var c=null; try{ c=JSON.parse(localStorage.getItem(PRE+date)||'null'); }catch(e){}
+      if(c&&c.d&&c.d.length&&Date.now()-c.t<MAXAGE){
+        var hm=new Date(c.t), lab=pad(hm.getHours())+':'+pad(hm.getMinutes());
+        p.then(function(){ setTimeout(function(){ var b=document.getElementById('fGo'); if(b) b.click(); },30); },function(){});
+        ALLDAY[date]=c.d; srcLabel=c.s||srcLabel; fromCache[date]=1;
+        setTimeout(function(){ setDot('busy','先顯示 '+lab+' 的資料，抓最新的中…'); },0);
+        return Promise.resolve(c.d);
+      }
+    }
+    return p;
+  };
+  /* 班表（算轉機用）也只抓一次；用上次資料先顯示時，不等它 */
+  var _deps=loadDeps, depMemo={};
+  loadDeps=function(date){ var m=depMemo[date]; if(m&&(m.pending||Date.now()-m.t<60000)) return m.p;
+    var o={t:Date.now(),pending:true}; o.p=_deps(date).then(function(x){ o.pending=false; o.t=Date.now(); return x; },function(e){ o.pending=false; o.t=0; throw e; });
+    depMemo[date]=o; return o.p; };
+  var fromCache={};
+  getFlights=function(date){
+    var raw=getFlightsRaw(date), dep=loadDeps(date);
+    if(fromCache[date]){ fromCache[date]=0; dep['catch'](function(){}); return raw; }
+    return Promise.all([raw,dep]).then(function(r){ return r[0]; });
+  };
+  try{ real(today()); }catch(e){}   /* 開頁就先抓，跟機隊表同時下載 */
+})();
 /* ── 現在時間線＋已抵達收成一行（2026-10-12 上線）── */
 var FOLD_OPEN=false;
 function webPost(){
@@ -2271,7 +2323,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
 <link rel="stylesheet" href="ds/board.css">
 <link rel="stylesheet" href="ds/polish.css?v=14a">
-<link rel="stylesheet" href="ds/neon.css?v=17a">
+<link rel="stylesheet" href="ds/neon.css?v=17e">
 
 <!-- 新功能：tools/feat.js -->
 <style>
@@ -2397,7 +2449,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
     var old=document.getElementById('remain'); if(old) old.remove();
     var nn=document.getElementById('nextnote');
     if(nn){ var rm=document.createElement('div'); rm.id='remain';
-      rm.innerHTML=n?('到 '+t2.replace(':59',':59')+' 前還有 <b>'+n+'</b> 班　約 <b>'+pax.toLocaleString()+'</b> 人'+(DEP?'出境':'入境')+'（'+SELN+'）')
+      rm.innerHTML=n?(t2+' 前還有 <b>'+n+'</b> 班・<b>'+pax.toLocaleString()+'</b> 人')
                     :('到 '+t2+' 前 '+SELN+' 沒有班機了');
       nn.parentNode.insertBefore(rm,nn.nextSibling); }
     /* B3 開頁第一次畫完：跳到「現在」 */
@@ -2576,7 +2628,7 @@ body.kbd #fab{display:none!important}
     var out=D.getElementById('out'); if(!out) return;
     var sb=D.getElementById('fsearch');
     if(!sb){ sb=D.createElement('div'); sb.id='fsearch';
-      sb.innerHTML='<input type="search" placeholder="搜尋班號或城市（例如 BR23、大阪）" enterkeyhint="search" autocomplete="off"><button type="button">清除</button>';
+      sb.innerHTML='<input type="search" placeholder="搜班號或城市（BR23、大阪）" enterkeyhint="search" autocomplete="off"><button type="button">清除</button>';
       out.parentNode.insertBefore(sb,out);
       var inp=sb.querySelector('input');
       inp.addEventListener('input',function(){ Q=norm(inp.value); f1(); });
@@ -2650,6 +2702,49 @@ body.kbd #fab{display:none!important}
     var _r=window.render;
     window.render=function(){ var x=_r.apply(this,arguments); paint(); try{ f7(); }catch(e){ console.log('f7',e); } return x; };
     paint();
+  },100);
+})();
+</script>
+<!-- 版面精簡：tools/lay.js（招牌變矮、資訊卡收合） -->
+<style>
+/* ══ 10/17e 版面精簡：手機上讓班機早一點出現。入境頁、出境頁共用 ══ */
+/* 招牌變矮：霓虹框一樣在，高度從 122 降到 76 */
+html:is(.arr,.dep) body:not(.mkslim) .mk{min-height:76px!important;padding:14px 14px 12px!important}
+html:is(.arr,.dep) body:not(.mkslim) .mk b{font-size:26px!important;line-height:1.15}
+html:is(.arr,.dep) body:not(.mkslim) .mk i{font-size:12.5px!important;margin-top:2px!important}
+@media (min-width:821px){html:is(.arr,.dep) body:not(.mkslim) .mk{min-height:110px!important}html:is(.arr,.dep) body:not(.mkslim) .mk b{font-size:34px!important}}
+/* 資訊卡：「接下來 1 小時」「還有幾班」「已到幾班」一直看得到；人數統計、每小時長條收進「更多」 */
+#infobox.ibfold #offnote,#infobox.ibfold #immnote,#infobox.ibfold #holnote,#infobox.ibfold #hourbar{display:none!important}
+#ibmore{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin-top:8px;padding:8px 12px;min-height:40px;
+  font:inherit;font-size:13.5px;font-weight:900;color:#b9aed6;background:rgba(26,16,48,.7);border:1px dashed rgba(0,240,255,.35);cursor:pointer;text-align:left}
+#ibmore b{color:#00f0ff;font-size:13px;white-space:nowrap}
+#ibmore span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#remain{padding:7px 12px!important}
+#nextnote .nn{padding:6px 12px 6px 14px!important}
+#nextnote .nn b{font-size:27px!important}
+</style>
+<script>
+(function(){
+  var D=document, KEY='ibOpen1';
+  function open(){ try{ return localStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function paint(){
+    var ib=D.getElementById('infobox'); if(!ib) return false;
+    var b=D.getElementById('ibmore');
+    if(!b){ b=D.createElement('button'); b.type='button'; b.id='ibmore';
+      b.onclick=function(){ var v=!open(); try{ localStorage.setItem(KEY,v?'1':'0'); }catch(e){} paint(); };
+    }
+    if(b.parentNode!==ib||b.nextSibling) ib.appendChild(b);       /* 永遠放最後一行 */
+    var o=open(), dep=/出境/.test(D.title);
+    var has=['offnote','immnote','holnote','hourbar'].some(function(id){ var e=D.getElementById(id); return e&&e.parentNode===ib&&e.innerHTML.trim(); });
+    b.style.display=has?'':'none';
+    ib.classList.toggle('ibfold',!o);
+    b.innerHTML='<span>'+(o?'收起人數統計':'更多：今天'+(dep?'出境':'入境')+'人數、每小時長條')+'</span><b>'+(o?'收起 ▴':'展開 ▾')+'</b>';
+    return true;
+  }
+  var wait=setInterval(function(){
+    if(typeof window.render!=='function'||!paint()) return; clearInterval(wait);
+    var _r=window.render;
+    window.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; };
   },100);
 })();
 </script>

@@ -587,7 +587,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-17d';
+var PAGE_V='2026-10-17e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1950,7 +1950,7 @@ render=function(){ _renderG(); try{ gateTrack('.f','.g .gn',true); }catch(e){} }
 </script>
 <!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
 <link rel="stylesheet" href="ds/board.css">
-<link rel="stylesheet" href="ds/neon.css?v=17a">
+<link rel="stylesheet" href="ds/neon.css?v=17e">
 <style>
 /* 滑行中：藍色實心＋卡片藍框，不變暗 */
 .st.b-taxi{background:#4da3ff!important;color:#fff!important;border-color:#4da3ff!important;animation:taxiPulse 1.6s ease-in-out infinite}
@@ -2027,5 +2027,10 @@ render=function(){ _renderG(); try{ gateTrack('.f','.g .gn',true); }catch(e){} }
 })();
 </script>
 
+<style>
+/* 10/17e：手錶加一層很淡的航廈夜景背景（按鈕、時間排法不動） */
+html,body{background:transparent!important} html{background:#05040a!important}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(5,4,10,.84),rgba(5,4,10,.88)),url(img/bg-term.webp) center bottom/cover no-repeat}
+</style>
 </body>
 </html>

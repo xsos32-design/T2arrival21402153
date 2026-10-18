@@ -62,7 +62,14 @@ a{color:var(--k40)}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>10/17</b><em>新的主畫面圖示、分享縮圖</em><i class="new">最新</i></div>
+<div class="day"><b>10/17</b><em>開得更快、版面更省空間</em><i class="new">最新</i></div>
+<div class="card hi"><ul>
+  <li><b>開得更快</b>：今天抓過的班機會先存在手機，第二次打開<b>馬上</b>顯示（上面會寫「先顯示 HH:MM 的資料，抓最新的中…」），幾秒後自動換成最新的。背景圖改成獨立小檔，樣式檔從 96 KB 縮到 11 KB。</li>
+  <li><b>版面</b>：上方「小韋製作」招牌變矮；資訊卡的今天人數、每小時長條收進「更多」（點一下展開，會記住），「接下來 1 小時」「還有幾班」「已到幾班」照樣一直看得到。手機上班機往上移了一大段。</li>
+  <li><b>文字</b>：「到 23:59 前還有 19 班 約 2,985 人入境（2140＋2153）」改成「23:59 前還有 19 班・2,985 人」；日期改成 10/17、「符合 N 班」改成「N 班」；搜尋框提示變短。</li>
+  <li><b>美術</b>：出境頁換成「夜間起飛」背景（入境維持航廈夜景，一眼分得出來）；手錶加一層很淡的背景，按鈕和時間排法不變；更新日誌換成霓虹招牌＋玻璃卡片。</li>
+</ul></div>
+<div class="day"><b>10/17</b><em>新的主畫面圖示、分享縮圖</em></div>
 <div class="card hi"><ul>
   <li>主畫面圖示換新（Gemini 生成的霓虹圖示）：<b>入境</b>是青色降落飛機、<b>出境</b>是粉色起飛飛機、<b>手錶</b>是黃色手錶。要換成新圖示，請把主畫面舊的捷徑刪掉，再重新「加到主畫面」。</li>
   <li>把網址貼到 LINE、FB 時，會出現新的<b>分享縮圖</b>：入境、全時段、出境、手錶、手錶全時段、更新日誌各有一張，寫清楚是哪一頁。</li>
@@ -605,5 +612,19 @@ a{color:var(--k40)}
 
 <div class="foot">資料擷取自桃園機場公開航班資訊與交通部 TDX，僅供參考。<br>實際登機門、時間、狀態一律以現場為準。</div>
 
+<style>
+/* 10/17e：更新日誌換成跟看板一樣的霓虹招牌、金屬按鈕、玻璃卡片 */
+html{background:#0a0614!important} body{background:transparent!important}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(10,6,20,.62),rgba(10,6,20,.7)),url(img/bg-term.webp) center bottom/cover no-repeat}
+.hd{background:url(img/neon-frame.webp) center/100% 100% no-repeat,#07040e!important;border:0!important;padding:34px 18px 30px!important;min-height:150px}
+@media (min-width:700px){.hd{background-size:auto 100%!important}}
+.hd h1{color:#fffbe6!important;text-shadow:0 0 4px #fff,0 0 12px #f5ee0b,0 0 28px #ff2a6d!important}
+.hd p{color:#ffd1e3!important}
+.back{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,0) 42%,rgba(0,0,0,.28)),url(img/metal.webp) center/128px repeat!important;border:1px solid rgba(0,240,255,.5)!important;color:#d7f6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 4px 12px rgba(0,0,0,.55)}
+.card{background:linear-gradient(118deg,rgba(255,255,255,.09),rgba(255,255,255,0) 30%),rgba(18,10,31,.6)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(0,240,255,.25)!important}
+.card.hi{box-shadow:inset 4px 0 0 #f5ee0b,0 0 18px -8px #f5ee0b!important}
+.day b{color:#f5ee0b!important;text-shadow:0 0 10px rgba(245,238,11,.5)}
+.day i.new{background:#f5ee0b!important;color:#1a1400!important;box-shadow:0 0 12px rgba(245,238,11,.6)}
+</style>
 </body>
 </html>
