@@ -2,6 +2,11 @@
 /* ══ 10/17e 版面精簡：手機上讓班機早一點出現。入境頁、出境頁共用 ══ */
 /* 招牌變矮：霓虹框一樣在，高度從 122 降到 76 */
 html:is(.arr,.dep) body:not(.mkslim) .mk{min-height:76px!important;padding:14px 14px 12px!important}
+/* iPhone 加到主畫面：狀態列（時間、電量）會蓋在最上面，招牌往下讓出狀態列的高度；
+   上面有共用主視覺圖的入境頁不用讓（圖本來就墊在狀態列底下）。縮成細條黏在頂端時一律要讓 */
+html:is(.arr,.dep) body .mk.mk{border-top:env(safe-area-inset-top,0px) solid #07040e!important}
+html:is(.arr,.dep) body:not(.mkslim) #xwkv~.mk.mk{border-top-width:0!important}
+html:is(.arr,.dep) body.mkslim .mk.mk{border-top-color:#0a0614!important}
 html:is(.arr,.dep) body:not(.mkslim) .mk b{font-size:26px!important;line-height:1.15}
 html:is(.arr,.dep) body:not(.mkslim) .mk i{font-size:12.5px!important;margin-top:2px!important}
 @media (min-width:821px){html:is(.arr,.dep) body:not(.mkslim) .mk{min-height:110px!important}html:is(.arr,.dep) body:not(.mkslim) .mk b{font-size:34px!important}}
