@@ -31,9 +31,7 @@
     var L={}; RS.forEach(function(r){ var t=tagOf(r); if(S.indexOf(t)>=0) L[t]=r; });
     var ks=S.filter(function(k){ return L[k]; }), html='';
     ks.forEach(function(k){ var c=L[k].querySelector('.c-time'); if(!c) return; var i=D.createElement('i'); i.className='lastb'; i.textContent=k+' 最後一班'; c.appendChild(i); });
-    if(ks.length) html='🏁 本時段最後一班：'+ks.map(function(k){ var r=L[k], e=etaOf(r);
-      var w=r.classList.contains('done')?'（'+(DEP?'已飛':'已到')+'）':(e!==null&&e>0?'（'+(e>=60?Math.floor(e/60)+' 時'+(e%60?' '+(e%60)+' 分':'')+'後）':e+' 分後）'):'');
-      return k+' <b>'+tOf(r)+' '+fnoOf(r)+'</b>'+w; }).join('　');
+    /* 10/19：資訊卡那行「本時段最後一班」拿掉（小韋說不要），只留卡片上的紫色小標 */
     var gl=D.getElementById('glast'), ib=D.getElementById('infobox');
     if(html&&ib){ if(!gl){ gl=D.createElement('div'); gl.id='glast'; }
       var an=D.getElementById('prog')||D.getElementById('remain')||D.getElementById('nextnote');
