@@ -317,8 +317,8 @@ function statusOf(f) {
 /* 四種分類：
    40 = 第二航廈、登機門屬 2140
    53 = 第二航廈、登機門屬 2153
-   t2 = 第二航廈其餘登機門
-   t1 = 第一航廈全部 */
+   t1 = 大夜YA：入境登機口 A、D
+   t2 = 大夜YB：入境登機口 B、C（2140／2153 的門先算）  （10/19 從「其他一航／其他二航」改） */
 /* ── 出發國家對照（IATA 機場代碼 → 國家）＋ 航班號碼補滿四碼 ── */
 const CTRY = (() => { const o = {};
   for (const kv of 'ADL:澳洲,AKJ:日本,AKL:紐西蘭,AMD:印度,AMM:約旦,AMS:荷蘭,ANC:美國,AOJ:日本,ARN:瑞典,ASJ:日本,ATH:希臘,ATL:美國,AUH:阿聯,AUS:美國,AXT:日本,BAH:巴林,BCN:西班牙,BER:德國,BKI:馬來西亞,BKK:泰國,BLQ:義大利,BLR:印度,BNA:美國,BNE:澳洲,BOM:印度,BOS:美國,BRU:比利時,BTH:印尼,BUD:匈牙利,BWN:汶萊,BXU:菲律賓,CAI:埃及,CAN:中國,CBR:澳洲,CCU:印度,CDG:法國,CEB:菲律賓,CGK:印尼,CGO:中國,CGP:孟加拉,CGQ:中國,CHC:紐西蘭,CJJ:韓國,CJU:韓國,CKG:中國,CLT:美國,CMB:斯里蘭卡,CNS:澳洲,CNX:泰國,COK:印度,CPH:丹麥,CPT:南非,CRK:菲律賓,CSX:中國,CTS:日本,CTU:中國,CXR:越南,CYI:台灣,CZX:中國,DAC:孟加拉,DAD:越南,DEL:印度,DEN:美國,DFW:美國,DLC:中國,DMK:泰國,DOH:卡達,DPS:印尼,DRW:澳洲,DTW:美國,DUB:愛爾蘭,DUS:德國,DVO:菲律賓,DXB:阿聯,EDI:英國,EWR:美國,EZE:阿根廷,FCO:義大利,FKS:日本,FOC:中國,FRA:德國,FSZ:日本,FUK:日本,GAJ:日本,GES:菲律賓,GMP:韓國,GRU:巴西,GUM:關島,GUM2:美國,GVA:瑞士,HAC:日本,HAK:中國,HAM:德國,HAN:越南,HBA:澳洲,HEL:芬蘭,HFE:中國,HGH:中國,HIJ:日本,HKD:日本,HKG:香港,HKT:泰國,HNA:日本,HND:日本,HNL:美國,HPH:越南,HRB:中國,HSG:日本,HUN:台灣,HYD:印度,IAD:美國,IAH:美國,IBR:日本,ICN:韓國,IKT:俄羅斯,ILO:菲律賓,ISB:巴基斯坦,ISG:日本,IST:土耳其,ITM:日本,IWJ:日本,IZO:日本,JED:沙烏地,JFK:美國,JHB:馬來西亞,JJN:中國,JKT:印尼,JNB:南非,JNG:中國,JZH:中國,KBV:泰國,KCH:馬來西亞,KCZ:日本,KHH:台灣,KHI:巴基斯坦,KHN:中國,KHV:俄羅斯,KIJ:日本,KIX:日本,KKJ:日本,KLO:菲律賓,KMG:中國,KMI:日本,KMJ:日本,KMQ:日本,KNH:台灣,KOA:美國,KOJ:日本,KOS:柬埔寨,KTI:柬埔寨,KTM:尼泊爾,KUH:日本,KUL:馬來西亞,KWE:中國,KWI:科威特,KWJ:韓國,LAS:美國,LAX:美國,LED:俄羅斯,LGK:馬來西亞,LGW:英國,LHE:巴基斯坦,LHR:英國,LHW:中國,LIH:美國,LIM:秘魯,LIS:葡萄牙,LJG:中國,LOP:印尼,LOS:奈及利亞,LPQ:寮國,LYG:中國,LYS:法國,LZN:台灣,MAA:印度,MAD:西班牙,MAN:英國,MCO:美國,MCT:阿曼,MDL:緬甸,MEL:澳洲,MEX:墨西哥,MFK:台灣,MFM:澳門,MIA:美國,MLE:馬爾地夫,MMB:日本,MMJ:日本,MMY:日本,MNL:菲律賓,MSP:美國,MUC:德國,MWX:韓國,MXP:義大利,MYJ:日本,MZG:台灣,NAN:斐濟,NAP:義大利,NBO:肯亞,NCE:法國,NGB:中國,NGO:日本,NGS:日本,NKG:中國,NKM:日本,NNG:中國,NRT:日本,NTQ:日本,OAK:美國,OBO:日本,OGG:美國,OIT:日本,OKA:日本,OKE:日本,OKJ:日本,ONT:美國,OOL:澳洲,ORD:美國,ORY:法國,OSL:挪威,PBH:不丹,PDX:美國,PEK:中國,PEN:馬來西亞,PER:澳洲,PHL:美國,PHX:美國,PKX:中國,PNH:柬埔寨,PPS:菲律賓,PQC:越南,PRG:捷克,PUS:韓國,PVG:中國,REP:柬埔寨,RGN:緬甸,RMQ:台灣,ROR:帛琉,RSU:韓國,RUH:沙烏地,SAN:美國,SAW:土耳其,SCL:智利,SDJ:日本,SEA:美國,SFO:美國,SGN:越南,SHA:中國,SHE:中國,SHI:日本,SHM:日本,SIN:新加坡,SJC:美國,SJW:中國,SLC:美國,SMF:美國,SPK:日本,SPN:塞班,STR:德國,SUB:印尼,SVO:俄羅斯,SWA:中國,SYD:澳洲,SYO:日本,SYX:中國,SZX:中國,TAE:韓國,TAG:菲律賓,TAK:日本,TAO:中國,TFU:中國,THD:越南,TKS:日本,TLV:以色列,TNA:中國,TNN:台灣,TOY:日本,TSA:台灣,TSN:中國,TTJ:日本,TTT:台灣,TYN:中國,UBJ:日本,UKB:日本,ULN:蒙古,URC:中國,USM:泰國,USN:韓國,UTP:泰國,VCA:越南,VCE:義大利,VDH:越南,VIE:奧地利,VII:越南,VTE:寮國,VVO:俄羅斯,WAW:波蘭,WEH:中國,WKJ:日本,WLG:紐西蘭,WNZ:中國,WUH:中國,WUX:中國,XIY:中國,XMN:中國,XUZ:中國,YEG:加拿大,YGJ:日本,YHZ:加拿大,YIW:中國,YNT:中國,YNY:韓國,YNZ:中國,YOW:加拿大,YUL:加拿大,YVR:加拿大,YXU:加拿大,YYC:加拿大,YYZ:加拿大,ZHA:中國,ZQN:紐西蘭,ZRH:瑞士,ZUH:中國'.split(',')) { const p = kv.split(':'); o[p[0]] = p[1]; }
@@ -348,16 +348,19 @@ function fno4(code){
 function shopOf(f) {
   const g = String(f.Gate || '').trim().toUpperCase();
   /* B6～B9 一航二航都有同名登機門，先以航班資訊的航廈為準，再依登機門歸分點 */
-  if (String(f.BNO) === '1') return 't1';
-  if (g && G40.has(g)) return '40';
-  if (g && G53.has(g)) return '53';
-  return 't2';
+  if (String(f.BNO) !== '1') {            /* 2140／2153 只算第二航廈 */
+    if (g && G40.has(g)) return '40';
+    if (g && G53.has(g)) return '53';
+  }
+  const L = g.charAt(0);
+  if (L === 'A' || L === 'D') return 't1';  /* 大夜YA */
+  return 't2';                              /* 大夜YB：B、C */
 }
 const TAG = {
   '40': { txt: '2140',  cls: 's40' },
   '53': { txt: '2153',  cls: 's53' },
-  't1': { txt: '其他一航',  cls: 'st1' },
-  't2': { txt: '其他二航',  cls: 'st2' },
+  't1': { txt: '大夜YA',  cls: 'st1' },
+  't2': { txt: '大夜YB',  cls: 'st2' },
 };
 
 /* ── 預估下機人數（TDX 沒機型欄位，座位數查 fleet.txt，查不到才用航線粗估）──
@@ -486,8 +489,8 @@ const CURRENT_PRESET_FULL = H < 6 ? 'h00' : (H * 60 + M < 810 ? 'h06' : (H < 18 
 const CATS = [
   { id: '40', label: '2140' },
   { id: '53', label: '2153' },
-  { id: 't1', label: '其他一航' },
-  { id: 't2', label: '其他二航' },
+  { id: 't1', label: '大夜YA' },
+  { id: 't2', label: '大夜YB' },
 ];
 /* 組合代號：固定順序、每個代號剛好兩個字，串起來不會有歧義（例：4053、40t1t2） */
 const comboId = ids => CATS.filter(c => ids.includes(c.id)).map(c => c.id).join('');
