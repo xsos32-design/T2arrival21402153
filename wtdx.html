@@ -563,7 +563,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
   <span class="btn half" id="bmeet"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間</span>
 </div>
 <div class="cfgbox" id="cfgbox" hidden>
-  <h4>名稱／航廈／登機門（留空＝該航廈其餘）</h4>
+  <h4>名稱／航廈／登機門（留空＝該航廈其餘）・大夜YA＝A、D 門／大夜YB＝B、C 門</h4>
   <div id="catbox"></div>
   <span class="btn" id="catReset" style="min-height:40px;font-size:13px"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg> 恢復預設</span>
 </div>
@@ -587,7 +587,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-19d';
+var PAGE_V='2026-10-19e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -609,8 +609,8 @@ var PAGE_V='2026-10-19d';
 var CAT_DEFAULT=[
   {name:'2140', spec:'C1-C4, C5R, B7-B9', term:'2'},
   {name:'2153', spec:'B6, C5, C6-C10',    term:'2'},
-  {name:'其他一航', spec:'',                term:'1'},
-  {name:'其他二航', spec:'',                term:'2'}
+  {name:'大夜YA', spec:'A1-A10, D1-D18',  term:'any'},   /* 入境登機口 A、D */
+  {name:'大夜YB', spec:'B1-B9, C1-C10',   term:'any'}    /* 入境登機口 B、C（2140／2153 的門先算） */
 ];
 var CAT_CLS=['s40','s53','st1','st2'];
 var CAT_KEY='tpeCats1';
@@ -638,19 +638,25 @@ function expandSpec(spec){
   });
   return set;
 }
+/* 10/19：入境的第 3、4 格改成「大夜YA」（入境 A、D 登機門）、「大夜YB」（入境 B、C 登機門）。
+   出境頁也讀同一個 tpeCats1，所以入境把第 3、4 格另外存在 tpeCatsArr1，不動出境的「其他一航／其他二航」；
+   第 1、2 格（2140／2153）照舊跟出境共用。 */
+var CAT_ARR_KEY='tpeCatsArr1';
+function catsFix(c,i){ return {name:String(c&&c.name||CAT_DEFAULT[i].name).slice(0,12), spec:String(c&&c.spec!=null?c.spec:CAT_DEFAULT[i].spec), term:(c&&(c.term==='1'||c.term==='2'||c.term==='any'))?c.term:CAT_DEFAULT[i].term}; }
 function catsLoad(){
-  try{
-    var raw=localStorage.getItem(CAT_KEY);
-    if(raw){ var a=JSON.parse(raw);
-      if(a&&a.length===4) return a.map(function(c,i){
-        return {name:String(c.name||CAT_DEFAULT[i].name).slice(0,12),
-                spec:String(c.spec||''),
-                term:(c.term==='1'||c.term==='any')?c.term:'2'};
-      }); }
-  }catch(e){}
-  return CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  var out=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    if(a&&a.length===4){ out[0]=catsFix(a[0],0); out[1]=catsFix(a[1],1); } }catch(e){}
+  try{ var b=JSON.parse(localStorage.getItem(CAT_ARR_KEY)||'null');
+    if(b&&b.length===2){ out[2]=catsFix(b[0],2); out[3]=catsFix(b[1],3); } }catch(e){}
+  return out;
 }
-function catsSave(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(CATS)); }catch(e){} }
+function catsSave(){
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    var keep=(a&&a.length===4)?[a[2],a[3]]:[{name:'其他一航',spec:'',term:'1'},{name:'其他二航',spec:'',term:'2'}];
+    localStorage.setItem(CAT_KEY, JSON.stringify([CATS[0],CATS[1],keep[0],keep[1]]));
+    localStorage.setItem(CAT_ARR_KEY, JSON.stringify([CATS[2],CATS[3]])); }catch(e){}
+}
 var CATS=catsLoad(), EX=[];
 function catsExpand(){
   EX=CATS.map(function(c,i){
@@ -791,6 +797,8 @@ function shopOf(f){
     if(c.hasSpec) continue;
     if(c.term==='any' || c.term===bno) return c.id;
   }
+  /* 都沒對到：照開頭字母分，A、D＝大夜YA，B、C＝大夜YB */
+  var L=g.charAt(0); if((L==='A'||L==='D')&&EX[2]) return 'c2';
   return 'c'+(EX.length-1);
 }
 /* ── 出發國家對照（IATA 機場代碼 → 國家）＋ 航班號碼補滿四碼 ── */
@@ -875,7 +883,7 @@ function paxHtml(f){ var p=paxOf(f);
   return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
 
 /* ── 畫面狀態 ── */
-/* 一開啟只勾自己的兩家分點（2140／2153）；其他一航／二航要看再自己按 */
+/* 一開啟只勾自己的兩家分點（2140／2153）；大夜YA／YB 要看再自己按 */
 var cats={c0:true,c1:true,c2:false,c3:false};
 var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
 var win=['00:00','23:59'];

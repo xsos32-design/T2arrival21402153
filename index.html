@@ -720,7 +720,7 @@
         <span id="catmsg"></span>
       </div>
       <div class="status">登機門寫範圍 <b>C1-C4</b> 或單一門 <b>C5R</b>，逗號分隔；<b>留空＝該航廈其餘班機全歸這格</b>。<br>
-        先比有填登機門的格子，再比留空的——前兩格填你負責的門、後兩格留空即可。<br>
+        先比有填登機門的格子，再比留空的。大夜YA＝入境登機口 A、D；大夜YB＝入境登機口 B、C（2140／2153 的門先算，剩下的才歸 YB）。<br>
         B6～B9 一航二航同名，靠「航廈」欄才分得開。C5-C10 會包含 C5R，所以 2153 要寫 C5, C6-C10。<br>
         改完立即生效，存在這台裝置。</div>
     </details>
@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-19d';
+var PAGE_V='2026-10-19e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1027,28 +1027,32 @@ var lastRows=[], lastPending=[], hideDone=false;
 var CAT_DEFAULT=[
   {name:'2140',     spec:'C1-C4, C5R, B7-B9', term:'2'},
   {name:'2153',     spec:'B6, C5, C6-C10',    term:'2'},
-  {name:'其他一航', spec:'',                  term:'1'},
-  {name:'其他二航', spec:'',                  term:'2'}
+  {name:'大夜YA',   spec:'A1-A10, D1-D18',    term:'any'},   /* 入境登機口 A、D */
+  {name:'大夜YB',   spec:'B1-B9, C1-C10',     term:'any'}    /* 入境登機口 B、C（2140／2153 的門先算） */
 ];
 var CAT_CLS=['t40','t53','tt1','tt2'];     /* 顏色固定跟著格子，改名字不會變色 */
 var CAT_KEY='tpeCats1';
+/* 10/19：入境的第 3、4 格改成「大夜YA」（入境 A、D 登機門）、「大夜YB」（入境 B、C 登機門）。
+   出境頁也讀同一個 tpeCats1，所以入境把第 3、4 格另外存在 tpeCatsArr1，不動出境的「其他一航／其他二航」；
+   第 1、2 格（2140／2153）照舊跟出境共用。 */
+var CAT_ARR_KEY='tpeCatsArr1';
+function catsFix(c,i){ return {name:String(c&&c.name||CAT_DEFAULT[i].name).slice(0,12), spec:String(c&&c.spec!=null?c.spec:CAT_DEFAULT[i].spec), term:(c&&(c.term==='1'||c.term==='2'||c.term==='any'))?c.term:CAT_DEFAULT[i].term}; }
 function catsLoad(){
-  try{
-    var raw=localStorage.getItem(CAT_KEY);
-    if(raw){
-      var a=JSON.parse(raw);
-      if(a&&a.length===4) return a.map(function(c,i){
-        return {name:String(c.name||CAT_DEFAULT[i].name).slice(0,12),
-                spec:String(c.spec||''),
-                term:(c.term==='1'||c.term==='any')?c.term:'2'};
-      });
-    }
-  }catch(e){}
-  return CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  var out=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    if(a&&a.length===4){ out[0]=catsFix(a[0],0); out[1]=catsFix(a[1],1); } }catch(e){}
+  try{ var b=JSON.parse(localStorage.getItem(CAT_ARR_KEY)||'null');
+    if(b&&b.length===2){ out[2]=catsFix(b[0],2); out[3]=catsFix(b[1],3); } }catch(e){}
+  return out;
 }
-function catsSave(){ try{ localStorage.setItem(CAT_KEY, JSON.stringify(CATS)); }catch(e){} }
+function catsSave(){
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    var keep=(a&&a.length===4)?[a[2],a[3]]:[{name:'其他一航',spec:'',term:'1'},{name:'其他二航',spec:'',term:'2'}];
+    localStorage.setItem(CAT_KEY, JSON.stringify([CATS[0],CATS[1],keep[0],keep[1]]));
+    localStorage.setItem(CAT_ARR_KEY, JSON.stringify([CATS[2],CATS[3]])); }catch(e){}
+}
 var CATS=catsLoad();
-/* 一開啟只勾自己的兩家分點（2140／2153）；其他一航／二航要看再自己按 */
+/* 一開啟只勾自己的兩家分點（2140／2153）；大夜YA／YB 要看再自己按 */
 var show={c0:true,c1:true,c2:false,c3:false};
 /* 把設定展開成比對用的樣子 */
 function catsExpand(){
@@ -1093,6 +1097,8 @@ function shopOf(f,EX){
     if(c.hasSpec) continue;
     if(c.term==='any' || c.term===bno) return c.id;
   }
+  /* 都沒對到（例如表上沒有的新登機門）：照開頭字母分，A、D＝大夜YA，B、C＝大夜YB */
+  var L=g.charAt(0); if((L==='A'||L==='D')&&EX[2]) return 'c2';
   return 'c'+(EX.length-1);
 }
 function tagOf(id){
