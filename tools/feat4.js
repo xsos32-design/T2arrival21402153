@@ -30,7 +30,7 @@
     [].forEach.call(out.querySelectorAll('.c-time .lastb'),function(x){ x.remove(); });
     var L={}; RS.forEach(function(r){ var t=tagOf(r); if(S.indexOf(t)>=0) L[t]=r; });
     var ks=S.filter(function(k){ return L[k]; }), html='';
-    ks.forEach(function(k){ var c=L[k].querySelector('.c-time'); if(!c) return; var i=D.createElement('i'); i.className='lastb'; i.textContent=k+' 最後一班'; c.appendChild(i); });
+    /* 10/19：卡片上的紫色「最後一班」小標也拿掉（會讓人誤會），G3 整個不顯示 */
     /* 10/19：資訊卡那行「本時段最後一班」拿掉（小韋說不要），只留卡片上的紫色小標 */
     var gl=D.getElementById('glast'), ib=D.getElementById('infobox');
     if(html&&ib){ if(!gl){ gl=D.createElement('div'); gl.id='glast'; }
