@@ -104,7 +104,7 @@ body.kbd #fab{display:none!important}
   var wait=setInterval(function(){
     if(typeof window.render!=='function') return; clearInterval(wait);
     var _r=window.render;
-    window.render=function(){ var x=_r.apply(this,arguments); paint(); try{ f7(); }catch(e){ console.log('f7',e); } return x; };
+    window.render=function(){ var x=_r.apply(this,arguments); paint(); /* 10/19：門改跳出通知關掉（小韋說不要），F7 不再執行 */ return x; };
     paint();
   },100);
 })();
