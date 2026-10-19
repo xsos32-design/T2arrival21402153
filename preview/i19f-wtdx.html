@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<!-- 桃機到站 · 手錶 TDX 連線版（即時）　檔案作者：小韋 -->
+<html lang="zh-Hant">
+<head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="../img/icon-watch-192.png">
+<link rel="apple-touch-icon" href="../img/icon-watch-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="小韋班機看板">
+<meta property="og:title" content="手錶版 · 2140 / 2153">
+<meta property="og:description" content="手錶專用班機看板：下一班、登機門、人數，一眼看完。小韋製作。">
+<meta property="og:image" content="https://xsos32-design.github.io/T2arrival21402153/img/og-watch.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://xsos32-design.github.io/T2arrival21402153/wtdx.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://xsos32-design.github.io/T2arrival21402153/img/og-watch.jpg">
+<meta name="description" content="手錶專用班機看板：下一班、登機門、人數，一眼看完。小韋製作。">
+<link rel="manifest" href="../app-tdx.webmanifest">
+<meta name="apple-mobile-web-app-title" content="韋 TDX">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d10">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>預覽・一二航移民署 · 班機TDX版 · 即時</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ic{width:1.05em;height:1.05em;stroke:currentColor;fill:none;stroke-width:2;
+ stroke-linecap:butt;stroke-linejoin:miter;vertical-align:-.15em;flex:0 0 auto}
+.ic+span,.ic+b{margin-left:1px}
+.fabb.spin .ic{animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+body{background:#0A0D12;color:#E8EAED;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+ font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:81px}
+/* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
+.mk{background:linear-gradient(180deg,#14100A,#0C0A07);border:1px solid #4A3A14;border-top:2px solid #8A7440;border-radius:12px;
+ padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
+.mk b{display:block;font-size:30px;font-weight:800;color:#E7C785;letter-spacing:.1em}
+.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:700;color:#9A8A62;
+ margin-top:4px;letter-spacing:.01em;line-height:1.4}
+@media(min-width:341px){
+ .mk{padding:11px 12px 12px;margin-bottom:9px}
+ .mk b{font-size:38px}
+ .mk i{font-size:16px;margin-top:5px}
+}
+/* 浮動快捷鍵：置頂／現在起6小時／更新 */
+/* 三顆快捷鍵固定浮在畫面「下方」。手錶的瀏覽器對下方的固定定位沒問題，
+   放上方才會擋住滑動，所以一律靠下。 */
+#fab{position:fixed;bottom:5px;bottom:calc(5px + env(safe-area-inset-bottom));top:auto;
+ left:5px;right:5px;z-index:70;display:flex;gap:5px;padding:0;margin:0;
+ background:none;border:0;pointer-events:none}
+.fabb{flex:1 1 0;min-width:0;min-height:38px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;letter-spacing:-.03em;
+ border-radius:11px;background:rgba(17,21,28,.96);border:1px solid #2A323E;color:#C3CAD4;cursor:pointer;
+ white-space:nowrap;pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.55);
+ -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fabb.on{background:#3A2E12;border-color:#D9A441;color:#F7DFA0;
+ box-shadow:0 4px 14px rgba(0,0,0,.55), 0 0 13px -2px rgba(217,164,65,.6)}
+.fabb:active{opacity:.7}
+.hd{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#818A98;padding:7px 8px;margin-bottom:7px;
+ background:linear-gradient(180deg,#151A22,#0E1217);border:1px solid #1E242E;border-top:2px solid #8A7440;
+ border-radius:10px;min-height:38px;overflow:hidden;cursor:pointer}
+.hd{flex-wrap:wrap;row-gap:2px}
+.hd>*{white-space:nowrap;flex:0 0 auto}
+.hd b{color:#E7C785;font-size:14.5px;font-weight:800;white-space:nowrap;letter-spacing:.06em}
+.hd .u{margin-left:auto;color:#9FB3BE;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.hd .u.busy{color:#fbbf24}
+.hd .u.err{color:#f87171}
+/* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 6px;
+ grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
+ background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;
+ margin-bottom:5px;overflow:hidden}
+/* 分點整張卡上色：底色＋色帶＋外發光。兩邊亮度刻意調到一樣（差 0.5），
+   誰都不會看起來比較「重」。 */
+.r.r40{background:#0E5049;border-color:#2A9A90;
+ box-shadow:inset 7px 0 0 #3DE0D5, 0 4px 22px -10px rgba(61,224,213,.9)}
+.r.r53{background:#7A2440;border-color:#B83E5C;
+ box-shadow:inset 7px 0 0 #F2506E, 0 4px 22px -10px rgba(242,80,110,.9)}
+.r.r40 .c,.r.r53 .c{color:#E1E7ED}
+/* 卡片變亮後，裡面的小色塊要一條細邊才不會糊進底色 */
+.r.r40 .px,.r.r40 .tx,.r.r40 .st,
+.r.r53 .px,.r.r53 .tx,.r.r53 .st{box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+/* 登機門實心＋打亮：一眼就知道是不是自己這一邊的 */
+.r.r40 .g .gn{background:#3DE0D5;color:#042321;box-shadow:0 0 18px -2px rgba(61,224,213,.85)}
+.r.r53 .g .gn{background:#F2506E;color:#2B0710;box-shadow:0 0 18px -2px rgba(242,80,110,.85)}
+.r.r40 .tag{background:#3DE0D5;color:#042321;font-weight:900;box-shadow:0 0 14px -3px rgba(61,224,213,.7)}
+.r.r53 .tag{background:#F2506E;color:#2B0710;font-weight:900;box-shadow:0 0 14px -3px rgba(242,80,110,.7)}
+/* 不是 2140／2153 的往後退，讓自己的班機浮出來 */
+/* 「變淡」只留給「已到」一種意思。
+   不是你的分點 → 卡片壓深、登機門轉灰（往後退），但字還是清清楚楚的，
+   因為它根本還沒到，不該看起來像被關掉。 */
+.r:not(.r40):not(.r53):not(.done){background:#0C1016;border-color:#1A1F27}
+.r:not(.r40):not(.r53) .g .gn{background:#232A34;color:#9AA3B0}
+/* 已到＝單純壓暗，顏色留著。「不是你的分點」不淡化，所以暗＝已到不會搞混 */
+.r.done{opacity:.45}
+.r.soon{--bar:#D9A441;border-color:#5C4718;position:relative;z-index:2;
+ box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 30px 2px rgba(217,164,65,.95);
+ animation:soonGlow 2.4s ease-in-out infinite}
+.r.soon.r40{--bar:#3DE0D5}
+.r.soon.r53{--bar:#F2506E}
+/* 即將抵達（45 分內）：金色光暈呼吸。左邊色帶維持分點顏色，
+   所以「是我的」跟「快到了」兩個訊息不會互相蓋掉。 */
+@keyframes soonGlow{
+ 0%,100%{box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 12px -2px rgba(217,164,65,.55)}
+ 50%    {box-shadow:inset 7px 0 0 var(--bar), 0 0 0 3px #D9A441, 0 0 34px 3px rgba(217,164,65,1)}}
+/* 系統開了「減少動態效果」就只留靜態光暈 */
+@media (prefers-reduced-motion:reduce){.r.soon{animation:none}}
+
+/* ── 快抵達（45 分內）：整張色卡從左到右掃過一道金光 ──
+   光條做在 ::before、用 transform 位移 → 交給 GPU 畫，不會卡捲動。
+   z-index:-1 壓在底色上面、文字下面，所以班號和登機門不會被洗白。
+   （.r.soon 本身有 position:relative + z-index，-1 不會跑到卡片後面去）
+   每張卡片差 0.35 秒（--d 由 JS 設），一張一張掃過去而不是整排一起閃。
+   手錶版（≤340px）不做，持續動畫吃電、卡片也太小看不出效果。 */
+.r.soon{overflow:hidden}
+.r.soon::before{content:"";position:absolute;top:0;bottom:0;left:0;width:46%;
+ z-index:-1;pointer-events:none;will-change:transform;
+ background:linear-gradient(100deg,transparent 0%,rgba(255,197,61,.55) 50%,transparent 100%);
+ transform:translateX(-130%) skewX(-18deg);
+ animation:soonSweep 2.8s cubic-bezier(.4,0,.2,1) infinite;
+ animation-delay:var(--d,0s)}
+@keyframes soonSweep{
+ 0%  {transform:translateX(-130%) skewX(-18deg)}
+ 55% {transform:translateX(330%)  skewX(-18deg)}
+ 100%{transform:translateX(330%)  skewX(-18deg)}}
+@media (max-width:340px){ .r.soon::before{display:none} }
+@media (prefers-reduced-motion:reduce){ .r.soon::before{display:none} }
+
+b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
+ display:inline-block;letter-spacing:-.01em;color:#E7C785}
+.t-late{color:#E2A85C}
+.t-early{color:#8FC4D6}
+.t-same{color:#8FC0A8}
+.t-plan{color:#E7C785}
+.nd{font-style:normal;font-size:10.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
+ border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
+.g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* 登機門染色：2140 青綠、2153 橘，一眼就分得出是哪一邊的班機 */
+.g .gn{display:inline-block;font-size:.92em;padding:0 4px;border-radius:7px;background:#2b313b;color:#e5e9ef}
+.tag{grid-area:tag;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap;
+ align-self:center;justify-self:start;letter-spacing:.02em;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.s40{background:#072C29;color:#5FD8CD} .s53{background:#2B0F17;color:#F07E93}
+.st1{background:#1E1B2C;color:#A79BC4} .st2{background:#1A1F27;color:#8B93A1}
+.f{grid-area:f;font-size:26px;font-weight:700;color:#E8EAED;white-space:nowrap;text-align:left;
+ letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.cty{font-style:normal;font-size:20px;font-weight:800;white-space:nowrap;
+ margin-left:8px;vertical-align:-2px;letter-spacing:0}
+.c{grid-area:c;font-size:15px;font-weight:650;color:#B9C0CB;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
+/* 人數：三格負載條＋數字＋小標字，不用彩色圓點 */
+/* 入境人數：實心色塊。綠＝順利、琥珀＝注意、紅＝爆量 */
+.px{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+ align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:4px;
+ padding:1px 6px;border-radius:6px;background:#1E242E;color:#C3CAD4}
+.px.p1{background:#14352C;color:#79D8B0}
+.px.p2{background:#3A2B0C;color:#F0C167}
+.px.p3{background:#3E1712;color:#F49B8D}
+.tx{font-style:normal;font-size:13px;font-weight:900;white-space:nowrap;display:inline-flex;
+ align-items:baseline;gap:2px;font-variant-numeric:tabular-nums;margin-left:3px;
+ padding:1px 6px;border-radius:6px;background:#2A2216;color:#DFC079}
+.bars{display:none}
+.px u,.tx u{text-decoration:none;font-size:10px;font-weight:700;opacity:.72;
+ letter-spacing:.06em}
+.bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:2px}
+.bars>i{width:3px;height:10px;border-radius:1px;background:rgba(255,255,255,.18);display:block}
+.lv1>i:nth-child(1){background:currentColor}
+.lv2>i:nth-child(-n+2){background:currentColor}
+.lv3>i{background:currentColor}
+/* 狀態：實心色塊。綠＝順利、藍＝提早、琥珀＝延遲、紅＝取消、灰＝結束 */
+.st{grid-area:st;font-size:13px;font-weight:900;text-align:center;white-space:nowrap;
+ align-self:center;justify-self:end;letter-spacing:.06em;padding:3px 8px;border-radius:7px}
+.b-ok{background:#14352C;color:#79D8B0}
+.b-warn{background:#3A2B0C;color:#F0C167}
+.b-bad{background:#3E1712;color:#F49B8D}
+.b-early{background:#12303D;color:#8FD2E6}
+.b-info{background:#1A2A33;color:#93B6C6}
+.b-none{background:#1E242E;color:#8B93A1}
+/* 說明區裡當圖例用時不要吃 grid-area */
+.notice .st,.notice .px{grid-area:auto;display:inline-flex;justify-self:auto;vertical-align:-.15em}
+.day{background:#131820;border:1px solid #242B36;color:#B9C0CB;font-size:15.5px;font-weight:800;
+ border-radius:10px;padding:8px 8px;margin:9px 0 6px;text-align:center}
+.mth{font-size:14.5px;font-weight:800;color:#e5e9ef;margin:2px 0 6px}
+.mt{width:100%;border-collapse:collapse;font-size:13px;background:#14171c;margin-bottom:9px}
+.mt th,.mt td{border:1px solid #2e343d;padding:6px 4px;text-align:center;line-height:1.4}
+.mt th{background:#1c2027;color:#8b94a1;font-size:11.5px;font-weight:800}
+.mt td b{font-size:15px}
+.mt td small{color:#8b94a1}
+.mt .g40 .lb{background:#0d3b36;color:#5eead4;font-weight:800}
+.mt .g53 .lb{background:#43200f;color:#fdba74;font-weight:800}
+.mt .sub td{font-size:11.5px;color:#8b94a1;background:#181c22;text-align:left;padding:4px 6px}
+.msg{background:#11151C;border:1px solid #1E242E;border-radius:9px;padding:12px;color:#818A98;font-size:13px;text-align:center}
+.msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
+.grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
+ background:#141922;border:1px solid #242B36;border-radius:10px;color:#AEB6C2;
+ font-size:15px;font-weight:800;text-decoration:none;text-align:center;padding:8px 4px;
+ white-space:nowrap;overflow:hidden;letter-spacing:-.01em;cursor:pointer;user-select:none}
+/* 選到的按鍵：底色換成金褐、外框金、字金，再加一圈光。
+   原本只差一點點灰階，按了看不出來選到哪個。 */
+.btn.on{background:#3A2E12;border-color:#D9A441;color:#F7DFA0;
+ box-shadow:0 0 13px -2px rgba(217,164,65,.6)}
+/* 按下去當場有反應（不佔版面） */
+.btn:active{transform:scale(.97);filter:brightness(1.3)}
+.btn.half,.btn.cat{flex:1 1 46%;font-size:13.5px}
+.btn.cat{letter-spacing:-.04em;padding:8px 2px}
+.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
+/* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
+.grp.s{margin-top:12px}
+.btn.nav{flex:1 1 18%;font-size:17.5px;padding:8px 2px}
+.btn.mid{flex:1 1 56%;font-size:14px;padding:8px 2px}
+#catslot{display:contents}
+/* 分類按鍵保留各自的顏色，但一樣要亮到看得出來選到了 */
+.cat.cs0.on{background:#0B4640;border-color:#3DE0D5;color:#8FF2E9;
+ box-shadow:0 0 13px -2px rgba(61,224,213,.55)}
+.cat.cs1.on{background:#4A1424;border-color:#F2506E;color:#FFA3B3;
+ box-shadow:0 0 13px -2px rgba(242,80,110,.55)}
+.cat.cs2.on{background:#2B2545;border-color:#9385C9;color:#D3C8EC;
+ box-shadow:0 0 13px -2px rgba(147,133,201,.5)}
+.cat.cs3.on{background:#2A323E;border-color:#818C9D;color:#DDE3EA;
+ box-shadow:0 0 13px -2px rgba(129,140,157,.45)}
+/* 分類設定編輯器 */
+.cfgbox{background:#14171c;border:1px solid #262b33;border-radius:11px;padding:9px;margin-bottom:6px}
+.cfgbox h4{font-size:13.5px;color:#8b94a1;font-weight:800;margin-bottom:6px}
+.catrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.catrow input,.catrow select{font:inherit;font-size:14px;background:#1c2027;border:1px solid #2e343d;
+ color:#f2f4f7;border-radius:9px;padding:8px 9px;min-height:40px;min-width:0}
+.catrow .cname{flex:1 1 38%} .catrow .cspec{flex:1 1 100%} .catrow .cterm{flex:1 1 38%}
+.sep{border-top:1px solid #262b33;margin:10px 0}
+.foot{color:#5b636e;font-size:11.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
+.notice{background:#0E1217;border:1px solid #1E242E;border-left:2px solid #8A7440;color:#818A98;font-size:12.5px;
+ padding:10px 11px;border-radius:0 10px 10px 0;margin:9px 0;line-height:1.85;text-align:left;letter-spacing:.01em}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#E7C785;font-weight:800;white-space:nowrap;text-decoration:none;border-bottom:1px solid #5C4718}
+#fb .fbx{background:#1A1308;border:1px solid #4A3A14;color:#D9B96C;font-size:11.5px;
+ padding:8px 9px;border-radius:10px;margin-bottom:6px;line-height:1.5;text-align:center}
+#fb .fbx.hot{background:#2A1010;border-color:#7A3029;color:#EFA79E;font-size:12.5px;font-weight:700}
+#fb .fbx b{color:#FFD9D2}
+.hd .u.old{color:#E2A85C}
+/* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
+    grid-template-columns:92px minmax(0,1fr) 68px}
+ .f{text-align:center}
+ .g{text-align:right}
+ .st{justify-self:end}
+}
+/* 620px 以上才排成一整列；欄寬固定，每一列的同一欄都對齊 */
+@media(min-width:620px){
+ body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
+ #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
+   justify-content:flex-end;pointer-events:none}
+ .fabb{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:15.5px;border-radius:999px;pointer-events:auto}
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) 64px;grid-template-areas:none;
+   align-items:center;gap:4px 12px;padding:8px 12px}
+ .r{grid-template-areas:none} b.t,.f,.g,.tag,.c,.st{grid-area:auto}
+ .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
+ .g{min-width:0} .tag{text-align:center;justify-self:stretch}
+ .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
+}
+
+/* ══════════════ 賽博皮膚 B3：分點色實心填滿 ＋ 字推到滿版 ══════════════
+   跟網頁版同一套視覺。手錶（≤340px）只換配色和切角，字維持原本尺寸——
+   那邊的字早就按小螢幕調過，再放大只會換行。 */
+body{background:#05070a}
+.r{border-radius:0;position:relative}
+/* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成三角形。
+   不用 clip-path，那會把「即將抵達」的外發光一起裁掉。 */
+.r::after{content:"";position:absolute;width:20px;height:20px;right:-10px;top:-10px;
+ background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545;pointer-events:none}
+.r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 6px 0 0 #00EFD4,0 0 22px -12px #00EFD4}
+.r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 6px 0 0 #FF2E6E,0 0 22px -12px #FF2E6E}
+.r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+.r:not(.r40):not(.r53):not(.done){background:#0B1019;border-color:#1b2431;box-shadow:inset 6px 0 0 #2a3545}
+.r.r40 .c,.r.r53 .c{color:#DCE4EC}
+.r.soon{--bar:#D9A441;border-color:#FFC53D;
+ box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r40{--bar:#00EFD4;background:#064F47}
+.r.soon.r53{--bar:#FF2E6E;background:#6B0F33}
+.r.soon::after{border-bottom-color:#FFC53D}
+@keyframes soonGlow{
+ 0%,100%{box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 12px -6px rgba(255,197,61,.6)}
+ 50%    {box-shadow:inset 6px 0 0 var(--bar),inset 0 0 0 2px #FFC53D,0 0 32px -2px rgba(255,197,61,1)}}
+/* 數字換等寬字：時間／班號／登機門天然對齊 */
+b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;letter-spacing:-.04em}
+.t-late{color:#FF8A3D} .t-early{color:#5BD6FF} .t-same{color:#5BE8A8} .t-plan{color:#FFC53D}
+.f{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:#fff;letter-spacing:-.045em}
+.g{font-family:ui-monospace,Menlo,monospace;letter-spacing:-.045em}
+.g .gn{border-radius:0;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+.r.r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.r.r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.tag,.st,.px,.tx{border-radius:0;border:1px solid;letter-spacing:-.02em}
+.tag{border-color:#2a3545;background:rgba(255,255,255,.03);color:#93a0b1}
+.s40{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4}
+.s53{background:rgba(255,46,110,.13);border-color:#FF2E6E;color:#FF2E6E}
+.st1{border-color:#4a3f6b;color:#A79BC4;background:rgba(167,155,196,.08)}
+.st2{border-color:#2a3545;color:#8B93A1;background:rgba(255,255,255,.03)}
+.r.r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:none}
+.r.r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:none}
+.px{border-color:#2a3545;color:#aab6c4;background:rgba(255,255,255,.03)}
+.px.p1{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.px.p2{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.px.p3{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.tx{border-color:#5c4a1c;color:#D9B96C;background:rgba(217,185,108,.06)}
+.b-ok{border-color:#1e6b4d;color:#49E3A3;background:rgba(73,227,163,.08)}
+.b-warn{border-color:#7a5c12;color:#FFC53D;background:rgba(255,197,61,.08)}
+.b-bad{border-color:#8a2a3f;color:#FF7A95;background:rgba(255,46,110,.09)}
+.b-early{border-color:#1d5b78;color:#8FD2E6;background:rgba(143,210,230,.08)}
+/* 實心底上，小色塊墊一層黑才不會糊進底色 */
+.r.r40 .px,.r.r40 .tx,.r.r40 .st,
+.r.r53 .px,.r.r53 .tx,.r.r53 .st{background:rgba(0,0,0,.45);box-shadow:none}
+
+
+/* 341px 以上（手機／平板／電腦）才把字推到滿版；手錶維持原尺寸 */
+@media(min-width:341px){
+ .r{padding:5px 8px 5px 12px;gap:2px 8px;margin-bottom:6px}
+ b.t{font-size:38px;font-weight:800;line-height:1}
+ .f{font-size:32px;font-weight:800}
+ .cty{font-size:24px;margin-left:5px;vertical-align:-3px}
+ .g{font-size:38px;font-weight:800}
+ .g .gn{padding:0 5px}
+ .c{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em}
+ .tag{font-size:16.5px;font-weight:900;padding:2px 7px}
+ .st{font-size:16.5px;font-weight:900;padding:2px 6px;letter-spacing:-.02em}
+ .px,.tx{font-size:14.5px;padding:1px 4px;margin-left:2px;gap:1px;letter-spacing:-.04em}
+ .px u,.tx u{font-size:11px;letter-spacing:-.02em}
+}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) 74px;gap:2px 8px;padding:5px 8px 5px 12px}
+}
+@media(max-width:400px) and (min-width:341px){
+ b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
+ .r{grid-template-columns:86px minmax(0,1fr) 68px}
+}
+
+/* ── 其餘介面跟著卡片走：直角、1px 細框、青色當作用中、標籤用等寬字 ── */
+.mk{border-radius:0;background:linear-gradient(180deg,#140F05,#0A0804);border:1px solid #8A7440;border-top:2px solid #FFC53D}
+.mk b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#FFC53D}
+.mk i{color:#A08E55}
+.hd{border-radius:0;background:#080B11;border:1px solid #1b2431;border-top:2px solid #00EFD4;color:#6b7686;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.hd b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace;letter-spacing:.12em}
+.hd .u{color:#8d99a9}
+.hd .u.busy{color:#FFC53D} .hd .u.err{color:#FF2E6E} .hd .u.old{color:#FF8A3D}
+.btn{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#93a0b1;letter-spacing:-.01em}
+.btn.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
+/* 分點鍵選起來＝實心，跟卡片同一個顏色邏輯 */
+.cat.cs0.on{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
+.cat.cs1.on{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
+.cat.cs2.on{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
+.cat.cs3.on{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+.fabb{border-radius:0;background:rgba(11,16,25,.95);border:1px solid #2a3545;color:#AEB6C2;
+ font-family:ui-monospace,Menlo,monospace}
+.fabb.on{background:rgba(0,239,212,.15);border-color:#00EFD4;color:#00EFD4;box-shadow:0 4px 14px rgba(0,0,0,.55)}
+.cfgbox{border-radius:0;background:#0B1019;border:1px solid #1b2431}
+.cfgbox h4{font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em;color:#6b7686}
+.catrow input,.catrow select{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#E8EDF3}
+.catrow input:focus,.catrow select:focus{outline:none;border-color:#00EFD4;box-shadow:0 0 0 1px #00EFD4}
+.msg{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #2a3545;color:#8b94a1}
+.msg.err{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+.notice{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #7a5c12;color:#818A98}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#FFC53D;border-bottom:1px solid #7a5c12}
+#fb .fbx{border-radius:0;background:#141004;border:1px solid #7a5c12;border-left:3px solid #FFC53D;color:#D9B96C}
+#fb .fbx.hot{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+#fb .fbx b{color:#FFC2B8}
+.sep{border-top-color:#1b2431}
+.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
+
+/* ── 按鍵再加大一階（手機和手錶都套用，上次只改了手錶）── */
+.btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em}
+.btn.half,.btn.cat{font-size:16px}
+.btn.zone,.btn.pre{font-size:14.5px}
+.btn.nav{font-size:19px} .btn.mid{font-size:16px}
+
+/* ── 浮動快捷鍵：三顆鍵一排，現在時間自己一條放在正下方 ── */
+#fab{flex-direction:column;gap:4px}
+.fabrow{display:flex;gap:5px;width:100%}
+.fabrow .fabb{flex:1 1 0}
+/* 黑底白字，最單純最好認。純顯示，不是按鈕，所以不吃點擊 */
+.fclock{display:flex;align-items:center;justify-content:center;min-height:30px;
+ font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ font-size:22px;font-weight:900;letter-spacing:.04em;
+ background:#000;border:1px solid #2A323E;color:#fff;
+ box-shadow:0 4px 14px rgba(0,0,0,.55);pointer-events:none;user-select:none}
+@media(max-width:340px){ .fclock{font-size:20px;min-height:28px} }
+@media(min-width:620px){ #fab{flex-direction:row;align-items:center}
+ .fabrow{width:auto} .fabrow .fabb{flex:0 0 auto}
+ .fclock{min-height:44px;padding:0 14px;font-size:20px;border-radius:999px} }
+
+/* ══════════════ 手錶版（≤340px）：E 版型 ══════════════
+   兩列。第一列：時間 ＋ 班號（班號比舊版還大）。第二列：登機門／城市／人數／狀態。
+   國旗拿掉、分點標籤拿掉（卡片顏色本來就在講是哪一邊），省下來的寬度全給班號。
+   結果：每張卡 125px → 66px，一屏從 1.9 班變 3.7 班。 */
+@media(max-width:340px){
+ /* 用 flex 換行而不是 grid：grid 的欄寬會把兩列綁在一起，第一列的班號一寬，
+    第二列的城市就被擠掉。改成兩個 flex 行，各自算各自的寬度。
+    換行是拿已經隱藏的「分點標籤」當斷點（flex:1 0 100%），不用多包一層 div。 */
+ .r{display:flex;flex-wrap:wrap;align-items:center;
+    gap:1px 5px;padding:4px 6px 4px 10px;margin-bottom:4px}
+ b.t{order:1;font-size:24px;line-height:1;flex:0 0 auto}
+ .f{order:2;font-size:29px;line-height:1;letter-spacing:-.055em;flex:0 0 auto;margin-left:auto}
+ .cty{display:none}                 /* 國旗：手錶不顯示 */
+ .tag{order:3;flex:1 0 100%;height:0;min-height:0;padding:0;margin:0;border:0;
+      background:none;overflow:hidden;visibility:hidden}   /* 分點標籤：當換行點用，不顯示 */
+ .g{order:4;font-size:20px;line-height:1;flex:0 0 auto}
+ .g .gn{padding:0 5px}
+ /* flex-basis 要給 0，不然瀏覽器會先用「內容寬」決定要不要換行，
+    狀態就被擠到第三列去了（卡片也就跟著變高）。 */
+ .c{order:5;display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 0;
+    font-size:12px;line-height:1.2}
+ .cn{flex:1 1 auto;min-width:2.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .c .px{flex:0 0 auto;font-size:11px;padding:0 2px;margin-left:0;letter-spacing:-.05em}
+ /* 手錶只有 198px 寬，「預估入境」四個字就吃掉城市的位置，縮成「入境」
+    （手機／電腦維持「預估入境」）*/
+ .c .px u{font-size:0}
+ .c .px u::after{content:"入境";font-size:9px;letter-spacing:-.04em}
+ .st{order:6;flex:0 0 auto;margin-left:auto;font-size:11.5px;padding:1px 3px;letter-spacing:-.04em}
+ .bars{display:none}
+ /* 41mm 只有 176px 寬，大字要再降一階，不然城市會被吃掉 */
+ @media(max-width:190px){
+  .r{padding:4px 5px 4px 9px;gap:1px 4px}
+  b.t{font-size:20px} .f{font-size:24px} .g{font-size:16px} .g .gn{padding:0 4px}
+  .c{font-size:11px} .cn{min-width:2.6em}
+  .c .px{font-size:9.5px;padding:0 2px} .c .px u::after{font-size:7.5px}
+  .st{font-size:10px;padding:1px 2px}
+ }
+ /* 手錶的按鍵：加大、加粗、字不要黑的 */
+ .btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em;padding:8px 4px}
+ .btn.half,.btn.cat{font-size:15.5px}
+ .btn.zone,.btn.pre{font-size:14px;padding:8px 1px}
+ .btn.nav{font-size:19px} .btn.mid{font-size:15.5px}
+ #gextra{display:none}              /* 更新／開會時間：手錶不顯示 */
+ .btn.rl{display:none}              /* 產生版的更新鍵同理 */
+}
+/* 選取中的分點鍵：改成「亮字＋亮框＋外發光」，不要黑字壓在亮底上 */
+.btn.c40.on,.cat.cs0.on{background:rgba(0,239,212,.16);border-color:#00EFD4;color:#4DF6E2;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 16px -3px rgba(0,239,212,.9)}
+.btn.c53.on,.cat.cs1.on{background:rgba(255,46,110,.16);border-color:#FF2E6E;color:#FF7FA3;
+ box-shadow:inset 0 0 0 1px #FF2E6E,0 0 16px -3px rgba(255,46,110,.9)}
+.btn.ct1.on,.cat.cs2.on{background:rgba(167,155,196,.16);border-color:#A79BC4;color:#D3C8EC;
+ box-shadow:inset 0 0 0 1px #A79BC4}
+.btn.ct2.on,.cat.cs3.on{background:rgba(255,255,255,.09);border-color:#8d99a9;color:#DDE3EA;
+ box-shadow:inset 0 0 0 1px #8d99a9}
+/* 按鍵整體：大一點、粗一點 */
+.btn{font-weight:900}
+.cn{font-style:normal}
+
+/* 狀態欄不給死寬度：字多長就撐多寬，中間那欄讓位，不會壓到城市／人數 */
+.st{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.c{min-width:0}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) minmax(70px,max-content)}
+}
+@media(max-width:400px) and (min-width:341px){
+ .r{grid-template-columns:86px minmax(0,1fr) minmax(62px,max-content)}
+}
+@media(min-width:620px){
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) minmax(64px,max-content)}
+}
+/* ── 2026-10-10 優化：下一班卡／⋯ 收納／已抵達收成一行 ── */
+#catslot2{display:contents}
+.grp.s1{margin-top:4px}
+.grp.s1 .btn.cat{flex:1 1 30%;min-width:0}
+.btn.more{flex:0 0 42px;font-size:20px;letter-spacing:0;padding:8px 0;position:relative}
+.btn.more.dot::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#FFC53D;box-shadow:0 0 6px #FFC53D}
+#more{border-left:2px solid #1b2431;padding-left:6px;margin:6px 0 2px}
+#nx:empty{display:none}
+#nx{border:1.5px solid #FFC53D;background:linear-gradient(180deg,rgba(255,197,61,.13),rgba(255,197,61,.03));
+ padding:6px 9px 7px;margin-bottom:7px;box-shadow:0 0 16px -6px rgba(255,197,61,.7)}
+#nx .nxk{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;letter-spacing:.14em;color:#FFC53D}
+#nx .nxl1{display:flex;align-items:center;gap:7px;margin-top:1px}
+#nx .nxt{font-size:30px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#F3F5F7}
+#nx .nxt.late{color:#FF8A3D} #nx .nxt.early{color:#7CC4FF}
+#nx .nxf{font-size:17px;font-weight:800;color:#DDE3EA;letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nx .nxg{margin-left:auto;flex:0 0 auto;font-size:26px;font-weight:900;line-height:1;padding:2px 7px;background:#1c2430;color:#E8EAED}
+#nx .nxg.s0{background:#00EFD4;color:#02241F} #nx .nxg.s1{background:#FF2E6E;color:#2B0411}
+#nx .nxl2{display:flex;align-items:baseline;gap:7px;margin-top:3px;font-size:14px;color:#93a0b1}
+#nx .nxc{margin-left:auto;color:#FFC53D;font-weight:900;font-size:15px}
+.fold{display:flex;align-items:center;gap:6px;background:#0B1019;border:1px solid #2a3545;color:#93a0b1;
+ font-size:14px;font-weight:800;padding:9px 10px;margin-bottom:4px;cursor:pointer;user-select:none}
+.fold i{font-style:normal;margin-left:auto;color:#00EFD4;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.fold:active{filter:brightness(1.3)}
+@media(max-width:340px){
+ #nx{padding:5px 7px 6px} #nx .nxl1{gap:5px} #nx .nxt{font-size:23px} #nx .nxf{font-size:13px} #nx .nxg{font-size:20px;padding:2px 5px}
+ #nx .nxl2{font-size:12.5px} #nx .nxc{font-size:13px}
+ .fold{font-size:12.5px;padding:7px 8px}
+}
+#immnote{font-size:14px;color:#C3CAD4;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #FFC53D;
+  padding:6px 9px;margin:-3px 0 7px;line-height:1.5}
+#immnote b{color:#E8EDF3} #immnote em{font-style:normal;font-weight:900;font-size:17px;color:#FFC53D}
+#immnote i{font-style:normal;color:#8b94a1;font-size:12.5px}
+#immnote .imn{color:#B9C0CB;font-size:13px} #immnote .imc{margin-right:6px} #immnote .imc b{color:#fff}
+#immnote .imold{color:#FF7A95;font-weight:700;font-size:12.5px}
+.nat{display:inline-block;font-style:normal;font-weight:800;font-size:12.5px;margin-left:4px;padding:0 5px;
+  background:rgba(255,197,61,.14);color:#FFC53D;border:1px solid #7a5c12;vertical-align:middle;white-space:nowrap}
+#holnote:empty{display:none}
+#holnote .holi{font-size:13px;color:#C3CAD4;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #4DA3FF;padding:5px 8px;margin:-3px 0 7px;line-height:1.45}
+#holnote .holi b{color:#fff} #holnote .holi i{font-style:normal;color:#FFC53D;font-weight:800}
+.gchg{display:block;font-style:normal;font-size:11px;font-weight:900;color:#fff;background:#FF2E6E;padding:0 4px;margin-top:2px;text-align:center;white-space:nowrap}
+#immnote:empty{display:none}
+</style>
+<link rel="stylesheet" href="../ds/tokens.css?v=13h">
+<style>html,body{background:#05070a}</style>
+</head>
+<body>
+<svg class="sprite" viewBox="0 0 24 24" aria-hidden="true"><defs><g id="i-land"><path d="M2 21h4.5"/><path d="M9.75 21h4.5"/><path d="M17.5 21h4.5"/><path d="M4 6.5 6.8 5.8 10.4 11.4 19.5 9 20.2 12.6 7.4 16 3.6 11.4Z"/></g><g id="i-timer"><path d="M9.5 2.5h5"/><path d="M12 2.5v3.5"/><path d="M9.9 6 14.1 6 18 9.9v4.2L14.1 18H9.9L6 14.1V9.9Z"/><path d="M12 13.8V9.5"/><rect fill="currentColor" stroke="none" x="11" y="13" width="2" height="2"/></g><g id="i-refresh"><path d="M20.5 12A8.5 8.5 0 1 1 16.6 4.8"/><path d="M21.5 3.5V10H15Z"/></g><g id="i-cal"><path d="M3 5h13.6L21 9.4V21H3Z"/><path d="M3 10.5h18"/><path d="M8 2.5v4"/><path d="M15.5 2.5v4"/><rect fill="currentColor" stroke="none" x="6" y="13.5" width="4" height="4"/></g><g id="i-hide"><path d="M2 12 6 7h12l4 5-4 5H6Z"/><rect fill="currentColor" stroke="none" x="10" y="10" width="4" height="4"/><path d="M3 3 21 21"/></g><g id="i-show"><path d="M2 12 6 7h12l4 5-4 5H6Z"/><rect fill="currentColor" stroke="none" x="10" y="10" width="4" height="4"/></g><g id="i-clock"><path d="M9.2 3h5.6L20 7.2v9.6L14.8 21H9.2L4 16.8V7.2Z"/><path d="M12 4.5v2"/><path d="M19 12h-2"/><path d="M12 19.5v-2"/><path d="M5 12h2"/><path d="M12 7.5V12h4"/></g><g id="i-cog"><path d="M3 6h7"/><path d="M15 6h6"/><rect fill="currentColor" stroke="none" x="10.5" y="3.5" width="3.5" height="5"/><path d="M3 12h4"/><path d="M12 12h9"/><rect fill="currentColor" stroke="none" x="7.5" y="9.5" width="3.5" height="5"/><path d="M3 18h9"/><path d="M17 18h4"/><rect fill="currentColor" stroke="none" x="12.5" y="15.5" width="3.5" height="5"/></g><g id="i-undo"><path d="M8.5 4.5 4 9l4.5 4.5"/><path d="M4 9h11l4 4v3l-4 3H8.5"/></g><g id="i-up"><path d="M4 3h16"/><path d="M12 21V7"/><path d="M5.5 13.5 12 7l6.5 6.5"/></g><g id="i-left"><path d="M15.5 4.5 8 12l7.5 7.5"/></g><g id="i-right"><path d="M8.5 4.5 16 12l-7.5 7.5"/></g><g id="i-alert"><path d="M10.6 3.3h2.8L22.4 20H1.6Z"/><path d="M12 9.5v4.5"/><rect fill="currentColor" stroke="none" x="11" y="16" width="2" height="2"/></g><g id="i-users"><path d="M2.5 5.5h2.8L6.5 6.7v2.8H2.5Z"/><path d="M9.9 4h3.2l1.2 1.2v3.3H9.9Z"/><path d="M17.5 5.5h2.8l1.2 1.2v2.8h-4Z"/><path d="M1 20.5v-2l2-3.5h3"/><path d="M7 20.5v-2.5l2-3.5h6l2 3.5v2.5"/><path d="M23 20.5v-2l-2-3.5h-3"/></g><g id="i-unlock"><path d="M3.5 10h13.6L20.5 13v8h-17Z"/><path d="M12 10V5.5h9.5"/><rect fill="currentColor" stroke="none" x="11" y="13.8" width="2" height="4"/></g><g id="i-lock"><path d="M3.5 10h13.6L20.5 13v8h-17Z"/><path d="M7 10V5.5h10V10"/><rect fill="currentColor" stroke="none" x="11" y="13.8" width="2" height="4"/></g><g id="i-check"><path d="M3.5 12.5 9 18 20.5 6.5"/></g><g id="i-signal"><path d="M3.5 20.5V17"/><path d="M9 20.5v-7"/><path d="M14.5 20.5V9"/><rect fill="currentColor" stroke="none" x="19" y="4" width="2.5" height="16.5"/></g></defs></svg>
+<div id="fab">
+  <div class="fabrow">
+    <button class="fabb" id="fTop"><svg class="ic" viewBox="0 0 24 24"><use href="#i-up"/></svg></button>
+    <button class="fabb" id="fNow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 6H</button>
+    <button class="fabb" id="fGo"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button>
+  </div>
+  <div class="fclock" id="fClock">--:--</div>
+</div>
+
+
+<div class="mk">
+  <b>小韋製作</b>
+  <i><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 未經同意請勿私自轉傳</i>
+</div>
+<div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
+
+<div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
+<div class="grp">
+  <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
+  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
+  <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
+</div>
+<div class="grp s1">
+  <span id="catslot"></span>
+  <span class="btn more" id="bmore">⋯</span>
+</div>
+<!-- 其他按鍵都收在「⋯」裡：手錶一打開就看得到班機，不用先捲過十排按鍵 -->
+<div id="more" hidden>
+<div class="grp">
+  <span class="btn nav" id="dPrev"><svg class="ic" viewBox="0 0 24 24"><use href="#i-left"/></svg></span>
+  <span class="btn mid" id="dMid"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cal"/></svg> 今天</span>
+  <span class="btn nav" id="dNext"><svg class="ic" viewBox="0 0 24 24"><use href="#i-right"/></svg></span>
+</div>
+<div class="grp s">
+  <span id="catslot2"></span>
+</div>
+<div class="grp">
+  <span class="btn half" id="ball">全部</span>
+  <span class="btn half" id="bnone">清空</span>
+</div>
+<div class="grp s">
+  <span class="btn zone" data-z="A">✓ A區</span>
+  <span class="btn zone" data-z="B">✓ B區</span>
+  <span class="btn zone" data-z="C">✓ C區</span>
+  <span class="btn zone" data-z="D">✓ D區</span>
+</div>
+<div class="grp s">
+  <span class="btn half" id="bhide"><svg class="ic" viewBox="0 0 24 24"><use href="#i-hide"/></svg> 隱藏抵達</span>
+  <span class="btn half" id="bcfg"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cog"/></svg> 分類設定</span>
+</div>
+<!-- 手錶（≤340px）整排不顯示：螢幕就那麼點大，更新可以點最上面那條標題列，開會時間手機上看就好 -->
+<div class="grp" id="gextra">
+  <span class="btn half" id="breload"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> 更新</span>
+  <span class="btn half" id="bmeet"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間</span>
+</div>
+<div class="cfgbox" id="cfgbox" hidden>
+  <h4>名稱／航廈／登機門（留空＝該航廈其餘）・大夜YA＝A、D 門／大夜YB＝B、C 門</h4>
+  <div id="catbox"></div>
+  <span class="btn" id="catReset" style="min-height:40px;font-size:13px"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg> 恢復預設</span>
+</div>
+</div>
+
+<div class="sep"></div>
+<div id="mb"></div>
+<div id="fb"></div>
+<div id="list"><div class="msg">載入中…</div></div>
+
+<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> TDX 資料。開頁先給<b>上次存的</b>再抓新的；快照超過 15 分鐘自動改連即時，<b>一律以現場為準</b><br>
+<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝已扣轉機的入境人數。<b>機上人數用桃機官方每小時抵達人次</b>依機型分到各班，再扣各航線轉機比例。同分鐘抵達時入境多的排前面<br>
+入境人數 <i class="px p1">未滿150</i> <i class="px p2">150–250</i> <i class="px p3">超過250</i><br>
+狀態 <span class="st b-ok">準時</span> <span class="st b-early">提早</span> <span class="st b-warn">延遲</span> <span class="st b-bad">取消</span> <span class="st b-taxi">滑行</span> <span class="st b-ok">抵達</span><br>
+本頁固定不顯示 06:00–13:30 的班機<br>
+「滑行」另外向桃機即時查：你的班機快落地時才查（省流量），查不到就照常顯示「抵達」</div>
+<div class="foot">點最上面那條可重讀快照<br><br><a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="../wtest.html">連線測試</a>　<a class="btn" style="display:inline-flex;min-height:40px;padding:8px 16px;font-size:12px" href="../watch-static.html">預先產生版</a></div>
+
+<script>
+/* ── 版本自動更新 ────────────────────────────────────────────
+   手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
+   這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
+   一次工作階段只做一次，不會反覆重整。 */
+var PAGE_V='2026-10-19f';
+(function(){
+  /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
+     所以用網址當第二道保險，確保絕對不會無限重整） */
+  if(/[?&]v=/.test(location.search)) return;
+  try{ if(sessionStorage.getItem('vchk')==='1') return; }catch(e){}
+  try{
+    fetch('../ver.json?t='+Date.now(),{cache:'no-store'}).then(function(r){
+      return r.ok?r.json():null;
+    }).then(function(j){
+      var want=j&&j.v;
+      if(!want||!PAGE_V||want===PAGE_V) return;
+      try{ sessionStorage.setItem('vchk','1'); }catch(e){}
+      location.replace(location.pathname+'?v='+encodeURIComponent(want));
+    })['catch'](function(){});
+  }catch(e){}
+})();
+/* ── 分點別登機門（跟其他版本同一套設定）─────────────────── */
+/* ── 四個分類：名稱／登機門／航廈都可以自己改，存在這台裝置（跟網頁版同一套） ── */
+var CAT_DEFAULT=[
+  {name:'2140', spec:'C1-C4, C5R, B7-B9', term:'2'},
+  {name:'2153', spec:'B6, C5, C6-C10',    term:'2'},
+  {name:'大夜YA', spec:'A1-A10, D1-D18',  term:'any'},   /* 入境登機口 A、D */
+  {name:'大夜YB', spec:'B1-B9, C1-C10',   term:'any'}    /* 入境登機口 B、C（2140／2153 的門先算） */
+];
+var CAT_CLS=['s40','s53','st1','st2'];
+var CAT_KEY='tpeCats1';
+
+var GATE_ORDER=(function(){
+  var o=[],i;
+  for(i=1;i<=10;i++) o.push('A'+i);
+  ['B1','B1R','B2','B3','B4','B5','B6','B7','B8','B9'].forEach(function(g){o.push(g)});
+  ['C1','C2','C3','C4','C5','C5R','C6','C7','C8','C9','C10'].forEach(function(g){o.push(g)});
+  var d=['D1','D2','D3','D4','D5','D5R'];
+  for(i=6;i<=18;i++) d.push('D'+i);
+  d.forEach(function(g){o.push(g)});
+  return o;
+})();
+function expandSpec(spec){
+  var set={};
+  spec.split(/[,，、]/).forEach(function(p){
+    var part=p.trim().toUpperCase(); if(!part) return;
+    var m=part.match(/^([A-D]\d+R?)\s*[-–—~]\s*([A-D]\d+R?)$/);
+    if(m){
+      var a=GATE_ORDER.indexOf(m[1]), b=GATE_ORDER.indexOf(m[2]);
+      if(a>=0&&b>=0){ var lo=Math.min(a,b), hi=Math.max(a,b);
+        for(var i=lo;i<=hi;i++) set[GATE_ORDER[i]]=1; }
+    } else set[part]=1;
+  });
+  return set;
+}
+/* 10/19：入境的第 3、4 格改成「大夜YA」（入境 A、D 登機門）、「大夜YB」（入境 B、C 登機門）。
+   出境頁也讀同一個 tpeCats1，所以入境把第 3、4 格另外存在 tpeCatsArr1，不動出境的「其他一航／其他二航」；
+   第 1、2 格（2140／2153）照舊跟出境共用。 */
+var CAT_ARR_KEY='tpeCatsArr1';
+function catsFix(c,i){ return {name:String(c&&c.name||CAT_DEFAULT[i].name).slice(0,12), spec:String(c&&c.spec!=null?c.spec:CAT_DEFAULT[i].spec), term:(c&&(c.term==='1'||c.term==='2'||c.term==='any'))?c.term:CAT_DEFAULT[i].term}; }
+function catsLoad(){
+  var out=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    if(a&&a.length===4){ out[0]=catsFix(a[0],0); out[1]=catsFix(a[1],1); } }catch(e){}
+  try{ var b=JSON.parse(localStorage.getItem(CAT_ARR_KEY)||'null');
+    if(b&&b.length===2){ out[2]=catsFix(b[0],2); out[3]=catsFix(b[1],3); } }catch(e){}
+  return out;
+}
+function catsSave(){
+  try{ var a=JSON.parse(localStorage.getItem(CAT_KEY)||'null');
+    var keep=(a&&a.length===4)?[a[2],a[3]]:[{name:'其他一航',spec:'',term:'1'},{name:'其他二航',spec:'',term:'2'}];
+    localStorage.setItem(CAT_KEY, JSON.stringify([CATS[0],CATS[1],keep[0],keep[1]]));
+    localStorage.setItem(CAT_ARR_KEY, JSON.stringify([CATS[2],CATS[3]])); }catch(e){}
+}
+var CATS=catsLoad(), EX=[];
+function catsExpand(){
+  EX=CATS.map(function(c,i){
+    var sp=String(c.spec||'').trim();
+    return {id:'c'+i, name:c.name, term:c.term, hasSpec:!!sp, set:expandSpec(sp)};
+  });
+}
+catsExpand();
+
+/* ── 小工具 ── */
+function hhmm(t){ return (t||'').slice(0,5); }
+function pad(x){ return (x<10?'0':'')+x; }
+function mins(t){ var p=hhmm(t).split(':'); return (+p[0])*60+(+p[1]); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]}); }
+
+/* ── TDX ── */
+var TDX_ARR='https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+  +'?%24select=FlightDate,FlightNumber,AirlineID,DepartureAirportID,ScheduleArrivalTime,'
+  +'EstimatedArrivalTime,ActualArrivalTime,Terminal,Gate,ArrivalRemark&%24format=JSON';
+var TDX_AP='https://tdx.transportdata.tw/api/basic/v2/Air/Airport'
+  +'?%24select=AirportID,AirportName,AirportCityName&%24format=JSON';
+
+var NAMES=null;
+var TXMAP={};   /* 班號 → 轉機比例。GitHub 那邊已經拿出境班表算好了，這裡直接抄 */
+function tdxNames(){
+  /* 空的對照表（{}）不算數——以前存到空的就再也不重抓，城市一直顯示代碼 */
+  if(NAMES && Object.keys(NAMES).length) return Promise.resolve(NAMES);
+  /* 只抓小檔 meta.json（約 12KB）：機場中文名＋GitHub 依出境班表算好的轉機比例。
+     網址上的編號每 5 分鐘才換一次，中間重開都吃手錶自己的快取，不會重複下載。
+     抓不到就退回完整快照 data.json。 */
+  var mk='../meta.json?v='+Math.floor(Date.now()/300000);
+  var take=function(j){
+    var m=(j&&(j.n||j.names))||null;
+    if(!m){ m={}; ((j&&j.d)||[]).forEach(function(f){
+      if(f.Dep&&f.CityName&&f.CityName!==f.Dep) m[f.Dep]=f.CityName;
+      if(f.flightCode&&typeof f.tx==='number') TXMAP[String(f.flightCode).toUpperCase()]=f.tx;
+    }); }
+    var x=(j&&j.x)||null;
+    if(x) for(var k in x){ if(x.hasOwnProperty(k)) TXMAP[k]=x[k]; }
+    NAMES=m;
+    try{ localStorage.setItem(META_KEY, JSON.stringify({n:m,x:TXMAP})); }catch(e){}
+    return m;
+  };
+  return fetch(mk).then(function(r){ if(!r.ok) throw new Error('meta '+r.status); return r.json(); })
+    .then(take)
+    ['catch'](function(){
+      return fetch('../data.json?v='+Math.floor(Date.now()/300000))
+        .then(function(r){ return r.ok?r.json():{d:[]}; }).then(take)
+        ['catch'](function(){ return {}; });
+    });
+}
+function fromTDX(f,names){
+  var hm=function(s){ return (String(s||'').split('T')[1]||'').slice(0,5); };
+  var dt=function(s){ return String(s||'').split('T')[0].replace(/-/g,'/'); };
+  var sch=f.ScheduleArrivalTime||'', act=f.ActualArrivalTime||f.EstimatedArrivalTime||'';
+  var rm=f.ArrivalRemark||'', memo='';
+  if(/取消|CANCEL/i.test(rm))                        memo='取消';
+  else if(/已到|ARRIVED|LANDED/i.test(rm))           memo='已到';
+  else if(/延誤|延遲|DELAY/i.test(rm))               memo='延遲';
+  else if(/時間更改|變更|SCHEDULE CHANGE/i.test(rm)) memo='時間更改';
+  else if(/準時|ON TIME/i.test(rm))                  memo='準時';
+  var s=hm(sch), a=hm(act);
+  return {
+    BNO:String(f.Terminal||''), Gate:String(f.Gate||'').trim(),
+    ODate:dt(sch), OTime:s?s+':00':'',
+    RDate:dt(act), RTime:(a&&(a!==s||memo))?a+':00':'',
+    Dep:String(f.DepartureAirportID||''),
+    CityName:names[f.DepartureAirportID]||f.DepartureAirportID||'',
+    flightCode:String(f.AirlineID||'')+String(f.FlightNumber||''),
+    Memo:memo
+  };
+}
+function mergeCodeshare(list){
+  var keys=[], map={};
+  list.forEach(function(f){
+    var k=f.ODate+'|'+f.OTime+'|'+f.Gate+'|'+f.BNO+'|'+f.CityName;
+    if(!map.hasOwnProperty(k)){ map[k]=f; keys.push(k); return; }
+    var m=map[k];
+    if(!m.RTime && f.RTime){ m.RTime=f.RTime; m.RDate=f.RDate; }
+    if(!m.Memo && f.Memo) m.Memo=f.Memo;
+  });
+  return keys.map(function(k){ return map[k]; });
+}
+
+/* ── 轉機客推估：長榮/華航/星宇的東南亞晚班、清晨歐美班 → 轉機多 ── */
+var TXHUB={BR:1,CI:1,JX:1};
+var TXSEA={BKK:1,DMK:1,SIN:1,KUL:1,PEN:1,CGK:1,DPS:1,MNL:1,CEB:1,CRK:1,SGN:1,HAN:1,DAD:1,PNH:1,REP:1,KTI:1,RGN:1,VTE:1};
+var TXFAR={LAX:1,SFO:1,SEA:1,JFK:1,EWR:1,ORD:1,DFW:1,IAH:1,IAD:1,BOS:1,ATL:1,MSP:1,ONT:1,YVR:1,YYZ:1,
+  CDG:1,AMS:1,LHR:1,FRA:1,MXP:1,VIE:1,MUC:1,PRG:1,BCN:1,IST:1};
+function txOf(f){
+  var al=String(f.flightCode||'').slice(0,2).toUpperCase();
+  if(!TXHUB[al]) return false;
+  var dep=String(f.Dep||f.CityCode||'').toUpperCase();
+  var t=hhmm(f.RTime)||hhmm(f.OTime);
+  if(TXSEA[dep]&&t>='16:00') return true;   /* 東南亞晚班 → 接深夜歐美紅眼 */
+  if(TXFAR[dep]&&t<='09:00') return true;   /* 清晨歐美班 → 接早上東南亞/日韓 */
+  return false;
+}
+
+/* ── 狀態（含表情符號）── */
+/* 狀態只留文字，靠顏色分級——看板上不會有貼圖 */
+/* 按鈕文字要換圖示時用這個，避免在 JS 裡拼 SVG 字串 */
+function IC(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
+function setBtn(id,icon,txt){
+  var b=document.getElementById(id);
+  if(b) b.innerHTML=IC(icon)+' '+esc(txt);
+}
+
+/* 班號統一成「航空公司＋去掉前導 0 的號碼」：TDX 的 CI0112、桃機的 CI 112 都變 CI112 */
+var TAXI={};
+function codeKey(c){ c=String(c||'').toUpperCase().replace(/\s+/g,''); var m=c.match(/^([A-Z0-9]{2})0*(\d+[A-Z]?)$/); return m?m[1]+m[2]:c; }
+function statusOf(f){
+  var memo=f.Memo||'';
+  if(/取消/.test(memo)) return {txt:'取消', cls:'bad', done:false};
+  /* 滑行：TDX 沒有這欄，另外向桃機即時查（見最下面 taxiLoad）。已落地、還沒靠橋，不算抵達 */
+  if(TAXI[codeKey(f.flightCode)]) return {txt:'滑行', cls:'taxi', done:false};
+  if(/已到/.test(memo)) return {txt:'抵達', cls:'ok',  done:true };
+  if(/延遲|延誤/.test(memo)) return {txt:'延遲', cls:'warn',done:false};
+  /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
+  if(/更改|變更/.test(memo)){
+    var dm=(hhmm(f.RTime)&&hhmm(f.OTime))?(mins(f.RTime)-mins(f.OTime)+(isNextDay(f)?1440:0)):0;
+    return {txt: dm<0?'提早':(dm>0?'延遲':'時間更新'), cls: dm<0?'early':'warn', done:false};
+  }
+  if(/準時/.test(memo)) return {txt:'準時', cls:'info',done:false};
+  return {txt:'預計', cls:'none', done:false};
+}
+/* 先比「有填登機門」的格子（航廈也要對），再比「留空」的格子（只看航廈）。
+   B6～B9 一航二航都有同名登機門，所以航廈欄一定要一起比。 */
+function shopOf(f){
+  var g=(f.Gate||'').trim().toUpperCase();
+  var bno=(String(f.BNO)==='1')?'1':'2', i, c;
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(!c.hasSpec) continue;
+    if(c.term!=='any' && c.term!==bno) continue;
+    if(g && c.set[g]) return c.id;
+  }
+  for(i=0;i<EX.length;i++){ c=EX[i];
+    if(c.hasSpec) continue;
+    if(c.term==='any' || c.term===bno) return c.id;
+  }
+  /* 都沒對到：照開頭字母分，A、D＝大夜YA，B、C＝大夜YB */
+  var L=g.charAt(0); if((L==='A'||L==='D')&&EX[2]) return 'c2';
+  return 'c'+(EX.length-1);
+}
+/* ── 出發國家對照（IATA 機場代碼 → 國家）＋ 航班號碼補滿四碼 ── */
+var CTRY=(function(){var o={},a='ADL:澳洲,AKJ:日本,AKL:紐西蘭,AMD:印度,AMM:約旦,AMS:荷蘭,ANC:美國,AOJ:日本,ARN:瑞典,ASJ:日本,ATH:希臘,ATL:美國,AUH:阿聯,AUS:美國,AXT:日本,BAH:巴林,BCN:西班牙,BER:德國,BKI:馬來西亞,BKK:泰國,BLQ:義大利,BLR:印度,BNA:美國,BNE:澳洲,BOM:印度,BOS:美國,BRU:比利時,BTH:印尼,BUD:匈牙利,BWN:汶萊,BXU:菲律賓,CAI:埃及,CAN:中國,CBR:澳洲,CCU:印度,CDG:法國,CEB:菲律賓,CGK:印尼,CGO:中國,CGP:孟加拉,CGQ:中國,CHC:紐西蘭,CJJ:韓國,CJU:韓國,CKG:中國,CLT:美國,CMB:斯里蘭卡,CNS:澳洲,CNX:泰國,COK:印度,CPH:丹麥,CPT:南非,CRK:菲律賓,CSX:中國,CTS:日本,CTU:中國,CXR:越南,CYI:台灣,CZX:中國,DAC:孟加拉,DAD:越南,DEL:印度,DEN:美國,DFW:美國,DLC:中國,DMK:泰國,DOH:卡達,DPS:印尼,DRW:澳洲,DTW:美國,DUB:愛爾蘭,DUS:德國,DVO:菲律賓,DXB:阿聯,EDI:英國,EWR:美國,EZE:阿根廷,FCO:義大利,FKS:日本,FOC:中國,FRA:德國,FSZ:日本,FUK:日本,GAJ:日本,GES:菲律賓,GMP:韓國,GRU:巴西,GUM:關島,GUM2:美國,GVA:瑞士,HAC:日本,HAK:中國,HAM:德國,HAN:越南,HBA:澳洲,HEL:芬蘭,HFE:中國,HGH:中國,HIJ:日本,HKD:日本,HKG:香港,HKT:泰國,HNA:日本,HND:日本,HNL:美國,HPH:越南,HRB:中國,HSG:日本,HUN:台灣,HYD:印度,IAD:美國,IAH:美國,IBR:日本,ICN:韓國,IKT:俄羅斯,ILO:菲律賓,ISB:巴基斯坦,ISG:日本,IST:土耳其,ITM:日本,IWJ:日本,IZO:日本,JED:沙烏地,JFK:美國,JHB:馬來西亞,JJN:中國,JKT:印尼,JNB:南非,JNG:中國,JZH:中國,KBV:泰國,KCH:馬來西亞,KCZ:日本,KHH:台灣,KHI:巴基斯坦,KHN:中國,KHV:俄羅斯,KIJ:日本,KIX:日本,KKJ:日本,KLO:菲律賓,KMG:中國,KMI:日本,KMJ:日本,KMQ:日本,KNH:台灣,KOA:美國,KOJ:日本,KOS:柬埔寨,KTI:柬埔寨,KTM:尼泊爾,KUH:日本,KUL:馬來西亞,KWE:中國,KWI:科威特,KWJ:韓國,LAS:美國,LAX:美國,LED:俄羅斯,LGK:馬來西亞,LGW:英國,LHE:巴基斯坦,LHR:英國,LHW:中國,LIH:美國,LIM:秘魯,LIS:葡萄牙,LJG:中國,LOP:印尼,LOS:奈及利亞,LPQ:寮國,LYG:中國,LYS:法國,LZN:台灣,MAA:印度,MAD:西班牙,MAN:英國,MCO:美國,MCT:阿曼,MDL:緬甸,MEL:澳洲,MEX:墨西哥,MFK:台灣,MFM:澳門,MIA:美國,MLE:馬爾地夫,MMB:日本,MMJ:日本,MMY:日本,MNL:菲律賓,MSP:美國,MUC:德國,MWX:韓國,MXP:義大利,MYJ:日本,MZG:台灣,NAN:斐濟,NAP:義大利,NBO:肯亞,NCE:法國,NGB:中國,NGO:日本,NGS:日本,NKG:中國,NKM:日本,NNG:中國,NRT:日本,NTQ:日本,OAK:美國,OBO:日本,OGG:美國,OIT:日本,OKA:日本,OKE:日本,OKJ:日本,ONT:美國,OOL:澳洲,ORD:美國,ORY:法國,OSL:挪威,PBH:不丹,PDX:美國,PEK:中國,PEN:馬來西亞,PER:澳洲,PHL:美國,PHX:美國,PKX:中國,PNH:柬埔寨,PPS:菲律賓,PQC:越南,PRG:捷克,PUS:韓國,PVG:中國,REP:柬埔寨,RGN:緬甸,RMQ:台灣,ROR:帛琉,RSU:韓國,RUH:沙烏地,SAN:美國,SAW:土耳其,SCL:智利,SDJ:日本,SEA:美國,SFO:美國,SGN:越南,SHA:中國,SHE:中國,SHI:日本,SHM:日本,SIN:新加坡,SJC:美國,SJW:中國,SLC:美國,SMF:美國,SPK:日本,SPN:塞班,STR:德國,SUB:印尼,SVO:俄羅斯,SWA:中國,SYD:澳洲,SYO:日本,SYX:中國,SZX:中國,TAE:韓國,TAG:菲律賓,TAK:日本,TAO:中國,TFU:中國,THD:越南,TKS:日本,TLV:以色列,TNA:中國,TNN:台灣,TOY:日本,TSA:台灣,TSN:中國,TTJ:日本,TTT:台灣,TYN:中國,UBJ:日本,UKB:日本,ULN:蒙古,URC:中國,USM:泰國,USN:韓國,UTP:泰國,VCA:越南,VCE:義大利,VDH:越南,VIE:奧地利,VII:越南,VTE:寮國,VVO:俄羅斯,WAW:波蘭,WEH:中國,WKJ:日本,WLG:紐西蘭,WNZ:中國,WUH:中國,WUX:中國,XIY:中國,XMN:中國,XUZ:中國,YEG:加拿大,YGJ:日本,YHZ:加拿大,YIW:中國,YNT:中國,YNY:韓國,YNZ:中國,YOW:加拿大,YUL:加拿大,YVR:加拿大,YXU:加拿大,YYC:加拿大,YYZ:加拿大,ZHA:中國,ZQN:紐西蘭,ZRH:瑞士,ZUH:中國'.split(',');
+  for(var i=0;i<a.length;i++){var p=a[i].split(':');o[p[0]]=p[1];} return o;})();
+/* 國旗：國名 → ISO 兩碼，再用 regional indicator 組出旗子（比直接存 53 面旗省字） */
+var FLAG=(function(){var o={},a='中國:CN,丹麥:DK,以色列:IL,俄羅斯:RU,加拿大:CA,匈牙利:HU,南非:ZA,卡達:QA,印尼:ID,印度:IN,土耳其:TR,塞班:MP,奧地利:AT,孟加拉:BD,寮國:LA,尼泊爾:NP,希臘:GR,帛琉:PW,德國:DE,挪威:NO,捷克:CZ,斯里蘭卡:LK,新加坡:SG,日本:JP,柬埔寨:KH,比利時:BE,汶萊:BN,沙烏地:SA,法國:FR,波蘭:PL,泰國:TH,澳洲:AU,澳門:MO,瑞典:SE,瑞士:CH,紐西蘭:NZ,緬甸:MM,美國:US,義大利:IT,芬蘭:FI,英國:GB,荷蘭:NL,菲律賓:PH,葡萄牙:PT,蒙古:MN,西班牙:ES,越南:VN,關島:GU,阿聯:AE,韓國:KR,香港:HK,馬來西亞:MY,馬爾地夫:MV,台灣:TW,斐濟:FJ,墨西哥:MX,巴西:BR,智利:CL,秘魯:PE,阿根廷:AR,愛爾蘭:IE,巴林:BH,科威特:KW,阿曼:OM,約旦:JO,埃及:EG,肯亞:KE,奈及利亞:NG,巴基斯坦:PK,不丹:BT'.split(',');
+  for(var i=0;i<a.length;i++){var p=a[i].split(':');o[p[0]]=p[1];} return o;})();
+function flagOf(name){
+  var c=FLAG[String(name||'').trim()]; if(!c) return '';
+  return String.fromCharCode(0xD83C,0xDDE6+c.charCodeAt(0)-65,0xD83C,0xDDE6+c.charCodeAt(1)-65);
+}
+/* 出發地一律帶國旗。對照表查不到就給地球，格式才會統一（滑上去看得到代碼，回報給我就能補） */
+function flagCell(f){
+  var ct=ctryOf(f), fg=flagOf(ct);
+  if(fg) return '<i class="cty" title="'+esc(ct)+'">'+fg+'</i>';
+  var code=String(f.CityCode||f.Dep||'').trim().toUpperCase();
+  return '<i class="cty" title="'+esc(code||'出發地不明')+' 還沒對照到國家">\uD83C\uDF10</i>';
+}
+function ctryOf(f){
+  var c=String(f.CityCode||f.Dep||'').trim().toUpperCase();
+  return CTRY[c]||'';
+}
+/* BR7 → BR0007；數字補滿四碼，字母前綴不動 */
+function fno4(code){
+  var s=String(code||'').trim().toUpperCase();
+  var m=s.match(/^(.*?)(\d{1,4})$/);
+  if(!m) return s;
+  var d=m[2]; while(d.length<4) d='0'+d;
+  return m[1]+d;
+}
+
+function tagOf(id){
+  var i=+String(id).slice(1);
+  if(isNaN(i)||!CATS[i]) return {txt:'其他',cls:'st2'};
+  return {txt:CATS[i].name, cls:CAT_CLS[i]};
+}
+
+/* ── 預估下機人數（TDX 沒機型欄位，座位數查內建機隊表，查不到才用航線粗估）── */
+var LONGHAUL={LAX:1,SFO:1,SEA:1,JFK:1,EWR:1,ORD:1,DFW:1,IAH:1,IAD:1,BOS:1,ATL:1,MSP:1,ONT:1,
+  YVR:1,YYZ:1,CDG:1,AMS:1,LHR:1,FRA:1,MXP:1,VIE:1,MUC:1,IST:1,PRG:1,BCN:1,SYD:1,BNE:1,MEL:1,AKL:1};
+var MIDHAUL={BKK:1,DMK:1,SIN:1,KUL:1,PEN:1,CGK:1,DPS:1,MNL:1,SGN:1,HAN:1,PNH:1,KTI:1,REP:1,
+  RGN:1,VTE:1,DAD:1,CEB:1,CRK:1,DEL:1,BOM:1};
+var LCC={BX:1,LJ:1,'7C':1,TW:1,RS:1,ZE:1,VJ:1,VZ:1,AK:1,'5J':1,DG:1,Z2:1,IT:1,MM:1,SL:1,OD:1,JQ:1,'3K':1,TR:1,TT:1,IX:1};
+/* 轉機比例：優先用 GitHub 依當天出境班表算好的值，沒有才退回舊的時段判斷 */
+function txRatio(f){
+  if(typeof f.tx==='number') return f.tx;
+  var k=String(f.flightCode||'').toUpperCase();
+  if(k&&typeof TXMAP[k]==='number') return TXMAP[k];
+  return txOf(f)?0.25:0;
+}
+/* 機隊表：班號 -> 座位數，由桃機真實機型資料產生（repo 的 fleet.txt）。
+   手錶這邊抓不到桃機，所以直接內建一份查表，比以前用航線粗估準很多。 */
+var FLEET_BAKED='180:7G801 9C8951 AE992 BI451 CA409 CI105 CI107 CI109 CI113 CI119 CI123 CI129 CI131 CI151 CI153 CI155 CI179 CI187 CI189 CI191 CI195 CI27 CI29 CI371 CI395 CI512 CI518 CI602 CI706 CI732 CI756 CI764 CI788 CI794 CI834 CI836 CI838 CI852 CI862 CI904 CI910 CI916 CI920 CI924 CZ3023 HB710 HU7987 HX252 HX254 HX260 JL809 JL8671 LJ763 MF879 MU2009 MU2087 MU5001 NU301 NX612 NX616 NX622 RF511 SL380 SL381 SL394 SL395 SL396 SL397 UA165|186:AK1510 AK1511 FD242 FD243 GK13 GK55 GK57 IT201 IT203 IT209 IT211 IT213 IT215 IT217 IT231 IT233 IT235 IT237 IT241 IT247 IT251 IT253 IT255 IT257 IT259 IT552 IT603 IT607 IT655 IT701 IT715 IT721 IT737 IT751 MM23 MM25 MM27 MM625 MM627 MM631 MM6927 MM723 MM859 MM921 MM927 MM929 VZ570 VZ571 Z2124|306:CI101 CI157 CI21 CI23 CI3 CI31 CI502 CI504 CI54 CI58 CI64 CI68 CI7 CI722 CI754 CI76 CI762 CI82 CI832 JX1 JX11 JX31 JX742 JX772 JX841 JX851 JX9|323:BR11 BR131 BR15 BR153 BR17 BR202 BR212 BR216 BR218 BR226 BR228 BR27 BR31 BR35 BR392 BR396 BR398 BR5 BR51 BR55 BR68 BR711 BR72 BR76 BR88 BR9|297:CA195 CX402 CX408 CX420 CX472 CX494 CX530 CX531 CZ3087 HU7981 JX202 JX234 JX712 JX726 JX746 JX752 JX805 JX821 JX839 JX863 JX871 MH366 MU5005|184:BR101 BR109 BR113 BR117 BR1193 BR121 BR133 BR135 BR157 BR163 BR165 BR175 BR185 BR258 BR262 BR386 BR810 BR852 BR868 BR870|195:9G510 CA149 CA185 CA189 CX400 CX464 HX282 KE2085 NX632 PR890 PR894 TG636 TG636D UO110 UO112 UO114 UO116 VN570 VN578 ZH9073|188:JX1835 JX206 JX236 JX704 JX706 JX714 JX718 JX762 JX766 JX782 JX786 JX792 JX835 JX847 JX861 JX891 JX901 JX903|189:7C6101 7C6151 7C6153 7C6171 HB702 LJ751 OD698 TW663 TW687 VZ566 VZ567 ZE781 ZE881 ZE8813 ZE885 ZE983 ZE987 ZE989|342:BR105 BR115 BR129 BR159 BR177 BR183 BR195 BR197 BR206 BR23 BR25 BR62 BR757 BR872 BR892|350:B7188 CX450 CX451 CX466 CX564 CX565 CZ3095 CZ3097 JX102 JX25 JX801 JX803 JX823 TG632 UA871|230:5J310 BX791 BX793 FD230 FD231 GK11 VJ5512 VJ842 VJ844 VJ942 VZ568 VZ569|313:CI111 CI117 CI121 CI161 CI163 CI173 CI522 CI528 CI702 CI704 CI782 CI792|290:EY898 HO1309 KE2027 KL807 KL808 NZ77 OZ711 OZ713 TK124 TK24 UA853|278:BR234 BR238 BR272 BR278 BR3 BR49 BR7 BR802 BR806 BR96|309:BR169 BR256 BR266 BR282 BR382 BR384 BR715 BR721 BR858|330:KE2021 SQ876 SQ878 TR873 TR892 TR893|358:CI11 CI52 CI62 CI74 CI772 CI784|375:TR866 TR867 TR872 TR874 TR875|315:CX488 DL69 EK386 TG634|440:5J312 D7378 D7379|263:CA417 MU5007|190:MF887|240:JL8663|390:LJ733|500:EK366';
+var FLEET={};
+(function(){
+  FLEET_BAKED.split('|').forEach(function(g){
+    var i=g.indexOf(':'); if(i<0) return;
+    var s=+g.slice(0,i);
+    g.slice(i+1).split(/\s+/).forEach(function(c){ if(c) FLEET[c.toUpperCase()]=s; });
+  });
+})();
+function fleetSeats(code){
+  var s=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  var m=s.match(/^([A-Z]*)0*(\d+)$/); if(m) s=m[1]+m[2];
+  return FLEET[s]||0;
+}
+function paxOf(f){
+  var dep=String(f.Dep||'').toUpperCase();
+  var al=String(f.flightCode||'').slice(0,2).toUpperCase();
+  /* 先查機隊表（真實座位數），查不到才退回原本的航線粗估 */
+  var seats=fleetSeats(f.flightCode) || (LONGHAUL[dep]?333:(LCC[al]?189:(MIDHAUL[dep]?295:250)));
+  /* 載客率分開抓：廉航班次少、賣得滿，實際上機率比傳統航空高 */
+  var lf=LCC[al]?0.88:(LONGHAUL[dep]?0.85:(MIDHAUL[dep]?0.82:0.80));
+  var est=Math.round(seats*lf/5)*5;                /* 機上總人數 */
+  var tx=Math.round(est*txRatio(f)/5)*5;           /* 推估直接去轉機、不走入境的 */
+  var inn=Math.max(0,est-tx);
+  return {est:est,tx:tx,inn:inn,lv:inn>250?3:(inn>=150?2:1)};
+}
+function paxHtml(f){ var p=paxOf(f);
+  /* 只顯示預估入境。轉機人數還是有算，只是不印出來。 */
+  return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
+
+/* ── 畫面狀態 ── */
+/* 一開啟只勾自己的兩家分點（2140／2153）；大夜YA／YB 要看再自己按 */
+var cats={c0:true,c1:true,c2:false,c3:false};
+var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
+var win=['00:00','23:59'];
+var mode='win';      /* 'win'=固定時段  'now6'=現在起6小時 */
+var dayOff=0;        /* 0=今天 1=明天 2=後天 -1=昨天（◀▶ 可調） */
+var DAYS={};         /* 其他天的資料快取：DAYS[偏移]=班機陣列（null=抓失敗） */
+var hideDone=false;
+var DATA=[];
+var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
+
+/* ── 個人偏好：分點勾選／A-D 區／隱藏已到，存在使用者自己的裝置裡 ──
+   localStorage 是「這台裝置的這個瀏覽器」專屬，不會上傳、不會跟同事互相影響。
+   無痕模式、清除瀏覽資料會消失，所以全部包 try/catch，讀不到就用預設值。
+   時段刻意不存：開頁自動落在現在所屬的時段，交接班時那才是對的行為。 */
+var PREF_KEY='tpePrefs1';
+function prefsLoad(){
+  try{
+    var p=JSON.parse(localStorage.getItem(PREF_KEY)||'null'); if(!p) return;
+    if(p.show) ['c0','c1','c2','c3'].forEach(function(k){ if(typeof p.show[k]==='boolean') cats[k]=p.show[k]; });
+    if(p.zone) ['A','B','C','D'].forEach(function(k){ if(typeof p.zone[k]==='boolean') zones[k]=p.zone[k]; });
+    if(typeof p.hide==='boolean') hideDone=p.hide;
+  }catch(e){}
+}
+function prefsSave(){
+  try{ localStorage.setItem(PREF_KEY,JSON.stringify({show:cats,zone:zones,hide:hideDone})); }catch(e){}
+}
+prefsLoad();
+
+
+function allOn(){ return cats.c0&&cats.c1&&cats.c2&&cats.c3; }
+
+/* 掃光錯開：第幾張快到的卡片就延後幾個 0.35 秒 */
+function sweepStagger(){
+  var n=document.querySelectorAll('.r.soon');
+  for(var i=0;i<n.length;i++) n[i].style.setProperty('--d',(i*0.35)+'s');
+}
+
+
+function paintBtns(){
+  document.getElementById('ball').className='btn half'+(allOn()?' on':'');
+  var slot=document.getElementById('catslot'), slot2=document.getElementById('catslot2'), h='', h2='';
+  CATS.forEach(function(c,i){
+    var x='<span class="btn cat cs'+i+(cats['c'+i]?' on':'')+'" data-i="'+i+'">'
+      +(cats['c'+i]?'✓ ':'　')+esc(c.name)+'</span>';
+    if(i<2) h+=x; else h2+=x;
+  });
+  slot.innerHTML=h; slot2.innerHTML=h2;
+  /* 「⋯」裡有改過東西就亮一個小點，提醒畫面被篩過 */
+  var zoff=false, zk; for(zk in zones) if(!zones[zk]) zoff=true;
+  var tweaked=dayOff!==0||hideDone||zoff||cats.c2||cats.c3;
+  document.getElementById('bmore').className='btn more'+(tweaked?' dot':'')+(document.getElementById('more').hidden?'':' on');
+  [].forEach.call(document.querySelectorAll('#catslot .cat,#catslot2 .cat'),function(b){
+    b.addEventListener('click',function(){
+      var i=b.getAttribute('data-i'), on=0, k;
+      for(k in cats) if(cats[k]) on++;
+      if(cats['c'+i]&&on<=1) return;         /* 至少留一類 */
+      cats['c'+i]=!cats['c'+i]; prefsSave(); render();
+    });
+  });
+  [].forEach.call(document.querySelectorAll('.zone'),function(b){
+    var on=zones[b.getAttribute('data-z')];
+    b.className='btn zone'+(on?' on':'');
+    b.textContent=(on?'✓ ':'　')+b.textContent.replace(/^[✓　]\s?/,'');
+  });
+  [].forEach.call(document.querySelectorAll('.pre'),function(b){
+    b.className='btn pre'+((mode==='win'&&b.getAttribute('data-t')===win[0]&&b.getAttribute('data-e')===win[1])?' on':'');
+  });
+  document.getElementById('dMid').className='btn mid'+(dayOff!==0?' on':'');
+  setBtn('dMid','cal',dayLabel(dayOff));
+  var bn=document.getElementById('bnow');
+  bn.className='btn'+(mode==='now6'?' on':'');
+  var fn=document.getElementById('fNow');
+  if(fn) fn.className='fabb'+(mode==='now6'?' on':'');
+  if(mode==='now6'){
+    /* 按鈕直接顯示目前套用的區間 */
+    var nb=new Date(), nm=nb.getHours()*60+nb.getMinutes();
+    var s0=nm-30; if(s0<0) s0=0;
+    var e0=nm+360;
+    var loL=pad(Math.floor(s0/60))+':'+pad(s0%60);
+    var hiL=e0>=1440?pad(Math.floor((e0-1440)/60))+':'+pad((e0-1440)%60):pad(Math.floor(e0/60))+':'+pad(e0%60);
+    setBtn('bnow','timer',pad(nb.getHours())+':'+pad(nb.getMinutes())+' 按下　'+loL+'–'+(e0>=1440?'隔日':'')+hiL);
+  } else setBtn('bnow','timer','現在起 6 小時');
+  document.getElementById('bhide').className='btn half'+(hideDone?' on':'');
+  setBtn('bhide',hideDone?'show':'hide',hideDone?'全部顯示':'隱藏抵達');
+}
+
+/* 班機「實際」抵達的日期／時間：有預計（延誤）時間就用預計的，否則用表定 */
+function effTime(f){ return hhmm(f.RTime)||hhmm(f.OTime); }
+/* 表定當天、實際落到隔天（延誤跨過午夜） */
+function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !!(f.ODate&&rd&&rd>f.ODate); }
+
+/* ── 「隱藏抵達」不是一標記已到就馬上藏 ──────────────────────────────
+   班機落地到客人走出證照查驗還有一段時間，馬上藏掉等於自己把還要接的班機弄不見。
+   所以抵達後先留 DONE_KEEP 分鐘，過了才藏。沒有實際抵達時刻就用表定時刻算。 */
+var DONE_KEEP=30;
+function doneOld(f){
+  if(!statusOf(f).done) return false;
+  var d=new Date(), nowM=d.getHours()*60+d.getMinutes();
+  var t=mins(hhmm(f.RTime)||hhmm(f.OTime));
+  if(isNextDay(f)) t+=1440;
+  var ago=nowM-t;
+  if(ago<-720) ago+=1440;   /* 跨午夜：23:50 到、現在 00:10 ＝ 20 分前 */
+  else if(ago<0) ago=0;     /* 時刻在未來卻標成已到（資料怪）：當作剛到，留著 */
+  return ago>DONE_KEEP;
+}
+
+function effDate(f){ return (hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate)||f.ODate||''; }
+function dayStr(off){
+  var d=new Date(Date.now()+off*86400000);
+  return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());
+}
+/* 依「實際抵達日」重新分桶：延誤跨過午夜的班機才不會今天、明天兩邊都掉 */
+function poolFor(off){
+  var want=dayStr(off), seen={}, out=[];
+  [DATA,DATA2,DAYS[off]].forEach(function(L){
+    (L||[]).forEach(function(f){
+      if(effDate(f)!==want) return;
+      var k=String(f.flightCode||'')+'|'+f.ODate+'|'+f.OTime;
+      if(seen[k]) return; seen[k]=1; out.push(f);
+    });
+  });
+  return out;
+}
+/* 不用跑的班機：已經落地的、還有取消的（根本不會來） */
+function noGo(f){ return !!statusOf(f).done||/取消/.test(String(f.Memo||'')); }
+function rowsFor(list,lo,hi){
+  var arr=(list||[]).filter(function(f){
+    if(!f.Gate) return false;
+    var t=effTime(f);
+    if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */
+    if(t<lo||t>hi) return false;
+    if(!cats[shopOf(f)]) return false;
+    var zg=(f.Gate||'').trim().charAt(0).toUpperCase();
+    if(/[A-D]/.test(zg)&&!zones[zg]) return false;
+    if(hideDone&&doneOld(f)) return false;
+    return true;
+  }).sort(function(a,b){
+    var ta=hhmm(a.RTime)||hhmm(a.OTime), tb=hhmm(b.RTime)||hhmm(b.OTime);
+    return ta.localeCompare(tb)
+        || (noGo(a)?1:0)-(noGo(b)?1:0)                    /* 已到／取消的排後面：不用去了 */
+        || (paxOf(b).inn||0)-(paxOf(a).inn||0)            /* 再比入境人數，多的先跑 */
+        || hhmm(a.OTime).localeCompare(hhmm(b.OTime));
+  });
+  return arr;
+}
+function rowHtml(f,nowMin){
+  var st=statusOf(f);
+  var sch=hhmm(f.OTime), act=hhmm(f.RTime);
+  var big,tc,sub;
+  if(act){
+    var d=mins(f.RTime)-mins(f.OTime);
+    if(isNextDay(f)) d+=1440;                   /* 延誤跨過午夜：00:05 − 23:25 ＝ 晚 40 分 */
+    big=act; tc=d>0?'late':(d<0?'early':'same');
+    sub='表定'+(d?(d>0?' +':' −')+Math.abs(d):'');
+  } else { big=sch; tc='plan'; sub='表定'; }
+  var eta=mins(big)-nowMin;
+  var cls=st.done?'done':(st.cls==='taxi'?'taxi':((nowMin>=0&&eta>=0&&eta<=45)?'soon':''));
+  var shop=shopOf(f);
+  var tg=tagOf(shop);
+  return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':'')+'">'
+    +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+flagCell(f)+'</span><span class="g">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'')+'</span>'
+    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c"><i class="cn">'+esc(f.CityName)+'</i>'+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'</div>';
+}
+/* 抵達超過 30 分鐘的收成一行「已抵達 N 班」，點了才展開。
+   跟「隱藏抵達」不同：不用自己按、也不會整個不見。只對今天生效。 */
+var FOLD_OPEN=false;
+function foldRows(list,nowMin){
+  if(hideDone||nowMin<0) return list.map(function(f){ return rowHtml(f,nowMin); }).join('');
+  var old=[], rest=[];
+  list.forEach(function(f){ (doneOld(f)?old:rest).push(f); });
+  var h='';
+  if(old.length) h+='<div class="fold" data-fold="1">'+IC('check')+' 已抵達 '+old.length+' 班<i>'+(FOLD_OPEN?'▾ 收起':'▸ 展開')+'</i></div>'
+    +(FOLD_OPEN?old.map(function(f){ return rowHtml(f,nowMin); }).join(''):'');
+  return h+rest.map(function(f){ return rowHtml(f,nowMin); }).join('');
+}
+/* 下一班：今天、從現在起最近一班還沒到、沒取消、有登機門的 2140／2153（照分類、區域的勾選） */
+var NX_SKIP_DAY=true;   /* 一般版不看 06:00–13:30；解封印版會改成 false */
+function paintNext(){
+  var el=document.getElementById('nx'); if(!el) return;
+  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
+  var best=null;
+  poolFor(0).forEach(function(f){
+    var g=String(f.Gate||'').trim(); if(!g) return;
+    var sh=shopOf(f); if(sh!=='c0'&&sh!=='c1') return;
+    if(!cats[sh]) return;
+    var zg=g.charAt(0).toUpperCase(); if(/[A-D]/.test(zg)&&!zones[zg]) return;
+    if(noGo(f)) return;
+    var t=effTime(f); if(!t) return;
+    if(NX_SKIP_DAY&&t>='06:00'&&t<='13:30') return;
+    if(isNextDay(f)) return;
+    if(mins(t)<nowMin-5) return;
+    if(!best||t<effTime(best)) best=f;
+  });
+  if(!best){ el.innerHTML=''; return; }
+  var t=effTime(best), cd=mins(t)-nowMin, sh=shopOf(best);
+  var d=hhmm(best.RTime)?mins(best.RTime)-mins(best.OTime):0;
+  el.innerHTML='<div class="nxk">下一班</div>'
+    +'<div class="nxl1"><b class="nxt'+(d>0?' late':(d<0?' early':''))+'">'+t+'</b><span class="nxf">'+esc(fno4(best.flightCode))+'</span>'
+    +'<b class="nxg '+(sh==='c0'?'s0':'s1')+'">'+esc(String(best.Gate).trim())+'</b></div>'
+    +'<div class="nxl2"><span>'+esc(best.CityName)+'</span><span>'+esc(CATS[sh==='c0'?0:1].name)+'</span>'
+    +'<span class="nxc">'+(cd<=0?'就是現在':'還有 '+cd+' 分')+'</span></div>';
+}
+function render(){
+  var n=new Date(), nowMin=n.getHours()*60+n.getMinutes();
+  var html='';
+  if(mode==='now6'){
+    /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00）；跨日分兩段插日期分隔列 */
+    var startMin=nowMin-30; if(startMin<0) startMin=0;   /* 凌晨半小時內就從 00:00 起 */
+    var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
+    var endRaw=nowMin+360, cross=endRaw>=1440;
+    var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
+    html=foldRows(rowsFor(poolFor(0),lo,hi),nowMin);
+    if(!html) html='<div class="msg">今天接下來這段沒有符合的班機</div>';
+    if(cross){
+      var m2=new Date(n.getTime()+86400000);
+      var hi2=pad(Math.floor((endRaw-1440)/60))+':'+pad((endRaw-1440)%60);
+      html+='<div class="day">'+IC('cal')+' '+(m2.getMonth()+1)+'/'+m2.getDate()+' 班機</div>';
+      if(DATA2===null){
+        html+='<div class="msg">隔日資料載入中…（TDX 抓隔日約要 10 秒，好了會自己出現）</div>';
+      } else {
+        var part2=rowsFor(poolFor(1),'00:00',hi2).map(function(f){ return rowHtml(f,-1); }).join('');
+        html+=part2||'<div class="msg">隔日這段沒有符合的班機'+(DATA2.length?'':'（或資料還抓不到，按「更新」再試）')+'</div>';
+      }
+    }
+  } else {
+    var dd=dataFor(dayOff);
+    if(dayOff!==0) html='<div class="day">'+IC('cal')+' '+dayLabel(dayOff)+'　'+win[0]+'–'+win[1]+'</div>';
+    if(dayOff!==0&&dd===null&&!DAYS.hasOwnProperty(dayOff)&&dayOff!==1){
+      html+='<div class="msg">資料載入中…（TDX 約要 10 秒，好了會自己出現）</div>';
+    } else if(dayOff!==0&&dd===null){
+      html+='<div class="msg">資料載入中…（TDX 約要 10 秒，好了會自己出現）</div>';
+    } else {
+      var src=(dayOff===0||(dayOff===1&&DATA2!==null))?poolFor(dayOff):dd;
+      var list1=rowsFor(src,win[0],win[1]);
+      if(win[1]>='23:00'){   /* 晚班時段：把延誤跨過午夜的班機接在最後，不然整班消失 */
+        list1=list1.concat(rowsFor(poolFor(dayOff+1).filter(isNextDay),'00:00','05:59'));
+      }
+      var part1=foldRows(list1,dayOff===0?nowMin:-1);
+      html+=part1||'<div class="msg">這個區間沒有符合的班機'+(hideDone?'<br>（已隱藏抵達超過 30 分的班機）':'')+(dayOff!==0?'（沒派門的看下面清單）':'')+'</div>';
+    }
+  }
+  /* 尚未公布登機門的班機（跟網頁版一樣列出來 —— 隔日凌晨的班常常還沒派門，不列會整批看不到） */
+  var pend=[];
+  function pushPend(list2,lo2,hi2b,dayTag){
+    (list2||[]).forEach(function(f){
+      if((f.Gate||'').trim()) return;
+      if(/取消/.test(f.Memo||'')) return;
+      var t=hhmm(f.RTime)||hhmm(f.OTime);
+      if(!t) return;
+      if(t>='06:00'&&t<='13:30') return;
+      if(t<lo2||t>hi2b) return;
+      pend.push({t:t,d:dayTag?1:0,txt:(dayTag?dayTag+' ':'')+t+' '+esc(f.flightCode)+'（'+esc(f.CityName)+'）'});
+    });
+  }
+  if(mode==='now6'){
+    var sMin=nowMin-30; if(sMin<0) sMin=0;
+    var lo3=pad(Math.floor(sMin/60))+':'+pad(sMin%60);
+    var eRaw=nowMin+360, cr=eRaw>=1440;
+    pushPend(poolFor(0),lo3,cr?'23:59':pad(Math.floor(eRaw/60))+':'+pad(eRaw%60),'');
+    if(cr&&DATA2) pushPend(poolFor(1),'00:00',pad(Math.floor((eRaw-1440)/60))+':'+pad((eRaw-1440)%60),'隔日');
+  } else {
+    var pdd=dataFor(dayOff);
+    if(pdd) pushPend(pdd,win[0],win[1],'');
+  }
+  if(pend.length){
+    pend.sort(function(a,b){ return (a.d-b.d)||a.t.localeCompare(b.t); });
+    html+='<div class="msg" style="text-align:left;line-height:1.7">'+IC('clock')+' <b style="color:#cbd5e1">尚未公布登機門：'+pend.length+' 班</b>（門一派好就會自動變成上面的大字卡）<br>'
+      +pend.map(function(p){ return p.txt; }).join('、')+'</div>';
+  }
+  if(!cats.c0&&!cats.c1&&!cats.c2&&!cats.c3)
+    html='<div class="msg">分類全部關掉了<br>點上面的分類鍵選要看的</div>';
+  document.getElementById('list').innerHTML=html;
+  sweepStagger();
+  paintBtns();
+}
+/* ── 任意日期（◀▶ 選擇器用）───────────────────────── */
+function dataFor(off){
+  if(off===0) return DATA;
+  if(off===1) return DATA2;
+  return DAYS.hasOwnProperty(off)?DAYS[off]:null;
+}
+function dayLabel(off){
+  var d=new Date(Date.now()+off*86400000);
+  var md=(d.getMonth()+1)+'/'+d.getDate();
+  if(off===0)  return '今天 '+md;
+  if(off===1)  return '明天 '+md;
+  if(off===2)  return '後天 '+md;
+  if(off===-1) return '昨天 '+md;
+  return md;
+}
+function ensureDay(off){
+  if(off===0) return;
+  if(off===1){ ensureTomorrow(true); return; }
+  if(DAYS.hasOwnProperty(off)) return;
+  if(blockLeft()){ DAYS[off]=[]; return; }
+  var d=new Date(Date.now()+off*86400000);
+  var iso=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  var day=iso.replace(/-/g,'/');
+  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+Date.now();
+  var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('逾時')); },25000); });
+  Promise.race([bail,
+    fetch(url).then(function(r){ if(!r.ok) throw new Error('TDX '+r.status); return r.json(); })
+  ]).then(function(list){
+    DAYS[off]=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
+              .filter(function(f){ return f.ODate===day||f.RDate===day; });
+    render();
+  })['catch'](function(){ DAYS[off]=[]; render(); });
+}
+
+/* 跨日時把隔日班機抓回來（即時失敗就退快照；只在需要時才多打這 1 次） */
+function ensureTomorrow(force){
+  if(DATA2!==null) return;   /* 節流：隔日班機小快照裡已經有了，不用再抓 */
+  var n=new Date();
+  if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
+  if(DATA2!==null) return;
+  if(blockLeft()){ DATA2=[]; return; }
+  var m2=new Date(n.getTime()+86400000);
+  var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
+  var day=iso.replace(/-/g,'/');
+  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+Date.now();
+  var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('逾時')); },25000); });
+  Promise.race([bail,
+    fetch(url).then(function(r){ if(!r.ok) throw new Error('TDX '+r.status); return r.json(); })
+  ])
+  .then(function(list){
+    DATA2=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
+          .filter(function(f){ return f.ODate===day||f.RDate===day; });
+    render();
+  })['catch'](function(e){
+    if(is429(e)) blockSet();
+    fetch('../data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():{d:[]}; }).then(function(j){
+      DATA2=((j&&j.d)||[]).filter(function(f){ return f.ODate===day||f.RDate===day; });
+      render();
+    })['catch'](function(){ DATA2=[]; render(); });
+  });
+}
+
+function load(fresh){
+  MANUAL=!!fresh;
+  /* 一律先走節流：只讀 35KB 的小快照。快照讀不到、或快照已經超過
+     SNAP_MAX_AGE 分鐘，才會自動改連 TDX（那包 214KB）。 */
+  return loadSnap(fresh);
+}
+function loadLive(fresh){
+  if(liveSkip(fresh)) return;
+  var el=document.getElementById('hstamp');
+  el.textContent='更新中…'; el.className='u busy';
+  var d0=new Date();
+  var iso=d0.getFullYear()+'-'+pad(d0.getMonth()+1)+'-'+pad(d0.getDate());
+  /* 只抓今天的班機（620KB→200KB），手錶才吞得下；25 秒沒回應就放棄。
+     開頁那一次用「每分鐘才換一次」的編號，連續開關同一分鐘內不會重複下載；
+     自己按「更新」才強制重抓（那是你要最新資料的時候）。 */
+  var nc=fresh?Date.now():Math.floor(Date.now()/60000);
+  var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+iso)+'&nc='+nc;
+  var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('逾時，25 秒沒回應')); },25000); });
+  Promise.race([bail,
+    fetch(url).then(function(r){
+      if(!r.ok) throw new Error('TDX 回應 '+r.status); return r.json(); })
+  ]).then(function(list){
+    var n=new Date();
+    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+    DATA=mergeCodeshare((list||[]).map(function(f){ return fromTDX(f,NAMES||{}); }))
+         .filter(function(f){ return f.ODate===today||f.RDate===today; });
+    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+    el.textContent=pad(n.getHours())+':'+pad(n.getMinutes())+' ↻'; el.className='u';
+    document.getElementById('fb').innerHTML='';
+    DATA2=null;                       /* 重新整理後隔日資料也重抓 */
+    DAYS={};                          /* 其他天的快取也重抓 */
+    if(mode==='now6') ensureTomorrow();
+    if(dayOff===1) ensureTomorrow(true);
+    else if(dayOff!==0) ensureDay(dayOff);
+    blockClear(); liveSave();   /* 這次通了：解除冷卻，並把結果存進手錶 */
+    render();   /* 班機先上畫面（出發地暫時顯示代碼） */
+    tdxNames().then(function(nm){   /* 城市中文名背景補上，抓不到也不影響 */
+      if(!nm) return;
+      DATA.forEach(function(f){ if(f.Dep&&nm[f.Dep]) f.CityName=nm[f.Dep]; });
+      render();
+    });
+  })['catch'](function(e){ if(is429(e)) blockSet(); fallback(e); });
+}
+
+/* ── 節流模式（固定，沒有開關） ──────────────────────────────────────────────
+   平常開頁只讀 GitHub 產生的小快照 snap.json（約 35KB），不打 TDX（那包 214KB）。
+   但 GitHub 的 cron 實際上常隔 2–7 小時才跑一次（官方就寫明是盡力而為），
+   所以快照一超過 SNAP_MAX_AGE 分鐘就直接改連 TDX，寧可花流量也不給錯的登機門。 */
+
+/* 快照超過幾分鐘就視為不可信，自動改抓即時 */
+var SNAP_MAX_AGE=22;
+
+/* 由 snap.json 的 d（YYYY/MM/DD）＋ t（HH:MM）算出這份資料放了幾分鐘。
+   算不出來回 null（那就不判斷，照舊顯示）。 */
+function snapAgeMin(j){
+  try{
+    var ds=String(j&&j.d||'').split('/'), ts=String(j&&j.t||'').split(':');
+    if(ds.length<3||ts.length<2) return null;
+    var b=new Date(+ds[0],(+ds[1])-1,+ds[2],+ts[0],+ts[1],0,0);
+    if(isNaN(b.getTime())) return null;
+    var m=Math.floor((Date.now()-b.getTime())/60000);
+    return m<0?0:m;
+  }catch(e){ return null; }
+}
+function ageText(m){
+  if(m===null) return '';
+  if(m<1) return '剛更新';
+  if(m<60) return m+'分前';
+  var h=Math.floor(m/60);
+  return h+'小時'+(m%60?(m%60)+'分':'')+'前';
+}
+function fromSnap(r,base){
+  var dOf=function(o){
+    var d=new Date(base.getTime()+(o||0)*86400000);
+    return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());
+  };
+  var hm=function(v){ return v? String(v).slice(0,2)+':'+String(v).slice(2,4)+':00' : ''; };
+  return {flightCode:r[0], Dep:r[1], CityName:(NAMES&&NAMES[r[1]])||r[1], Gate:r[2],
+          BNO:String(r[3]||''), ODate:dOf(r[6]), OTime:hm(r[4]),
+          RDate:r[5]?dOf(r[7]):'', RTime:hm(r[5]),
+          Memo:r[8]||'', CurrentStatus:'', tx:(typeof r[9]==='number'?r[9]:0)};
+}
+
+
+/* ── 秒開：先畫上次看到的，再去抓新的 ────────────────────────────────────
+   手錶上最討厭的是開頁先空一兩秒。這裡把上一次成功讀到的快照存在裝置裡，
+   開頁瞬間直接畫出來（標清楚是「上次的」），同時背景照常去抓最新的蓋掉它。
+   存不住（無痕／空間滿）就當作沒有，走原本的流程，不會壞。 */
+var SNAP_KEY='tpeSnapCache1';
+var BOOTED=false;      /* 這次開頁有沒有先用裝置裡的舊資料墊檔 */
+var META_KEY='tpeMetaCache1';
+
+/* 把一份快照 j 變成畫面。cached=true 代表這是裝置裡的舊資料，要講清楚。 */
+function applySnap(j,cached){
+  /* GitHub 那端抓不到時，snap.json 會是一份「準時產出但 0 班」的空快照。
+     手錶上已經有上次存下來的班機時，不能讓這份空的把畫面洗掉——
+     直接走即時那條路（可能被 liveSkip 擋下，那就維持現在畫面並說明原因）。 */
+  if(!cached && (!j||!j.f||!j.f.length) && DATA && DATA.length){ loadLive(MANUAL); return; }
+  var bs=String(j.d||'').split('/');
+  var base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
+  if(isNaN(base.getTime())) base=new Date();
+  var all=(j.f||[]).map(function(r){ return fromSnap(r,base); });
+  var n=new Date();
+  var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+  var m2=new Date(n.getTime()+86400000);
+  var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
+  DATA =all.filter(function(f){ return f.ODate===today||f.RDate===today; });
+  DATA2=all.filter(function(f){ return f.ODate===tm; });
+  DAYS={};
+  document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+
+  /* 這份資料放了多久？標題列一律標出來，不要只給一個時刻讓人自己換算 */
+  var age=snapAgeMin(j), at=ageText(age);
+  var hf=document.getElementById('hfreq');
+  if(hf) hf.textContent=at?((cached?'上次 ':'快照 ')+at):'快照';
+  var el=document.getElementById('hstamp');
+  el.textContent=(j.t||'')+(cached?'':' ↻');
+  el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
+
+  var stale=(age!==null&&age>SNAP_MAX_AGE);
+  /* 快照可能「很新但是空的」——GitHub 那邊抓資料失敗（金鑰過期、來源逾時）也會準時產出一份 0 班的快照。
+     只看時間會以為沒問題，結果畫面一片空白。所以空的也當失敗，直接改抓即時。 */
+  var empty=!DATA.length&&!DATA2.length;
+  document.getElementById('fb').innerHTML= cached
+    ? '<div class="fbx">'+IC('timer')+' 先給你看<b>上次的</b>（'+esc(at)+'），正在抓最新的…</div>'
+    : (empty
+      ? '<div class="fbx hot">'+IC('alert')+' GitHub 這份快照是<b>空的</b>（抓資料那端失敗了）'
+        +'<br><b>正在直接連 TDX 抓即時</b>…'
+      : (stale
+      ? '<div class="fbx hot">'+IC('alert')+' 這份快照是 <b>'+esc(at)+'</b> 的資料'
+        +'<br>先讓你看個大概，<b>正在改抓即時資料</b>…登機門以即時的為準'
+      : ''));
+  render();
+  /* 快照太舊就不要假裝沒事：畫面先上，同時去抓即時蓋掉它。
+     快取那一輪不做，因為後面馬上就會正常 load() 一次。 */
+  if(!cached && (stale||empty)) loadLive(MANUAL);
+}
+
+/* 開頁第一件事：有存過就先畫出來。超過 12 小時的就不用了，那已經是別天的班表。 */
+function bootFromCache(){
+  try{
+    var m=JSON.parse(localStorage.getItem(META_KEY)||'null');
+    if(m&&m.n&&Object.keys(m.n).length){ NAMES=m.n; if(m.x) for(var k in m.x){ if(m.x.hasOwnProperty(k)) TXMAP[k]=m.x[k]; } }
+  }catch(e){}
+  try{
+    var j=JSON.parse(localStorage.getItem(SNAP_KEY)||'null');
+    if(!j||!j.f||!j.f.length) return false;
+    var age=snapAgeMin(j);
+    if(age===null||age>720) return false;
+    applySnap(j,true); BOOTED=true;
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ── TDX 匿名查詢有「每個 IP 每天幾十次」的上限，撞到就回 429 ───────────────
+   手錶常常跟別人共用同一個對外 IP（基地台、公司 Wi-Fi），別人用掉也算在你頭上。
+   所以：抓回來的即時資料一律存在手錶自己身上，LIVE_FRESH 分鐘內重開就直接用，
+   完全不碰 TDX；真的撞到 429 就冷卻 BLOCK_MIN 分鐘不連——一直重試只會讓封鎖續下去。 */
+var LIVE_FRESH=10;
+var BLOCK_MIN=20;
+var BLOCK_KEY='tpeTdxBlock1';
+var MANUAL=false;   /* 這一輪是不是「你自己按更新」：按了才准花一次 TDX */
+function blockLeft(){
+  try{ var t=+(localStorage.getItem(BLOCK_KEY)||0);
+       return t>Date.now()?Math.ceil((t-Date.now())/60000):0; }catch(e){ return 0; }
+}
+function blockSet(){ try{ localStorage.setItem(BLOCK_KEY,String(Date.now()+BLOCK_MIN*60000)); }catch(e){} }
+function blockClear(){ try{ localStorage.removeItem(BLOCK_KEY); }catch(e){} }
+function is429(e){ return /(^|\D)429(\D|$)/.test(String(e&&e.message||e)); }
+/* 即時抓回來的也存一份（跟快照同格式），下次開頁可以直接畫，不用再打 TDX */
+function liveSave(){
+  try{
+    var n=new Date();
+    localStorage.setItem(SNAP_KEY, JSON.stringify({
+      d:n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate()),
+      t:pad(n.getHours())+':'+pad(n.getMinutes()),
+      f:(DATA||[]).concat(DATA2||[])
+    }));
+  }catch(e){}
+}
+function liveAgeMin(){
+  try{ return snapAgeMin(JSON.parse(localStorage.getItem(SNAP_KEY)||'null')); }catch(e){ return null; }
+}
+/* 冷卻中、或手上這份還很新 → 不要連 TDX，畫面留著並說清楚為什麼 */
+function liveSkip(fresh){
+  var bl=blockLeft(), el=document.getElementById('hstamp');
+  if(bl){
+    el.textContent='暫停連線'; el.className='u err';
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx hot">'+IC('alert')+' TDX 回 <b>429（這個 IP 查太多次）</b>，先停 <b>'+bl+' 分鐘</b>不連'
+      +((DATA&&DATA.length)?'<br>下面是<b>上次存下來</b>的，登機門與時間一律以現場為準'
+                           :'<br>這段時間查不到班機，請看現場看板')+'</div>';
+    render(); return true;
+  }
+  if(!fresh){
+    var la=liveAgeMin();
+    if(la!==null&&la<LIVE_FRESH&&DATA&&DATA.length){
+      el.className='u'+(la>=8?' old':'');
+      document.getElementById('fb').innerHTML=
+        '<div class="fbx">'+IC('timer')+' 用 <b>'+la+' 分鐘前</b>存下來的，省 TDX 次數。要最新的請按「更新」</div>';
+      render(); return true;
+    }
+  }
+  return false;
+}
+
+function loadSnap(fresh){
+  var el=document.getElementById('hstamp');
+  el.textContent='讀取中…'; el.className='u busy';
+  /* 先把城市名對照表拿到（也是小檔、也會吃快取），再讀班機快照。
+     按了更新才換新的編號去重抓，平常重開都吃快取。 */
+  var v=fresh?Date.now():Math.floor(Date.now()/300000);
+  return tdxNames()['catch'](function(){ return {}; }).then(function(){
+    return fetch('../snap.json?v='+v)
+      .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
+  }).then(function(j){
+    if(j&&j.f&&j.f.length){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(j)); }catch(e){} }
+    applySnap(j,false);
+  })['catch'](function(e){
+    /* 小快照讀不到就照原本的路走，不要讓畫面空著 */
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx">'+IC('signal')+' 快照讀不到（'+esc(e&&e.message||e)+'），這次改直接連 TDX</div>';
+    loadLive(MANUAL);
+  });
+}
+
+/* TDX 直連失敗 → 改抓同網域的 GitHub 快照（手錶一定讀得到，只是非即時） */
+function fallback(err){
+  var el=document.getElementById('hstamp');
+  fetch('../data.json?v='+Math.floor(Date.now()/300000))
+  .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); })
+  .then(function(j){
+    var n=new Date();
+    var today=n.getFullYear()+'/'+pad(n.getMonth()+1)+'/'+pad(n.getDate());
+    DATA=(j.d||[]).filter(function(f){ return f.ODate===today||f.RDate===today; });
+    var m2=new Date(n.getTime()+86400000);
+    var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
+    DATA2=(j.d||[]).filter(function(f){ return f.ODate===tm; });
+    document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
+    el.textContent=j.t+' 快照'; el.className='u err';
+    var hf=document.getElementById('hfreq'); if(hf) hf.textContent='離線快照';
+    document.getElementById('fb').innerHTML=
+      '<div class="fbx hot">'+IC('signal')+' 即時連線失敗（'+esc(err&&err.message||err)+'）<br>'
+      +'只能拿 GitHub 於 <b>'+esc(j.t)+'</b> 抓的快照給你，<b>可能是好幾小時前的</b>。'
+      +'<br>登機門與時間請務必以現場為準。按「更新」可再試即時連線。</div>';
+    render();
+  })
+  ['catch'](function(e2){
+    el.textContent='離線'; el.className='u err';
+    /* 畫面上已經有「上次存下來」的班機時，不要清掉改成錯誤訊息——
+       真的沒網路的時候，舊資料遠比一片空白有用，講清楚是舊的就好。 */
+    if(BOOTED && DATA.length){
+      document.getElementById('fb').innerHTML=
+        '<div class="fbx hot">'+IC('signal')+' <b>現在連不上</b>，下面是<b>上次存下來</b>的資料'
+        +'<br>登機門和時間一律以現場為準。有訊號後點最上面那條可重讀</div>';
+      return;
+    }
+    document.getElementById('list').innerHTML=
+      '<div class="msg err">即時（'+esc(err&&err.message||err)+'）和快照（'+esc(e2&&e2.message||e2)
+      +'）都抓不到<br>正在自我診斷…</div>';
+    diag(function(out){
+      document.getElementById('list').innerHTML=
+        '<div class="msg err">即時連線失敗：'+esc(err&&err.message||err)
+        +'<br><br>診斷結果<br>同網域讀檔：'+esc(out.same)
+        +'<br>TDX 小請求：'+esc(out.tdx)
+        +'<br><br>把上面兩行抄給小韋的助手就能對症下藥。點「更新」重試</div>';
+    });
+  });
+}
+
+/* 兩關都倒才會跑：測「同網域」和「TDX 小請求」各自通不通 */
+function diag(cb){
+  var out={}, c=0;
+  function done(){ if(++c===2) cb(out); }
+  function t(key,url){
+    var f=false;
+    var to=setTimeout(function(){ if(!f){ f=true; out[key]='逾時'; done(); } },8000);
+    try{
+      fetch(url).then(function(r){ if(f)return; f=true; clearTimeout(to); out[key]='通（HTTP '+r.status+'）'; done(); })
+      ['catch'](function(er){ if(f)return; f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); });
+    }catch(er){ if(!f){ f=true; clearTimeout(to); out[key]='不通（'+((er&&er.message)||er)+'）'; done(); } }
+  }
+  t('same','../ver.json?nc='+Date.now());
+  t('tdx','https://tdx.transportdata.tw/api/basic/v2/Air/Airport?%24top=1&%24format=JSON&nc='+Date.now());
+}
+
+/* ── 事件 ── */
+document.getElementById('hd').addEventListener('click',load);
+document.getElementById('breload').addEventListener('click',function(){ load(true); });
+document.getElementById('ball').addEventListener('click',function(){
+  cats={c0:true,c1:true,c2:true,c3:true};
+  zones={'A':true,'B':true,'C':true,'D':true}; prefsSave(); render();
+});
+document.getElementById('bnone').addEventListener('click',function(){
+  cats={c0:false,c1:false,c2:false,c3:false}; prefsSave(); render();
+});
+[].forEach.call(document.querySelectorAll('.zone'),function(b){
+  b.addEventListener('click',function(){
+    var z=b.getAttribute('data-z');
+    var onCount=Object.keys(zones).filter(function(k){return zones[k];}).length;
+    if(zones[z]&&onCount<=1) return;      /* 至少留一區 */
+    zones[z]=!zones[z]; prefsSave(); render();
+  });
+});
+/* ── 開會時間：18:00–20:30，每家 15 分鐘，兩家不重疊 ──
+   把區間內所有可能的組合掃一遍（兩家各 136 個起點，約 1.8 萬組，不到 1 毫秒），
+   依這個優先順序挑最好的一組：
+     ① 開會中間不能有自己的班機進來
+     ② 兩場盡量接著開（間隔越小越好，最好是 0）
+     ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
+     ④ 越晚越好 */
+function meetTable(){
+  var LO='18:00', HI='20:30', DUR=15;
+  var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
+  var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
+  var LOm=m2(LO), LASTm=m2(HI)-DUR;
+  var at=function(f){ return hhmm(f.RTime)||hhmm(f.OTime); };
+  var pool=(DATA||[]).filter(function(f){
+    if(!f.Gate||/取消/.test(f.Memo||'')) return false;
+    return at(f)>=LO;
+  });
+  function free(ts,s){ for(var i=0;i<ts.length;i++){ if(ts[i]>=s&&ts[i]<s+DUR) return false; } return true; }
+  function hitsAt(ts,s){ return ts.indexOf(s+DUR)>=0; }
+  function planPair(A,B){
+    var best=null, sa, sb;
+    for(sa=LOm; sa<=LASTm; sa++){
+      var okA=free(A,sa), hA=okA&&hitsAt(A,sa);
+      for(sb=LOm; sb<=LASTm; sb++){
+        if(sa<sb+DUR && sa+DUR>sb) continue;              /* 兩場不能重疊 */
+        var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
+        var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
+        var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
+              -gap*1000000                                /* ② 兩場盡量接著開 */
+              +((hA?1:0)+(hB?1:0))*10000                  /* ③ 散會直接接班機 */
+              +sa+sb;                                     /* ④ 越晚越好 */
+        if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
+      }
+    }
+    return [best.sa,best.sb];
+  }
+  function minsOf(id){
+    return pool.filter(function(f){return shopOf(f)===id;})
+               .map(function(f){ return m2(at(f)); })
+               .sort(function(a,b){ return a-b; });
+  }
+  function nextAfter(id,st){
+    var c=pool.filter(function(f){ return shopOf(f)===id && m2(at(f))>=st; });
+    c.sort(function(a,b){ return at(a).localeCompare(at(b)); });
+    return c[0]||null;
+  }
+  var A=minsOf('c0'), B=minsOf('c1');
+  var pp=planPair(A,B), sa=pp[0], sb=pp[1];
+  var S=[{name:CATS[0].name,cls:'g40',st:sa,f:nextAfter('c0',sa+DUR)},
+         {name:CATS[1].name,cls:'g53',st:sb,f:nextAfter('c1',sb+DUR)}];
+  var ord=S.slice().sort(function(a,b){ return a.st-b.st; });
+  var n=new Date();
+  var h='<div class="mth">'+IC('clock')+' '+(n.getMonth()+1)+'/'+n.getDate()+' 開會時間（'+LO+'–'+HI+'，每場 15 分鐘）</div>'
+    +'<table class="mt"><tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
+  ord.forEach(function(r){
+    var late=!!(r.f && m2(at(r.f))<r.st+DUR);
+    h+='<tr class="'+r.cls+'"><td class="lb">'+esc(r.name)+'</td>'
+      +'<td><b>'+toT(r.st)+'–'+toT(r.st+DUR)+'</b><br><small>15 分鐘</small></td>'
+      +'<td>'+(r.f ? at(r.f)+' '+esc(fno4(r.f.flightCode))+'<br><small>'+esc(r.f.Gate)+'</small>'
+                   : '—<br><small>沒有班機</small>')+'</td></tr>';
+    if(late) h+='<tr class="'+r.cls+' sub"><td></td><td colspan="2">'+IC('alert')+' 第一班 '+at(r.f)+' 就進來了，這場會來不及開完，建議提早或縮短</td></tr>';
+  });
+  return h+'</table>';
+}
+document.getElementById('bmeet').addEventListener('click',function(){
+  var mb=document.getElementById('mb');
+  if(mb.innerHTML){ mb.innerHTML=''; this.className='btn half'; return; }
+  mb.innerHTML=meetTable(); this.className='btn half on';
+});
+/* ── 分類設定編輯器 ── */
+function paintCatBox(){
+  var box=document.getElementById('catbox'), h='';
+  CATS.forEach(function(c,i){
+    h+='<div class="catrow">'
+     + '<input class="cname" data-i="'+i+'" maxlength="12" placeholder="名稱" value="'+esc(c.name)+'">'
+     + '<select class="cterm" data-i="'+i+'">'
+       + '<option value="2"'+(c.term==='2'?' selected':'')+'>二航</option>'
+       + '<option value="1"'+(c.term==='1'?' selected':'')+'>一航</option>'
+       + '<option value="any"'+(c.term==='any'?' selected':'')+'>不分</option>'
+     + '</select>'
+     + '<input class="cspec" data-i="'+i+'" placeholder="登機門，留空＝該航廈其餘" value="'+esc(c.spec)+'">'
+     + '</div>';
+  });
+  box.innerHTML=h;
+  function touch(){ catsSave(); catsExpand(); render(); }
+  [].forEach.call(box.querySelectorAll('.cname'),function(el){
+    el.addEventListener('input',function(){
+      CATS[+el.getAttribute('data-i')].name=el.value.trim()||('分類'+(1+ +el.getAttribute('data-i'))); touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cspec'),function(el){
+    el.addEventListener('input',function(){ CATS[+el.getAttribute('data-i')].spec=el.value; touch(); });
+  });
+  [].forEach.call(box.querySelectorAll('.cterm'),function(el){
+    el.addEventListener('change',function(){ CATS[+el.getAttribute('data-i')].term=el.value; touch(); });
+  });
+}
+document.getElementById('bmore').addEventListener('click',function(){
+  var m=document.getElementById('more'); m.hidden=!m.hidden; paintBtns();
+});
+document.getElementById('list').addEventListener('click',function(e){
+  var t=e.target; while(t&&t!==this&&!(t.getAttribute&&t.getAttribute('data-fold'))) t=t.parentNode;
+  if(t&&t!==this){ FOLD_OPEN=!FOLD_OPEN; render(); }
+});
+document.getElementById('bcfg').addEventListener('click',function(){
+  var b=document.getElementById('cfgbox');
+  b.hidden=!b.hidden;
+  this.className='btn half'+(b.hidden?'':' on');
+});
+document.getElementById('catReset').addEventListener('click',function(){
+  CATS=CAT_DEFAULT.map(function(c){ return {name:c.name,spec:c.spec,term:c.term}; });
+  catsSave(); catsExpand(); paintCatBox(); render();
+});
+paintCatBox();
+paintBtns();
+[].forEach.call(document.querySelectorAll('.pre'),function(b){
+  if(!b.getAttribute('data-t')) return;   /* 明日鍵另外處理 */
+  b.addEventListener('click',function(){
+    mode='win'; win=[b.getAttribute('data-t'),b.getAttribute('data-e')]; render();
+  });
+});
+function autoWin(){
+  var h=new Date().getHours();
+  return h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
+}
+function shiftDay(d){
+  var off=dayOff+d;
+  if(off<-1) off=-1;
+  if(off>3) off=3;
+  if(off===dayOff) return;
+  dayOff=off;
+  if(mode==='now6') mode='win';
+  /* 換到別天預設看整天，回到今天恢復自動時段 */
+  win = dayOff===0 ? autoWin() : ['00:00','23:59'];
+  if(dayOff!==0&&dataFor(dayOff)===null) ensureDay(dayOff);
+  render();
+}
+document.getElementById('dPrev').addEventListener('click',function(){ shiftDay(-1); });
+document.getElementById('dNext').addEventListener('click',function(){ shiftDay(1); });
+document.getElementById('dMid').addEventListener('click',function(){ dayOff=0; win=autoWin(); render(); });
+document.getElementById('bnow').addEventListener('click',function(){
+  mode='now6'; dayOff=0; ensureTomorrow(); render();
+});
+
+/* ── 浮動快捷鍵 ── */
+function toTop(){ try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } }
+document.getElementById('fTop').addEventListener('click',toTop);
+document.getElementById('fNow').addEventListener('click',function(){
+  mode='now6'; dayOff=0; ensureTomorrow(); render(); toTop();
+});
+document.getElementById('fGo').addEventListener('click',function(){
+  var b=document.getElementById('fGo'); b.innerHTML=IC('refresh');
+  b.classList.add('spin');
+  setTimeout(function(){ b.classList.remove('spin'); },1200);
+  load(true);
+});
+
+document.getElementById('bhide').addEventListener('click',function(){
+  hideDone=!hideDone; prefsSave(); render();
+});
+
+/* 開頁：自動落在現在的六小時區間，然後抓資料 */
+(function(){
+  var h=new Date().getHours();
+  win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
+  bootFromCache();          /* 先把上次的畫出來，不要讓畫面空著 */
+  load();
+})();
+
+/* 現在時間：整分鐘才更新一次（一分鐘只寫一次字，不會像以前的輪詢那樣卡捲動）。
+   螢幕暗掉就停，亮起來立刻補上正確的時間。 */
+(function(){
+  var el=document.getElementById('fClock'); if(!el) return;
+  var tid=0;
+  function pad(n){ return (n<10?'0':'')+n; }
+  function tick(){
+    var d=new Date();
+    el.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+    clearTimeout(tid);
+    tid=setTimeout(tick,(60-d.getSeconds())*1000-d.getMilliseconds()+60);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) clearTimeout(tid); else tick();
+  });
+  tick();
+})();
+</script>
+<script>
+/* ── 桃機官方「每小時人數」校正（2026-10-12）────────────────────────────
+   桃機官網「機場人潮預測」有每小時、分航廈的抵達／出發人次。GitHub 每 10 分鐘抓一次
+   存成同網域的 pax.json。同一小時、第二航廈所有班機，依機型座位比重把官方「抵達人次」
+   分回每一班（＝機上總人數），再扣掉各航線的轉機比例得到入境。
+   10/12 更正：桃機另外給的「轉機人數」清晨幾乎等於全部（05 時 3,081 人裡 3,047 人），
+   但移民署同時段的入境名單有 1,260 位本國籍旅客——明顯不合，所以轉機那欄不採用。 */
+var OFFPAX=null, OFFPAX_T='', OFFPAX_N=0;
+var _paxOfRaw=paxOf;
+paxOf=function(f){
+  var p=_paxOfRaw(f);
+  if(typeof f._cal==='number'){
+    var n=f._cal;
+    return {est:p.est, tx:Math.max(0,p.est-n), inn:n, lv:n>250?3:(n>=150?2:1), cal:1};
+  }
+  return p;
+};
+function offCalib(list, iso, kind){
+  if(!list) return 0;
+  var H=OFFPAX&&OFFPAX[iso], want=iso.replace(/-/g,'/'), byH={}, n=0;
+  list.forEach(function(f){
+    delete f._cal;
+    if(!H) return;
+    if(String(f.BNO)!=='2') return;
+    if(/取消/.test(String(f.Memo||''))) return;
+    var t=hhmm(f.RTime)||hhmm(f.OTime); if(!t) return;
+    var d=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; if(d!==want) return;
+    var p=_paxOfRaw(f); if(!p.est) return;
+    var w=p.est, keep=kind==='D'?1:(p.est?Math.max(0,1-p.tx/p.est):1);
+    var h=+t.slice(0,2); (byH[h]=byH[h]||[]).push({f:f,w:w,est:p.est,keep:keep});
+  });
+  for(var h in byH){
+    var row=H[h]; if(!row) continue;
+    if((kind==='D'?row[2]:row[0])<=0) continue;   /* 官方那小時是 0 班但我們有班機＝時間對不上，維持原本估法 */
+    var target=kind==='D'?row[2]:row[0];   /* 抵達＝機上總人數（含轉機） */
+    var sw=0; byH[h].forEach(function(x){ sw+=x.w; }); if(!sw) continue;
+    byH[h].forEach(function(x){
+      var v=Math.min(target*x.w/sw, Math.round(x.est*1.25));   /* 一班最多不超過機位 */
+      v=v*x.keep;                                               /* 扣轉機（出境不扣） */
+      x.f._cal=v>=50?Math.round(v/5)*5:Math.round(v); n++; });
+  }
+  return n;
+}
+function offLoad(cb){
+  try{
+    fetch('../pax.json?v='+Math.floor(Date.now()/300000)).then(function(r){ return r.ok?r.json():null; })
+    .then(function(j){ OFFPAX=(j&&j.days)||null; OFFPAX_T=(j&&j.t)||''; if(cb) cb(); })['catch'](function(){});
+  }catch(e){}
+}
+function isoOf(off){ var d=new Date(Date.now()+off*86400000); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+</script>
+<script>
+var _render0=render;
+render=function(){
+  OFFPAX_N=0;
+  try{ OFFPAX_N+=offCalib(DATA,isoOf(0),'A'); if(DATA2) OFFPAX_N+=offCalib(DATA2,isoOf(1),'A'); }catch(e){}
+  _render0();
+};
+offLoad(function(){ if(DATA&&DATA.length) render(); });
+</script>
+<script>
+/* ── 移民署「入出境人次預報」（2026-10-12）───────────────────────────────
+   移民署只開放台灣的網路連線，所以由小韋電腦上的 GitHub 中繼每半小時抓一次，
+   存成同網域的 imm.json。資料是移民署依旅客名單算的「近 3 小時」人次（含國籍）。
+   電腦沒開、資料超過 3 小時就不顯示，看板照常用桃機的數字。 */
+var IMM=null;
+var NAT_ZH={TWN:'本國',USA:'美國',PHL:'菲律賓',JPN:'日本',KOR:'韓國',VNM:'越南',CHN:'中國',HKG:'香港',MAC:'澳門',THA:'泰國',
+  IDN:'印尼',MYS:'馬來西亞',SGP:'新加坡',AUS:'澳洲',CAN:'加拿大',DEU:'德國',GBR:'英國',FRA:'法國',BRA:'巴西',TUR:'土耳其',
+  IND:'印度',NZL:'紐西蘭',ITA:'義大利',NLD:'荷蘭',ESP:'西班牙',MMR:'緬甸',KHM:'柬埔寨',RUS:'俄羅斯',MEX:'墨西哥',CHE:'瑞士',
+  AUT:'奧地利',ISR:'以色列',ARE:'阿聯',SAU:'沙烏地',PAK:'巴基斯坦',BGD:'孟加拉',NPL:'尼泊爾',LKA:'斯里蘭卡',MNG:'蒙古',POL:'波蘭',
+  SWE:'瑞典',NOR:'挪威',DNK:'丹麥',FIN:'芬蘭',BEL:'比利時',IRL:'愛爾蘭',PRT:'葡萄牙',CZE:'捷克',HUN:'匈牙利',ZAF:'南非',ARG:'阿根廷',CHL:'智利'};
+function immAge(){
+  if(!IMM||!IMM.t) return 1e9;
+  var m=String(IMM.t).match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/); if(!m) return 1e9;
+  var t=new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5]).getTime();
+  return Math.round((Date.now()-t)/60000);
+}
+function immLine(key,label,topN,compact){
+  var d=(key&&typeof key==='object')?key:(IMM&&IMM[key]); if(!d||!d.total) return '';  /* 10/19：也可以直接給資料（一航／二航切換用） */
+  var age=immAge();
+  /* 超過 3 小時沒更新：不再整行消失，改成明講「電腦沒開」，免得以為壞了 */
+  if(age>180){
+    if(!IMM||!IMM.t) return '';
+    var st=String(IMM.t).slice(5,16).replace('-','/');
+    return compact?'<span class="imold">⚠ 移民署停在 '+st+'</span>'
+      :'<span class="imold">⚠ 移民署資料停在 '+st+'；人數照常用桃機官方數字。</span>';
+  }
+  var nat=[], k, i=0;
+  for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(compact&&k==='TWN') continue; if(i++>=topN) break;
+    nat.push('<span class="imc">'+(NAT_ZH[k]||k)+' <b>'+Number(d.nat[k]).toLocaleString()+'</b></span>'); }
+  var hm=String(IMM.t).slice(11,16);
+  /* 超過 75 分鐘沒更新＝小韋電腦可能睡著了，直接寫出來，不要只是變淡 */
+  var old=age>75;
+  var when=old?'<span class="imold">⚠ '+hm+' 的資料（'+age+' 分鐘前）</span>':'<i>'+hm+' 更新</i>';
+  if(compact) return '<b>移民署</b> '+label+' <em>'+Number(d.total).toLocaleString()+'</em> 人'
+    +(nat.length?' <span class="imn">'+nat.slice(0,1).join(' ')+'</span>':'')+' '+(old?'<span class="imold">⚠ '+hm+'</span>':'<i>'+hm+'</i>');
+  return '<div class="imh">'+IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<em>'+Number(d.total).toLocaleString()+' 人</em> '+when+'</div>'
+    +(nat.length?'<div class="imn">'+nat.join('')+'</div>':'');
+}
+function immLoad(cb){
+  try{
+    fetch('../imm.json?v='+Math.floor(Date.now()/300000)).then(function(r){ return r.ok?r.json():null; })
+      .then(function(j){ IMM=j; if(cb) cb(); })['catch'](function(){});
+  }catch(e){}
+}
+function immPaint(id,anchorSel,key,label,topN,compact){
+  var el=document.getElementById(id);
+  if(!el){ var a=document.querySelector(anchorSel); if(!a) return;
+    el=document.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
+  el.innerHTML=immLine(key,label,topN,compact);
+}
+/* ── 每班預估國籍（2026-10-13）────────────────────────────────────────
+   移民署給的是整個第二航廈的國籍人數，沒有分到每一班。做法：
+   外籍旅客幾乎都搭「從自己國家飛來」的班機（日本人搭日本來的班），
+   所以把移民署那段時間的「日本籍人數」，按入境人數比例分給那段時間從日本來的班機。
+   用的是比例（日籍佔全部 ÷ 日本班佔全部），不受兩邊總數單位不同影響。 */
+var NAT_JI={JPN:'日籍',KOR:'韓籍',CHN:'陸籍',USA:'美籍',HKG:'港籍',MAC:'澳門籍',PHL:'菲籍',VNM:'越籍',THA:'泰籍',
+  IDN:'印尼籍',MYS:'馬籍',SGP:'星籍',AUS:'澳籍',CAN:'加籍',GBR:'英籍',DEU:'德籍',FRA:'法籍',IND:'印籍',NZL:'紐籍'};
+var NATP={sig:'',map:{}};
+function natPlan(lists,key){
+  var d=IMM&&IMM[key];
+  if(!d||!d.total||!d.nat||immAge()>180){ NATP={sig:'',map:{}}; return; }
+  var day=String(IMM.t).slice(0,10), h0=+String(IMM.t).slice(11,13);
+  var tot={}, all=0;
+  lists.forEach(function(list){ (list||[]).forEach(function(f){
+    if(String(f.BNO)!=='2') return;
+    if(String(f.ODate||'').replace(/\//g,'-').slice(0,10)!==day) return;
+    var h=+String(hhmm(f.OTime)||'').slice(0,2); if(isNaN(h)||h<h0||h>h0+2) return;
+    var p=paxOf(f).inn; if(!p) return;
+    var c=ctryOf(f); if(!c) return;
+    tot[c]=(tot[c]||0)+p; all+=p;
+  }); });
+  var map={}, k;
+  if(all>0) for(k in d.nat){
+    if(!d.nat.hasOwnProperty(k)||k==='TWN') continue;
+    var c=NAT_ZH[k]; if(!c||!tot[c]) continue;
+    var frac=Math.min(0.95,(d.nat[k]/d.total)/(tot[c]/all));
+    if(!map[c]||map[c].frac<frac) map[c]={n:k,frac:frac};
+  }
+  NATP={sig:IMM.t,map:map};
+}
+function natTag(f){
+  var m=NATP.map[ctryOf(f)]; if(!m) return '';
+  var n=Math.round(paxOf(f).inn*m.frac/5)*5; if(n<10) return '';
+  return ' <i class="nat" title="依移民署國籍人數推估">'+(NAT_JI[m.n]||((NAT_ZH[m.n]||m.n)+'籍'))+'約'+n+'</i>';
+}
+</script>
+<script>
+/* 手錶太窄，每班的國籍標籤會壓到狀態，所以手錶只顯示上面那行總數 */
+immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); });
+setInterval(function(){ immLoad(function(){ immPaint('immnote','#hd','in2','T2入境 3h',2,true); if((DATA&&DATA.length)) render(); }); },600000);
+</script>
+<style>
+/* ══ 10/19：移民署可選一航／二航／一＋二航（入境頁、出境頁、手錶頁共用） ══ */
+#immnote .imt{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 5px}
+#immnote .imt button{width:auto!important;min-width:0!important;margin:0!important;padding:3px 10px!important;min-height:30px!important;height:auto!important;
+  font:inherit;font-size:13px!important;font-weight:900;line-height:1.2!important;cursor:pointer;border-radius:0;clip-path:none!important;box-shadow:none!important;
+  background:rgba(255,197,61,.08);border:1px solid rgba(217,150,40,.6);color:#d9a23a}
+#immnote .imt button.on{background:#FFC53D;border-color:#FFC53D;color:#111}
+#immnote .imt .ims{margin-left:auto;font-size:13px;font-weight:900;color:#FFC53D;white-space:nowrap}
+#immnote .imblk+.imblk{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(255,197,61,.3)}
+#immnote .imwait{font-size:12px;color:#8b94a1}
+#immnote.imtap{cursor:pointer}
+</style>
+<script>
+(function(){
+  var W=window, D=document, K='tpeImmT';
+  var MODES=[['2','二航'],['1','一航'],['12','一＋二航']];
+  function mode(){ var m='2'; try{ m=localStorage.getItem(K)||'2'; }catch(e){} return /^(1|2|12)$/.test(m)?m:'2'; }
+  function setMode(m){ try{ localStorage.setItem(K,m); }catch(e){} }
+  /* 一航：新版資料有 in1d／out1d（含國籍），舊版只有 in1／out1 一個數字 */
+  function get(base,t){
+    if(!IMM) return null;
+    if(t==='2') return IMM[base+'2'];
+    var d=IMM[base+'1d']; if(d&&d.total!=null) return d;
+    var n=IMM[base+'1']; if(typeof n==='number') return {total:n,nat:{},_only:1};
+    return (n&&n.total!=null)?n:null;
+  }
+  function lab(label,t){
+    if(t==='2') return label;
+    return String(label).replace('第二航廈','第一航廈').replace('T2','T1');
+  }
+  var last=null;
+  function paint(id,anchorSel,key,label,topN,compact){
+    last=[id,anchorSel,key,label,topN,compact];
+    var el=D.getElementById(id);
+    if(!el){ var a=D.querySelector(anchorSel); if(!a) return;
+      el=D.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
+    var base=String(key).replace(/[12]$/,''), m=mode(), ts=m==='12'?['1','2']:[m];
+    var parts=[], sum=0, cnt=0;
+    ts.forEach(function(t){ var d=get(base,t); if(!d||!d.total) return;
+      var h=immLine(d,lab(label,t),topN,compact); if(!h) return;
+      sum+=Number(d.total)||0; cnt++;
+      if(!compact&&d._only&&immAge()<=180) h+='<div class="imwait">一航國籍明細：移民署下一次更新（半小時內）後出現</div>';
+      parts.push(compact?h:'<div class="imblk">'+h+'</div>'); });
+    if(compact){
+      /* 手錶頁：不加按鈕（不動版面），點那一行就換 二航 → 一航 → 一＋二航 */
+      el.innerHTML=parts.map(function(h,i){ return i?h.replace('<b>移民署</b> ',''):h; }).join(' ｜ ')+(m==='12'&&cnt>1?' <b>合計 '+sum.toLocaleString()+'</b>':'');
+      el.classList.add('imtap'); el.title='點一下換：二航 → 一航 → 一＋二航';
+      return;
+    }
+    if(!parts.length&&!(IMM&&IMM.t)){ el.innerHTML=''; return; }
+    var bar='<div class="imt">'+MODES.map(function(x){ return '<button type="button" data-imt="'+x[0]+'"'+(x[0]===m?' class="on"':'')+'>'+x[1]+'</button>'; }).join('')
+      +(m==='12'&&cnt>1?'<span class="ims">一＋二航合計 '+sum.toLocaleString()+' 人</span>':'')+'</div>';
+    el.innerHTML=bar+(parts.join('')||'<div class="imwait">這個航廈目前沒有移民署資料</div>');
+  }
+  W.immPaint=paint;
+  D.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('#immnote [data-imt]');
+    var tap=!b&&e.target&&e.target.closest&&e.target.closest('#immnote.imtap');
+    if(!b&&!tap) return;
+    if(b) setMode(b.getAttribute('data-imt'));
+    else { var m=mode(), i=MODES.map(function(x){ return x[0]; }).indexOf(m); setMode(MODES[(i+1)%3][0]); }
+    if(last) paint.apply(null,last);
+  });
+})();
+</script>
+<script>
+/* ── 各國連假提醒（2026-10-13）──────────────────────────────────────────
+   日本／韓國／中國的連假開始前 5 天到結束，在上面顯示一行。
+   連假頭一兩天外國旅客「入境」多，最後一兩天他們「回國（出境）」多。
+   日期來源：日本內閣府祝日、韓國官方公休日；中國 2027 年的放假安排要等國務院 11 月公布，
+   標「預估」的是照往例推的，公布後再改。這張表要每年更新一次。 */
+var HOLS=[
+  ['JP','日本','三連休','2026-11-21','2026-11-23'],
+  ['KR','韓國','聖誕三連休','2026-12-25','2026-12-27'],
+  ['JP','日本','年末年始','2026-12-26','2027-01-03'],
+  ['KR','韓國','元旦三連休','2027-01-01','2027-01-03'],
+  ['CN','中國','元旦三連休','2027-01-01','2027-01-03'],
+  ['JP','日本','成人之日三連休','2027-01-09','2027-01-11'],
+  ['KR','韓國','春節連假','2027-02-05','2027-02-08'],
+  ['CN','中國','春節（預估）','2027-02-05','2027-02-13'],
+  ['KR','韓國','三一節三連休','2027-02-27','2027-03-01'],
+  ['JP','日本','春分三連休','2027-03-20','2027-03-22'],
+  ['CN','中國','清明（預估）','2027-04-03','2027-04-05'],
+  ['JP','日本','黃金週','2027-05-01','2027-05-05'],
+  ['CN','中國','五一（預估）','2027-05-01','2027-05-05'],
+  ['KR','韓國','中秋連假','2027-09-14','2027-09-16']
+];
+var HOL_FLAG={JP:'🇯🇵',KR:'🇰🇷',CN:'🇨🇳'};
+var HOL_WHO={JP:'日客',KR:'韓客',CN:'陸客'};
+function holList(){
+  var d=new Date(); d.setHours(0,0,0,0);
+  var out=[];
+  HOLS.forEach(function(h){
+    var s=new Date(h[3]+'T00:00:00'), e=new Date(h[4]+'T00:00:00');
+    var toS=Math.round((s-d)/86400000), toE=Math.round((e-d)/86400000);
+    if(toS<=5&&toE>=0) out.push({h:h,toS:toS,toE:toE});
+  });
+  return out.slice(0,3);
+}
+function holLine(kind,compact){
+  var L=holList(); if(!L.length) return '';
+  var md=function(iso){ return (+iso.slice(5,7))+'/'+(+iso.slice(8,10)); };
+  return L.map(function(x){
+    var h=x.h, who=HOL_WHO[h[0]]||'', when;
+    if(x.toS>0) when=x.toS+' 天後';
+    else if(x.toE===0) when='今天最後一天';
+    else when='進行中';
+    var tip;
+    if(kind==='D') tip=(x.toE<=1?'這兩天'+who+'回國多':'最後一兩天'+who+'回國多');
+    else tip=(x.toS>0?'頭一兩天'+who+'入境多':(x.toS>=-1?'這兩天'+who+'入境多':who+'陸續回國中'));
+    if(compact) return '<div class="holi">'+(HOL_FLAG[h[0]]||'')+' <b>'+h[1]+h[2]+'</b> '+md(h[3])+'–'+md(h[4])+' <i>'+when+'</i></div>';
+    return '<div class="holi">'+(HOL_FLAG[h[0]]||'')+' <b>'+h[1]+h[2]+'</b> '+md(h[3])+'–'+md(h[4])
+      +'<i>（'+when+'）</i>　<span>'+tip+'</span></div>';
+  }).join('');
+}
+function holPaint(id,anchorSel,kind,compact){
+  var el=document.getElementById(id);
+  if(!el){ var a=document.querySelector(anchorSel); if(!a) return;
+    el=document.createElement('div'); el.id=id; a.parentNode.insertBefore(el,a.nextSibling); }
+  el.innerHTML=holLine(kind,compact);
+}
+</script>
+<script>
+/* ── 登機門變更提示（2026-10-13）────────────────────────────────────────
+   每次畫完就把「今天每班的登機門」記在這台裝置上。下次再開，門跟上次記的不一樣，
+   就在門旁邊標「門改 C5→C8」，標 3 小時。第一次看到的班機只記下來，不標。
+   記錄只放在你自己的手機／手錶裡（localStorage），跨日自動清掉。 */
+var GATE_KEY='gateMemo1';
+function gateTrack(codeSel,gateSel,compact){
+  var d=new Date(), day=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(), now=Date.now();
+  var m=null; try{ m=JSON.parse(localStorage.getItem(GATE_KEY)||'null'); }catch(e){}
+  if(!m||m.day!==day) m={day:day,g:{}};
+  [].forEach.call(document.querySelectorAll('.r:not(.head)'),function(r){
+    var c=r.querySelector(codeSel), g=r.querySelector(gateSel);
+    var code=c?(String(c.textContent||'').toUpperCase().match(/[A-Z0-9]{2}\d{1,4}/)||[''])[0]:'';
+    var gate=g?String(g.textContent||'').trim().toUpperCase():'';
+    if(!code||!gate) return;
+    var rec=m.g[code];
+    if(!rec){ m.g[code]={g:gate}; return; }
+    if(rec.g!==gate){ rec.from=rec.g; rec.g=gate; rec.at=now; }
+    if(rec.from&&now-rec.at<3*3600000&&!g.parentNode.querySelector('.gchg')){
+      var t=document.createElement('i'); t.className='gchg';
+      t.textContent=compact?('原'+rec.from):('門改 '+rec.from+'→'+gate);
+      g.parentNode.appendChild(t);
+      r.classList.add('gmoved');
+    }
+  });
+  try{ localStorage.setItem(GATE_KEY,JSON.stringify(m)); }catch(e){}
+}
+</script>
+<script>
+/* 連假提醒＋登機門變更（2026-10-13） */
+holPaint('holnote','#hd','A',true);
+setInterval(function(){ holPaint('holnote','#hd','A',true); },3600000);
+var _renderG=render;
+render=function(){ _renderG(); try{ gateTrack('.f','.g .gn',true); }catch(e){} };
+</script>
+<!-- 設計系統：小韋班機看板（顏色、框線、字體），放最後讓它蓋過各頁的舊配色 -->
+<link rel="stylesheet" href="../ds/board.css">
+<link rel="stylesheet" href="../ds/neon.css?v=17e">
+<style>
+/* 滑行中：藍色實心＋卡片藍框，不變暗 */
+.st.b-taxi{background:#4da3ff!important;color:#fff!important;border-color:#4da3ff!important;animation:taxiPulse 1.6s ease-in-out infinite}
+@keyframes taxiPulse{0%,100%{box-shadow:0 0 0 0 rgba(77,163,255,0)}50%{box-shadow:0 0 12px 2px rgba(77,163,255,.8)}}
+.r.taxi{outline:2px solid #4da3ff;outline-offset:-2px}
+@media (prefers-reduced-motion:reduce){.st.b-taxi{animation:none}}
+</style>
+<script>
+/* ── 手錶版「滑行」（2026-10-13）──────────────────────────────────────
+   TDX 沒有「地面滑行」，桃機官網的即時資料才有。那包約 190KB，手錶不能一直抓，
+   所以只在「2140／2153 有班機 40 分鐘前～10 分鐘後落地」時才查，最多 2 分鐘一次，
+   螢幕暗掉就不查。查不到（斷線、被擋）就當作沒有滑行，畫面照常。 */
+(function(){
+  var API='https://www.taoyuan-airport.com/api/api/flight/a_flight', last=0, busy=false;
+  function near(){
+    var d=new Date(), now=d.getHours()*60+d.getMinutes(), hit=false;
+    (DATA||[]).forEach(function(f){
+      if(hit||/取消/.test(String(f.Memo||''))) return;
+      var sh; try{ sh=shopOf(f); }catch(e){ return; }
+      if(sh!=='c0'&&sh!=='c1') return;
+      var t=hhmm(f.RTime)||hhmm(f.OTime); if(!t) return;
+      var dt=mins(t)-now; if(dt<-720) dt+=1440; if(dt>720) dt-=1440;
+      if(dt>=-40&&dt<=10) hit=true;
+    });
+    return hit;
+  }
+  function taxiLoad(force){
+    if(busy||document.hidden) return;
+    if(!force&&Date.now()-last<120000) return;
+    if(!near()){ if(Object.keys(TAXI).length){ TAXI={}; render(); } return; }
+    busy=true; last=Date.now();
+    var d=new Date(), od=d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate()), done=false;
+    var to=setTimeout(function(){ done=true; busy=false; },20000);
+    fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({AState:'A',ODate:od,language:'ch'})})
+      .then(function(r){ return r.json(); })
+      .then(function(a){
+        if(done) return; clearTimeout(to); busy=false;
+        var m={};
+        (a||[]).forEach(function(f){
+          if(!/滑行/.test(String(f.CurrentStatus||''))) return;
+          m[codeKey(String(f.ACode||'')+String(f.FlightNo||''))]=1;
+          (f.sharing||[]).forEach(function(x){ var c=typeof x==='string'?x:((x&&(x.flightCode||((x.ACode||'')+(x.FlightNo||''))))||''); if(c) m[codeKey(c)]=1; });
+        });
+        var changed=JSON.stringify(m)!==JSON.stringify(TAXI);
+        TAXI=m; if(changed) render();
+      })['catch'](function(){ if(!done){ clearTimeout(to); busy=false; } });
+  }
+  window.taxiLoad=taxiLoad;
+  setTimeout(function(){ taxiLoad(true); },3000);
+  setInterval(function(){ taxiLoad(false); },30000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) taxiLoad(false); });
+})();
+</script>
+
+<!-- 手錶排版：tools/wfeat.js -->
+<style>
+/* ══ 手錶版排版（2026-10-14）：B1 打開就看到班機、B2 下方按鈕不蓋住班機 ══ */
+.mk{padding:3px 4px!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:0!important;border-width:1px!important}
+.mk b{font-size:14px!important;letter-spacing:.3em!important;line-height:1.2!important;white-space:nowrap!important}
+.mk i{font-size:9px!important;line-height:1.2!important;white-space:nowrap!important}
+#hd{padding:2px 6px!important;min-height:0!important} #hfreq{display:none!important}
+#hd b{font-size:12px!important}
+#immnote{padding:2px 6px!important;font-size:11px!important;line-height:1.3!important}
+#immnote .imn,#immnote>i{display:none!important}
+#immnote b,#immnote em{font-size:12px!important}
+.grp.s1 .btn{min-height:40px!important}
+/* 10/16 浮動按鈕改回原樣：上面三個鍵、下面時間單獨一行（小韋指定，不要再改） */
+</style>
+<script>
+/* B1：「現在起 6 小時」和三個時段鍵搬進「⋯」裡，打開手錶第一眼就是班機 */
+(function(){
+  var more=document.getElementById('more'), grps=[].slice.call(document.querySelectorAll('body > .grp:not(.s1)'));
+  if(more) grps.reverse().forEach(function(g){ more.insertBefore(g,more.firstChild); });
+})();
+</script>
+
+<style>
+/* 10/17e：手錶加一層很淡的航廈夜景背景（按鈕、時間排法不動） */
+html,body{background:transparent!important} html{background:#05040a!important}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(5,4,10,.84),rgba(5,4,10,.88)),url(../img/bg-term.webp) center bottom/cover no-repeat}
+</style>
+</body>
+</html>
