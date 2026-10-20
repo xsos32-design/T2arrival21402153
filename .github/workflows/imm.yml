@@ -50,10 +50,11 @@ jobs:
               t: stamp,
               in2: await getImm('TPE12', 15),          // 第二航廈 入境
               out2: await getImm('TPE52', 15),         // 第二航廈 出境
-              in1: (await getImm('TPE11', 0)).total,
-              out1: (await getImm('TPE51', 0)).total,
+              in1d: await getImm('TPE11', 15),         // 第一航廈 入境（10/19 起也存國籍，看板可切一航）
+              out1d: await getImm('TPE51', 15),        // 第一航廈 出境
               trans: await getImm('TPE3', 10),         // 全機場 過境
             };
+            cur.in1 = cur.in1d.total;  cur.out1 = cur.out1d.total;   // 舊欄位照留（歷史、舊頁面用）
 
             // 讀現有的檔，保留歷史（每小時一筆，留 7 天）——之後拿來對時段、校正用
             const { owner, repo } = context.repo;
