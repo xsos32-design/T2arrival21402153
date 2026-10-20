@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta name="robots" content="noindex">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<link rel="manifest" href="../app-watchall.webmanifest">
+<meta name="apple-mobile-web-app-title" content="韋 手錶全">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b0d10">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>預覽・按鈕圖片 · 班機手錶版 00:00–06:00</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.ic{width:1.05em;height:1.05em;stroke:currentColor;fill:none;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;vertical-align:-.15em;flex:0 0 auto}
+body{background:#0A0D12;color:#f2f4f7;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+ font-size:17px;font-weight:600;line-height:1.35;padding:6px;padding-bottom:81px}
+/* 製作人＋轉用警告：全頁最大的字，固定放在最上面（不用 position:fixed，手錶會卡） */
+.mk{background:linear-gradient(180deg,#14100A,#0C0A07);border:1px solid #4A3A14;border-top:2px solid #8A7440;border-radius:12px;
+ padding:8px 8px 9px;margin:0 0 7px;text-align:center;line-height:1.15}
+.mk b{display:block;font-size:30px;font-weight:800;color:#E7C785;letter-spacing:.1em}
+.mk i{display:block;font-style:normal;font-size:13.5px;font-weight:700;color:#9A8A62;
+ margin-top:4px;letter-spacing:.01em;line-height:1.4}
+@media(min-width:341px){
+ .mk{padding:11px 12px 12px;margin-bottom:9px}
+ .mk b{font-size:38px}
+ .mk i{font-size:16px;margin-top:5px}
+}
+/* 浮動快捷鍵：置頂／現在時段／更新 */
+/* 三顆快捷鍵固定浮在畫面「下方」。手錶的瀏覽器對下方的固定定位沒問題，
+   放上方才會擋住滑動，所以一律靠下。 */
+#fab{position:fixed;bottom:5px;bottom:calc(5px + env(safe-area-inset-bottom));top:auto;
+ left:5px;right:5px;z-index:70;display:flex;gap:5px;padding:0;margin:0;
+ background:none;border:0;pointer-events:none}
+.fabb{flex:1 1 0;min-width:0;min-height:38px;font:inherit;font-size:15px;font-weight:800;padding:0 2px;letter-spacing:-.03em;
+ border-radius:11px;background:rgba(17,21,28,.96);border:1px solid #2A323E;color:#C3CAD4;cursor:pointer;
+ white-space:nowrap;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;
+ pointer-events:auto;box-shadow:0 4px 14px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.fabb.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe}
+.fabb:active{opacity:.7}
+.hd{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#8b94a1;padding:7px 8px;margin-bottom:7px;
+ text-decoration:none;background:linear-gradient(180deg,#151A22,#0E1217);border:1px solid #1E242E;
+ border-top:2px solid #8A7440;border-radius:10px;min-height:38px;overflow:hidden}
+.hd{flex-wrap:wrap;row-gap:2px}
+.hd>*{white-space:nowrap;flex:0 0 auto}
+.hd b{color:#E7C785;font-size:14.5px;font-weight:800;letter-spacing:.06em}
+.hd .u{margin-left:auto;color:#7dd3fc;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.hd .old{color:#fbbf24}
+/* 右欄固定寬＝每張卡片的登機門、狀態都對齊 */
+.r{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) 58px;gap:2px 6px;
+ grid-template-areas:"t t g" "f f f" "c c c" "tag tag st";
+ background:#11151C;border:1px solid #1E242E;border-radius:11px;padding:7px 7px 7px 10px;margin-bottom:5px;overflow:hidden}
+/* 手錶只有「已到」會變淡，不會跟別的意思搞混 */
+.r.done{opacity:.45}
+.r.soon{background:#3f3311;border-color:#eab308;position:relative;z-index:2;
+ box-shadow:0 0 0 3px #eab308, 0 0 22px 1px rgba(234,179,8,.8)}
+b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05;
+ display:inline-block;letter-spacing:-.01em;color:#E7C785}
+.t-late{color:#E2A85C}
+.t-early{color:#8FC4D6}
+.t-same{color:#8FC0A8}
+.t-plan{color:#E7C785}
+.nd{font-style:normal;font-size:10.5px;font-weight:800;color:#93c5fd;background:#16233c;border:1px solid #2e4a7a;
+ border-radius:5px;padding:0 3px;margin-left:3px;vertical-align:super;letter-spacing:0}
+.g{grid-area:g;font-size:29px;font-weight:900;color:#fff;text-align:right;white-space:nowrap;line-height:1.05;
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* 登機門染色：2140 青綠、2153 橘，一眼就分得出是哪一邊的班機 */
+.g .gn{display:inline-block;font-size:.92em;padding:0 4px;border-radius:7px;background:#2b313b;color:#e5e9ef}
+.tm{font-size:10px;color:#7c8593;vertical-align:super;margin-left:2px}
+.tag{grid-area:tag;font-size:13px;font-weight:800;padding:3px 8px;border-radius:7px;text-align:center;white-space:nowrap;
+ align-self:center;justify-self:start;letter-spacing:.02em;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.s40{background:#0E2B27;color:#6FC4B2} .s53{background:#2E1C0B;color:#D9955A}
+.st1{background:#1E1B2C;color:#A79BC4} .st2{background:#1A1F27;color:#8B93A1}
+.f{grid-area:f;font-size:26px;font-weight:700;color:#E8EAED;white-space:nowrap;text-align:left;
+ letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
+.cty{font-style:normal;font-size:20px;font-weight:800;white-space:nowrap;
+ margin-left:8px;vertical-align:-2px;letter-spacing:0}
+.c{grid-area:c;font-size:15px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
+/* 人數：三格負載條＋數字＋小標字 */
+.px{font-style:normal;font-size:13px;font-weight:800;color:#dce2ea;white-space:nowrap;
+ font-variant-numeric:tabular-nums;margin-left:4px}
+.tx{font-style:normal;font-size:13px;font-weight:800;color:#b99a5e;white-space:nowrap;
+ font-variant-numeric:tabular-nums}
+.px u,.tx u{text-decoration:none;font-size:10.5px;font-weight:700;color:#818a98;letter-spacing:.06em;margin-left:2px}
+.bars{display:inline-flex;gap:2px;vertical-align:-.02em;margin-right:4px}
+.bars>i{width:3px;height:10px;border-radius:1px;background:#242b36;display:block}
+.lv1>i:nth-child(1){background:#5fa98f}
+.lv2>i:nth-child(-n+2){background:#d9a441}
+.lv3>i{background:#c4675e}
+/* 狀態：只有字，靠顏色和一條細左邊界分級 */
+.st{grid-area:st;font-size:13.5px;font-weight:800;text-align:right;white-space:nowrap;
+ align-self:center;justify-self:end;letter-spacing:.04em;padding-left:7px;border-left:2px solid transparent}
+.b-ok{color:#7fbfa6;border-left-color:#2f5f4e}
+.b-warn{color:#e0b35c;border-left-color:#5c4718}
+.b-bad{color:#d0786e;border-left-color:#5e2a25}
+.b-early{color:#8fc4d6;border-left-color:#27505e}
+.b-none{color:#818a98;border-left-color:#242b36}
+.b-info{background:#0b2b3c;color:#7dd3fc}
+#age{font-style:normal;font-weight:800;margin-left:6px;color:#7dd3fc;font-size:13.5px}
+#age.old{color:#fbbf24}
+#age.dead{color:#f87171}
+#stale{background:#2A1010;border:1px solid #7A3029;border-radius:11px;color:#EFA79E;
+ font-size:13px;font-weight:700;line-height:1.5;padding:9px 10px;margin:0 0 7px;text-align:center}
+#stale b{color:#FFD9D2;font-size:15px;white-space:nowrap}
+#stale.bad{background:#3A1210;border-color:#A03B31;color:#FFC2B8}
+#stale.ok{background:#10241E;border-color:#2C6B55;color:#9FE3C6}
+#stale.ok b{color:#CFF5E4}
+.tst{display:inline-block;padding:7px 14px;margin-top:4px;border-radius:9px;
+ background:#1c2027;border:1px solid #2e343d;color:#7dd3fc;font-size:12px;
+ font-weight:700;text-decoration:none}
+.msg{background:#11151C;border:1px solid #1E242E;border-radius:9px;padding:12px;color:#818A98;font-size:13px;text-align:center}
+.msg.err{background:#3b1414;border-color:#7f1d1d;color:#fca5a5}
+.grp{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px}
+.btn{flex:1 1 100%;min-height:44px;display:flex;align-items:center;justify-content:center;
+ background:#141922;border:1px solid #242B36;border-radius:10px;color:#AEB6C2;
+ font-size:15px;font-weight:800;text-decoration:none;text-align:center;padding:8px 4px;
+ white-space:nowrap;overflow:hidden;letter-spacing:-.01em}
+.btn.on{background:#16324f;border-color:#3b82f6;color:#bfdbfe;box-shadow:0 0 13px -2px rgba(59,130,246,.7)}
+/* 來源全倒時那顆「改看即時版」：要大、要醒目、要一眼看到 */
+.btn.live{min-height:52px;font-size:16.5px;font-weight:900;white-space:normal;
+ background:#0E3A34;border-color:#2A9A90;color:#7FEDE0;box-shadow:0 0 16px -3px rgba(42,154,144,.8)}
+.btn:active{transform:scale(.97);filter:brightness(1.3)}
+.btn.half{flex:1 1 46%;font-size:13.5px}
+.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}
+.btn.c40.on{background:#0d3b36;border-color:#14b8a6;color:#5eead4}
+.btn.c53.on{background:#43200f;border-color:#f97316;color:#fdba74}
+.btn.ct1.on{background:#2a1f4a;border-color:#8b5cf6;color:#c4b5fd}
+.btn.ct2.on{background:#232a34;border-color:#64748b;color:#cbd5e1}
+.r.r40{background:#0c2a25;border-color:#11655b;box-shadow:inset 4px 0 0 #14b8a6}
+.r.r53{background:#311d0c;border-color:#8a4513;box-shadow:inset 4px 0 0 #f97316}
+.r.r40 .g .gn{background:#14b8a6;color:#04221e}
+.r.r53 .g .gn{background:#f97316;color:#2c1204}
+.btn.zone{flex:1 1 22%;font-size:12.5px;padding:8px 1px;cursor:pointer;user-select:none;letter-spacing:-.03em}
+body.full .btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}
+/* 一組按鍵跟下一組之間留一點距離，不用文字標題也看得出來是分開的 */
+.grp.s{margin-top:12px}
+.sep{border-top:1px solid #262b33;margin:10px 0}
+.foot{color:#5b636e;font-size:11.5px;text-align:center;padding:9px 4px 2px;line-height:1.85;letter-spacing:.02em}
+.notice{background:#0E1217;border:1px solid #1E242E;border-left:2px solid #8A7440;color:#818A98;font-size:12.5px;
+ padding:10px 11px;border-radius:0 10px 10px 0;margin:9px 0;line-height:1.85;text-align:left;letter-spacing:.01em}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#E7C785;font-weight:800;white-space:nowrap;text-decoration:none;border-bottom:1px solid #5C4718}
+/* 手機／小平板（341–619px）：跟網頁版手機卡片同一個排法，兩列就放得完 */
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-areas:"t f g" "tag c st";gap:3px 9px;padding:9px 11px;
+    grid-template-columns:92px minmax(0,1fr) 68px}
+ .f{text-align:center}
+ .g{text-align:right}
+ .st{justify-self:end}
+}
+/* 620px 以上才排成一整列；欄寬固定，每一列的同一欄都對齊 */
+@media(min-width:620px){
+ body{max-width:680px;margin:0 auto;padding:14px;padding-bottom:74px}
+ #fab{position:fixed;z-index:70;bottom:16px;right:16px;left:auto;top:auto;margin:0;padding:0;gap:8px;
+   justify-content:flex-end;pointer-events:none}
+ .fabb{flex:0 0 auto;min-height:44px;padding:0 18px;font-size:15.5px;border-radius:999px;pointer-events:auto}
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) 64px;grid-template-areas:none;
+   align-items:center;gap:4px 12px;padding:8px 12px}
+ b.t,.f,.g,.tag,.c,.st{grid-area:auto}
+ .f{text-align:center} .g{text-align:center} .st{justify-self:auto}
+ .g{min-width:0} .tag{text-align:center;justify-self:stretch}
+ .btn{flex:0 0 auto;padding:8px 18px;min-height:40px}
+}
+
+/* ══════════ 賽博皮膚 B3：分點色實心填滿 ＋ 字推到滿版 ══════════
+   跟手機網頁版同一套視覺。手錶（≤340px）只換配色和切角，字維持原尺寸——
+   那邊的字早就按小螢幕調過，再放大只會換行。 */
+body{background:#05070a}
+.r{border-radius:0;position:relative}
+/* 右上切角：底色方塊轉 45 度，被卡片的 overflow:hidden 裁成三角形 */
+.r::after{content:"";position:absolute;width:20px;height:20px;right:-10px;top:-10px;
+ background:#05070a;transform:rotate(45deg);border-bottom:1px solid #2a3545;pointer-events:none}
+.r.r40{background:#064F47;border-color:#00EFD4;box-shadow:inset 6px 0 0 #00EFD4,0 0 22px -12px #00EFD4}
+.r.r53{background:#6B0F33;border-color:#FF2E6E;box-shadow:inset 6px 0 0 #FF2E6E,0 0 22px -12px #FF2E6E}
+.r.r40::after{border-bottom-color:#00EFD4} .r.r53::after{border-bottom-color:#FF2E6E}
+.r:not(.r40):not(.r53):not(.done){background:#0B1019;border-color:#1b2431;box-shadow:inset 6px 0 0 #2a3545}
+.r.r40 .c,.r.r53 .c{color:#DCE4EC}
+.r.r40 .px,.r.r53 .px{color:#fff}
+.r.r40 .tx,.r.r53 .tx{color:#FFE09A}
+.r.r40 .px u,.r.r40 .tx u,.r.r53 .px u,.r.r53 .tx u{color:rgba(255,255,255,.72)}
+.r.r40 .st,.r.r53 .st{color:#fff;border-left-color:rgba(255,255,255,.5)}
+.r.soon{background:#11151C;border-color:#FFC53D;
+ box-shadow:inset 6px 0 0 #D9A441,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r40{background:#064F47;box-shadow:inset 6px 0 0 #00EFD4,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon.r53{background:#6B0F33;box-shadow:inset 6px 0 0 #FF2E6E,inset 0 0 0 2px #FFC53D,0 0 26px -4px rgba(255,197,61,.9)}
+.r.soon::after{border-bottom-color:#FFC53D}
+/* 數字換等寬字：時間／班號／登機門天然對齊 */
+b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;letter-spacing:-.04em}
+.t-late{color:#FF8A3D} .t-early{color:#5BD6FF} .t-same{color:#5BE8A8} .t-plan{color:#FFC53D}
+.f{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:#fff;letter-spacing:-.045em}
+.g{font-family:ui-monospace,Menlo,monospace;letter-spacing:-.045em}
+.g .gn{border-radius:0;background:#161e29;border:1px solid #2a3545;color:#c6d1de}
+.r.r40 .g .gn{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 18px -3px rgba(0,239,212,.95)}
+.r.r53 .g .gn{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 18px -3px rgba(255,46,110,.95)}
+.tag{border-radius:0;border:1px solid #2a3545;background:rgba(255,255,255,.03);color:#93a0b1;letter-spacing:-.02em}
+.r.r40 .tag{background:#00EFD4;border-color:#00EFD4;color:#02241F}
+.r.r53 .tag{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411}
+.lv1>i{background:#49E3A3} .lv2>i:nth-child(-n+2){background:#FFC53D} .lv3>i{background:#FF7A95}
+.tx{color:#D9B96C}
+.b-ok{color:#49E3A3;border-left-color:#1e6b4d}
+.b-warn{color:#FFC53D;border-left-color:#7a5c12}
+.b-bad{color:#FF7A95;border-left-color:#8a2a3f}
+.b-early{color:#8FD2E6;border-left-color:#1d5b78}
+.b-none{color:#8b94a1;border-left-color:#2a3545}
+
+/* 341px 以上（手機／平板／電腦）才把字推到滿版；手錶維持原尺寸 */
+@media(min-width:341px){
+ .r{padding:5px 8px 5px 12px;gap:2px 8px;margin-bottom:6px}
+ b.t{font-size:38px;font-weight:800;line-height:1}
+ .f{font-size:32px;font-weight:800}
+ .cty{font-size:24px;margin-left:5px;vertical-align:-3px}
+ .g{font-size:38px;font-weight:800}
+ .g .gn{padding:0 5px}
+ .c{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em}
+ .tag{font-size:16.5px;font-weight:900;padding:2px 7px}
+ .st{font-size:16.5px;font-weight:900;letter-spacing:-.02em;padding-left:6px}
+ .px,.tx{font-size:15px;font-weight:900;letter-spacing:-.03em;margin-left:3px}
+ .px u,.tx u{font-size:11.5px;letter-spacing:0;margin-left:1px}
+ .bars>i{height:13px;width:3.5px}
+}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) 74px;gap:2px 8px;padding:5px 8px 5px 12px}
+}
+@media(max-width:400px) and (min-width:341px){
+ b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
+ .r{grid-template-columns:86px minmax(0,1fr) 68px}
+}
+
+/* ── 其餘介面跟著卡片走：直角、1px 細框、青色當作用中、標籤用等寬字 ── */
+.mk{border-radius:0;background:linear-gradient(180deg,#140F05,#0A0804);border:1px solid #8A7440;border-top:2px solid #FFC53D}
+.mk b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;color:#FFC53D}
+.mk i{color:#A08E55}
+.hd{border-radius:0;background:#080B11;border:1px solid #1b2431;border-top:2px solid #00EFD4;color:#6b7686;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.hd b{color:#00EFD4;font-family:ui-monospace,Menlo,monospace;letter-spacing:.12em}
+.hd .u{color:#8d99a9}
+.hd .u.busy{color:#FFC53D} .hd .u.err{color:#FF2E6E} .hd .u.old{color:#FF8A3D}
+.btn{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#93a0b1}
+.btn.on{background:rgba(0,239,212,.13);border-color:#00EFD4;color:#00EFD4;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 14px -4px rgba(0,239,212,.85)}
+.btn.c40.on{background:#00EFD4;border-color:#00EFD4;color:#02241F;box-shadow:0 0 16px -4px rgba(0,239,212,.95)}
+.btn.c53.on{background:#FF2E6E;border-color:#FF2E6E;color:#2B0411;box-shadow:0 0 16px -4px rgba(255,46,110,.95)}
+.btn.ct1.on{background:rgba(167,155,196,.15);border-color:#A79BC4;color:#D3C8EC;box-shadow:none}
+.btn.ct2.on{background:rgba(255,255,255,.07);border-color:#64748b;color:#C3CAD4;box-shadow:none}
+.msg{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #2a3545;color:#8b94a1}
+.msg.err{background:#16060A;border-color:#8a2a3f;border-left-color:#FF2E6E;color:#FF7A95}
+.notice{border-radius:0;background:#0B1019;border:1px solid #1b2431;border-left:3px solid #7a5c12;color:#818A98}
+.notice b{color:#C3CAD4}
+.notice .lk{color:#FFC53D;border-bottom:1px solid #7a5c12}
+#stale{border-radius:0;background:#16060A;border:1px solid #8a2a3f;border-left:3px solid #FF2E6E;color:#FF7A95}
+#stale b{color:#FFC2B8}
+#stale.bad{background:#1C0709;border-color:#A03B31;color:#FFC2B8}
+#stale.ok{background:#06150F;border-color:#1e6b4d;border-left-color:#49E3A3;color:#9FE3C6}
+#stale.ok b{color:#CFF5E4}
+.tst{border-radius:0;background:#0B1019;border:1px solid #2a3545;color:#00EFD4;
+ font-family:ui-monospace,Menlo,monospace;letter-spacing:.06em}
+#age{color:#00EFD4} #age.old{color:#FFC53D} #age.dead{color:#FF2E6E}
+.sep{border-top-color:#1b2431}
+.foot{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;color:#4e5968}
+
+/* ── 按鍵再加大一階（手機和手錶都套用，上次只改了手錶）── */
+.btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em}
+.btn.half,.btn.cat{font-size:16px}
+.btn.zone,.btn.pre{font-size:14.5px}
+.btn.nav{font-size:19px} .btn.mid{font-size:16px}
+
+/* ── 浮動快捷鍵：三顆鍵一排，現在時間自己一條放在正下方 ── */
+#fab{flex-direction:column;gap:4px}
+.fabrow{display:flex;gap:5px;width:100%}
+.fabrow .fabb{flex:1 1 0}
+/* 黑底白字，最單純最好認。純顯示，不是按鈕，所以不吃點擊 */
+.fclock{display:flex;align-items:center;justify-content:center;min-height:30px;
+ font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+ font-size:22px;font-weight:900;letter-spacing:.04em;
+ background:#000;border:1px solid #2A323E;color:#fff;
+ box-shadow:0 4px 14px rgba(0,0,0,.55);pointer-events:none;user-select:none}
+@media(max-width:340px){ .fclock{font-size:20px;min-height:28px} }
+@media(min-width:620px){ #fab{flex-direction:row;align-items:center}
+ .fabrow{width:auto} .fabrow .fabb{flex:0 0 auto}
+ .fclock{min-height:44px;padding:0 14px;font-size:20px;border-radius:999px} }
+
+/* ══════════════ 手錶版（≤340px）：E 版型 ══════════════
+   兩列。第一列：時間 ＋ 班號（班號比舊版還大）。第二列：登機門／城市／人數／狀態。
+   國旗拿掉、分點標籤拿掉（卡片顏色本來就在講是哪一邊），省下來的寬度全給班號。
+   結果：每張卡 125px → 66px，一屏從 1.9 班變 3.7 班。 */
+@media(max-width:340px){
+ /* 用 flex 換行而不是 grid：grid 的欄寬會把兩列綁在一起，第一列的班號一寬，
+    第二列的城市就被擠掉。改成兩個 flex 行，各自算各自的寬度。
+    換行是拿已經隱藏的「分點標籤」當斷點（flex:1 0 100%），不用多包一層 div。 */
+ .r{display:flex;flex-wrap:wrap;align-items:center;
+    gap:1px 5px;padding:4px 6px 4px 10px;margin-bottom:4px}
+ b.t{order:1;font-size:24px;line-height:1;flex:0 0 auto}
+ .f{order:2;font-size:29px;line-height:1;letter-spacing:-.055em;flex:0 0 auto;margin-left:auto}
+ .cty{display:none}                 /* 國旗：手錶不顯示 */
+ .tag{order:3;flex:1 0 100%;height:0;min-height:0;padding:0;margin:0;border:0;
+      background:none;overflow:hidden;visibility:hidden}   /* 分點標籤：當換行點用，不顯示 */
+ .g{order:4;font-size:20px;line-height:1;flex:0 0 auto}
+ .g .gn{padding:0 5px}
+ /* flex-basis 要給 0，不然瀏覽器會先用「內容寬」決定要不要換行，
+    狀態就被擠到第三列去了（卡片也就跟著變高）。 */
+ .c{order:5;display:flex;align-items:center;gap:4px;min-width:0;flex:1 1 0;
+    font-size:12px;line-height:1.2}
+ .cn{flex:1 1 auto;min-width:2.8em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .c .px{flex:0 0 auto;font-size:11px;padding:0 2px;margin-left:0;letter-spacing:-.05em}
+ /* 手錶只有 198px 寬，「預估入境」四個字就吃掉城市的位置，縮成「入境」
+    （手機／電腦維持「預估入境」）*/
+ .c .px u{font-size:0}
+ .c .px u::after{content:"入境";font-size:9px;letter-spacing:-.04em}
+ .st{order:6;flex:0 0 auto;margin-left:auto;font-size:11.5px;padding:1px 3px;letter-spacing:-.04em}
+ .bars{display:none}
+ /* 41mm 只有 176px 寬，大字要再降一階，不然城市會被吃掉 */
+ @media(max-width:190px){
+  .r{padding:4px 5px 4px 9px;gap:1px 4px}
+  b.t{font-size:20px} .f{font-size:24px} .g{font-size:16px} .g .gn{padding:0 4px}
+  .c{font-size:11px} .cn{min-width:2.6em}
+  .c .px{font-size:9.5px;padding:0 2px} .c .px u::after{font-size:7.5px}
+  .st{font-size:10px;padding:1px 2px}
+ }
+ /* 手錶的按鍵：加大、加粗、字不要黑的 */
+ .btn{min-height:52px;font-size:17px;font-weight:900;letter-spacing:-.03em;padding:8px 4px}
+ .btn.half,.btn.cat{font-size:15.5px}
+ .btn.zone,.btn.pre{font-size:14px;padding:8px 1px}
+ .btn.nav{font-size:19px} .btn.mid{font-size:15.5px}
+ #gextra{display:none}              /* 更新／開會時間：手錶不顯示 */
+ .btn.rl{display:none}              /* 產生版的更新鍵同理 */
+}
+/* 選取中的分點鍵：改成「亮字＋亮框＋外發光」，不要黑字壓在亮底上 */
+.btn.c40.on,.cat.cs0.on{background:rgba(0,239,212,.16);border-color:#00EFD4;color:#4DF6E2;
+ box-shadow:inset 0 0 0 1px #00EFD4,0 0 16px -3px rgba(0,239,212,.9)}
+.btn.c53.on,.cat.cs1.on{background:rgba(255,46,110,.16);border-color:#FF2E6E;color:#FF7FA3;
+ box-shadow:inset 0 0 0 1px #FF2E6E,0 0 16px -3px rgba(255,46,110,.9)}
+.btn.ct1.on,.cat.cs2.on{background:rgba(167,155,196,.16);border-color:#A79BC4;color:#D3C8EC;
+ box-shadow:inset 0 0 0 1px #A79BC4}
+.btn.ct2.on,.cat.cs3.on{background:rgba(255,255,255,.09);border-color:#8d99a9;color:#DDE3EA;
+ box-shadow:inset 0 0 0 1px #8d99a9}
+/* 按鍵整體：大一點、粗一點 */
+.btn{font-weight:900}
+.cn{font-style:normal}
+
+/* 狀態欄不給死寬度：字多長就撐多寬，中間那欄讓位，不會壓到城市／人數 */
+.st{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.c{min-width:0}
+@media(min-width:341px) and (max-width:619px){
+ .r{grid-template-columns:96px minmax(0,1fr) minmax(70px,max-content)}
+}
+@media(max-width:400px) and (min-width:341px){
+ .r{grid-template-columns:86px minmax(0,1fr) minmax(62px,max-content)}
+}
+@media(min-width:620px){
+ .r{grid-template-columns:92px 134px 66px 78px minmax(0,1fr) minmax(64px,max-content)}
+}
+
+/* ══ 10/19：大夜YA＝萊姆綠、大夜YB＝靛藍（入境頁、手錶頁共用）══
+   挑色原則：不跟看板上已經有意義的顏色撞。已用：青綠 2140、桃紅 2153、黃＝表定／快到、
+   金＝移民署／延誤、橘＝晚到、紅＝取消、綠＝準時、藍＝提早／滑行、紫＝空檔線。
+   剩下最空的兩段色相就是萊姆綠（約 93°）和靛藍（約 241°）。 */
+:root{--ya:#8CF23A;--yb:#7B78FF}
+/* 卡片底色＋左邊色條（快到／滑行的黃框藍框照舊優先） */
+html body:not(#_) .r.rYA{background:linear-gradient(118deg,rgba(255,255,255,.12),rgba(255,255,255,0) 28%),linear-gradient(105deg,rgba(140,242,58,.22),rgba(18,10,31,.55) 55%)!important;border-color:transparent!important}
+html body:not(#_) .r.rYB{background:linear-gradient(118deg,rgba(255,255,255,.12),rgba(255,255,255,0) 28%),linear-gradient(105deg,rgba(123,120,255,.30),rgba(18,10,31,.55) 55%)!important;border-color:transparent!important}
+html body:not(#_) .r.rYA:not(.soon):not(.taxi){box-shadow:inset 4px 0 0 var(--ya),inset 0 0 0 1px rgba(140,242,58,.5)!important}
+html body:not(#_) .r.rYB:not(.soon):not(.taxi){box-shadow:inset 4px 0 0 var(--yb),inset 0 0 0 1px rgba(123,120,255,.6)!important}
+/* 登機門、分類小標實心上色 */
+html body:not(#_) .r.rYA .gn,html body:not(#_) .r.rYA .tag,html body:not(#_) .tag.tYA,html body:not(#_) .tag.sYA{background:var(--ya)!important;border-color:var(--ya)!important;color:#112400!important;box-shadow:0 0 14px -2px rgba(140,242,58,.8)!important;font-weight:900}
+html body:not(#_) .r.rYB .gn,html body:not(#_) .r.rYB .tag,html body:not(#_) .tag.tYB,html body:not(#_) .tag.sYB{background:var(--yb)!important;border-color:var(--yb)!important;color:#fff!important;box-shadow:0 0 14px -2px rgba(123,120,255,.85)!important;font-weight:900}
+html body:not(#_) .r.rYA .c,html body:not(#_) .r.rYB .c{color:#DCE4EC}
+/* 分類按鈕（勾起來時）跟卡片同色 */
+html body:not(#_) .chip.cs2.act,html body:not(#_) .cat.cs2.on,html body:not(#_) .btn.ct1.on{background:rgba(140,242,58,.16)!important;border-color:var(--ya)!important;color:#C9FF9A!important;box-shadow:inset 0 0 0 1px var(--ya),0 0 14px -4px var(--ya)!important}
+html body:not(#_) .chip.cs3.act,html body:not(#_) .cat.cs3.on,html body:not(#_) .btn.ct2.on{background:rgba(123,120,255,.20)!important;border-color:var(--yb)!important;color:#C9C8FF!important;box-shadow:inset 0 0 0 1px var(--yb),0 0 14px -4px var(--yb)!important}
+html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno.cs3{color:var(--yb)!important}
+
+/* 10/20 按鈕圖片（靜態頁固定小圖＋字） */
+html body:not(#_) #now6::before,html body:not(#_) .chip[data-t="00:00"][data-e="05:59"]::before,html body:not(#_) .chip[data-t="13:30"]::before,html body:not(#_) .chip[data-t="18:00"]::before,html body:not(#_) .chip[data-t="00:00"][data-e="23:59"]::before,html body:not(#_) .chip[data-t="06:00"]::before,html body:not(#_) .chip.shop.cs0::before,html body:not(#_) .chip.shop.cs1::before,html body:not(#_) #hide::before,html body:not(#_) #sall::before,html body:not(#_) #snone::before,html body:not(#_) .chip.zone::before,html body:not(#_) #cpD::before,html body:not(#_) #cpS::before,html body:not(#_) #cpgo::before,html body:not(#_) #cpM::before,html body:not(#_) summary.cfgbtn:has(use[href="#i-cal"])::before,html body:not(#_) summary.cfgbtn:has(use[href="#i-cog"])::before,html body:not(#_) #go::before,html body:not(#_) #catReset::before,html body:not(#_) #dToday::before,html body:not(#_) #dTom::before,html body:not(#_) #ctlbar::before,html body:not(#_) #ibmore::before,html body:not(#_) #fsearch button::before,html body:not(#_) #immnote .imt button::before,html body:not(#_) #bnow::before,html body:not(#_) .btn.pre[data-t="00:00"]::before,html body:not(#_) .btn.pre[data-t="13:30"]::before,html body:not(#_) .btn.pre[data-t="18:00"]::before,html body:not(#_) .btn.pre[data-t="06:00"]::before,html body:not(#_) .cat.cs0::before,html body:not(#_) .cat.cs1::before,html body:not(#_) .cat.cs2::before,html body:not(#_) .cat.cs3::before,html body:not(#_) #bmore::before,html body:not(#_) #dPrev::before,html body:not(#_) #dNext::before,html body:not(#_) #dMid::before,html body:not(#_) #ball::before,html body:not(#_) #bnone::before,html body:not(#_) .btn.zone::before,html body:not(#_) #bhide::before,html body:not(#_) #bcfg::before,html body:not(#_) #breload::before,html body:not(#_) #bmeet::before,html body:not(#_) a.btn.pre[href*="-h00-"]::before,html body:not(#_) a.btn.pre[href*="-h06-"]::before,html body:not(#_) a.btn.pre[href*="-h13-"]::before,html body:not(#_) a.btn.pre[href*="-h18-"]::before,html body:not(#_) a.btn.c40::before,html body:not(#_) a.btn.c53::before,html body:not(#_) a.btn.ct1::before,html body:not(#_) a.btn.ct2::before,html body:not(#_) a.btn.half:not([class*=" c"]):not(.rl)[href*="t1t2"]::before,html body:not(#_) a.btn.half:has(use[href="#i-hide"])::before,html body:not(#_) a.btn.rl::before,html body:not(#_) a.btn.live::before,html body:not(#_) #fTop::before,html body:not(#_) #fNow::before,html body:not(#_) #fGo::before{content:"";display:inline-block;flex:0 0 auto;width:1.5em;height:1.5em;margin-right:.3em;vertical-align:-.38em;background:url(../img/btn.webp) no-repeat 0 0/3100% 100%;filter:drop-shadow(0 0 3px rgba(0,0,0,.6))}
+html body:not(#_) #now6 svg.ic,html body:not(#_) .chip[data-t="00:00"][data-e="05:59"] svg.ic,html body:not(#_) .chip[data-t="13:30"] svg.ic,html body:not(#_) .chip[data-t="18:00"] svg.ic,html body:not(#_) .chip[data-t="00:00"][data-e="23:59"] svg.ic,html body:not(#_) .chip[data-t="06:00"] svg.ic,html body:not(#_) .chip.shop.cs0 svg.ic,html body:not(#_) .chip.shop.cs1 svg.ic,html body:not(#_) #hide svg.ic,html body:not(#_) #sall svg.ic,html body:not(#_) #snone svg.ic,html body:not(#_) .chip.zone svg.ic,html body:not(#_) #cpD svg.ic,html body:not(#_) #cpS svg.ic,html body:not(#_) #cpgo svg.ic,html body:not(#_) #cpM svg.ic,html body:not(#_) summary.cfgbtn:has(use[href="#i-cal"]) svg.ic,html body:not(#_) summary.cfgbtn:has(use[href="#i-cog"]) svg.ic,html body:not(#_) #go svg.ic,html body:not(#_) #catReset svg.ic,html body:not(#_) #dToday svg.ic,html body:not(#_) #dTom svg.ic,html body:not(#_) #ctlbar svg.ic,html body:not(#_) #ibmore svg.ic,html body:not(#_) #fsearch button svg.ic,html body:not(#_) #immnote .imt button svg.ic,html body:not(#_) #bnow svg.ic,html body:not(#_) .btn.pre[data-t="00:00"] svg.ic,html body:not(#_) .btn.pre[data-t="13:30"] svg.ic,html body:not(#_) .btn.pre[data-t="18:00"] svg.ic,html body:not(#_) .btn.pre[data-t="06:00"] svg.ic,html body:not(#_) .cat.cs0 svg.ic,html body:not(#_) .cat.cs1 svg.ic,html body:not(#_) .cat.cs2 svg.ic,html body:not(#_) .cat.cs3 svg.ic,html body:not(#_) #bmore svg.ic,html body:not(#_) #dPrev svg.ic,html body:not(#_) #dNext svg.ic,html body:not(#_) #dMid svg.ic,html body:not(#_) #ball svg.ic,html body:not(#_) #bnone svg.ic,html body:not(#_) .btn.zone svg.ic,html body:not(#_) #bhide svg.ic,html body:not(#_) #bcfg svg.ic,html body:not(#_) #breload svg.ic,html body:not(#_) #bmeet svg.ic,html body:not(#_) a.btn.pre[href*="-h00-"] svg.ic,html body:not(#_) a.btn.pre[href*="-h06-"] svg.ic,html body:not(#_) a.btn.pre[href*="-h13-"] svg.ic,html body:not(#_) a.btn.pre[href*="-h18-"] svg.ic,html body:not(#_) a.btn.c40 svg.ic,html body:not(#_) a.btn.c53 svg.ic,html body:not(#_) a.btn.ct1 svg.ic,html body:not(#_) a.btn.ct2 svg.ic,html body:not(#_) a.btn.half:not([class*=" c"]):not(.rl)[href*="t1t2"] svg.ic,html body:not(#_) a.btn.half:has(use[href="#i-hide"]) svg.ic,html body:not(#_) a.btn.rl svg.ic,html body:not(#_) a.btn.live svg.ic,html body:not(#_) #fTop svg.ic,html body:not(#_) #fNow svg.ic,html body:not(#_) #fGo svg.ic{display:none!important}
+html body:not(#_) #now6::before{background-position:3.3333% 0!important}
+html body:not(#_) .chip[data-t="00:00"][data-e="05:59"]::before{background-position:6.6667% 0!important}
+html body:not(#_) .chip[data-t="13:30"]::before{background-position:10.0000% 0!important}
+html body:not(#_) .chip[data-t="18:00"]::before{background-position:13.3333% 0!important}
+html body:not(#_) .chip[data-t="00:00"][data-e="23:59"]::before{background-position:16.6667% 0!important}
+html body:not(#_) .chip[data-t="06:00"]::before{background-position:100.0000% 0!important}
+html body:not(#_) .chip.shop.cs0::before{background-position:20.0000% 0!important}
+html body:not(#_) .chip.shop.cs1::before{background-position:23.3333% 0!important}
+html body:not(#_) #hide::before{background-position:43.3333% 0!important}
+html body:not(#_) #sall::before{background-position:33.3333% 0!important}
+html body:not(#_) #snone::before{background-position:70.0000% 0!important}
+html body:not(#_) .chip.zone::before{background-position:73.3333% 0!important}
+html body:not(#_) #cpD::before{background-position:46.6667% 0!important}
+html body:not(#_) #cpS::before{background-position:46.6667% 0!important}
+html body:not(#_) #cpgo::before{background-position:46.6667% 0!important}
+html body:not(#_) #cpM::before{background-position:50.0000% 0!important}
+html body:not(#_) summary.cfgbtn:has(use[href="#i-cal"])::before{background-position:53.3333% 0!important}
+html body:not(#_) summary.cfgbtn:has(use[href="#i-cog"])::before{background-position:0.0000% 0!important}
+html body:not(#_) #go::before{background-position:36.6667% 0!important}
+html body:not(#_) #catReset::before{background-position:56.6667% 0!important}
+html body:not(#_) #dToday::before{background-position:53.3333% 0!important}
+html body:not(#_) #dTom::before{background-position:86.6667% 0!important}
+html body:not(#_) #ctlbar::before{background-position:96.6667% 0!important}
+html body:not(#_) #ibmore::before{background-position:83.3333% 0!important}
+html body:not(#_) #fsearch button::before{background-position:80.0000% 0!important}
+html body:not(#_) #immnote .imt button::before{background-position:93.3333% 0!important}
+html body:not(#_) #bnow::before{background-position:3.3333% 0!important}
+html body:not(#_) .btn.pre[data-t="00:00"]::before{background-position:6.6667% 0!important}
+html body:not(#_) .btn.pre[data-t="13:30"]::before{background-position:10.0000% 0!important}
+html body:not(#_) .btn.pre[data-t="18:00"]::before{background-position:13.3333% 0!important}
+html body:not(#_) .btn.pre[data-t="06:00"]::before{background-position:100.0000% 0!important}
+html body:not(#_) .cat.cs0::before{background-position:20.0000% 0!important}
+html body:not(#_) .cat.cs1::before{background-position:23.3333% 0!important}
+html body:not(#_) .cat.cs2::before{background-position:26.6667% 0!important}
+html body:not(#_) .cat.cs3::before{background-position:30.0000% 0!important}
+html body:not(#_) #bmore::before{background-position:76.6667% 0!important}
+html body:not(#_) #dPrev::before{background-position:90.0000% 0!important}
+html body:not(#_) #dNext::before{background-position:86.6667% 0!important}
+html body:not(#_) #dMid::before{background-position:53.3333% 0!important}
+html body:not(#_) #ball::before{background-position:33.3333% 0!important}
+html body:not(#_) #bnone::before{background-position:70.0000% 0!important}
+html body:not(#_) .btn.zone::before{background-position:73.3333% 0!important}
+html body:not(#_) #bhide::before{background-position:43.3333% 0!important}
+html body:not(#_) #bcfg::before{background-position:0.0000% 0!important}
+html body:not(#_) #breload::before{background-position:36.6667% 0!important}
+html body:not(#_) #bmeet::before{background-position:50.0000% 0!important}
+html body:not(#_) a.btn.pre[href*="-h00-"]::before{background-position:6.6667% 0!important}
+html body:not(#_) a.btn.pre[href*="-h06-"]::before{background-position:100.0000% 0!important}
+html body:not(#_) a.btn.pre[href*="-h13-"]::before{background-position:10.0000% 0!important}
+html body:not(#_) a.btn.pre[href*="-h18-"]::before{background-position:13.3333% 0!important}
+html body:not(#_) a.btn.c40::before{background-position:20.0000% 0!important}
+html body:not(#_) a.btn.c53::before{background-position:23.3333% 0!important}
+html body:not(#_) a.btn.ct1::before{background-position:26.6667% 0!important}
+html body:not(#_) a.btn.ct2::before{background-position:30.0000% 0!important}
+html body:not(#_) a.btn.half:not([class*=" c"]):not(.rl)[href*="t1t2"]::before{background-position:33.3333% 0!important}
+html body:not(#_) a.btn.half:has(use[href="#i-hide"])::before{background-position:43.3333% 0!important}
+html body:not(#_) a.btn.rl::before{background-position:36.6667% 0!important}
+html body:not(#_) a.btn.live::before{background-position:60.0000% 0!important}
+html body:not(#_) #fTop::before{background-position:40.0000% 0!important}
+html body:not(#_) #fNow::before{background-position:3.3333% 0!important}
+html body:not(#_) #fGo::before{background-position:36.6667% 0!important}
+html body:not(#_) .chip[data-t],html body:not(#_) .btn.pre,html body:not(#_) a.btn.pre{display:inline-flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;line-height:1.1!important;height:auto!important}
+html body:not(#_) .chip[data-t]::before,html body:not(#_) .btn.pre::before,html body:not(#_) a.btn.pre::before{width:1.45em;height:1.45em;margin:0;vertical-align:0}
+html body:not(#_) #bmore{font-size:0!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important}
+html body:not(#_) #bmore::before{width:34px;height:34px;margin:0}
+</style></head><body class="full" data-b="1792467685059" data-day="2026-10-20" data-c="40" data-p="h00" data-h="" data-x="a">
+<svg class="sprite" aria-hidden="true"><defs>
+<g id="i-land"><path d="M2 22h20"/><path d="M3.77 10.77 2 9l2-4.5 1.1.55c.55.28.9.84.9 1.45s.35 1.17.9 1.45L8 8.5l3-6 1.05.53a2 2 0 0 1 1.09 1.52l.72 5.4a2 2 0 0 0 1.09 1.52l4.4 2.2c.42.22.78.55 1.01.96l.6 1.03c.49.88-.06 1.98-1.06 2.1l-1.18.15c-.47.06-.95-.02-1.37-.24L4.29 11.15a2 2 0 0 1-.52-.38Z"/></g>
+<g id="i-timer"><path d="M10 2h4"/><path d="m12 14 3-3"/><circle cx="12" cy="14" r="8"/></g>
+<g id="i-refresh"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></g>
+<g id="i-hide"><path d="M10.7 5.1a10.7 10.7 0 0 1 11.2 6.6 1 1 0 0 1 0 .7 10.7 10.7 0 0 1-1.4 2.5"/><path d="M14.1 14.2a3 3 0 0 1-4.3-4.3"/><path d="M17.5 17.5A10.8 10.8 0 0 1 2.1 12.3a1 1 0 0 1 0-.7 10.8 10.8 0 0 1 4.4-5.1"/><path d="m2 2 20 20"/></g>
+<g id="i-show"><path d="M2.1 12.3a1 1 0 0 1 0-.7 10.8 10.8 0 0 1 19.8 0 1 1 0 0 1 0 .7 10.8 10.8 0 0 1-19.8 0"/><circle cx="12" cy="12" r="3"/></g>
+<g id="i-clock"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></g>
+<g id="i-up"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></g>
+<g id="i-alert"><path d="m21.7 18-8-14a2 2 0 0 0-3.5 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></g>
+<g id="i-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><circle cx="9" cy="7" r="4"/></g>
+<g id="i-unlock"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></g>
+<g id="i-lock"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>
+</defs></svg>
+<div id="fab">
+  <div class="fabrow">
+    <button class="fabb" id="fTop"><svg class="ic" viewBox="0 0 24 24"><use href="#i-up"/></svg></button>
+    <a class="fabb" id="fNow" href="../a-h00-40.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在</a>
+    <a class="fabb" id="fGo" href="../a-h00-40.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></a>
+  </div>
+  <div class="fclock" id="fClock">--:--</div>
+</div>
+
+<div class="mk">
+  <b>小韋製作</b>
+  <i><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 未經同意請勿私自轉傳</i>
+</div>
+<a class="hd" href="../a-h00-40.html"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機手錶版 <svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg></b><span>10/20 00–06</span><span class="u">11:41 ↻</span></a>
+<div id="stale" hidden></div>
+<div class="grp"><a class="btn pre on" href="../a-h00-40.html">00–06</a>
+<a class="btn pre" href="../a-h06-40.html">06–13:30</a>
+<a class="btn pre" href="../a-h13-40.html">13:30–18</a>
+<a class="btn pre" href="../a-h18-40.html">18–24</a></div>
+<div class="grp s"><a class="btn half c40 on" href="../a-h00-40.html">✓ 2140</a>
+<a class="btn half c53" href="../a-h00-4053.html">　2153</a>
+<a class="btn half ct1" href="../a-h00-40t1.html">　大夜YA</a>
+<a class="btn half ct2" href="../a-h00-40t2.html">　大夜YB</a></div>
+<div class="grp"><a class="btn half" href="../a-h00-4053t1t2.html">全部</a><a class="btn half" href="../a-h00-4053.html">2140+2153</a></div>
+<div class="grp s"><span class="btn zone on" data-z="A">✓ A區</span>
+<span class="btn zone on" data-z="B">✓ B區</span>
+<span class="btn zone on" data-z="C">✓ C區</span>
+<span class="btn zone on" data-z="D">✓ D區</span></div>
+<div class="grp s"><a class="btn half" href="../a-h00-40-h.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-hide"/></svg> 隱藏抵達</a><a class="btn half rl" href="../a-h00-40.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> 更新 11:41<i id="age"></i></a></div>
+<div class="sep"></div>
+<div class="msg err">這份是事先算好的，<b>這次抓資料失敗所以是空的</b><br>
+        <small>所有來源都失敗｜TDX(key)=沒有設定 TDX_ID / TDX_SECRET；TDX(anon)=fetch failed｜ENOTFOUND；odp=fetch failed｜ENOTFOUND</small><br><br>
+        <a class="btn live" href="../wtdxall.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-signal"/></svg> 改看即時版（手錶讀得到）</a>
+        <br><small style="opacity:.7">即時版是手錶自己連 TDX，不吃這份快照</small></div>
+<div class="notice"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 僅供參考，<b>以現場為準</b><br>
+<svg class="ic" viewBox="0 0 24 24"><use href="#i-users"/></svg> <b>預估入境</b>＝推估的查驗人數（已扣轉機），約 ±15%<br>
+負載條 <i class="bars lv1"><i></i><i></i><i></i></i> 未滿150　<i class="bars lv2"><i></i><i></i><i></i></i> 150–250　<i class="bars lv3"><i></i><i></i><i></i></i> 超過250<br>
+<svg class="ic" viewBox="0 0 24 24"><use href="#i-unlock"/></svg> 這是解封印版，<b>06:00–13:30 也會顯示</b>　<a class="lk" href="../watch-static.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a></div>
+<div class="foot">本頁預先產生、<b>不連網</b>，11:41 為抓取時刻<br>
+<b>先看「幾分前」再決定要不要信登機門</b>　點標題可重新載入<br><br><a class="tst" href="../wtest.html">連線測試</a></div>
+<script>
+/* 現在時間：整分鐘才更新一次（一分鐘只寫一次字，不會像以前的輪詢那樣卡捲動）。
+   螢幕暗掉就停，亮起來立刻補上正確的時間。 */
+(function(){
+  var el=document.getElementById('fClock'); if(!el) return;
+  var tid=0;
+  function pad(n){ return (n<10?'0':'')+n; }
+  function tick(){
+    var d=new Date();
+    el.textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+    clearTimeout(tid);
+    tid=setTimeout(tick,(60-d.getSeconds())*1000-d.getMilliseconds()+60);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden) clearTimeout(tid); else tick();
+  });
+  tick();
+})();
+/* 只做兩件事，都不連外網（手錶只擋跨網域連線，一般 JavaScript 可以跑）：
+   1. 讓每個連結每次都帶不一樣的網址參數 → 手錶就不會拿舊的快取充數
+   2. 算這份資料放了幾分鐘，超過就變色警告                              */
+(function(){
+  try{
+    var now = Date.now();
+    var v = '?v=' + now;
+    var a = document.getElementsByTagName('a');
+    for (var i = 0; i < a.length; i++){
+      var h = a[i].getAttribute('href') || '';
+      if (h.indexOf('.html') > -1) a[i].setAttribute('href', h.split('?')[0] + v);
+    }
+    /* 浮動快捷鍵：置頂／跳到現在的時段／重新載入 */
+    var fab=document.getElementById('fab');
+    var bd=document.body, cid=bd.getAttribute('data-c')||'', hid=bd.getAttribute('data-h')?'-h':'',
+        cp=bd.getAttribute('data-p')||'';
+    var nd=new Date(), hh=nd.getHours(), px=bd.getAttribute('data-x')||'w';
+    var np=hh<6?'h00':((px==='a'&&hh*60+nd.getMinutes()<810)?'h06':(hh<18?'h13':'h18'));
+    var fN=document.getElementById('fNow');
+    if(fN){
+      fN.setAttribute('href',px+'-'+np+'-'+cid+hid+'.html'+v);
+      if(np===cp) fN.className='fabb on';
+    }
+    var fT=document.getElementById('fTop');
+    if(fT) fT.addEventListener('click',function(){
+      try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
+    });
+
+    /* A–D 區篩選（純本頁 JavaScript，不用連線） */
+    var zs={A:1,B:1,C:1,D:1};
+    function zApply(){
+      var rs=document.querySelectorAll('.r[data-z]');
+      for(var i=0;i<rs.length;i++){
+        var z=rs[i].getAttribute('data-z');
+        rs[i].style.display=(/[A-D]/.test(z)&&!zs[z])?'none':'';
+      }
+      var bs=document.querySelectorAll('.btn.zone');
+      for(var j=0;j<bs.length;j++){
+        var zz=bs[j].getAttribute('data-z');
+        bs[j].className='btn zone'+(zs[zz]?' on':'');
+        bs[j].textContent=(zs[zz]?'✓ ':'　')+zz+'區';
+      }
+    }
+    var zbs=document.querySelectorAll('.btn.zone');
+    for(var k=0;k<zbs.length;k++){
+      (function(el){
+        el.addEventListener('click',function(){
+          var z=el.getAttribute('data-z'), cnt=0;
+          for(var key in zs) if(zs[key]) cnt++;
+          if(zs[z]&&cnt<=1) return;
+          zs[z]=!zs[z]; zApply();
+        });
+      })(zbs[k]);
+    }
+    var b = +(document.body.getAttribute('data-b') || 0);
+    var el = document.getElementById('age');
+    var m = b ? Math.floor((now - b) / 60000) : 0;
+    if (m < 0) m = 0;
+    function ageTxt(x){
+      if (x < 1) return '剛更新';
+      if (x < 60) return x + '分前';
+      var h = Math.floor(x / 60), r = x % 60;
+      return h + '小時' + (r ? r + '分' : '') + '前';
+    }
+    if (b && el){
+      el.textContent = '· ' + ageTxt(m);
+      if (m >= 45) el.className = 'dead';
+      else if (m >= 20) el.className = 'old';
+    }
+    /* 這頁不連網，資料可能是好幾小時前的。超過 30 分鐘就用一整條紅帶講清楚，
+       不要只靠角落那個小字。 */
+    var sb = document.getElementById('stale');
+    if (b && sb && m >= 30){
+      sb.innerHTML = '資料是 <b>' + ageTxt(m) + '</b> 抓的'
+        + '<br>正在跟 TDX 對時間和登機門…';
+      if (m >= 120) sb.className = 'bad';
+      sb.hidden = false;
+    }
+
+    /* ── 每次開頁都跟 TDX 對一次時間／登機門／狀態 ────────────────────
+       原本只在「資料超過 30 分鐘」才對，但 GitHub 的排程實際上常常
+       隔好幾個小時才跑一次，等於每次開都是舊的，那就乾脆每次都對。
+       畫面已經先出來了，這只是事後補正：抓不到、逾時、格式怪都維持原樣，
+       絕不會讓這一頁開不出來或卡住。只抓一次，沒有定時輪詢。
+       為了不把 TDX 的免登入額度打爆，兩分鐘內重開會直接用上次的結果，不再連線。 */
+    if (b && m >= 2) tdxPatch();
+
+    function tdxPatch(){
+      var day = document.body.getAttribute('data-day') || '';
+      var box = document.getElementById('stale');
+      if (!day) return;
+      /* 先看看兩分鐘內有沒有抓過，有就直接拿來用（省一次連線、也更快出來） */
+      try{
+        var c = JSON.parse(localStorage.getItem('tdxCache') || 'null');
+        if (c && c.day === day && (Date.now() - c.t) < 120000 && c.d && c.d.length){
+          apply(c.d, true); return;
+        }
+      }catch(e){}
+      var url = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Arrival/TPE'
+              + '?%24format=JSON'
+              + '&%24select=FlightNumber,AirlineID,ScheduleArrivalTime,EstimatedArrivalTime,'
+              + 'ActualArrivalTime,Gate,ArrivalRemark'
+              + '&%24filter=' + encodeURIComponent("date(FlightDate) eq " + day + " and Terminal eq '2'")
+              + '&nc=' + now;
+      var over = false;
+      var timer = setTimeout(function(){ if(!over){ over = true; tail('TDX 沒回應，畫面維持原樣'); } }, 8000);
+      function finish(fn){ if(over) return; over = true; clearTimeout(timer); try{ fn(); }catch(e){} }
+      function tail(t){ if(box){ box.innerHTML += '<br>' + t; } }
+
+      try{
+        fetch(url).then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(list){ finish(function(){
+          if(!list || !list.length){ tail('TDX 沒回傳資料，畫面維持原樣'); return; }
+          try{ localStorage.setItem('tdxCache', JSON.stringify({ day: day, t: Date.now(), d: list })); }catch(e){}
+          apply(list);
+        }); })['catch'](function(){ finish(function(){ tail('TDX 連不到，畫面維持原樣'); }); });
+      }catch(e){ finish(function(){}); }
+
+      function hm(s){ var x=String(s||'').match(/T(\d\d:\d\d)/); return x?x[1]:''; }
+      function toMin(t){ var q=String(t||'').split(':'); return (+q[0])*60+(+q[1]); }
+      function fkey(c){
+        var s=String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+        var x=s.match(/^([A-Z]*)0*(\d+)$/); return x?(x[1]+x[2]):s;
+      }
+      function esc2(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+      function stOf(p){
+        var r = p.rm || '';
+        if(/取消/.test(r))           return {txt:'取消', cls:'bad',  done:false};
+        if(/抵達|已到|降落/.test(r)) return {txt:'已到', cls:'ok',   done:true };
+        if(/延誤|延遲/.test(r))      return {txt:'延遲', cls:'warn', done:false};
+        if(/更改|變更/.test(r)){
+          var d = (p.act && p.sch) ? (toMin(p.act)-toMin(p.sch)) : 0;
+          return {txt: d<0?'提早':(d>0?'延遲':'時間更新'), cls: d<0?'early':'warn', done:false};
+        }
+        if(/準時/.test(r))           return {txt:'準時', cls:'info', done:false};
+        return {txt:'預計', cls:'none', done:false};
+      }
+
+      function apply(list, fromCache){
+        var map={}, i;
+        for(i=0;i<list.length;i++){
+          var r=list[i];
+          var k=fkey(String(r.AirlineID||'')+String(r.FlightNumber||''));
+          var sc=hm(r.ScheduleArrivalTime);
+          if(!k||!sc) continue;
+          if(!map[k]) map[k]=[];
+          map[k].push({ sch:sc, act:hm(r.ActualArrivalTime)||hm(r.EstimatedArrivalTime),
+                        gate:String(r.Gate||'').trim(), rm:String(r.ArrivalRemark||'') });
+        }
+        var rows=document.querySelectorAll('.r[data-fn]'), hit=0, chg=0;
+        var nowM=(function(){ var x=new Date(); return x.getHours()*60+x.getMinutes(); })();
+        for(i=0;i<rows.length;i++){
+          var row=rows[i], cs=map[fkey(row.getAttribute('data-fn'))];
+          if(!cs) continue;
+          var o=row.getAttribute('data-o')||'', pick=cs[0], bd=99999, j;
+          for(j=0;j<cs.length;j++){
+            var d=Math.abs(toMin(cs[j].sch)-toMin(o));
+            if(d<bd){ bd=d; pick=cs[j]; }
+          }
+          if(bd>180) continue;              /* 差太多＝對錯班了，寧可不改 */
+          hit++;
+          if(patchRow(row,pick,nowM)) chg++;
+        }
+        try{ zApply(); }catch(e){}
+        if(box){
+          var t=new Date();
+          box.className='ok';
+          box.innerHTML='已用 <b>TDX 即時資料</b>校對過（'
+            + (t.getHours()<10?'0':'') + t.getHours() + ':' + (t.getMinutes()<10?'0':'') + t.getMinutes()
+            + (fromCache ? '，兩分鐘內的快取' : '') + '）<br>對到 ' + hit + ' 班，其中 ' + chg + ' 班有變動'
+            + '<br><small>人數推估仍是 ' + ageTxt(m) + '抓的</small>';
+          box.hidden=false;
+        }
+      }
+
+      function patchRow(row,p,nowM){
+        var changed=false;
+        var big = p.act || p.sch;
+        var tEl = row.getElementsByTagName('b')[0];
+        if(tEl && tEl.className.indexOf('t')===0 && big){
+          var keepNd = row.getElementsByClassName('nd').length>0;
+          var old=(tEl.textContent||'').replace(/[^0-9:]/g,'').slice(0,5);
+          if(old!==big) changed=true;
+          var tc='plan';
+          if(p.act && p.sch){ var d=toMin(p.act)-toMin(p.sch); tc = d>0?'late':(d<0?'early':'same'); }
+          tEl.className='t t-'+tc;
+          tEl.innerHTML=big+(keepNd?'<i class="nd">隔日</i>':'');
+        }
+        var gEl=row.getElementsByClassName('g')[0];
+        if(gEl){
+          var og=(gEl.textContent||'').trim();
+          if(og!==p.gate) changed=true;
+          gEl.innerHTML = p.gate ? '<b class="gn">'+esc2(p.gate)+'</b>' : '';
+          row.setAttribute('data-z', p.gate?p.gate.charAt(0).toUpperCase():'');
+        }
+        var st=stOf(p), sEl=row.getElementsByClassName('st')[0];
+        if(sEl){
+          if((sEl.textContent||'').trim()!==st.txt) changed=true;
+          sEl.className='st b-'+st.cls;
+          sEl.textContent=st.txt;
+        }
+        var base=row.className.replace(/\s*\b(done|soon)\b/g,'');
+        var eta = big ? (toMin(big)-nowM) : 9999;
+        var soon = !st.done && st.txt!=='取消' && eta>=0 && eta<=45;   /* 取消的不該發光 */
+        row.className = base + (st.done?' done':(soon?' soon':''));
+        return changed;
+      }
+    }
+
+  }catch(e){}
+})();
+</script>
+<div id="pvbi" style="position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);right:6px;z-index:9999;display:flex;gap:4px;background:rgba(10,6,20,.92);border:1px solid #ff2a6d;padding:4px;font:900 13px/1 system-ui,sans-serif">
+<span style="color:#ffc1d6;align-self:center;padding:0 4px">預覽</span>
+<button data-m="A" style="all:unset;cursor:pointer;padding:6px 9px;border:1px solid #00f0ff;color:#00f0ff">小圖</button>
+<button data-m="B" style="all:unset;cursor:pointer;padding:6px 9px;border:1px solid #00f0ff;color:#00f0ff">大圖</button>
+<button data-m="0" style="all:unset;cursor:pointer;padding:6px 9px;border:1px solid #888;color:#bbb">原本</button></div>
+<script>(function(){var R=document.documentElement,B=document.getElementById('pvbi');function cur(){try{return localStorage.getItem('tpeBi')||'A';}catch(e){return 'A';}}
+function paint(){var m=cur();[].forEach.call(B.querySelectorAll('button'),function(b){var on=b.getAttribute('data-m')===m;b.style.background=on?'#00f0ff':'transparent';b.style.color=on?'#001':'#00f0ff';});}
+B.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var m=b.getAttribute('data-m');try{localStorage.setItem('tpeBi',m);}catch(_){}R.classList.remove('biA','biB');if(m!=='0')R.classList.add('bi'+m);paint();});paint();})();</script>
+</body></html>
