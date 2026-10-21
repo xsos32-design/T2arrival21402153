@@ -125,7 +125,7 @@
       var html='<div class="h"><span>下一班'+(DEP?'起飛':'落地')+'</span><a data-go="now">看清單 ▾</a></div>';
       var list=[];
       S.forEach(function(k){ var r=RS.filter(function(r){ if(tagOf(r)!==k||r.classList.contains('done')||r.style.display==='none') return false; var e=eta2(r); return r.classList.contains('taxi')||(e!==null&&e>=-15); }).sort(function(a,b){ return eta2(a)-eta2(b); })[0];
-        var cls=k==='2140'?'k40':(k==='2153'?'k53':'');
+        var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===k&&ci<0) ci=i; }); }catch(_){ } var cls=(ci===0?'k40':(ci===1?'k53':''))+(ci>=0?' kc'+ci:'');   /* 10/21：依分類格子上色（大夜YA／YB、自選顏色） */
         if(!r){ html+='<div class="nx none">'+k+'　這個時段沒有還沒到的班機了</div>'; return; }
         var e=eta2(r), taxi=r.classList.contains('taxi'), n=pxN(r);
         list.push(r);
