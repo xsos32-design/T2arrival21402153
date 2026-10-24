@@ -53,7 +53,7 @@
   function left(e){ return e<=0?'快到了':(e>=60?Math.floor(e/60)+' 小時'+(e%60?' '+(e%60)+' 分':'')+'後':e+' 分後'); }
   /* 還有幾分：跨過午夜的（清單裡「隔日」那條線以後的）才加 24 小時，早上已經過去的班不會被當成明天 */
   function eta2(r){ var t=hm(txt(r.querySelector('.c-time b'))); if(t===null) return 1e9; var d=new Date(), e=t-(d.getHours()*60+d.getMinutes());
-    var db=D.querySelector('#out .daybreak'); if(db&&(db.compareDocumentPosition(r)&Node.DOCUMENT_POSITION_FOLLOWING)) e+=1440; return e; }
+    [].forEach.call(D.querySelectorAll('#out .daybreak'),function(db){ if(db.compareDocumentPosition(r)&Node.DOCUMENT_POSITION_FOLLOWING) e+=1440; }); return e; }
   function rows(){ return [].slice.call(D.querySelectorAll('#out .r:not(.head)')); }
 
   /* N3：使用者按了時段／分類／區域／隱藏，畫完就跳一行「現在看的是什麼」 */
@@ -62,7 +62,7 @@
   D.addEventListener('change',function(e){ if(e.target&&/^(t1|t2|date)$/.test(e.target.id)) poke=Date.now(); },true);
   function feedback(){
     var S=sel(), pre=D.querySelector('.chip.act[data-t]'), n6=D.getElementById('now6'), t2=D.getElementById('t2'), t1=D.getElementById('t1');
-    var range=(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre).replace(/[✓\s]/g,''):((t1&&t1.value)+'–'+(t2&&t2.value)));
+    var range=(window.CUST&&window.custLabel)?'自訂 '+custLabel():(n6&&n6.classList.contains('act'))?'現在起 6 小時':(pre?txt(pre).replace(/[✓\s]/g,''):((t1&&t1.value)+'–'+(t2&&t2.value)));
     var mine=rows().filter(function(r){ return S.indexOf(tagOf(r))>=0&&r.style.display!=='none'; }).length;
     var sig=range+'|'+S.join(',')+'|'+mine;
     if(sig!==lastSig&&Date.now()-poke<4000){
