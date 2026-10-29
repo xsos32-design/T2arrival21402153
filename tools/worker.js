@@ -182,6 +182,19 @@ export default {
       await t('TDX', async () => toRows((await tdx(env, today, tomorrow)).list, today, {}));
       await t('開放資料', () => odp(today, {}));
       out['金鑰'] = (env.TDX_ID && env.TDX_SECRET) ? '有設定' : '沒設定';
+      if (env.TDX_ID && env.TDX_SECRET) {            /* 只回報認證成不成功、狀態碼，不回傳任何金鑰內容 */
+        try {
+          const r = await fetch(TDX_TOKEN, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
+            body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.TDX_ID, client_secret: env.TDX_SECRET }) });
+          const txt = await r.text(); let err = ''; try { err = JSON.parse(txt).error || ''; } catch (e) {}
+          out['認證'] = r.ok ? '成功' : ('失敗 ' + r.status + (err ? ' ' + err : ''));
+          if (r.ok) {
+            const tok = 'Bearer ' + JSON.parse(txt).access_token;
+            const q = await fetch(TDX_ARR + '?%24top=1&%24format=JSON', { headers: { Accept: 'application/json', 'User-Agent': UA, Authorization: tok } });
+            out['金鑰查詢'] = q.status + (q.ok ? ' 可用' : ' ' + (await q.text()).slice(0, 80));
+          }
+        } catch (e) { out['認證'] = '錯誤 ' + String(e && e.message || e); }
+      }
       return new Response(JSON.stringify(out, null, 1), { headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS } });
     }
     if (u.pathname !== '/snap') return new Response('not found', { status: 404, headers: CORS });
