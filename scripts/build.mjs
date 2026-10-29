@@ -106,8 +106,12 @@ const QUIET  = (H >= 2 && H < 13);
 /* 忙碌時段每 10 分鐘更新一次到站（匿名查詢不吃帳號點數，可以抓得比以前密）。
    快照越新，手錶就越不需要自己去連 TDX——429 就是這樣避開的。 */
 const TENMIN = !QUIET && (M % 10) < 5;
+/* 10/29：外部定時器其實每 5 分鐘準時叫一次，之前是這裡故意跳過。
+   改成忙碌時段（13:00–02:00）每 5 分鐘、離峰每 10 分鐘都更新 —— 抓 TDX 先用匿名（不吃點數），金鑰留給手錶中繼 */
+const EVERY5 = !QUIET;
+const QUIET10 = QUIET && (M % 10) < 5;
 /* 其餘全部跳過：不抓資料、不部署，線上維持上一份 */
-const SKIP   = !FORCE && !HOURLY && !TENMIN;
+const SKIP   = !FORCE && !HOURLY && !TENMIN && !EVERY5 && !QUIET10;
 
 /* TDX 會把共掛班號（同一架飛機、多個航空公司班號）拆成好幾筆。
    對現場作業來說那是同一班，所以依「時間＋登機門＋航廈＋出發地」合併成一列。 */
@@ -1376,7 +1380,7 @@ async function main() {
   /* ── 主要來源：TDX（政府官方，國外機房連得到）──
      先用金鑰；金鑰過期或認證失敗就改用匿名查詢再試一次。
      兩次都倒才往下掉到桃機開放資料。 */
-  for (const mode of ['key', 'anon']) {
+  for (const mode of ['anon', 'key']) {   /* 10/29：先匿名（不吃點數），不行才用金鑰 */
   if (flights.length) break;
   try {
     const auth = mode === 'key' ? await tdxAuth() : '';
