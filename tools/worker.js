@@ -96,6 +96,38 @@ function toRows(list, todayISO, X) {
   return [...seen.values()];
 }
 
+/* 來源一：桃機官網那支（資料最完整，有滑行／抵達機坪）。國外機房常被擋，擋了就換下一個 */
+const APT = 'https://www.taoyuan-airport.com/api/api/flight/a_flight';
+async function apt(todayISO, tomorrowISO, X) {
+  const base = Date.parse(todayISO + 'T00:00:00Z');
+  const dOff = s => { const d = String(s || '').slice(0, 10).replace(/\//g, '-'); if (!d) return 0; const b = Date.parse(d + 'T00:00:00Z'); return isNaN(b) ? 0 : Math.round((b - base) / 86400000); };
+  const hm = s => String(s || '').slice(0, 5);
+  const one = async iso => {
+    const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 8000);
+    try {
+      const r = await fetch(APT, { method: 'POST', signal: ac.signal,
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': UA, Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/' },
+        body: JSON.stringify({ AState: 'A', ODate: iso.replace(/-/g, '/'), language: 'ch' }) });
+      clearTimeout(tm);
+      if (!r.ok) throw new Error('桃機 ' + r.status);
+      return await r.json();
+    } catch (e) { clearTimeout(tm); throw e; }
+  };
+  const [a, b] = await Promise.all([one(todayISO), one(tomorrowISO).catch(() => [])]);
+  const rows = [];
+  for (const f of (a || []).concat(b || [])) {
+    const s = hm(f.OTime); if (!s) continue;
+    if (String(f.Memo || '').includes('貨')) continue;
+    const code = String(f.flightCode || ((f.ACode || '') + (f.FlightNo || ''))).trim();
+    const act = hm(f.RTime), memo = String(f.Memo || '').trim() || String(f.CurrentStatus || '').trim();
+    rows.push([code, String(f.CityCode || '').trim(), String(f.Gate || '').trim(), String(f.BNO || ''),
+      s.replace(':', ''), act ? act.replace(':', '') : '', dOff(f.ODate), act ? dOff(f.RDate || f.ODate) : 0, memo,
+      typeof X[code.toUpperCase()] === 'number' ? X[code.toUpperCase()] : 0]);
+  }
+  if (!rows.length) throw new Error('桃機 0 班');
+  return rows;
+}
+
 /* 備援：桃機開放資料平台（不用金鑰；有時只讓台灣連線，連不到就算了） */
 const ODP = 'https://odp.taoyuan-airport.com/dataset/2025102001?format=json';
 async function odp(todayISO, X) {
@@ -128,7 +160,8 @@ async function build(env) {
   const n = tpeNow(), today = isoOf(n), tomorrow = isoOf(new Date(n.getTime() + 86400000));
   const M = await meta();
   let rows = [], src = '', why = [];
-  try { const { list, mode } = await tdx(env, today, tomorrow); rows = toRows(list, today, M.x || {}); src = 'tdx-' + mode; }
+  try { rows = await apt(today, tomorrow, M.x || {}); src = 'apt'; } catch (e) { why.push(String(e && e.message || e)); }
+  if (!rows.length) try { const { list, mode } = await tdx(env, today, tomorrow); rows = toRows(list, today, M.x || {}); src = 'tdx-' + mode; }
   catch (e) { why.push(String(e && e.message || e)); }
   if (!rows.length) {
     try { rows = await odp(today, M.x || {}); src = 'odp'; } catch (e) { why.push(String(e && e.message || e)); }
@@ -142,6 +175,15 @@ export default {
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
     const u = new URL(req.url);
     if (u.pathname === '/' ) return new Response('小韋班機看板中繼：/snap', { headers: { 'Content-Type': 'text/plain; charset=utf-8', ...CORS } });
+    if (u.pathname === '/probe') {          /* 檢查各來源通不通（不含任何金鑰內容） */
+      const n = tpeNow(), today = isoOf(n), tomorrow = isoOf(new Date(n.getTime() + 86400000)), out = {};
+      const t = async (k, fn) => { const s0 = Date.now(); try { const r = await fn(); out[k] = 'ok ' + (r.length || 0) + ' 班 ' + (Date.now() - s0) + 'ms'; } catch (e) { out[k] = 'x ' + String(e && e.message || e) + ' ' + (Date.now() - s0) + 'ms'; } };
+      await t('桃機', () => apt(today, tomorrow, {}));
+      await t('TDX', async () => toRows((await tdx(env, today, tomorrow)).list, today, {}));
+      await t('開放資料', () => odp(today, {}));
+      out['金鑰'] = (env.TDX_ID && env.TDX_SECRET) ? '有設定' : '沒設定';
+      return new Response(JSON.stringify(out, null, 1), { headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS } });
+    }
     if (u.pathname !== '/snap') return new Response('not found', { status: 404, headers: CORS });
 
     const cache = caches.default;
