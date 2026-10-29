@@ -13,7 +13,7 @@ const TDX_ARR   = 'https://tdx.transportdata.tw/api/basic/v2/Air/FIDS/Airport/Ar
 const SEL = 'FlightDate,FlightNumber,AirlineID,DepartureAirportID,ScheduleArrivalTime,EstimatedArrivalTime,ActualArrivalTime,Terminal,Gate,ArrivalRemark,IsCargo';
 const META = 'https://xsos32-design.github.io/T2arrival21402153/meta.json';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
-const KEEP = 60;          /* 同一份資料共用幾秒 */
+const KEEP = 90;          /* 同一份資料共用幾秒（省 TDX 次數：手錶一直開著也最多 40 次／小時） */
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Max-Age': '86400' };
 
 let TOKEN = null;         /* { v, exp } 同一台 Worker 重複用，省一次認證 */
@@ -113,7 +113,7 @@ async function apt(todayISO, tomorrowISO, X) {
       return await r.json();
     } catch (e) { clearTimeout(tm); throw e; }
   };
-  const [a, b] = await Promise.all([one(todayISO), one(tomorrowISO).catch(() => [])]);
+  const [a, b] = await Promise.all([one(todayISO), tomorrowISO === todayISO ? [] : one(tomorrowISO).catch(() => [])]);
   const rows = [];
   for (const f of (a || []).concat(b || [])) {
     const s = hm(f.OTime); if (!s) continue;
@@ -157,15 +157,15 @@ async function odp(todayISO, X) {
 }
 
 async function build(env) {
-  const n = tpeNow(), today = isoOf(n), tomorrow = isoOf(new Date(n.getTime() + 86400000));
+  const n = tpeNow(), today = isoOf(n);
+  /* 隔天的班只有晚上「現在起 6 小時」跨午夜才用得到：18:00 前只抓今天，資料量少一半 */
+  const tomorrow = n.getUTCHours() >= 18 ? isoOf(new Date(n.getTime() + 86400000)) : today;
   const M = await meta();
   let rows = [], src = '', why = [];
   try { rows = await apt(today, tomorrow, M.x || {}); src = 'apt'; } catch (e) { why.push(String(e && e.message || e)); }
   if (!rows.length) try { const { list, mode } = await tdx(env, today, tomorrow); rows = toRows(list, today, M.x || {}); src = 'tdx-' + mode; }
   catch (e) { why.push(String(e && e.message || e)); }
-  if (!rows.length) {
-    try { rows = await odp(today, M.x || {}); src = 'odp'; } catch (e) { why.push(String(e && e.message || e)); }
-  }
+  /* 開放資料從 Cloudflare 連不到（只讓台灣連），不放進正常流程，只在 /probe 檢查 */
   if (!rows.length) throw new Error(why.join('；') || '0 班');
   return { t: pad(n.getUTCHours()) + ':' + pad(n.getUTCMinutes()), d: today.replace(/-/g, '/'), f: rows, src: 'worker-' + src, at: Date.now() };
 }
