@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-28a';
+var PAGE_V='2026-10-29a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1316,9 +1316,7 @@ function mergeCodeshare(list){
 
 /* 當天出境班表（只給轉機推估用，抓不到就算了，不影響到站清單） */
 function loadDeps(date){
-  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({AState:'D',ODate:date.replace(/-/g,'/'),language:'ch'})})
-  .then(function(r){ return r.ok?r.json():[]; })
+  return apiPost(JSON.stringify({AState:'D',ODate:date.replace(/-/g,'/'),language:'ch'}))
   .then(function(all){
     DEPS=(all||[]).map(function(f){
       return {a:String(f.ACode||'').toUpperCase(),
@@ -1328,16 +1326,47 @@ function loadDeps(date){
   })['catch'](function(){ DEPS=null; });
 }
 
+/* ── 10/29 讀取加速：桃機有時第一次連線會卡 30–40 秒才失敗（實測），重送一次通常半秒就回來 ──
+   apiPost：送出後 4 秒沒回應就再送一次（兩個誰先回來用誰），10 秒都沒有就放棄改走備援 */
+function apiPost(body){
+  return new Promise(function(res,rej){
+    var done=false, tries=0, fails=0, ctl=[], t2, t3;
+    function end(){ done=true; clearTimeout(t2); clearTimeout(t3); ctl.forEach(function(c){ try{ c&&c.abort(); }catch(e){} }); }
+    function go(){
+      tries++; var c=null; try{ c=new AbortController(); }catch(e){} ctl.push(c);
+      fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:body,signal:c?c.signal:undefined})
+      .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+      .then(function(j){ if(done) return; ctl=ctl.filter(function(x){ return x!==c; }); end(); res(j); })
+      ['catch'](function(e){ if(done) return; fails++; if(tries<2) go(); else if(fails>=tries){ end(); rej(e); } });
+    }
+    go();
+    t2=setTimeout(function(){ if(!done&&tries<2) go(); },4000);
+    t3=setTimeout(function(){ if(!done){ end(); rej(new Error('桃機逾時')); } },10000);
+  });
+}
+/* GitHub 每 5 分鐘存的快照（同網域、35KB、秒回）：桃機抓不到時先用它，不用等 TDX */
+function snapFor(date){
+  return fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():null; }).then(function(j){
+    if(!j||!j.d||!j.d.length) return null;
+    var m=String(j.t||'').match(/(\d\d):(\d\d)/); if(!m) return null;
+    var n=new Date(), age=n.getHours()*60+n.getMinutes()-((+m[1])*60+(+m[2])); if(age<0) age+=1440;
+    if(age>40) return null;                       /* 超過 40 分鐘的快照不拿來用 */
+    var want=date.replace(/-/g,'/'), l=j.d.filter(function(f){ return f.ODate===want||f.RDate===want; });
+    if(!l.length) return null;
+    l.__snapT=j.t; return l;
+  })['catch'](function(){ return null; });
+}
+
 /* 先試桃機（資料最完整），失敗就換 TDX（手錶走這條） */
 function getFlights(date){
   return Promise.all([getFlightsRaw(date), loadDeps(date)]).then(function(r){ return r[0]; });
 }
 function getFlightsRaw(date){
-  return fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'})})
-  .then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+  return apiPost(JSON.stringify({AState:'A',ODate:date.replace(/-/g,'/'),language:'ch'}))
   .then(function(all){ srcLabel='桃機'; return all||[]; })
   ['catch'](function(){
+    /* 桃機兩次都失敗：先看 GitHub 快照夠不夠新（秒回），不夠新才去等 TDX */
+    return snapFor(date).then(function(snap){ if(snap){ srcLabel='快照'; return snap; }
     /* 只抓查詢的那一天（資料量剩 1/3、省 TDX 額度），25 秒沒回應就放棄 */
     var url=TDX_ARR+'&%24filter='+encodeURIComponent('date(FlightDate) eq '+date);
     var bail=new Promise(function(x,rej){ setTimeout(function(){ rej(new Error('TDX 逾時')); },25000); });
@@ -1348,6 +1377,7 @@ function getFlightsRaw(date){
     ]).then(function(res){
       srcLabel='TDX';
       return mergeCodeshare((res[0]||[]).map(function(f){ return fromTDX(f,res[1]); }));
+    });
     });
   });
 }
@@ -1920,6 +1950,16 @@ getFlightsRaw=function(date){ return _gfr(date).then(function(list){ ALLDAY[date
         setTimeout(function(){ setDot('busy','先顯示 '+lab+' 的資料，抓最新的中…'); },0);
         return Promise.resolve(c.d);
       }
+      /* 10/29：手機裡沒存過（例如今天第一次開）：桃機 2.5 秒還沒回，就先秀 GitHub 快照，抓到再自動換 */
+      if(KIND==='A') return new Promise(function(res,rej){
+        var settled=false;
+        p.then(function(l){ if(!settled){ settled=true; res(l); } },function(e){ if(!settled){ settled=true; rej(e); } });
+        setTimeout(function(){ if(settled) return; snapFor(date).then(function(s){ if(settled||!s) return; settled=true;
+          ALLDAY[date]=s; srcLabel='快照'; fromCache[date]=1;
+          p.then(function(){ setTimeout(function(){ var b=document.getElementById('fGo'); if(b) b.click(); },30); },function(){});
+          setTimeout(function(){ setDot('busy','先顯示 '+s.__snapT+' 的快照，抓最新的中…'); },0);
+          res(s); }); },2500);
+      });
     }
     return p;
   };
@@ -1930,9 +1970,14 @@ getFlightsRaw=function(date){ return _gfr(date).then(function(list){ ALLDAY[date
     depMemo[date]=o; return o.p; };
   var fromCache={};
   getFlights=function(date){
-    var raw=getFlightsRaw(date), dep=loadDeps(date);
+    var raw=getFlightsRaw(date);
+    if(KIND==='D'){ fromCache[date]=0; return raw; }   /* 出境頁：主資料就是出境班表，不用再抓一次 */
+    var dep=loadDeps(date);
     if(fromCache[date]){ fromCache[date]=0; dep['catch'](function(){}); return raw; }
-    return Promise.all([raw,dep]).then(function(r){ return r[0]; });
+    /* 10/29：轉機推估要用的出境班表最多等 2 秒，晚到就先畫、到了再重畫一次（出境頁根本用不到，不等） */
+    var late=false;
+    dep.then(function(){ if(late&&lastRows&&lastRows.length) try{ render(); }catch(e){} },function(){});
+    return Promise.all([raw,Promise.race([dep['catch'](function(){}),new Promise(function(r){ setTimeout(function(){ late=true; r(); },2000); })])]).then(function(r){ return r[0]; });
   };
   try{ real(today()); }catch(e){}   /* 開頁就先抓，跟機隊表同時下載 */
 })();
