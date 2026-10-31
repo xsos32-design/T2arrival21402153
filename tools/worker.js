@@ -119,9 +119,15 @@ async function apt(todayISO, tomorrowISO, X) {
     const s = hm(f.OTime); if (!s) continue;
     if (String(f.Memo || '').includes('貨')) continue;
     const code = String(f.flightCode || ((f.ACode || '') + (f.FlightNo || ''))).trim();
-    const act = hm(f.RTime), memo = String(f.Memo || '').trim() || String(f.CurrentStatus || '').trim();
+    const act = hm(f.RTime), cs = String(f.CurrentStatus || '').trim();
+    let memo = String(f.Memo || '').trim();
+    /* 桃機有「地面滑行／抵達機坪」，手錶版認得：滑行 → 滑行、抵達機坪 → 已到 */
+    if (/滑行/.test(cs)) memo = '滑行';
+    else if (/抵達|機坪/.test(cs) && !/取消/.test(memo)) memo = '已到';
+    const so = dOff(f.ODate), ro = act ? dOff(f.RDate || f.ODate) : so;
+    if (so < 0 && ro < 0) continue;              /* 昨天的班（已經到了）不帶 */
     rows.push([code, String(f.CityCode || '').trim(), String(f.Gate || '').trim(), String(f.BNO || ''),
-      s.replace(':', ''), act ? act.replace(':', '') : '', dOff(f.ODate), act ? dOff(f.RDate || f.ODate) : 0, memo,
+      s.replace(':', ''), act ? act.replace(':', '') : '', so, act ? ro : 0, memo,
       typeof X[code.toUpperCase()] === 'number' ? X[code.toUpperCase()] : 0]);
   }
   if (!rows.length) throw new Error('桃機 0 班');
