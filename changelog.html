@@ -62,7 +62,13 @@ a{color:var(--k40)}
   <a class="back" href="index.html">← 回班機看板</a>
 </div>
 
-<div class="day"><b>10/29</b><em>讀取加速：桃機卡住不再乾等</em><i class="new">最新</i></div>
+<div class="day"><b>11/1</b><em>手錶改走 Cloudflare 即時中繼，資料最多晚 1–2 分鐘</em><i class="new">最新</i></div>
+<div class="card hi"><ul>
+  <li>手錶版現在<b>先問 Cloudflare 即時中繼</b>（tpe-board.xsos32.workers.dev）：它直接向桃機官網抓，大家共用 90 秒，不靠 GitHub、也不靠電腦。中繼不通才讀 GitHub 快照，最後才是 TDX。</li>
+  <li>標題列寫「<b>即時</b>」就是走中繼。桃機的「地面滑行」也會帶過來，手錶上直接顯示「滑行」。</li>
+  <li>GitHub 快照同時改成忙碌時段每 5 分鐘、凌晨到中午每 10 分鐘更新，當中繼的備援。</li>
+</ul></div>
+<div class="day"><b>10/29</b><em>讀取加速：桃機卡住不再乾等</em></div>
 <div class="card hi"><ul>
   <li>實測桃機偶爾第一次連線會卡 30–40 秒才失敗，重送一次通常半秒就回來。現在 <b>4 秒沒回應就自動再送一次</b>，10 秒都沒有才換備援。</li>
   <li>備援先用 <b>GitHub 快照</b>（同網站、秒回，40 分鐘內的才用），不夠新才等交通部 TDX。</li>

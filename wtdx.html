@@ -587,7 +587,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-10-29a';
+var PAGE_V='2026-11-01a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -772,7 +772,7 @@ function statusOf(f){
   var memo=f.Memo||'';
   if(/取消/.test(memo)) return {txt:'取消', cls:'bad', done:false};
   /* 滑行：TDX 沒有這欄，另外向桃機即時查（見最下面 taxiLoad）。已落地、還沒靠橋，不算抵達 */
-  if(TAXI[codeKey(f.flightCode)]) return {txt:'滑行', cls:'taxi', done:false};
+  if(TAXI[codeKey(f.flightCode)]||/滑行/.test(memo)) return {txt:'滑行', cls:'taxi', done:false};   /* 10/31：中繼從桃機帶來的「滑行」也算 */
   if(/已到/.test(memo)) return {txt:'抵達', cls:'ok',  done:true };
   if(/延遲|延誤/.test(memo)) return {txt:'延遲', cls:'warn',done:false};
   /* 「時間變更」看不出是好是壞，直接講比表定早還是晚 */
@@ -1336,7 +1336,7 @@ function applySnap(j,cached){
   /* 這份資料放了多久？標題列一律標出來，不要只給一個時刻讓人自己換算 */
   var age=snapAgeMin(j), at=ageText(age);
   var hf=document.getElementById('hfreq');
-  if(hf) hf.textContent=at?((cached?'上次 ':'快照 ')+at):'快照';
+  if(hf) hf.textContent=j.__relay?'即時':(at?((cached?'上次 ':'快照 ')+at):'快照');
   var el=document.getElementById('hstamp');
   el.textContent=(j.t||'')+(cached?'':' ↻');
   el.className='u'+(age===null?'':(age>=SNAP_MAX_AGE?' err':(age>=8?' old':'')));
@@ -1428,6 +1428,17 @@ function liveSkip(fresh){
   return false;
 }
 
+/* ── 10/29：Cloudflare 即時中繼（tools/worker.js）。網址填好才會用，空白＝照舊只讀 GitHub 快照 ── */
+var RELAY_URL='https://tpe-board.xsos32.workers.dev/snap';
+function liveRelay(fresh){
+  if(!RELAY_URL) return Promise.reject(new Error('沒設定中繼'));
+  var ac=null; try{ ac=new AbortController(); }catch(e){}
+  var tm=setTimeout(function(){ try{ ac&&ac.abort(); }catch(e){} },7000);
+  return fetch(RELAY_URL+(fresh?'?fresh=1':''),{signal:ac?ac.signal:undefined,cache:'no-store'})
+    .then(function(r){ clearTimeout(tm); if(!r.ok) throw new Error('中繼 '+r.status); return r.json(); })
+    .then(function(j){ if(!j||!j.f||!j.f.length) throw new Error('中繼沒資料'); j.__relay=1; return j; },
+          function(e){ clearTimeout(tm); throw e; });
+}
 function loadSnap(fresh){
   var el=document.getElementById('hstamp');
   el.textContent='讀取中…'; el.className='u busy';
@@ -1435,8 +1446,11 @@ function loadSnap(fresh){
      按了更新才換新的編號去重抓，平常重開都吃快取。 */
   var v=fresh?Date.now():Math.floor(Date.now()/300000);
   return tdxNames()['catch'](function(){ return {}; }).then(function(){
-    return fetch('snap.json?v='+v)
-      .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
+    /* 10/29：先問 Cloudflare 即時中繼（最多 1 分鐘舊）；沒設定、連不上或回空的，才讀 GitHub 快照 */
+    return liveRelay(fresh)['catch'](function(){
+      return fetch('snap.json?v='+v)
+        .then(function(r){ if(!r.ok) throw new Error('快照 '+r.status); return r.json(); });
+    });
   }).then(function(j){
     if(j&&j.f&&j.f.length){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(j)); }catch(e){} }
     applySnap(j,false);
