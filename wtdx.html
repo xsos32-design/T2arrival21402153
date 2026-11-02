@@ -582,7 +582,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02c';
+var PAGE_V='2026-11-02d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2269,6 +2269,37 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 </style>
 <script>
 (function(){ var m=document.getElementById('more'); if(m) m.hidden=false; })();
+</script>
+<style>
+/* ══ 11/2：縮小模式（標題列「縮小」鍵）：只留時間、登機門、預估入境、狀態，一班一行 ══ */
+#bzoom{order:-1;flex:0 0 auto;font-size:12px;font-weight:900;letter-spacing:.04em;color:#00EFD4;border:1px solid rgba(0,239,212,.6);padding:1px 6px;line-height:1.5;cursor:pointer;background:rgba(0,239,212,.08)}
+html.cmp #bzoom{color:#0A0D12;background:#00EFD4}
+html.cmp body:not(#_) .mk,html.cmp body:not(#_) .grp,html.cmp body:not(#_) #more,html.cmp body:not(#_) .notice,
+html.cmp body:not(#_) #immnote,html.cmp body:not(#_) #holnote,html.cmp body:not(#_) .sep,html.cmp body:not(#_) #hfreq{display:none!important}
+html.cmp body:not(#_) .r{display:grid!important;grid-template-columns:auto auto 1fr auto!important;grid-template-areas:none!important;align-items:center!important;
+  gap:0 6px!important;padding:5px 6px 5px 11px!important;margin-bottom:4px!important;min-height:0!important}
+html.cmp body:not(#_) .r>*{grid-area:auto!important;grid-row:1!important;margin:0!important}
+html.cmp body:not(#_) .r .f,html.cmp body:not(#_) .r .tag,html.cmp body:not(#_) .r .cn,html.cmp body:not(#_) .r .px u,html.cmp body:not(#_) .r .st.b-none{display:none!important}
+html.cmp body:not(#_) .r .t{grid-column:1!important;font-size:21px!important;line-height:1.1!important}
+html.cmp body:not(#_) .r .t .nd{font-size:10px!important}
+html.cmp body:not(#_) .r .g{grid-column:2!important}
+html.cmp body:not(#_) .r .g .gn{font-size:17px!important;padding:1px 4px!important;line-height:1.2!important}
+html.cmp body:not(#_) .r .c{grid-column:3!important;justify-self:end!important;display:block!important}
+html.cmp body:not(#_) .r .px{font-size:16px!important;padding:1px 4px!important}
+html.cmp body:not(#_) .r .st{grid-column:4!important;font-size:12px!important;padding:1px 3px!important}
+</style>
+<script>
+(function(){
+  var K='tpeWCmp', H=document.documentElement, hd=document.getElementById('hd');
+  try{ if(localStorage.getItem(K)==='1') H.classList.add('cmp'); }catch(e){}
+  var b=document.createElement('span'); b.id='bzoom';
+  function lab(){ b.textContent=H.classList.contains('cmp')?'放大':'縮小'; }
+  lab(); if(hd) hd.insertBefore(b,hd.firstChild);
+  b.addEventListener('click',function(e){ e.stopPropagation();
+    var on=!H.classList.contains('cmp'); H.classList.toggle('cmp',on); lab();
+    try{ localStorage.setItem(K,on?'1':'0'); }catch(e){}
+    try{ window.scrollTo(0,0); }catch(e){} });
+})();
 </script>
 </body>
 </html>
