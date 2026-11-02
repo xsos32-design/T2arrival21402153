@@ -697,7 +697,7 @@
 
     <div class="chips">
       <span class="chiplabel">群組回報（今天 22:30 後）</span>
-      <span class="chip" id="cpD"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 兆豐D區</span>
+      <span class="chip" id="cpD"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 2122D區</span>
       <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 2140+2153</span>
       <span class="chip" id="cpM"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間 18:00–21:30</span>
     </div>
@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02d';
+var PAGE_V='2026-11-02e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1461,7 +1461,7 @@ function runNow6(){
 }
 
 /* ── 群組回報產生器：今天 22:30 後的班機，一鍵複製 ──────────
-   兆豐D區＝二航 D 開頭登機門；2140+2153＝分點別登機門設定那兩組 */
+   2122D區＝二航 D 開頭登機門；2140+2153＝分點別登機門設定那兩組 */
 function fwColon(t){ return t.replace(':','：'); }
 function reportText(kind){
   var d=new Date();
@@ -1569,7 +1569,7 @@ function reportText(kind){
     /* 兩種回報用同一套格式：@All／日期＋標題／時間 班號 出發地 登機門／署名 */
     /* 回報標題只取分類名稱的主要部分，括號註記（例：2153（香化））不帶進群組訊息 */
     var bare=function(x){ return String(x||'').replace(/[（(\[].*$/,'').trim(); };
-    var title = kind==='D' ? '兆豐後續班機'
+    var title = kind==='D' ? '2122後續班機'
               : (bare(CATS[0].name)+'、'+bare(CATS[1].name)+' 後續班機');
     var lines = ['@All ', md+' '+title]
       .concat(rows.map(function(x){
@@ -3143,7 +3143,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
         html+='<button type="button" class="nx '+cls+'" data-r="'+(list.length-1)+'"><span class="tg">'+k+'</span><span class="m"><span class="t">'+txt(r.querySelector('.c-time b'))+'</span><span class="f">'+txt(r.querySelector('.c-fno b'))+'</span>'
           +'<span class="s">'+txt(r.querySelector('.c-city .cn'))+(n?'・約 '+n+' 人':'')+'・<span class="cd">'+(taxi?'滑行中':left(e))+'</span></span></span><span class="g">'+(txt(r.querySelector('.gn'))||'待定')+'</span></button>'; });
       if(!S.length) html+='<div class="nx none">分類都沒勾，按「設定」勾 2140／2153</div>';
-      if(N.N6&&late&&!DEP&&D.getElementById('cpS')) html+='<div class="rep"><button type="button" data-cp="cpD">📋 複製 兆豐D區回報</button><button type="button" data-cp="cpS">📋 複製 2140+2153</button></div>';
+      if(N.N6&&late&&!DEP&&D.getElementById('cpS')) html+='<div class="rep"><button type="button" data-cp="cpD">📋 複製 2122D區回報</button><button type="button" data-cp="cpS">📋 複製 2140+2153</button></div>';
       if(nx.__h!==html){ nx.innerHTML=html; nx.__h=html; }
       nx.onclick=function(e){ var b=e.target.closest('[data-r],[data-go],[data-cp]'); if(!b) return;
         if(b.dataset.cp){ var c=D.getElementById(b.dataset.cp); if(c){ poke=0; c.click(); b.textContent='✓ 已複製，貼到群組就好'; } return; }

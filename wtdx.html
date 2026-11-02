@@ -582,7 +582,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02d';
+var PAGE_V='2026-11-02e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -826,6 +826,11 @@ function fno4(code){
   return m[1]+d;
 }
 
+/* 11/2：縮小模式的短標籤：2140→40、2153→53、大夜YA→YA */
+function tagShort(t){ var b=String(t||'').replace(/[（(\[].*$/,'').trim(), m;
+  if((m=b.match(/^\d{2}(\d{2})$/))) return m[1];
+  if((m=b.match(/(Y[A-Z])\s*$/i))) return m[1].toUpperCase();
+  return b; }
 function tagOf(id){
   var i=+String(id).slice(1);
   if(isNaN(i)||!CATS[i]) return {txt:'其他',cls:'st2'};
@@ -1041,7 +1046,7 @@ function rowHtml(f,nowMin){
   var tg=tagOf(shop);
   return '<div class="r '+cls+(shop==='c0'?' r40':shop==='c1'?' r53':shop==='c2'?' rYA':shop==='c3'?' rYB':'')+'">'
     +'<b class="t t-'+tc+'">'+big+(isNextDay(f)?'<i class="nd">隔日</i>':'')+'</b><span class="f">'+esc(fno4(f.flightCode))+flagCell(f)+'</span><span class="g">'+(String(f.Gate||'').trim()?'<b class="gn">'+esc(f.Gate)+'</b>':'')+'</span>'
-    +'<span class="tag '+tg.cls+'">'+tg.txt+'</span><span class="c"><i class="cn">'+esc(f.CityName)+'</i>'+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
+    +'<span class="tag '+tg.cls+'" data-k="'+esc(tagShort(tg.txt))+'">'+tg.txt+'</span><span class="c"><i class="cn">'+esc(f.CityName)+'</i>'+paxHtml(f)+'</span><span class="st b-'+st.cls+'">'+st.txt+'</span>'
     +'</div>';
 }
 /* 抵達超過 30 分鐘的收成一行「已抵達 N 班」，點了才展開。
@@ -2271,22 +2276,37 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 (function(){ var m=document.getElementById('more'); if(m) m.hidden=false; })();
 </script>
 <style>
-/* ══ 11/2：縮小模式（標題列「縮小」鍵）：只留時間、登機門、預估入境、狀態，一班一行 ══ */
+/* ══ 11/2：縮小模式（標題列「縮小」鍵）：時間＋班號＋登機門一行；分點(40/53)＋出發地＋預估入境＋狀態一行 ══ */
 #bzoom{order:-1;flex:0 0 auto;font-size:12px;font-weight:900;letter-spacing:.04em;color:#00EFD4;border:1px solid rgba(0,239,212,.6);padding:1px 6px;line-height:1.5;cursor:pointer;background:rgba(0,239,212,.08)}
 html.cmp #bzoom{color:#0A0D12;background:#00EFD4}
 html.cmp body:not(#_) .mk,html.cmp body:not(#_) .grp,html.cmp body:not(#_) #more,html.cmp body:not(#_) .notice,
 html.cmp body:not(#_) #immnote,html.cmp body:not(#_) #holnote,html.cmp body:not(#_) .sep,html.cmp body:not(#_) #hfreq{display:none!important}
-html.cmp body:not(#_) .r{display:grid!important;grid-template-columns:auto auto 1fr auto!important;grid-template-areas:none!important;align-items:center!important;
-  gap:0 6px!important;padding:5px 6px 5px 11px!important;margin-bottom:4px!important;min-height:0!important}
-html.cmp body:not(#_) .r>*{grid-area:auto!important;grid-row:1!important;margin:0!important}
-html.cmp body:not(#_) .r .f,html.cmp body:not(#_) .r .tag,html.cmp body:not(#_) .r .cn,html.cmp body:not(#_) .r .px u,html.cmp body:not(#_) .r .st.b-none{display:none!important}
-html.cmp body:not(#_) .r .t{grid-column:1!important;font-size:21px!important;line-height:1.1!important}
+html.cmp body:not(#_) .r{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;grid-template-areas:none!important;align-items:center!important;
+  gap:2px 6px!important;padding:4px 6px 4px 11px!important;margin-bottom:4px!important;min-height:0!important}
+html.cmp body:not(#_) .r>*{grid-area:auto!important;margin:0!important}
+html.cmp body:not(#_) .r .cty,html.cmp body:not(#_) .r .px u{display:none!important}
+html.cmp body:not(#_) .r .t{grid-row:1!important;grid-column:1!important;font-size:20px!important;line-height:1.1!important}
 html.cmp body:not(#_) .r .t .nd{font-size:10px!important}
-html.cmp body:not(#_) .r .g{grid-column:2!important}
-html.cmp body:not(#_) .r .g .gn{font-size:17px!important;padding:1px 4px!important;line-height:1.2!important}
-html.cmp body:not(#_) .r .c{grid-column:3!important;justify-self:end!important;display:block!important}
-html.cmp body:not(#_) .r .px{font-size:16px!important;padding:1px 4px!important}
-html.cmp body:not(#_) .r .st{grid-column:4!important;font-size:12px!important;padding:1px 3px!important}
+html.cmp body:not(#_) .r .f{grid-row:1!important;grid-column:2!important;justify-self:start!important;font-size:15px!important;line-height:1.1!important;white-space:nowrap;overflow:hidden;text-overflow:clip}
+html.cmp body:not(#_) .r .g{grid-row:1!important;grid-column:3!important;justify-self:end!important}
+html.cmp body:not(#_) .r .g .gn{font-size:16px!important;padding:1px 4px!important;line-height:1.2!important}
+html.cmp body:not(#_) .r .tag{visibility:visible!important;height:auto!important;overflow:visible!important;grid-row:2!important;grid-column:1!important;justify-self:start!important;font-size:0!important;padding:0!important;min-width:0!important;width:auto!important;line-height:0!important}
+html.cmp body:not(#_) .r .tag::after{content:attr(data-k);display:inline-block;font-size:13px;line-height:1.3;padding:0 5px;font-weight:900}
+html.cmp body:not(#_) .r .c{grid-row:2!important;grid-column:2!important;justify-self:start!important;display:flex!important;align-items:center;gap:4px;min-width:0;max-width:100%;overflow:hidden}
+html.cmp body:not(#_) .r .cn{display:block!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px!important;font-style:normal}
+html.cmp body:not(#_) .r .px{flex:0 0 auto;font-size:13px!important;padding:0 3px!important}
+html.cmp body:not(#_) .r .st{grid-row:2!important;grid-column:3!important;justify-self:end!important;font-size:12px!important;padding:0 4px!important;line-height:1.35!important}
+@media (min-width:300px){
+html.cmp body:not(#_) .r{padding:6px 10px 6px 14px!important;gap:3px 10px!important}
+html.cmp body:not(#_) .r .t{font-size:30px!important}
+html.cmp body:not(#_) .r .f{font-size:24px!important}
+html.cmp body:not(#_) .r .g .gn{font-size:26px!important;padding:1px 6px!important}
+html.cmp body:not(#_) .r .tag::after{font-size:18px;padding:0 8px}
+html.cmp body:not(#_) .r .c{gap:8px}
+html.cmp body:not(#_) .r .cn{font-size:19px!important}
+html.cmp body:not(#_) .r .px{font-size:18px!important;padding:0 5px!important}
+html.cmp body:not(#_) .r .st{font-size:17px!important;padding:1px 6px!important}
+}
 </style>
 <script>
 (function(){
