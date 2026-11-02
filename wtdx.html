@@ -524,21 +524,19 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp g6"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span><span class="btn pre" id="bday" data-t="00:00" data-e="23:59">整天</span></div>
-<div class="grp">
-  <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
-  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
-  <span class="btn pre" data-t="18:00" data-e="23:59">18–24</span>
-</div>
 <div class="grp s1">
   <span id="catslot"></span>
   <span class="btn more" id="bmore">⋯</span>
 </div>
 <!-- 其他按鍵都收在「⋯」裡：手錶一打開就看得到班機，不用先捲過十排按鍵 -->
 <div id="more" hidden>
-<div class="grp">
-  <span class="btn nav" id="dPrev"><svg class="ic" viewBox="0 0 24 24"><use href="#i-left"/></svg></span>
+<div class="grp g2">
+  <span class="btn nav" id="dPrev"><svg class="ic" viewBox="0 0 24 24"><use href="#i-left"/></svg> 前一天</span>
+  <span class="btn nav" id="dNext">後一天 <svg class="ic" viewBox="0 0 24 24"><use href="#i-right"/></svg></span>
+</div>
+<div class="grp g2">
   <span class="btn mid" id="dMid"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cal"/></svg> 今天</span>
-  <span class="btn nav" id="dNext"><svg class="ic" viewBox="0 0 24 24"><use href="#i-right"/></svg></span>
+  <span class="btn half" id="breload"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> 更新</span>
 </div>
 <div class="grp s">
   <span id="catslot2"></span>
@@ -547,7 +545,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
   <span class="btn half" id="ball">全部</span>
   <span class="btn half" id="bnone">清空</span>
 </div>
-<div class="grp s">
+<div class="grp s g2">
   <span class="btn zone" data-z="A">✓ A區</span>
   <span class="btn zone" data-z="B">✓ B區</span>
   <span class="btn zone" data-z="C">✓ C區</span>
@@ -558,10 +556,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
   <span class="btn half" id="bcfg"><svg class="ic" viewBox="0 0 24 24"><use href="#i-cog"/></svg> 分類設定</span>
 </div>
 <!-- 手錶（≤340px）整排不顯示：螢幕就那麼點大，更新可以點最上面那條標題列，開會時間手機上看就好 -->
-<div class="grp" id="gextra">
-  <span class="btn half" id="breload"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> 更新</span>
-  <span class="btn half" id="bmeet"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間</span>
-</div>
+<span id="bmeet" hidden></span>
 <div class="cfgbox" id="cfgbox" hidden>
   <h4>名稱／航廈／登機門（留空＝該航廈其餘）・大夜YA＝A、D 門／大夜YB＝B、C 門</h4>
   <div id="catbox"></div>
@@ -587,7 +582,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02b';
+var PAGE_V='2026-11-02c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -965,8 +960,8 @@ function paintBtns(){
     var e0=nm+360;
     var loL=pad(Math.floor(s0/60))+':'+pad(s0%60);
     var hiL=e0>=1440?pad(Math.floor((e0-1440)/60))+':'+pad((e0-1440)%60):pad(Math.floor(e0/60))+':'+pad(e0%60);
-    setBtn('bnow','timer',pad(nb.getHours())+':'+pad(nb.getMinutes())+' 按下　'+loL+'–'+(e0>=1440?'隔日':'')+hiL);
-  } else setBtn('bnow','timer','現在起 6 小時');
+    document.getElementById('bnow').innerHTML='<span>'+IC('timer')+' 6 小時</span><small>'+loL+'–'+(e0>=1440?'隔日':'')+hiL+'</small>';
+  } else setBtn('bnow','timer','6 小時');
   document.getElementById('bhide').className='btn half'+(hideDone?' on':'');
   setBtn('bhide',hideDone?'show':'hide',hideDone?'全部顯示':'隱藏抵達');
 }
@@ -1691,7 +1686,7 @@ function shiftDay(d){
 }
 document.getElementById('dPrev').addEventListener('click',function(){ shiftDay(-1); });
 document.getElementById('dNext').addEventListener('click',function(){ shiftDay(1); });
-document.getElementById('dMid').addEventListener('click',function(){ dayOff=0; win=autoWin(); render(); });
+document.getElementById('dMid').addEventListener('click',function(){ dayOff=0; mode='now6'; ensureTomorrow(); render(); });
 document.getElementById('bnow').addEventListener('click',function(){
   mode='now6'; dayOff=0; ensureTomorrow(); render();
 });
@@ -1717,6 +1712,7 @@ document.getElementById('bhide').addEventListener('click',function(){
 (function(){
   var h=new Date().getHours();
   win = h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59']);
+  mode='now6';             /* 11/2：時段鍵拿掉了，開頁就看現在起 6 小時 */
   bootFromCache();          /* 先把上次的畫出來，不要讓畫面空著 */
   load();
 })();
@@ -2257,7 +2253,16 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 </script>
 <style>
 /* 11/2：手錶版按鍵一律展開，不用再按「⋯」（小韋指定） */
-.grp.g6{flex-wrap:nowrap} .grp.g6 #bnow{flex:2 1 0!important;min-width:0} .grp.g6 #bday{flex:1 1 0!important;min-width:0}
+/* 11/2：一行兩鍵，每顆一樣寬、一樣高 */
+.grp,.grp.s,.grp.s1{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important}
+.grp #catslot,.grp #catslot2{display:contents!important}
+.grp>.btn,.grp .btn.cat,.grp .btn.zone,.grp .btn.half,.grp .btn.nav,.grp .btn.mid,.grp .btn.pre,.grp #bnow{flex:none!important;width:auto!important;min-width:0!important;margin:0!important;min-height:46px!important;
+  display:flex!important;align-items:center;justify-content:center;gap:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px!important;padding:6px 4px!important;letter-spacing:0!important;box-sizing:border-box}
+#bmeet{display:none!important}
+#more{border-left:0!important;padding-left:0!important;margin:5px 0 0!important}
+.grp,.grp.s,.grp.s1{margin:0 0 5px!important}
+.grp #bnow{flex-direction:column!important;gap:0!important;line-height:1.15}
+.grp #bnow small{font-size:11.5px;font-weight:800;opacity:.85;letter-spacing:-.02em}
 #bmore{display:none!important}
 #more[hidden]{display:block!important}
 .grp.s1 .btn.cat{flex:1 1 40%!important}
