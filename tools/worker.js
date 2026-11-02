@@ -165,10 +165,12 @@ async function odp(todayISO, X) {
 async function build(env) {
   const n = tpeNow(), today = isoOf(n);
   /* 隔天的班只有晚上「現在起 6 小時」跨午夜才用得到：18:00 前只抓今天，資料量少一半 */
-  const tomorrow = n.getUTCHours() >= 18 ? isoOf(new Date(n.getTime() + 86400000)) : today;
+  const tomorrowReal = isoOf(new Date(n.getTime() + 86400000));
+  /* TDX 用金鑰要省：18:00 前只抓今天。桃機官網不吃點數，明天一律帶（手錶切到「明天」才有資料） */
+  const tomorrow = n.getUTCHours() >= 18 ? tomorrowReal : today;
   const M = await meta();
   let rows = [], src = '', why = [];
-  try { rows = await apt(today, tomorrow, M.x || {}); src = 'apt'; } catch (e) { why.push(String(e && e.message || e)); }
+  try { rows = await apt(today, tomorrowReal, M.x || {}); src = 'apt'; } catch (e) { why.push(String(e && e.message || e)); }
   if (!rows.length) try { const { list, mode } = await tdx(env, today, tomorrow); rows = toRows(list, today, M.x || {}); src = 'tdx-' + mode; }
   catch (e) { why.push(String(e && e.message || e)); }
   /* 開放資料從 Cloudflare 連不到（只讓台灣連），不放進正常流程，只在 /probe 檢查 */
