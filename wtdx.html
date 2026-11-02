@@ -587,7 +587,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-01a';
+var PAGE_V='2026-11-02a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -892,6 +892,7 @@ var dayOff=0;        /* 0=今天 1=明天 2=後天 -1=昨天（◀▶ 可調） 
 var DAYS={};         /* 其他天的資料快取：DAYS[偏移]=班機陣列（null=抓失敗） */
 var hideDone=false;
 var DATA=[];
+var TM_TRIED=0;
 var DATA2=null;      /* 隔日班機：現在起6小時跨日時才載入（null=還沒抓 []=抓不到或沒有） */
 
 /* ── 個人偏好：分點勾選／A-D 區／隱藏已到，存在使用者自己的裝置裡 ──
@@ -1200,6 +1201,17 @@ function ensureTomorrow(force){
   var n=new Date();
   if(!force && n.getHours()*60+n.getMinutes()+360<1440) return;   /* 沒跨日就不用 */
   if(DATA2!==null) return;
+  /* 11/2：先問中繼（桃機官網連明天的班都有），沒有才照舊打 TDX */
+  if(RELAY_URL&&!TM_TRIED){ TM_TRIED=1;
+    liveRelay(false).then(function(j){
+      var bs=String(j.d||'').split('/'), base=new Date(+bs[0],(+bs[1])-1,+bs[2]);
+      var m3=new Date(Date.now()+86400000), tm=m3.getFullYear()+'/'+pad(m3.getMonth()+1)+'/'+pad(m3.getDate());
+      var L=(j.f||[]).map(function(r){ return fromSnap(r,base); }).filter(function(f){ return f.ODate===tm; });
+      if(!L.length) throw new Error('中繼沒有明天');
+      DATA2=L; render();
+    })['catch'](function(){ ensureTomorrow(true); });
+    return;
+  }
   if(blockLeft()){ DATA2=[]; return; }
   var m2=new Date(n.getTime()+86400000);
   var iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
@@ -1330,6 +1342,7 @@ function applySnap(j,cached){
   var tm=m2.getFullYear()+'/'+pad(m2.getMonth()+1)+'/'+pad(m2.getDate());
   DATA =all.filter(function(f){ return f.ODate===today||f.RDate===today; });
   DATA2=all.filter(function(f){ return f.ODate===tm; });
+  if(!DATA2.length){ DATA2=null; TM_TRIED=0; }   /* 11/2：快照裡沒有明天的班，就當作「還沒抓」，切到明天時會自己去抓，不會顯示 0 班 */
   DAYS={};
   document.getElementById('hdate').textContent=(n.getMonth()+1)+'/'+n.getDate();
 
@@ -2241,6 +2254,15 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
   var wait=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(wait);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ ui(); }catch(e){} return x; }; try{ ui(); }catch(e){} },100);
 })();
+</script>
+<style>
+/* 11/2：手錶版按鍵一律展開，不用再按「⋯」（小韋指定） */
+#bmore{display:none!important}
+#more[hidden]{display:block!important}
+.grp.s1 .btn.cat{flex:1 1 40%!important}
+</style>
+<script>
+(function(){ var m=document.getElementById('more'); if(m) m.hidden=false; })();
 </script>
 </body>
 </html>
