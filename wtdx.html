@@ -523,7 +523,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 </div>
 <div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
-<div class="grp"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span></div>
+<div class="grp g6"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span><span class="btn pre" id="bday" data-t="00:00" data-e="23:59">整天</span></div>
 <div class="grp">
   <span class="btn pre" data-t="00:00" data-e="05:59">00–06</span>
   <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>
@@ -587,7 +587,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02a';
+var PAGE_V='2026-11-02b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2257,6 +2257,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 </script>
 <style>
 /* 11/2：手錶版按鍵一律展開，不用再按「⋯」（小韋指定） */
+.grp.g6{flex-wrap:nowrap} .grp.g6 #bnow{flex:2 1 0!important;min-width:0} .grp.g6 #bday{flex:1 1 0!important;min-width:0}
 #bmore{display:none!important}
 #more[hidden]{display:block!important}
 .grp.s1 .btn.cat{flex:1 1 40%!important}
