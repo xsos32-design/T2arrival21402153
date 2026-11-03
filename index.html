@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-02e';
+var PAGE_V='2026-11-03a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3429,5 +3429,123 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 </script>
 
 <script src="https://xsos32-design.github.io/job/kv.js" defer></script>
+<!-- 11/3：入境頁資訊卡「下一班落地」「接下來 1 小時」換成「下一個空檔」＋「異動提醒」（tools/gapchg.js） -->
+<style>
+/* 舊的兩塊不顯示（晚上 22:00 後的「複製回報」兩顆照留） */
+#nnext .h,#nnext .nx,#nextnote{display:none!important}
+#nnext:not(:has(.rep)){display:none!important}
+#nalert{display:grid;gap:8px;margin:0 0 10px}
+#nalert .na{border:1px solid #2a3545;background:rgba(10,6,20,.6);padding:9px 12px}
+#nalert .na-h{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:900;letter-spacing:.1em;color:#a08e55;margin-bottom:6px}
+#nalert .na-h small{letter-spacing:0;font-size:12px;color:#8d99a9;font-weight:800}
+#nalert .gp{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;font-weight:900;color:#e8e3f5}
+#nalert .gp+.gp{margin-top:4px;padding-top:4px;border-top:1px dashed #2a3545}
+#nalert .gp .tm{font-size:22px;color:#8CF23A;letter-spacing:.01em}
+#nalert .gp .ln{font-size:15px;color:#c3cad4}
+#nalert .gp .ln b{color:#8CF23A;font-size:17px}
+#nalert .gp.now .tm{color:#00f0ff} #nalert .gp.now .ln b{color:#00f0ff}
+#nalert .none{font-size:14px;font-weight:800;color:#9a8fb5}
+#nalert .cg{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:4px 8px;font-weight:900;font-size:15px;color:#e8e3f5;padding:5px 0;cursor:pointer}
+#nalert .cg+.cg{border-top:1px solid #1e2633}
+#nalert .cg .k{font-size:12.5px;padding:1px 6px;background:#2a2340;color:#fff;text-align:center;min-width:2.2em}
+#nalert .cg .k.k40{background:#00f0ff;color:#00202a} #nalert .cg .k.k53{background:#ff2a6d;color:#2b0411}
+#nalert .cg .t{color:#f5ee0b;font-size:16px}
+#nalert .cg .f{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#nalert .cg .w{font-size:14px;padding:1px 7px;white-space:nowrap;text-align:right}
+#nalert .cg .w.gate{background:#7B2CBF;color:#fff}
+#nalert .cg .w.late{background:#3a2a06;border:1px solid #ffc53d;color:#ffc53d}
+#nalert .cg .w.bad{background:#FF2E6E;color:#2b0411}
+#nalert .cg.past{opacity:.5}
+</style>
+<script>
+(function(){
+  var D=document, W=window, GAP=30;
+  function p2(n){ return (n<10?'0':'')+n; }
+  function hm(m){ m=((m%1440)+1440)%1440; return p2(Math.floor(m/60))+':'+p2(m%60); }
+  function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()); }
+  function selNames(){ try{ return CATS.map(function(c,i){ return show['c'+i]?c.name:null; }).filter(Boolean); }catch(e){ return ['2140','2153']; } }
+  function catIdx(name){ var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===name&&ci<0) ci=i; }); }catch(e){} return ci; }
+  function short(name){ var b=String(name||'').replace(/[（(\[].*$/,'').trim(), m;
+    if((m=b.match(/^\d{2}(\d{2})$/))) return m[1]; if((m=b.match(/(Y[A-Z])\s*$/i))) return m[1].toUpperCase(); return b; }
+  function kcls(name){ var i=catIdx(name); return (i===0?'k40':(i===1?'k53':''))+(i>=0?' kc'+i:''); }
+  function minOf(f){ var t=effTime(f); if(!t) return null; return mins(t)+1440*((f._day||0)+(f._nd?1:0)); }
+  function onToday(){ if(W.CUST) return W.CUST.d===todayISO(); var el=D.getElementById('date'); return !el||!el.value||el.value===todayISO(); }
+
+  function paint(){
+    var ib=D.getElementById('infobox'); if(!ib||typeof lastRows==='undefined') return;
+    var box=D.getElementById('nalert');
+    if(!box){ box=D.createElement('div'); box.id='nalert'; }
+    var nx=D.getElementById('nnext');
+    if(nx&&nx.parentNode===ib){ if(nx.nextSibling!==box) ib.insertBefore(box,nx.nextSibling); }
+    else if(ib.firstChild!==box) ib.insertBefore(box,ib.firstChild);
+
+    var S=selNames(), EX; try{ EX=catsExpand(); }catch(e){ EX=null; }
+    var d=new Date(), live=onToday(), nowM=live?d.getHours()*60+d.getMinutes():-1;
+    var mine=[];
+    (lastRows||[]).forEach(function(f){
+      var g=String(f.Gate||'').trim(); var tg='';
+      try{ tg=tagOf(shopOf(f,EX)).txt; }catch(e){}
+      f.__tg=tg; f.__m=minOf(f);
+      if(S.indexOf(tg)>=0) mine.push(f);
+    });
+
+    /* ── 下一個空檔：勾的分類裡，兩班抵達中間隔 30 分以上（從現在算起） ── */
+    var up=mine.filter(function(f){ if(f.__m===null||/取消/.test(f.Memo||'')) return false; var st=statusOf(f); return !st.done&&(st.taxi||f.__m>=nowM-5); })
+      .map(function(f){ return f.__m; }).sort(function(a,b){ return a-b; });
+    var ws=null; try{ if(W.CUST) ws=mins(W.CUST.a); else { var t1=D.getElementById('t1'); if(t1&&t1.value) ws=mins(t1.value); } }catch(e){}
+    var gaps=[], prev=nowM>=0?(ws!==null&&ws>nowM?ws:nowM):null, i;
+    for(i=0;i<up.length;i++){ if(prev!==null&&up[i]-prev>=GAP) gaps.push([prev,up[i],prev===nowM]); prev=Math.max(prev===null?up[i]:prev,up[i]); }
+    var gh='';
+    if(!S.length) gh='<div class="none">分類都沒勾，按「設定」勾 2140／2153</div>';
+    else if(!up.length) gh='<div class="none">這個時段勾的分類都到齊了，之後都是空檔</div>';
+    else {
+      gh=gaps.slice(0,2).map(function(x){ var len=x[1]-x[0];
+        return '<div class="gp'+(x[2]?' now':'')+'"><span class="tm">'+(x[2]?'現在':hm(x[0]))+' → '+hm(x[1])+'</span><span class="ln">空 <b>'+(len>=60?Math.floor(len/60)+' 小時'+(len%60?' '+(len%60)+' 分':''):len+' 分')+'</b></span></div>'; }).join('');
+      if(!gaps.length) gh='<div class="none">接下來班機一班接一班，沒有 '+GAP+' 分以上的空檔</div>';
+      var last=up[up.length-1];
+      gh+='<div class="gp"><span class="ln">最後一班 <b>'+hm(last)+'</b>，之後這個時段沒班</span></div>';
+    }
+
+    /* ── 異動提醒：勾的分類今天門改、延誤、取消（6 小時內、還沒到或剛到 30 分內） ── */
+    var memo=null; try{ memo=JSON.parse(localStorage.getItem('gateMemo1')||'null'); }catch(e){}
+    var today=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(), gm=(memo&&memo.day===today)?memo.g:{};
+    var items=[];
+    (lastRows||[]).forEach(function(f){
+      var code=fno4(f.flightCode||((f.ACode||'')+(f.FlightNo||''))), key=String(code).toUpperCase();
+      var rec=gm[key], tg=f.__tg, inMine=S.indexOf(tg)>=0, w=[];
+      var oldTg='';
+      if(rec&&rec.from){ try{ oldTg=tagOf(shopOf({Gate:rec.from,BNO:f.BNO},EX)).txt; }catch(e){} }
+      var outOf=!inMine&&oldTg&&S.indexOf(oldTg)>=0;
+      if(!inMine&&!outOf) return;
+      if(live&&f.__m!==null&&(f.__m<nowM-30||f.__m>nowM+360)) return;
+      if(/取消/.test(f.Memo||'')) w.push(['bad','取消']);
+      else {
+        var dm=(hhmm(f.RTime)&&hhmm(f.OTime))?(mins(f.RTime)-mins(f.OTime)+(isNextDay(f)?1440:0)):0;
+        if(/延遲|延誤/.test(f.Memo||'')||dm>=15) w.push(['late','延誤'+(dm>0?' +'+dm+' 分':'')]);
+      }
+      if(rec&&rec.from) w.push(['gate',outOf?('門改 '+rec.from+'→'+rec.g+' 改出去'):('門改 '+rec.from+'→'+rec.g)]);
+      if(!w.length) return;
+      var past=statusOf(f).done;
+      items.push({m:f.__m, h:'<div class="cg'+(past?' past':'')+'" data-code="'+esc(key)+'"><span class="k '+kcls(outOf?oldTg:tg)+'">'+esc(short(outOf?oldTg:tg))+'</span><span class="t">'+hm(f.__m||0)+'</span><span class="f">'+esc(code)+'</span><span class="w '+w[0][0]+'">'+w.map(function(x){ return x[1]; }).join('・')+'</span></div>'});
+    });
+    items.sort(function(a,b){ return (a.m||0)-(b.m||0); });
+    var ch=items.length?items.map(function(x){ return x.h; }).join(''):'<div class="none">目前沒有門改、延誤、取消</div>';
+
+    var html='<div class="na"><div class="na-h"><span>下一個空檔</span><small>'+GAP+' 分以上・只算勾的分類</small></div>'+gh+'</div>'
+      +'<div class="na"><div class="na-h"><span>異動提醒</span><small>門改・延誤・取消</small></div>'+ch+'</div>';
+    if(box.__h!==html){ box.innerHTML=html; box.__h=html; }
+  }
+  /* 點異動那行 → 捲到那班 */
+  D.addEventListener('click',function(e){ var c=e.target.closest&&e.target.closest('#nalert .cg'); if(!c) return;
+    var code=c.getAttribute('data-code'), hit=null;
+    [].forEach.call(D.querySelectorAll('#out .r:not(.head)'),function(r){ if(hit) return; var b=r.querySelector('.c-fno b'); if(b&&String(b.textContent).toUpperCase().indexOf(code)>=0) hit=r; });
+    if(hit){ scrollTo({top:hit.getBoundingClientRect().top+scrollY-90,behavior:'smooth'}); hit.classList.remove('nflash'); void hit.offsetWidth; hit.classList.add('nflash'); } });
+  var wait=setInterval(function(){ if(typeof W.render!=='function'||!D.getElementById('infobox')) return; clearInterval(wait);
+    var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){ console.log('gapchg',e); } return x; };
+    try{ paint(); }catch(e){} },100);
+  setInterval(function(){ try{ paint(); }catch(e){} },60000);
+})();
+</script>
+
 </body>
 </html>
