@@ -521,9 +521,10 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
   <b>小韋製作</b>
   <i><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 未經同意請勿私自轉傳</i>
 </div>
-<div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 班機TDX版</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
+<div class="hd" id="hd"><b><svg class="ic" viewBox="0 0 24 24"><use href="#i-land"/></svg> 入境班機</b><span id="hdate">—</span><span id="hfreq">快照</span><span class="u" id="hstamp">載入中…</span></div>
 
 <div class="grp g6"><span class="btn" id="bnow"><svg class="ic" viewBox="0 0 24 24"><use href="#i-timer"/></svg> 現在起 6 小時</span><span class="btn pre" id="bday" data-t="00:00" data-e="23:59">整天</span></div>
+<div class="grp gmode"><span class="btn" id="mSimple">簡易</span><span class="btn" id="mFull">詳細</span></div>
 <div class="grp s1">
   <span id="catslot"></span>
   <span class="btn more" id="bmore">⋯</span>
@@ -582,7 +583,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-04a';
+var PAGE_V='2026-11-04b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2279,7 +2280,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 /* ══ 11/2：縮小模式（標題列「縮小」鍵）：時間＋班號＋登機門一行；分點(40/53)＋出發地＋預估入境＋狀態一行 ══ */
 #bzoom{order:-1;flex:0 0 auto;font-size:12px;font-weight:900;letter-spacing:.04em;color:#00EFD4;border:1px solid rgba(0,239,212,.6);padding:1px 6px;line-height:1.5;cursor:pointer;background:rgba(0,239,212,.08)}
 html.cmp #bzoom{color:#0A0D12;background:#00EFD4}
-html.cmp body:not(#_) .mk,html.cmp body:not(#_) .grp,html.cmp body:not(#_) #more,html.cmp body:not(#_) .notice,
+html.cmp body:not(#_) .mk,html.cmp body:not(#_) .notice,
 html.cmp body:not(#_) #immnote,html.cmp body:not(#_) #holnote,html.cmp body:not(#_) .sep,html.cmp body:not(#_) #hfreq{display:none!important}
 html.cmp body:not(#_) .r{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;grid-template-areas:none!important;align-items:center!important;
   gap:2px 6px!important;padding:4px 6px 4px 11px!important;margin-bottom:4px!important;min-height:0!important}
@@ -2308,17 +2309,35 @@ html.cmp body:not(#_) .r .px{font-size:18px!important;padding:0 5px!important}
 html.cmp body:not(#_) .r .st{font-size:17px!important;padding:1px 6px!important}
 }
 </style>
+<style>
+/* ══ 11/4：標題列「設定」鍵：平常只看班機，按了才展開所有按鍵（第一排是簡易／詳細）══ */
+html:not(.setopen) body:not(#_) .grp,html:not(.setopen) body:not(#_) #more,html:not(.setopen) body:not(#_) .sep{display:none!important}
+#bzoom{order:-1;flex:0 0 auto;font-size:13px;font-weight:900;letter-spacing:.04em;color:#00EFD4;border:1px solid rgba(0,239,212,.6);padding:2px 8px;line-height:1.5;cursor:pointer;background:rgba(0,239,212,.08)}
+html.setopen #bzoom{color:#0A0D12;background:#00EFD4}
+/* 按鍵放大：高 58、字 17 */
+.grp>.btn,.grp .btn.cat,.grp .btn.zone,.grp .btn.half,.grp .btn.nav,.grp .btn.mid,.grp .btn.pre,.grp #bnow{min-height:58px!important;font-size:17px!important}
+.grp #bnow small{font-size:12.5px!important}
+.grp .btn .ic{width:1em;height:1em}
+.grp.gmode .btn.on{background:#00EFD4!important;color:#0A0D12!important;border-color:#00EFD4!important}
+.grp{gap:6px!important;margin:0 0 6px!important}
+@media (max-width:240px){ .grp .btn:not(#dPrev):not(#dNext):not(#bnow) .ic{display:none!important} }
+</style>
 <script>
 (function(){
   var K='tpeWCmp', H=document.documentElement, hd=document.getElementById('hd');
   try{ if(localStorage.getItem(K)==='1') H.classList.add('cmp'); }catch(e){}
-  var b=document.createElement('span'); b.id='bzoom';
-  function lab(){ b.textContent=H.classList.contains('cmp')?'詳細':'簡易'; }
-  lab(); if(hd) hd.insertBefore(b,hd.firstChild);
+  var b=document.createElement('span'); b.id='bzoom'; b.textContent='設定';
+  if(hd) hd.insertBefore(b,hd.firstChild);
+  var mS=document.getElementById('mSimple'), mF=document.getElementById('mFull');
+  function paint(){ var c=H.classList.contains('cmp'); if(mS) mS.className='btn'+(c?' on':''); if(mF) mF.className='btn'+(c?'':' on'); }
+  function setMode(c){ H.classList.toggle('cmp',c); try{ localStorage.setItem(K,c?'1':'0'); }catch(e){} paint(); }
+  paint();
+  /* 簡易／詳細放在設定的第一排 */
+  setTimeout(function(){ var g=mS&&mS.parentNode, first=document.querySelector('.grp.s1'); if(g&&first&&first.previousElementSibling!==g) first.parentNode.insertBefore(g,first); },0);
+  if(mS) mS.addEventListener('click',function(){ setMode(true); });
+  if(mF) mF.addEventListener('click',function(){ setMode(false); });
   b.addEventListener('click',function(e){ e.stopPropagation();
-    var on=!H.classList.contains('cmp'); H.classList.toggle('cmp',on); lab();
-    try{ localStorage.setItem(K,on?'1':'0'); }catch(e){}
-    try{ window.scrollTo(0,0); }catch(e){} });
+    H.classList.toggle('setopen'); try{ window.scrollTo(0,0); }catch(e){} });
 })();
 </script>
 </body>

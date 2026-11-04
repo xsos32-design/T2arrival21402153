@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-04a';
+var PAGE_V='2026-11-04b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1967,7 +1967,7 @@ getFlightsRaw=function(date){ return _gfr(date).then(function(list){ ALLDAY[date
           ALLDAY[date]=s; srcLabel='快照'; fromCache[date]=1;
           p.then(function(){ setTimeout(function(){ var b=document.getElementById('fGo'); if(b) b.click(); },30); },function(){});
           setTimeout(function(){ setDot('busy','先顯示 '+s.__snapT+' 的快照，抓最新的中…'); },0);
-          res(s); }); },2500);
+          res(s); }); },1500);   /* 11/4：2.5 秒→1.5 秒就先秀快照 */
       });
     }
     return p;
@@ -3443,8 +3443,9 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 /* 舊的兩塊不顯示（晚上 22:00 後的「複製回報」兩顆照留） */
 #nnext .h,#nnext .nx,#nextnote{display:none!important}
 #nnext:not(:has(.rep)){display:none!important}
-#nalert{display:grid;gap:8px;margin:0 0 10px}
-#nalert .na{border:1px solid #2a3545;background:rgba(10,6,20,.6);padding:9px 12px}
+#nalert{display:grid;gap:8px;margin:0 0 8px}
+/* 11/4：跟下面「還有幾班」同一個底色、同一個切角 */
+#nalert .na{border:1px solid #2a3545;background:#161e29;padding:9px 12px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
 #nalert .na-h{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;font-weight:900;letter-spacing:.1em;color:#a08e55;margin-bottom:6px}
 #nalert .na-h small{letter-spacing:0;font-size:12px;color:#8d99a9;font-weight:800}
 #nalert .gp{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;font-weight:900;color:#e8e3f5}
