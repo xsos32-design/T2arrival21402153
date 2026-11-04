@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-03b';
+var PAGE_V='2026-11-03c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3447,7 +3447,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 #nalert .none{font-size:14px;font-weight:800;color:#9a8fb5}
 #nalert .cg{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:4px 8px;font-weight:900;font-size:15px;color:#e8e3f5;padding:5px 0;cursor:pointer}
 #nalert .cg+.cg{border-top:1px solid #1e2633}
-#nalert .cg .k{font-size:12.5px;padding:1px 6px;background:#2a2340;color:#fff;text-align:center;min-width:2.2em}
+#nalert .cg .k{font-size:12.5px;padding:1px 6px;background:#2a2340;color:#fff;text-align:center;min-width:2.2em;white-space:nowrap}
 #nalert .cg .k.k40{background:#00f0ff;color:#00202a} #nalert .cg .k.k53{background:#ff2a6d;color:#2b0411}
 #nalert .cg .t{color:#f5ee0b;font-size:16px}
 #nalert .cg .f{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -3526,7 +3526,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
       if(rec&&rec.from) w.push(['gate',outOf?('門改 '+rec.from+'→'+rec.g+' 改出去'):('門改 '+rec.from+'→'+rec.g)]);
       if(!w.length) return;
       var past=statusOf(f).done;
-      items.push({m:f.__m, h:'<div class="cg'+(past?' past':'')+'" data-code="'+esc(key)+'"><span class="k '+kcls(outOf?oldTg:tg)+'">'+esc(short(outOf?oldTg:tg))+'</span><span class="t">'+hm(f.__m||0)+'</span><span class="f">'+esc(code)+'</span><span class="w '+w[0][0]+'">'+w.map(function(x){ return x[1]; }).join('・')+'</span></div>'});
+      items.push({m:f.__m, h:'<div class="cg'+(past?' past':'')+'" data-code="'+esc(key)+'"><span class="k '+kcls(outOf?oldTg:tg)+'">'+esc(String(outOf?oldTg:tg).replace(/[（(\[].*$/,'').trim())+'</span><span class="t">'+hm(f.__m||0)+'</span><span class="f">'+esc(code)+'</span><span class="w '+w[0][0]+'">'+w.map(function(x){ return x[1]; }).join('・')+'</span></div>'});
     });
     items.sort(function(a,b){ return (a.m||0)-(b.m||0); });
     var ch=items.length?items.map(function(x){ return x.h; }).join(''):'<div class="none">目前沒有門改、延誤、取消</div>';
