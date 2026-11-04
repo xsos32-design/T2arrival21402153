@@ -1316,6 +1316,26 @@ const UNLOCK = {
     ['    本頁固定不顯示 06:00–13:30 的班機\n',
      '    這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="index.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a>\n', 1],
   ]},
+  /* 11/4：出境也有全時段版（depall.html），規則照入境的抄 */
+  'depart.html': { out: 'depall.html', rules: [
+    ['<title>出境班機 · 2140 / 2153</title>', '<title>出境班機 · 全時段</title>', 1],
+    ['<link rel="manifest" href="app-dep.webmanifest">', '<link rel="manifest" href="app-depall.webmanifest">', 1],
+    ['content="出境班機 · 2140 / 2153"', 'content="出境班機 · 全時段"', 1],
+    ['T2arrival21402153/depart.html">', 'T2arrival21402153/depall.html">', 1],
+    ['content="韋 班機"', 'content="韋 出境全"', 1],
+    ['出境班機 2140 / 2153</h1>', '出境班機 · 全時段</h1>', 1],
+    ['      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n',
+     '      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>\n'
+   + '      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>\n', 1],
+    ['<option value="05:00">05 時</option><option value="13:30">13:30</option>',
+     '<option value="05:00">05 時</option>' + T1EXTRA + '<option value="13:30">13:30</option>', 1],
+    ['<option value="05:59">06 時</option><option value="13:59">14 時</option>',
+     '<option value="05:59">06 時</option>' + T2EXTRA + '<option value="13:59">14 時</option>', 1],
+    ["      if(t>='06:00'&&t<='13:30') return;          /* 固定排除 06:00–13:30 */\n", '', 2],
+    ['　·　不含06:00–13:30', '　·　全時段', 2],
+    ['    本頁固定不顯示 06:00–13:30 的班機\n',
+     '    這是解封印版，<b>06:00–13:30 的班機也會顯示</b>　<a class="lk" href="depart.html"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lock"/></svg> 回一般版</a>\n', 1],
+  ]},
   'wtdx.html': { out: 'wtdxall.html', rules: [
     ['<title>班機TDX版 · 即時</title>', '<title>班機TDX版 · 全時段</title>', 1],
     ['content="韋 TDX"', 'content="韋 TDX全"', 1],
@@ -1324,13 +1344,10 @@ const UNLOCK = {
     ['img/og-watch.jpg', 'img/og-watchall.jpg', 2],
     ['content="手錶版 · 2140 / 2153"', 'content="手錶版 · 全時段"', 1],
     ['T2arrival21402153/wtdx.html">', 'T2arrival21402153/wtdxall.html">', 1],
-    ['班機TDX版</b>', 'TDX版</b>', 1],
+    ['<use href="#i-land"/></svg> 入境班機</b>', '<use href="#i-land"/></svg> 入境全時段</b>', 1],   /* 11/4：手錶標題改名 */
     ['.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}',
      '.btn.zone,.btn.pre{flex:1 1 22%;font-size:12.5px;padding:8px 1px;letter-spacing:-.03em}\n'
    + '.btn.pre{flex:1 1 46%;font-size:13.5px;padding:8px 3px;letter-spacing:-.02em}', 1],
-    ['  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>\n',
-     '  <span class="btn pre" data-t="06:00" data-e="13:29">06–13:30</span>\n'
-   + '  <span class="btn pre" data-t="13:30" data-e="17:59">13:30–18</span>\n', 1],
     ["    if(t>='06:00'&&t<='13:30') return false;   /* 固定排除 06:00–13:30 */\n", '', 1],
     ["      if(t>='06:00'&&t<='13:30') return;\n", '', 1],
     ["h<6 ? ['00:00','05:59'] : (h<18 ? ['13:30','17:59'] : ['18:00','23:59'])",
@@ -1549,7 +1566,7 @@ async function main() {
   for (const f of ['index.html', 'wtest.html', 'wtdx.html', 'changelog.html', 'fleet.txt', 'depart.html',
                    'icon-180.png', 'icon-192.png', 'icon-512.png',
                    'app.webmanifest', 'app-all.webmanifest',
-                   'app-tdx.webmanifest', 'app-tdxall.webmanifest', 'app-dep.webmanifest',
+                   'app-tdx.webmanifest', 'app-tdxall.webmanifest', 'app-dep.webmanifest', 'app-depall.webmanifest',
                    'app-watch.webmanifest', 'app-watchall.webmanifest']) {
     try { await access(f); await copyFile(f, join(OUT, f)); console.log('已複製 ' + f); }
     catch { console.log('找不到 ' + f + '，略過'); }
