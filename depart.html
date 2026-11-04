@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-04c';
+var PAGE_V='2026-11-04d';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3319,6 +3319,41 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){ console.log('gapchg',e); } return x; };
     try{ paint(); }catch(e){} },100);
   setInterval(function(){ try{ paint(); }catch(e){} },60000);
+})();
+</script>
+
+<!-- 11/4：標題列「入境｜出境」切換（tools/iosw.js）。一般版互跳一般版，全時段版互跳全時段版 -->
+<style>
+#iosw{display:inline-flex;flex:0 0 auto;margin-left:auto;margin-right:8px;border:1px solid #2a3545;background:#161e29}
+#iosw a{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;font-size:14px;font-weight:900;letter-spacing:.06em;color:#8d99a9;text-decoration:none;white-space:nowrap}
+#iosw a+a{border-left:1px solid #2a3545}
+#iosw a.on{background:rgba(0,239,212,.15);color:#00efd4;box-shadow:inset 0 0 0 1px #00efd4;pointer-events:none}
+html.dep #iosw a.on{background:rgba(255,42,109,.15);color:#ff7a95;box-shadow:inset 0 0 0 1px #ff2a6d}
+#iosw+#bigbtn{margin-left:0!important}
+@media (max-width:400px){ #iosw a{padding:0 9px;font-size:13px;letter-spacing:.02em} }
+/* 手機上標題只留圖示＋版本標籤（2140 / 2153 或 全時段），入境／出境看旁邊的切換鍵 */
+@media (max-width:600px){ header h1 .h1t{display:none} header h1{min-width:0;flex:0 1 auto} }
+</style>
+<script>
+(function(){
+  var D=document, DEP=/出境/.test(D.title), ALL=/全時段/.test(D.title);
+  var A=ALL?'all.html':'index.html', B=ALL?'depall.html':'depart.html';
+  function init(){
+    var hd=D.querySelector('header'); if(!hd||D.getElementById('iosw')) return;
+    var w=D.createElement('span'); w.id='iosw';
+    w.innerHTML='<a href="'+A+'" class="'+(DEP?'':'on')+'">入境</a><a href="'+B+'" class="'+(DEP?'on':'')+'">出境</a>';
+    var big=D.getElementById('bigbtn'), live=hd.querySelector('.live');
+    hd.insertBefore(w, big||live||null);
+    wrapTitle();
+  }
+  function wrapTitle(){
+    var h1=D.querySelector('header h1'); if(!h1||h1.querySelector('.h1t')) return;
+    [].slice.call(h1.childNodes).forEach(function(n){ if(n.nodeType===3&&/班機/.test(n.nodeValue)){ var s=D.createElement('span'); s.className='h1t'; s.textContent=n.nodeValue; h1.replaceChild(s,n); } });
+  }
+  setTimeout(wrapTitle,800);
+  /* 「大字」鍵是 DOMContentLoaded 才放進去，等它放好再插在它前面 */
+  function go(){ setTimeout(init,0); }
+  if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',go); else go();
 })();
 </script>
 
