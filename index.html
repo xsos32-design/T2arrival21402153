@@ -752,7 +752,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-03c';
+var PAGE_V='2026-11-04a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1467,7 +1467,7 @@ function reportText(kind){
   var d=new Date();
   var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var md=(d.getMonth()+1)+'/'+d.getDate();
-  var cut = kind==='M' ? '18:00' : '22:30';
+  var cut = kind==='M' ? '16:00' : '22:30';   /* 11/4：開會多抓 18:00 前的班機，算得出 18:00 前後的空檔 */
   return getFlights(date).then(function(all){
     var want=date.replace(/-/g,'/');
     var seen={}, list=[];
@@ -1490,35 +1490,43 @@ function reportText(kind){
 
     /* ── 開會時間：18:00–21:30，每家 15 分鐘，兩家不重疊 ──
        把區間內所有可能的組合掃一遍（兩家各 196 個起點，約 3.8 萬組，不到 1 毫秒），
-       依這個優先順序挑最好的一組：
+       11/4 改成「最大空檔優先」，依這個順序挑：
          ① 開會中間不能有自己的班機進來
-         ② 兩場盡量接著開（間隔越小越好，最好是 0）
-         ③ 散會那一分鐘剛好有班機到（開完直接去接，零等待）
-         ④ 越晚越好 */
+         ② 開在自己最大的空檔裡（前一班到下一班隔越久越好，兩家加起來比）
+         ③ 前一班落地後至少隔 30 分鐘再開（旅客還在出來）
+         ④ 兩場盡量接著開
+         ⑤ 離前後班機都留點時間；再平手就挑晚的 */
     if(kind==='M'){
       var LO='18:00', HI='21:30', DUR=15;   /* 10/28：最晚改到 21:30 */
       var m2=function(t){ var p=t.split(':'); return (+p[0])*60+(+p[1]); };
       var toT=function(m){ return pad(Math.floor(m/60))+':'+pad(m%60); };
       var LOm=m2(LO), LASTm=m2(HI)-DUR;
       var minsOf=function(setG){
-        return list.filter(function(x){ return !!setG[x.g] && x.t>=LO; })
+        return list.filter(function(x){ return !!setG[x.g]; })
                    .map(function(x){ return m2(x.t); })
                    .sort(function(a,b){ return a-b; });
       };
       function free(ts,s){ for(var i=0;i<ts.length;i++){ if(ts[i]>=s&&ts[i]<s+DUR) return false; } return true; }
-      function hitsAt(ts,s){ return ts.indexOf(s+DUR)>=0; }
+      /* 這場會落在哪個空檔：前一班（開會那一刻以前）到下一班（散會以後） */
+      function gapOf(ts,s){ var pv=null, nx=null, i;
+        for(i=0;i<ts.length;i++){ if(ts[i]<=s) pv=ts[i]; else if(ts[i]>=s+DUR&&nx===null) nx=ts[i]; }
+        var P=pv===null?LOm-60:pv, N=nx===null?m2(HI)+60:nx;   /* 前後沒班機：當作多 1 小時 */
+        return {pv:pv, nx:nx, len:N-P, buf:Math.min(s-P,30), bal:Math.min(s-P,N-s-DUR)}; }
       function planPair(A,B){
-        var best=null, sa, sb;
-        for(sa=LOm; sa<=LASTm; sa++){
-          var okA=free(A,sa), hA=okA&&hitsAt(A,sa);
-          for(sb=LOm; sb<=LASTm; sb++){
+        var best=null, sa, sb, GA={}, GB={};
+        for(sa=LOm; sa<=LASTm; sa++){ GA[sa]=free(A,sa)?gapOf(A,sa):null; GB[sa]=free(B,sa)?gapOf(B,sa):null; }
+        for(sa=LOm; sa<=LASTm; sa+=5){   /* 11/4：開會時間對齊 5 分鐘（19:25，不會排出 19:27） */
+          var ga=GA[sa];
+          for(sb=LOm; sb<=LASTm; sb+=5){
             if(sa<sb+DUR && sa+DUR>sb) continue;              /* 兩場不能重疊 */
-            var okB=free(B,sb), hB=okB&&hitsAt(B,sb);
+            var gb=GB[sb];
             var gap=(sa<sb)?(sb-sa-DUR):(sa-sb-DUR);
-            var sc=((okA?1:0)+(okB?1:0))*100000000            /* ① 會議中不能有班機 */
-                  -gap*1000000                                /* ② 兩場盡量接著開 */
-                  +((hA?1:0)+(hB?1:0))*10000                  /* ③ 散會直接接班機 */
-                  +sa+sb;                                     /* ④ 越晚越好 */
+            var sc=((ga?1:0)+(gb?1:0))*1e12                   /* ① 會議中不能有班機 */
+                  +((ga?ga.len:0)+(gb?gb.len:0))*1e7          /* ② 最大空檔優先 */
+                  +((ga?ga.buf:0)+(gb?gb.buf:0))*1e5          /* ③ 前一班落地 30 分後才開 */
+                  -gap*1e3                                    /* ④ 兩場盡量接著開 */
+                  +((ga?ga.bal:0)+(gb?gb.bal:0))*2            /* ⑤ 前後都留點時間 */
+                  +(sa+sb)/1e4;                               /*    再平手挑晚的 */
             if(best===null||sc>best.sc) best={sc:sc,sa:sa,sb:sb};
           }
         }
@@ -1531,8 +1539,8 @@ function reportText(kind){
         c.sort(function(a,b){ return a.t.localeCompare(b.t); });
         return c[0]||null;
       };
-      var S=[{name:CATS[0].name,cls:'g40',st:sa,f:nextAfter(g40,sa+DUR)},
-             {name:CATS[1].name,cls:'g53',st:sb,f:nextAfter(g53,sb+DUR)}];
+      var S=[{name:CATS[0].name,cls:'g40',st:sa,f:nextAfter(g40,sa+DUR),gp:gapOf(A,sa)},
+             {name:CATS[1].name,cls:'g53',st:sb,f:nextAfter(g53,sb+DUR),gp:gapOf(B,sb)}];
       var ord=S.slice().sort(function(a,b){ return a.st-b.st; });
       ord.forEach(function(r){
         r.slot={s:toT(r.st),e:toT(r.st+DUR)};
@@ -1552,7 +1560,8 @@ function reportText(kind){
         +'<tr><th>分點</th><th>開會</th><th>散會後第一班</th></tr>';
       ord.forEach(function(r){
         h+='<tr class="'+r.cls+'"><td class="lb">'+esc(r.name)+'</td>'
-          +'<td><b>'+r.slot.s+'–'+r.slot.e+'</b><br><small>15 分鐘</small></td>'
+          +'<td><b>'+r.slot.s+'–'+r.slot.e+'</b><br><small>空檔 '+(r.gp.pv===null?'—':toT(r.gp.pv))+'–'+(r.gp.nx===null?'—':toT(r.gp.nx))
+             +((r.gp.pv!==null&&r.gp.nx!==null)?'（'+(r.gp.nx-r.gp.pv)+' 分）':'')+'</small></td>'
           +'<td>'+(r.f ? r.f.t+' '+esc(fno4(r.f.no))+' '+(flagOf(r.f.ct)||'\uD83C\uDF10')
                               +'<br><small>'+esc(r.f.city)+'　'+esc(r.f.g)+'</small>'
                        : '—<br><small>沒有班機</small>')+'</td></tr>';
