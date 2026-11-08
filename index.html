@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-07a';
+var PAGE_V='2026-11-08a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -977,6 +977,26 @@ function isNextDay(f){ var rd=hhmm(f.RTime)?(f.RDate||f.ODate):f.ODate; return !
 /* ── 「隱藏抵達」不是一標記已到就馬上藏 ──────────────────────────────
    班機落地到客人走出證照查驗還有一段時間，馬上藏掉等於自己把還要接的班機弄不見。
    所以抵達後先留 DONE_KEEP 分鐘，過了才藏。沒有實際抵達時刻就用表定時刻算。 */
+/* ── 11/8：滑行記憶 ──────────────────────────────────────────────
+   桃機的實際時刻是「落地」時間，滑行要是超過 30 分，一靠橋變「抵達」就馬上被當成
+   「到了 30 分以上」收起來。所以這台裝置看到哪班在滑行，就記下最後一次看到的時間；
+   收起來改成「落地」和「最後看到滑行」取比較晚的那個，再過 30 分才收。記 12 小時。 */
+var TXK='taxiSeen1', TXM=null, TXT=0;
+function txKey(f){ return String(f.flightCode||((f.ACode||'')+(f.FlightNo||''))).toUpperCase()+'|'+(f.ODate||''); }
+function txMem(){
+  if(TXM) return TXM;
+  try{ TXM=JSON.parse(localStorage.getItem(TXK)||'null'); }catch(e){}
+  if(!TXM||typeof TXM!=='object') TXM={};
+  var cut=Date.now()-12*3600000; for(var k in TXM){ if(TXM[k]<cut) delete TXM[k]; }
+  return TXM;
+}
+function txNote(f){
+  var m=txMem(), k=txKey(f), now=Date.now();
+  if(m[k]&&now-m[k]<30000) return;
+  m[k]=now;
+  if(!TXT) TXT=setTimeout(function(){ TXT=0; try{ localStorage.setItem(TXK,JSON.stringify(TXM)); }catch(e){} },2000);
+}
+function txAgo(f){ var t=txMem()[txKey(f)]; return t?(Date.now()-t)/60000:null; }
 var DONE_KEEP=30;
 function doneOld(f){
   if(!statusOf(f).done) return false;
@@ -986,6 +1006,7 @@ function doneOld(f){
   var ago=nowM-t;
   if(ago<-720) ago+=1440;   /* 跨午夜：23:50 到、現在 00:10 ＝ 20 分前 */
   else if(ago<0) ago=0;     /* 時刻在未來卻標成已到（資料怪）：當作剛到，留著 */
+  var tx=txAgo(f); if(tx!==null&&tx<ago) ago=tx;   /* 11/8：滑行很久的，從最後看到滑行起算 */
   return ago>DONE_KEEP;
 }
 
@@ -1004,7 +1025,7 @@ function statusOf(f){
      另外用藍色實心標籤標出來（桃機原始資料才有，TDX 沒有這欄） */
   var taxi=!/取消/.test(memo)&&/滑行/.test(cur);
   if(/取消/.test(memo)) cls='b-bad';
-  else if(taxi){ cls='b-taxi'; text='滑行'; }
+  else if(taxi){ cls='b-taxi'; text='滑行'; txNote(f); }
   else if(/延遲|延誤|提早|變更/.test(memo)) cls='b-warn';
   else if(/已到/.test(memo)||cur){ cls='b-ok'; done=true; text='抵達'; }  /* 落地後只分兩種：滑行／抵達 */
   if(!text) text='預計';
