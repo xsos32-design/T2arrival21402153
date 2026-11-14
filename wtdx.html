@@ -583,7 +583,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-14d';
+var PAGE_V='2026-11-14e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -808,11 +808,12 @@ function flagOf(name){
   return String.fromCharCode(0xD83C,0xDDE6+c.charCodeAt(0)-65,0xD83C,0xDDE6+c.charCodeAt(1)-65);
 }
 /* 出發地一律帶國旗。對照表查不到就給地球，格式才會統一（滑上去看得到代碼，回報給我就能補） */
+function ctryShort(n){ n=String(n||''); if(n.length<=2) return n; return ({'新加坡':'星國','愛爾蘭':'愛爾','馬爾地夫':'馬爾'})[n]||n.charAt(0)+'國'; }
 function flagCell(f){
-  var ct=ctryOf(f), fg=flagOf(ct);
-  if(fg) return '<i class="cty" title="'+esc(ct)+'">'+fg+'</i>';
+  var ct=ctryOf(f);
+  if(ct) return '<i class="cty" title="'+esc(ct)+'">'+esc(ctryShort(ct))+'</i>';
   var code=String(f.CityCode||f.Dep||'').trim().toUpperCase();
-  return '<i class="cty" title="'+esc(code||'出發地不明')+' 還沒對照到國家">\uD83C\uDF10</i>';
+  return '<i class="cty unk" title="'+esc(code||'出發地不明')+' 還沒對照到國家">'+esc(code||'—')+'</i>';
 }
 function ctryOf(f){
   var c=String(f.CityCode||f.Dep||'').trim().toUpperCase();
@@ -1846,8 +1847,8 @@ function immLine(key,label,topN,compact){
   if(age>180){
     if(!IMM||!IMM.t) return '';
     var st=String(IMM.t).slice(5,16).replace('-','/');
-    return compact?'<span class="imold">⚠ 移民署停在 '+st+'</span>'
-      :'<span class="imold">⚠ 移民署資料停在 '+st+'；人數照常用桃機官方數字。</span>';
+    return compact?'<span class="imold"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 移民署停在 '+st+'</span>'
+      :'<span class="imold"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 移民署資料停在 '+st+'；人數照常用桃機官方數字。</span>';
   }
   var nat=[], k, i=0;
   for(k in d.nat){ if(!d.nat.hasOwnProperty(k)) continue; if(compact&&k==='TWN') continue; if(i++>=topN) break;
@@ -1855,9 +1856,9 @@ function immLine(key,label,topN,compact){
   var hm=String(IMM.t).slice(11,16);
   /* 超過 75 分鐘沒更新＝小韋電腦可能睡著了，直接寫出來，不要只是變淡 */
   var old=age>75;
-  var when=old?'<span class="imold">⚠ '+hm+' 的資料（'+age+' 分鐘前）</span>':'<i>'+hm+' 更新</i>';
+  var when=old?'<span class="imold"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> '+hm+' 的資料（'+age+' 分鐘前）</span>':'<i>'+hm+' 更新</i>';
   if(compact) return '<b>移民署</b> '+label+' <em>'+Number(d.total).toLocaleString()+'</em> 人'
-    +(nat.length?' <span class="imn">'+nat.slice(0,1).join(' ')+'</span>':'')+' '+(old?'<span class="imold">⚠ '+hm+'</span>':'<i>'+hm+'</i>');
+    +(nat.length?' <span class="imn">'+nat.slice(0,1).join(' ')+'</span>':'')+' '+(old?'<span class="imold"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> '+hm+'</span>':'<i>'+hm+'</i>');
   return '<div class="imh">'+IC('users')+' <b>移民署</b>｜'+label+'（近 3 小時預報）<em>'+Number(d.total).toLocaleString()+' 人</em> '+when+'</div>'
     +(nat.length?'<div class="imn">'+nat.join('')+'</div>':'');
 }
@@ -2001,7 +2002,7 @@ var HOLS=[
   ['CN','中國','五一（預估）','2027-05-01','2027-05-05'],
   ['KR','韓國','中秋連假','2027-09-14','2027-09-16']
 ];
-var HOL_FLAG={JP:'🇯🇵',KR:'🇰🇷',CN:'🇨🇳'};
+var HOL_FLAG={};   /* 11/14：不用 emoji 國旗 */
 var HOL_WHO={JP:'日客',KR:'韓客',CN:'陸客'};
 function holList(){
   var d=new Date(); d.setHours(0,0,0,0);
@@ -2259,7 +2260,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
       PAL.forEach(function(p){ h+='<button type="button" class="sw'+(p===c?' on':'')+'" data-c="'+p+'" style="background:'+p+'" aria-label="'+p+'"></button>'; });
       h+='<input type="color" value="'+c.toLowerCase()+'" aria-label="自己調顏色">';
       var dup=[]; for(var j=0;j<4;j++) if(j!==i&&near(c,cs[j])) dup.push(N[j]);
-      if(dup.length) h+='<span class="warn">⚠ 跟 '+dup.join('、')+' 顏色太像，一眼會分不出來</span>';
+      if(dup.length) h+='<span class="warn"><svg class="ic" viewBox="0 0 24 24"><use href="#i-alert"/></svg> 跟 '+dup.join('、')+' 顏色太像，一眼會分不出來</span>';
       h+='</div>';
     }
     h+='<div class="ft"><button type="button" data-reset="1">↺ 顏色恢復預設</button><i>只記在這支手機／這個瀏覽器</i></div>';
@@ -2368,7 +2369,7 @@ html.setopen #bzoom{color:#0A0D12;background:#00EFD4}
 .rdr{display:flex;align-items:center;gap:5px;margin:-3px 2px 6px 6px;padding:3px 7px;font-size:12.5px;font-weight:800;
   color:#c3cad4;background:rgba(10,14,22,.85);border:1px solid #2a3545;border-top:0;white-space:nowrap;overflow:hidden;text-decoration:none}
 .rx{font-style:normal;font-size:11px;font-weight:900;padding:0 4px;margin-left:auto;white-space:nowrap;border:1px solid currentColor;flex:0 0 auto}
-.rx-on{color:#8CF23A} .rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-lost{color:#ffc53d}
+.rx-on{color:#8CF23A} .rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-off2{color:#8CF23A;border-style:dashed} .rx-lost{color:#ffc53d}
 .rdr b{font-weight:900;flex:0 0 auto} .rdr span{overflow:hidden;text-overflow:ellipsis}
 .rdr.k-app{color:#ffd84a;border-color:#7a5c12} .rdr.k-land{color:#00f0ff} .rdr.k-taxi{color:#7ab8ff}
 .rdr.k-park,.rdr.k-off{color:#8CF23A} .rdr.k-enr,.rdr.k-lost{color:#9fb3be}
@@ -2392,12 +2393,19 @@ html.setopen #bzoom{color:#0A0D12;background:#00EFD4}
   /* 狀態判斷 */
   /* 雷達（飛機自己的發報機）開著還是關了：90 秒內有訊號＝開啟；停在機場地面後訊號斷掉＝已關閉；其他＝訊號中斷 */
   function tOf(age){ var d=new Date(Date.now()-age*1000); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
-  function rxOf(a){
+  /* 實測（11/14 傍晚 18 班）：訊號斷掉有 10 班是落地前低空就斷、5 班是滑行中斷、只有 3 班是停好才斷。
+     所以「斷訊」不能直接當成關雷達。分三種：
+       看到它停好才沒訊號            → 雷達已關閉 HH:MM（實際看到的）
+       沒看到，但桃機已經標「抵達」   → 雷達應已關閉（照機場資料推的，不寫時間）
+       其他                          → 斷訊 HH:MM */
+  function rxOf(a,done){
     var age=a[7], ground=a[3]<0||(a[3]<=150&&a[4]<80), d=km(a[1],a[2]);
     if(age<=90) return {k:'on',t:'雷達開啟中',c:'開啟中'};
     if(ground&&d<5&&a[4]<5) return DEP?{k:'off',t:'雷達未開 '+tOf(age)+' 後沒訊號',c:'未開啟'}:{k:'off',t:'雷達已關閉 '+tOf(age),c:'已關閉'};
+    if(done&&!DEP&&age>180) return {k:'off2',t:'雷達應已關閉（桃機已標抵達）',c:'應已關閉',m:'雷達應已關'};
     return {k:'lost',t:'訊號中斷 '+tOf(age),c:'中斷'};
   }
+  function stFix(s,rx,b){ return rx.k==='off2'?{k:'off',t:'已抵達',s:'桃機已標抵達・最後訊號 '+tOf(b[7]),c:'最後訊號 '+tOf(b[7]),d:s.d}:s; }
   function stOf(a){
     var alt=a[3], gs=a[4], age=a[7], d=km(a[1],a[2]);
     var ground=alt<0||(alt<=150&&gs<80);
@@ -2449,11 +2457,11 @@ html.setopen #bzoom{color:#0A0D12;background:#00EFD4}
     [].forEach.call(list.querySelectorAll(':scope > .rdr'),function(e){ e.remove(); });
     [].forEach.call(list.querySelectorAll('.r'),function(r){
       var fe=r.querySelector('.f'), te=r.querySelector('.t'); if(!fe) return;
-      var code=String(fe.textContent).trim().split(/[\s\uD83C]/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:''};
+      var code=String((fe.firstChild&&fe.firstChild.nodeType===3?fe.firstChild.nodeValue:fe.textContent)||'').trim().split(/\s/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:''};
       var a=x.cs&&R[x.cs]; if(!a||!plausible(x,a)) return;
-      var s=stOf(a), el=D.createElement('div');
+      var rx=rxOf(a,r.classList.contains('done')), s=stFix(stOf(a),rx,a), el=D.createElement('div');
       el.className='rdr k-'+s.k;
-      var rx=rxOf(a); el.innerHTML='<b>'+s.t+'</b><span>'+(rx.k==='on'?short(s.s):'')+'</span><i class="rx rx-'+rx.k+'">'+(rx.k==='on'?'雷達開':rx.t.replace('雷達已關閉 ','雷達關 ').replace('訊號中斷 ','中斷 '))+'</i>';
+      el.innerHTML='<b>'+s.t+'</b><span>'+(rx.k==='on'?short(s.s):'')+'</span><i class="rx rx-'+rx.k+'">'+(rx.k==='on'?'雷達開':rx.t.replace('雷達已關閉 ','雷達關 ').replace('訊號中斷 ','斷訊 ').replace('雷達應已關閉（桃機已標抵達）','雷達應已關'))+'</i>';
       r.parentNode.insertBefore(el,r.nextSibling);
     });
   }
@@ -2465,6 +2473,27 @@ html.setopen #bzoom{color:#0A0D12;background:#00EFD4}
 </script>
 
 <!-- 11/14：贊助公告先收起來（文字留在 tools/notice.js，之後要放再加回來） -->
+
+<style>
+/* 11/14：國旗不用 emoji 圖，改成文字小牌（國名），跟看板同一個質感 */
+html body:not(#_) .cty{display:inline-block!important;font-style:normal!important;font-size:12px!important;font-weight:900!important;line-height:1.45!important;letter-spacing:.06em!important;
+  padding:0 5px!important;margin:0 0 0 7px!important;vertical-align:middle!important;color:#c9d2de!important;background:rgba(255,255,255,.07);border:1px solid rgba(201,210,222,.45);white-space:nowrap;text-shadow:none!important;position:relative;top:-.18em}
+@media (max-width:340px){ html body:not(#_) .cty{display:none!important} }
+html.cmp body:not(#_) .r .cty{display:none!important}
+html body:not(#_) .cty.unk{color:#8d99a9!important;border-style:dashed}
+body.fs3 .cty,body.fs4 .cty{font-size:14px!important}
+</style>
+<!-- 11/14：手錶自動更新（tools/auto-w.js）：螢幕亮著每 60 秒自己抓一次；手指在滑的時候先不動 -->
+<script>
+(function(){
+  var D=document, W=window, EVERY=60000, last=Date.now(), touch=0;
+  ['touchstart','touchmove','scroll'].forEach(function(ev){ W.addEventListener(ev,function(){ touch=Date.now(); },{passive:true,capture:true}); });
+  function go(){ if(D.hidden||Date.now()-touch<4000) return; try{ if(typeof dayOff!=='undefined'&&dayOff!==0) return; }catch(e){}
+    last=Date.now(); try{ load(false); }catch(e){} }
+  setInterval(function(){ if(Date.now()-last>=EVERY) go(); },5000);
+  D.addEventListener('visibilitychange',function(){ if(!D.hidden&&Date.now()-last>=EVERY) setTimeout(go,400); });
+})();
+</script>
 
 </body>
 </html>
