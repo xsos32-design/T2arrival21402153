@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-14f';
+var PAGE_V='2026-11-14g';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4155,8 +4155,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
   },150);
   var w2=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w2);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paintCards(); }catch(e){} return x; }; load(); },100);
-  /* 地圖開著每 5 秒問一次、沒開 10 秒一次（中繼 15 秒才換新的，多問不會多抓）；卡片上的數字每 5 秒自己重算 */
-  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>9000){ LT=Date.now(); load(); }
+  /* 地圖開著每 5 秒問一次、沒開 30 秒一次（省 Cloudflare 免費額度：每天 10 萬次；中繼 15 秒才換新的）；卡片上的數字每 5 秒自己重算 */
+  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>29000){ LT=Date.now(); load(); }
     if(!open&&!D.hidden&&RT) try{ paintCards(); }catch(e){} },5000);
   D.addEventListener('visibilitychange',function(){ if(!D.hidden) load(); });
 })();
