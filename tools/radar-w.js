@@ -3,7 +3,7 @@
 .rdr{display:flex;align-items:center;gap:5px;margin:-3px 2px 6px 6px;padding:3px 7px;font-size:12.5px;font-weight:800;
   color:#c3cad4;background:rgba(10,14,22,.85);border:1px solid #2a3545;border-top:0;white-space:nowrap;overflow:hidden;text-decoration:none}
 .rx{font-style:normal;font-size:11px;font-weight:900;padding:0 4px;margin-left:auto;white-space:nowrap;border:1px solid currentColor;flex:0 0 auto}
-.rx-on{color:#8CF23A} .rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-lost{color:#ffc53d}
+.rx-on{color:#8CF23A} .rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-off2{color:#8CF23A;border-style:dashed} .rx-lost{color:#ffc53d}
 .rdr b{font-weight:900;flex:0 0 auto} .rdr span{overflow:hidden;text-overflow:ellipsis}
 .rdr.k-app{color:#ffd84a;border-color:#7a5c12} .rdr.k-land{color:#00f0ff} .rdr.k-taxi{color:#7ab8ff}
 .rdr.k-park,.rdr.k-off{color:#8CF23A} .rdr.k-enr,.rdr.k-lost{color:#9fb3be}
@@ -27,12 +27,19 @@
   /* 狀態判斷 */
   /* 雷達（飛機自己的發報機）開著還是關了：90 秒內有訊號＝開啟；停在機場地面後訊號斷掉＝已關閉；其他＝訊號中斷 */
   function tOf(age){ var d=new Date(Date.now()-age*1000); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
-  function rxOf(a){
+  /* 實測（11/14 傍晚 18 班）：訊號斷掉有 10 班是落地前低空就斷、5 班是滑行中斷、只有 3 班是停好才斷。
+     所以「斷訊」不能直接當成關雷達。分三種：
+       看到它停好才沒訊號            → 雷達已關閉 HH:MM（實際看到的）
+       沒看到，但桃機已經標「抵達」   → 雷達應已關閉（照機場資料推的，不寫時間）
+       其他                          → 斷訊 HH:MM */
+  function rxOf(a,done){
     var age=a[7], ground=a[3]<0||(a[3]<=150&&a[4]<80), d=km(a[1],a[2]);
     if(age<=90) return {k:'on',t:'雷達開啟中',c:'開啟中'};
     if(ground&&d<5&&a[4]<5) return DEP?{k:'off',t:'雷達未開 '+tOf(age)+' 後沒訊號',c:'未開啟'}:{k:'off',t:'雷達已關閉 '+tOf(age),c:'已關閉'};
+    if(done&&!DEP&&age>180) return {k:'off2',t:'雷達應已關閉（桃機已標抵達）',c:'應已關閉',m:'雷達應已關'};
     return {k:'lost',t:'訊號中斷 '+tOf(age),c:'中斷'};
   }
+  function stFix(s,rx,b){ return rx.k==='off2'?{k:'off',t:'已抵達',s:'桃機已標抵達・最後訊號 '+tOf(b[7]),c:'最後訊號 '+tOf(b[7]),d:s.d}:s; }
   function stOf(a){
     var alt=a[3], gs=a[4], age=a[7], d=km(a[1],a[2]);
     var ground=alt<0||(alt<=150&&gs<80);
@@ -84,11 +91,11 @@
     [].forEach.call(list.querySelectorAll(':scope > .rdr'),function(e){ e.remove(); });
     [].forEach.call(list.querySelectorAll('.r'),function(r){
       var fe=r.querySelector('.f'), te=r.querySelector('.t'); if(!fe) return;
-      var code=String(fe.textContent).trim().split(/[\s\uD83C]/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:''};
+      var code=String((fe.firstChild&&fe.firstChild.nodeType===3?fe.firstChild.nodeValue:fe.textContent)||'').trim().split(/\s/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:''};
       var a=x.cs&&R[x.cs]; if(!a||!plausible(x,a)) return;
-      var s=stOf(a), el=D.createElement('div');
+      var rx=rxOf(a,r.classList.contains('done')), s=stFix(stOf(a),rx,a), el=D.createElement('div');
       el.className='rdr k-'+s.k;
-      var rx=rxOf(a); el.innerHTML='<b>'+s.t+'</b><span>'+(rx.k==='on'?short(s.s):'')+'</span><i class="rx rx-'+rx.k+'">'+(rx.k==='on'?'雷達開':rx.t.replace('雷達已關閉 ','雷達關 ').replace('訊號中斷 ','中斷 '))+'</i>';
+      el.innerHTML='<b>'+s.t+'</b><span>'+(rx.k==='on'?short(s.s):'')+'</span><i class="rx rx-'+rx.k+'">'+(rx.k==='on'?'雷達開':rx.t.replace('雷達已關閉 ','雷達關 ').replace('訊號中斷 ','斷訊 ').replace('雷達應已關閉（桃機已標抵達）','雷達應已關'))+'</i>';
       r.parentNode.insertBefore(el,r.nextSibling);
     });
   }

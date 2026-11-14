@@ -1,19 +1,26 @@
 <!-- 11/14：雷達（tools/radar.js）。每張班機卡片多一行雷達狀態；點那行或上面「雷達」鍵打開地圖，
      看飛機在哪、點飛機看詳細（飛機會動）。資料：adsb.lol（ODbL），經 Cloudflare 中繼 /radar 共用 15 秒 -->
 <style>
-.r .rdr{grid-column:1/-1;flex:1 1 100%;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:6px;margin-top:6px;padding:5px 8px;
-  font-size:13.5px;font-weight:800;color:#c3cad4;background:rgba(10,14,22,.55);border:1px solid #2a3545;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.r .rdr .ic{width:15px;height:15px;flex:0 0 auto}
-.r .rdr b{font-weight:900}
-.r .rdr{flex-wrap:wrap}
-.r .rdr .go{margin-left:auto;font-size:12px;color:#00efd4;white-space:nowrap}
-.rx{font-style:normal;font-size:12px;font-weight:900;padding:1px 6px;white-space:nowrap;border:1px solid currentColor}
-.rx-on{color:#8CF23A} .rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-lost{color:#ffc53d}
-.r .rdr.k-enr{color:#9fb3be} .r .rdr.k-app{color:#ffd84a;border-color:#7a5c12}
-.r .rdr.k-land{color:#00f0ff;border-color:#0b6b70} .r .rdr.k-taxi{color:#7ab8ff;border-color:#2b4f80}
-.r .rdr.k-park{color:#8CF23A;border-color:#3f6b1a} .r .rdr.k-off{color:#8CF23A;border-color:#3f6b1a}
-.r .rdr.k-lost{color:#8d99a9}
-body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
+.r .rdr{--kc:#9fb3be;grid-column:1/-1;flex:1 1 100%;width:100%;box-sizing:border-box;position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:8px;
+  margin-top:7px;padding:6px 8px 10px;font-size:13.5px;font-weight:800;color:#dfe5ee;background:linear-gradient(90deg,rgba(7,4,14,.78),rgba(7,4,14,.5));border:1px solid rgba(255,255,255,.14);border-left:3px solid var(--kc);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;overflow:hidden}
+.r .rdr>*{grid-area:auto!important;grid-row:1!important;margin:0!important;min-width:0}
+.r .rdr .rd-bar{grid-row:auto!important}
+.r .rdr .rd-sg{background:var(--kc);color:#07040e;font-weight:900;padding:2px 7px;letter-spacing:.04em;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%)}
+.r .rdr .rd-dt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.r .rdr .rd-dt b{color:var(--kc);font-weight:900}
+.r .rdr .rd-go{color:var(--kc);font-size:17px;font-weight:900;line-height:1}
+.r .rdr .rd-bar{position:absolute;left:0;right:0;bottom:0;height:3px;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:rgba(0,0,0,.35)}
+.r .rdr .rd-bar i{background:rgba(255,255,255,.12)} .r .rdr .rd-bar i.on{background:var(--kc);box-shadow:0 0 6px var(--kc)}
+.r .rdr .rd-bar i.cur{animation:rdrcur 1.4s ease-in-out infinite} @keyframes rdrcur{50%{opacity:.35}}
+.r .rdr.k-enr{--kc:#9fb3be} .r .rdr.k-app{--kc:#ffd84a} .r .rdr.k-land{--kc:#00f0ff} .r .rdr.k-taxi{--kc:#7ab8ff}
+.r .rdr.k-park,.r .rdr.k-off{--kc:#8CF23A} .r .rdr.k-lost{--kc:#8d99a9}
+.rx{font-style:normal;font-size:12px;font-weight:900;padding:1px 6px;white-space:nowrap;border:1px solid currentColor;display:inline-flex;align-items:center;gap:4px}
+.rx::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.rx-on{color:#8CF23A} .rx-on::before{box-shadow:0 0 6px #8CF23A;animation:rdrcur 1.4s ease-in-out infinite}
+.rx-off{color:#07040e;background:#8CF23A;border-color:#8CF23A} .rx-off2{color:#8CF23A;border-style:dashed} .rx-lost{color:#ffc53d}
+body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:13px}
+@media (min-width:821px){ .r .rdr{margin-top:4px} }
 /* 地圖 */
 #rmap{position:fixed;inset:0;z-index:10000;background:#05040a;display:flex;flex-direction:column}
 #rmap[hidden]{display:none}
@@ -32,9 +39,15 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
 #rmap .rm-i .g small{display:block;font-size:11px;color:#8d99a9;font-weight:800}
 #rmap .rm-i .g i{font-style:normal;font-size:15px;font-weight:900}
 #rmap .rm-src{font-size:11px;color:#6b7686;text-align:right;margin-top:6px}
-.rp{width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center}
+.rp{position:relative;width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center}
 .rp svg{width:28px;height:28px;filter:drop-shadow(0 0 4px currentColor) drop-shadow(0 1px 2px #000)}
-.rp.sel svg{width:34px;height:34px}
+.rp.sel svg{width:46px;height:46px}
+.rp.sel::before,.rp.sel::after{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 12px #fff,inset 0 0 10px rgba(255,255,255,.5);animation:rpring 1.8s ease-out infinite;pointer-events:none}
+.rp.sel::after{animation-delay:.9s}
+@keyframes rpring{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.5);opacity:0}}
+#rmap .hassel .rp:not(.sel){opacity:.42} #rmap .hassel .rl:not(.rls):not(.rkeep){opacity:.5}
+.rl.rls{top:36px;font-size:15px;background:#fff;color:#07040e;border-color:#fff;box-shadow:0 0 14px #fff;padding:2px 8px}
+.rl.rls i{background:#07040e;color:#fff}
 .rk{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:900 11px/1 system-ui,sans-serif;color:#ff7a95;text-shadow:0 0 6px rgba(255,42,109,.9),0 0 2px #000}
 .rc{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:900 12px/1 system-ui,sans-serif;color:#c9b8ff;letter-spacing:.08em;text-shadow:0 0 8px rgba(123,120,255,.9),0 0 2px #000}
 .rc1{font-size:15px;color:#fff;text-shadow:0 0 10px #7B78FF,0 0 3px #000}
@@ -47,13 +60,18 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
 #rmap .zmid .rkn{display:none}
 #rmap .rg-road{filter:drop-shadow(0 0 3px #ff9f1c)}
 .rl i{font-style:normal;margin-left:4px;padding:0 3px;background:#00f0ff;color:#00202a}
-#rmap .rm-g{display:flex;flex-wrap:wrap;align-items:center;gap:3px 4px;padding:5px 10px;background:#07040e;border-top:1px solid #2a3545;font-size:11.5px;font-weight:800;color:#9aa6b8}
-#rmap .rm-g i{display:inline-block;width:10px;height:10px;margin-left:8px} #rmap .rm-g i:first-child{margin-left:0} #rmap .rm-g i.ln{height:3px;width:14px}
+#rmap .rm-f{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:7px 10px;background:#07040e;border-top:1px solid #2a3545}
+#rmap .rm-f .fl{font-size:12px;font-weight:900;color:#8d99a9;letter-spacing:.1em}
+#rmap .rm-f button{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 9px;font-size:13.5px;font-weight:900;color:#6b7686;border:1px solid #2a3545;background:#10151d;white-space:nowrap}
+#rmap .rm-f button i{width:10px;height:10px;background:#3a4556}
+#rmap .rm-f button small{font-size:11.5px;font-weight:800;opacity:.75}
+#rmap .rm-f button.on{color:#fff;border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c),0 0 10px -3px var(--c)} #rmap .rm-f button.on i{background:var(--c);box-shadow:0 0 6px var(--c)}
+#rmap .rm-i .bk2{margin-left:0!important}
 #rmap .rm-i .tg{font-size:12.5px;font-weight:900;padding:1px 6px;color:#07040e!important;white-space:nowrap}
 #rmap .rm-i .bk{margin-left:auto;font-size:13px;font-weight:900;color:#00f0ff;cursor:pointer;padding:4px 0 4px 10px}
 #rmap .rm-i .t2{font-size:14px;font-weight:800;color:#c3cad4;margin-top:4px} #rmap .rm-i .t2 b{color:#fff;font-size:16px}
 #rmap .rm-i .t3{font-size:13px;font-weight:800;color:#c3cad4}
-#rmap .rm-i .g .rxc{border:1px solid currentColor;background:#161e29} #rmap .rm-i .g .rxc.rx-off{background:#8CF23A;color:#07040e} #rmap .rm-i .g .rxc.rx-off small{color:#1c3a06}
+#rmap .rm-i .g .rxc{border:1px solid currentColor;background:#161e29} #rmap .rm-i .g .rxc.rx-off{background:#8CF23A;color:#07040e} #rmap .rm-i .g .rxc.rx-off small{color:#1c3a06} #rmap .rm-i .g .rxc.rx-off2{border-style:dashed}
 #rmap .rm-i .lh{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:900;color:#ffc53d;letter-spacing:.06em;margin-bottom:6px}
 #rmap .rm-i .lh small{color:#8d99a9;letter-spacing:0;font-size:11.5px}
 #rmap .rm-i .ll{max-height:26vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -66,7 +84,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
 #rmap .rg-coast{filter:drop-shadow(0 0 3px #00f0ff)}
 #rmap .rg-ring{filter:drop-shadow(0 0 2px #ff2a6d)}
 #rmap .rg-trail{filter:drop-shadow(0 0 4px #fff)}
-#rmap .zfar .rk:not(.rkf),#rmap .zfar .rl:not(.rls){display:none}
+#rmap .zfar .rk:not(.rkf),#rmap .zfar .rl:not(.rls):not(.rkeep){display:none}
 #rmap .rm-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8CF23A;margin-left:8px;box-shadow:0 0 8px #8CF23A;animation:rmlive 1.2s ease-in-out infinite}
 @keyframes rmlive{50%{opacity:.25}}
 .rp.sel svg{animation:rpsel 1.6s ease-in-out infinite}
@@ -97,12 +115,19 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
   /* 狀態判斷 */
   /* 雷達（飛機自己的發報機）開著還是關了：90 秒內有訊號＝開啟；停在機場地面後訊號斷掉＝已關閉；其他＝訊號中斷 */
   function tOf(age){ var d=new Date(Date.now()-age*1000); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
-  function rxOf(a){
+  /* 實測（11/14 傍晚 18 班）：訊號斷掉有 10 班是落地前低空就斷、5 班是滑行中斷、只有 3 班是停好才斷。
+     所以「斷訊」不能直接當成關雷達。分三種：
+       看到它停好才沒訊號            → 雷達已關閉 HH:MM（實際看到的）
+       沒看到，但桃機已經標「抵達」   → 雷達應已關閉（照機場資料推的，不寫時間）
+       其他                          → 斷訊 HH:MM */
+  function rxOf(a,done){
     var age=a[7], ground=a[3]<0||(a[3]<=150&&a[4]<80), d=km(a[1],a[2]);
-    if(age<=90) return {k:'on',t:'雷達開啟中',c:'開啟中'};
-    if(ground&&d<5&&a[4]<5) return DEP?{k:'off',t:'雷達未開 '+tOf(age)+' 後沒訊號',c:'未開啟'}:{k:'off',t:'雷達已關閉 '+tOf(age),c:'已關閉'};
-    return {k:'lost',t:'訊號中斷 '+tOf(age),c:'中斷'};
+    if(age<=90) return {k:'on',t:'雷達開啟中',c:'開啟中',m:'雷達開啟'};
+    if(ground&&d<5&&a[4]<5) return DEP?{k:'off',t:'雷達未開 '+tOf(age)+' 後沒訊號',c:'未開啟',m:'雷達未開'}:{k:'off',t:'雷達已關閉 '+tOf(age),c:'已關閉',m:'雷達關 '+tOf(age)};
+    if(done&&!DEP&&age>180) return {k:'off2',t:'雷達應已關閉（桃機已標抵達）',c:'應已關閉',m:'雷達應已關'};
+    return {k:'lost',t:'訊號中斷 '+tOf(age),c:'中斷',m:'斷訊 '+tOf(age)};
   }
+  function stFix(s,rx,b){ return rx.k==='off2'?{k:'off',t:'已抵達',s:'桃機已標抵達・最後訊號 '+tOf(b[7]),c:'最後訊號 '+tOf(b[7]),d:s.d}:s; }
   function stOf(a){
     var alt=a[3], gs=a[4], age=a[7], d=km(a[1],a[2]);
     var ground=alt<0||(alt<=150&&gs<80);
@@ -127,8 +152,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
     if(age>90&&alt<4000&&d<30) return {k:'land',t:'應已落地',s:'落地前訊號就斷了',d:d};
     if(age>300) return {k:'lost',t:'訊號消失',s:Math.round(age/60)+' 分前，最後在距桃園 '+Math.round(d)+' 公里',d:d};
     var eta=Math.max(1,Math.round(d/(Math.max(gs,140)*1.852)*60+(alt>10000?4:1)));
-    if(alt<10000) return {k:'app',t:'進場中',s:n0(alt)+' 呎・距 '+Math.round(d)+' 公里・約 '+eta+' 分落地',d:d,eta:eta};
-    return {k:'enr',t:'航路中',s:'距 '+Math.round(d)+' 公里・約 '+eta+' 分落地',d:d,eta:eta};
+    if(alt<10000) return {k:'app',t:'進場中',s:n0(alt)+' 呎・距 '+Math.round(d)+' 公里・約 '+eta+' 分落地',c:'<b>約 '+eta+' 分落地</b>・'+Math.round(d)+' 公里・'+n0(alt)+' 呎',d:d,eta:eta};
+    return {k:'enr',t:'航路中',s:'距 '+Math.round(d)+' 公里・約 '+eta+' 分落地',c:'<b>約 '+eta+' 分落地</b>・'+Math.round(d)+' 公里',d:d,eta:eta};
   }
   function load(){
     if(busy||D.hidden) return; busy=true;
@@ -145,7 +170,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
   function rowsInfo(){ return [].map.call(D.querySelectorAll('#out .r:not(.head)'),function(r){
       var b=r.querySelector('.c-fno b'), t=r.querySelector('.c-time b'), tg=r.querySelector('.c-shop .tag');
       var code=b?String(b.textContent).trim().split(/\s/)[0]:'', gn=r.querySelector('.gn'), cn=r.querySelector('.c-city .cn');
-      return {r:r,code:code,cs:csOf(code),t:t?t.textContent.trim():'',tag:tg?tg.textContent.trim():'',gate:gn?gn.textContent.trim():'',city:cn?cn.textContent.trim():''}; }); }
+      return {r:r,code:code,cs:csOf(code),t:t?t.textContent.trim():'',tag:tg?tg.textContent.trim():'',done:r.classList.contains('done'),gate:gn?gn.textContent.trim():'',city:cn?cn.textContent.trim():''}; }); }
   function plausible(x,a){
     /* 同呼號可能是別趟（例如早上那班停著）：班機還要 90 分以上才到，但雷達顯示已停在地面 → 不採用 */
     if(a[7]>2700) return false;                      /* 45 分鐘沒訊號的就不顯示了 */
@@ -157,24 +182,30 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
     if(!ground&&eta<-180) return false;
     return true;
   }
+  /* 這班現在的數字：照速度、航向、升降率從最後一次訊號往後推，所以卡片上的距離、高度、幾分落地會自己走 */
+  function nowArr(cs,now){ var a=R[cs], p=live(a,now), b=a.slice(); b[1]=p.lat; b[2]=p.lon; if(a[3]>=0) b[3]=p.alt; b[7]=Math.max(0,Math.round(p.age)); return b; }
+  var STG=DEP?{park:1,off:1,taxi:2,land:3,enr:5,app:5,lost:0}:{enr:1,app:2,land:3,taxi:4,park:5,off:5,lost:0};
   function paintCards(){
-    rowsInfo().forEach(function(x){
+    var now=Date.now(), RI=rowsInfo(), air=0;
+    RI.forEach(function(x){
       var a=x.cs&&R[x.cs], el=x.r.querySelector('.rdr');
       if(!a||!plausible(x,a)){ if(el) el.remove(); return; }
-      var s=stOf(a);
-      var rx=rxOf(a), h='<svg class="ic" viewBox="0 0 24 24"><use href="#i-signal"/></svg><b>'+s.t+'</b><span>'+s.s+'</span><i class="rx rx-'+rx.k+'">'+rx.t+'</i><span class="go">地圖 ›</span>';
+      var b=nowArr(x.cs,now), rx=rxOf(b,x.done), s=stFix(stOf(b),rx,b), n=STG[s.k]||0, bar='';
+      if(DEP?(s.k==='taxi'||s.k==='land'):(s.k==='app'||s.k==='enr')) air++;
+      for(var i=1;i<=5;i++) bar+='<i class="'+(i<=n?'on':'')+(i===n&&rx.k==='on'?' cur':'')+'"></i>';
+      var h='<span class="rd-sg">'+s.t+'</span><span class="rd-dt">'+(s.c||s.s)+'</span><i class="rx rx-'+rx.k+'">'+rx.m+'</i><span class="rd-go">›</span><span class="rd-bar">'+bar+'</span>';
       if(!el){ el=D.createElement('div'); x.r.appendChild(el); }
-      el.className='rdr k-'+s.k; if(el.__h!==h){ el.innerHTML=h; el.__h=h; } el.dataset.cs=x.cs; el.dataset.code=x.code;
+      var cl='rdr k-'+s.k; if(el.className!==cl) el.className=cl; if(el.__h!==h){ el.innerHTML=h; el.__h=h; } el.dataset.cs=x.cs; el.dataset.code=x.code;
     });
-    var dk=D.querySelector('#dock button[data-k="radar"] small'); if(dk){ var n=rowsInfo().filter(function(x){ var a=x.cs&&R[x.cs]; if(!a||!plausible(x,a)) return false; var k=stOf(a).k; return DEP?(k==='taxi'||k==='land'):(k==='app'||k==='enr'); }).length; dk.textContent=n?n+' 班'+(DEP?'滑行':''):'地圖'; }
+    var dk=D.querySelector('#dock button[data-k="radar"] small'); if(dk){ var t=air?air+' 班'+(DEP?'滑行':''):'地圖'; if(dk.textContent!==t) dk.textContent=t; }
   }
   D.addEventListener('click',function(e){ var el=e.target.closest&&e.target.closest('.r .rdr'); if(!el) return; e.stopPropagation(); openMap(el.dataset.cs); },true);
   /* 地圖 */
   function css(h){ var l=D.createElement('link'); l.rel='stylesheet'; l.href=h; D.head.appendChild(l); }
   function js(s,cb){ var x=D.createElement('script'); x.src=s; x.onload=cb; D.head.appendChild(x); }
   function plane(c){ return '<svg viewBox="0 0 24 24"><path fill="'+c+'" stroke="#000" stroke-width=".6" d="M12 2c.8 0 1.3.9 1.3 2v5.2l7.7 4.6v2l-7.7-2.3v4.8l2.2 1.7v1.6L12 20.6l-3.5 1v-1.6l2.2-1.7v-4.8L3 15.8v-2l7.7-4.6V4c0-1.1.5-2 1.3-2z"/></svg>'; }
-  function colorOf(cs){ var x=rowsInfo().filter(function(x){ return x.cs===cs; })[0]; if(!x) return '#ffd84a';
-    return /2140/.test(x.tag)?'#00f0ff':(/2153/.test(x.tag)?'#ff2a6d':(/YA/.test(x.tag)?'#8CF23A':(/YB/.test(x.tag)?'#7B78FF':'#ffd84a'))); }
+  function tagColor(t){ return /2140/.test(t)?'#00f0ff':(/2153/.test(t)?'#ff2a6d':(/YA/.test(t)?'#8CF23A':(/YB/.test(t)?'#7B78FF':'#c9d2de'))); }
+  function colorOf(cs){ var x=rowsInfo().filter(function(x){ return x.cs===cs; })[0]; return x?tagColor(x.tag):'#ffd84a'; }
   /* 自繪底圖（不用別人的地圖圖磚）：海岸線 Natural Earth、跑道 OurAirports，兩個都是公有領域，其他自己畫 */
   function off(p,dn,de){ var r=Math.PI/180; return [p[0]+dn/111320, p[1]+de/(111320*Math.cos(p[0]*r))]; }
   function strip(a,b,w){ var r=Math.PI/180, dn=(b[0]-a[0])*111320, de=(b[1]-a[1])*111320*Math.cos(a[0]*r), L2=Math.sqrt(dn*dn+de*de), un=-de/L2*w/2, ue=dn/L2*w/2;
@@ -189,7 +220,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
     var NI={interactive:false};
     function P(ll,o){ for(var k in NI) o[k]=NI[k]; return L.polygon(ll,o).addTo(map); }
     function Ln(ll,o){ for(var k in NI) o[k]=NI[k]; return L.polyline(ll,o).addTo(map); }
-    fetch('img/radar-map.json').then(function(r){ return r.json(); }).then(function(m){
+    mapData().then(function(m){
       (m.land||[]).forEach(function(ring){ P(ring,{stroke:true,color:'#00f0ff',weight:1.6,fillColor:'#140b2a',fillOpacity:.92,className:'rg-coast'}); });
       (m.coast||[]).forEach(function(ln){ Ln(ln,{color:'#00f0ff',weight:1.4,opacity:.7,className:'rg-coast'}); });
       (m.urban||[]).forEach(function(ring){ P(ring,{stroke:false,fillColor:'#6a3fb8',fillOpacity:.38}); });                 /* 市區 */
@@ -223,19 +254,27 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
       trail&&trail.bringToFront();
     })['catch'](function(){});
   }
+  /* 地圖程式和底圖資料：開頁 3 秒後趁空檔先抓好，按「雷達」就不用等下載 */
+  var LIB=null, MAPJ=null;
+  function lib(){ return LIB||(LIB=new Promise(function(ok){ if(W.L) return ok(); css('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'); js('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',ok); })); }
+  function mapData(){ return MAPJ||(MAPJ=fetch('img/radar-map.json').then(function(r){ return r.json(); })); }
+  setTimeout(function(){ try{ lib(); mapData()['catch'](function(){ MAPJ=null; }); }catch(e){} },3000);
   function openMap(cs){
     var all=!cs; sel=cs||''; follow=!!cs;
     if(!mapEl){
       mapEl=D.createElement('div'); mapEl.id='rmap';
-      mapEl.innerHTML='<div class="rm-h"><b>雷達</b><small>ADS-B 即時位置<i class="rm-live"></i></small><button type="button" class="rm-x">關閉 ✕</button></div><div class="rm-m"></div><div class="rm-g"><i style="background:#00f0ff"></i>2140<i style="background:#ff2a6d"></i>2153<i style="background:#ffd84a"></i>其他<i class="ln" style="background:#ff9f1c"></i>國道<i class="ln" style="background:#8CF23A"></i>鐵路<i class="ln" style="background:#f5ee0b"></i>進場線</div><div class="rm-i" hidden></div>';
+      mapEl.innerHTML='<div class="rm-h"><b>雷達</b><small>ADS-B 即時位置<i class="rm-live"></i></small><button type="button" class="rm-x">關閉</button></div><div class="rm-m"></div><div class="rm-f"></div><div class="rm-i" hidden></div>';
       ['pointerdown','touchstart'].forEach(function(ev){ mapEl.querySelector('.rm-i').addEventListener(ev,function(){ this.__hold=Date.now()+1200; },{passive:true}); });
-      mapEl.querySelector('.rm-i').addEventListener('click',function(e){ this.__hold=0; var r=e.target.closest('[data-cs]'); if(!r) return; sel=r.dataset.cs; follow=!!sel; paintMap(!!sel); if(!sel) map.setView(TPE,10); });
+      mapEl.querySelector('.rm-i').addEventListener('click',function(e){ this.__hold=0; if(e.target.closest('[data-loc]')){ follow=true; var q=sel&&disp[sel]; if(q) map.setView(q,Math.max(map.getZoom(),R[sel]&&R[sel][3]<0?14:10)); return; }
+        var r=e.target.closest('[data-cs]'); if(!r) return; sel=r.dataset.cs; follow=!!sel; paintMap(!!sel); if(!sel) map.setView(TPE,10); });
       D.body.appendChild(mapEl);
+      mapEl.querySelector('.rm-f').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+        if(b.dataset.o){ FL.others=!FL.others; } else { var t=b.dataset.t; FL.off[t]=!FL.off[t]; }
+        try{ localStorage.setItem('radarFilt1',JSON.stringify(FL)); }catch(e){} paintMap(); });
       mapEl.querySelector('.rm-x').onclick=function(){ mapEl.hidden=true; if(raf){ cancelAnimationFrame(raf); raf=0; } };
     }
     mapEl.hidden=false;
-    if(!W.L){ css('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'); js('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',function(){ initMap(all); }); }
-    else initMap(all);
+    lib().then(function(){ initMap(all); });
     load();
   }
   function initMap(all){
@@ -247,8 +286,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
       map.on('click',function(){ sel=''; follow=false; paintMap(); });
       map.on('dragstart',function(){ follow=false; });          /* 自己拖地圖就不再自動跟著飛機 */
       var zf=function(){ var z=map.getZoom(), c=map.getContainer().classList; c.toggle('zfar',z<9); c.toggle('zmid',z<14); c.toggle('znear',z>=13); }; map.on('zoomend',zf); zf();
-      trail=L.polyline([],{color:'#ffffff',weight:2,opacity:.85,interactive:false,className:'rg-trail'}).addTo(map);
-      L.marker(TPE,{icon:L.divIcon({className:'',iconSize:[0,0],html:'<div class="rl rls rtpe" style="top:-34px;background:#00efd4;color:#00202a">桃園 TPE</div>'}),interactive:false}).addTo(map);
+      trail=L.polyline([],{color:'#ffffff',weight:3,opacity:.95,interactive:false,className:'rg-trail'}).addTo(map);
+      L.marker(TPE,{icon:L.divIcon({className:'',iconSize:[0,0],html:'<div class="rl rkeep rtpe" style="top:-34px;background:#00efd4;color:#00202a;border-color:#00efd4">桃園 TPE</div>'}),interactive:false}).addTo(map);
     }
     setTimeout(function(){ map.invalidateSize(); if(all) map.setView(TPE,10); paintMap(!all); },50);
   }
@@ -277,12 +316,24 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
     if(now-lastBox>1000){ lastBox=now; paintBox(); }
   }
   function startTick(){ if(!raf&&W.requestAnimationFrame) raf=requestAnimationFrame(tick); }
+  /* 要顯示哪些飛機：預設只看看板上（你勾的登機門分類）的班機；每個分類可以單獨關，「其他飛機」要看再開 */
+  var FL={others:false,off:{}}; try{ var fs=JSON.parse(localStorage.getItem('radarFilt1')||'null'); if(fs&&typeof fs==='object'){ FL.others=!!fs.others; FL.off=fs.off||{}; } }catch(e){}
+  function paintFilt(RI){
+    var el=mapEl.querySelector('.rm-f'), tags=[], cnt={}, oth=0, seen={};
+    RI.forEach(function(x){ if(!x.tag) return; if(tags.indexOf(x.tag)<0) tags.push(x.tag); if(x.cs&&R[x.cs]&&R[x.cs][7]<=1800&&plausible(x,R[x.cs])){ cnt[x.tag]=(cnt[x.tag]||0)+1; seen[x.cs]=1; } });
+    Object.keys(R).forEach(function(cs){ if(!seen[cs]&&R[cs][7]<=1800) oth++; });
+    var h='<span class="fl">顯示</span>'+tags.map(function(t){ var c=tagColor(t); return '<button type="button" data-t="'+t+'" class="'+(FL.off[t]?'':'on')+'" style="--c:'+c+'"><i></i>'+t+'<small>'+(cnt[t]||0)+'</small></button>'; }).join('')
+      +'<button type="button" data-o="1" class="'+(FL.others?'on':'')+'" style="--c:#ffd84a"><i></i>其他飛機<small>'+oth+'</small></button>';
+    if(el.__h!==h){ el.innerHTML=h; el.__h=h; setTimeout(function(){ map&&map.invalidateSize(); },0); }
+  }
   function paintMap(fly){
     if(!map) return;
-    var keep={}, RI=rowsInfo(), now=Date.now();
+    var keep={}, RI=rowsInfo(), now=Date.now(); paintFilt(RI);
     Object.keys(R).forEach(function(cs){ var a=R[cs]; if(a[7]>1800) return;   /* 半小時以上沒訊號的不畫 */
-      keep[cs]=1; var on=cs===sel, c=colorOf(cs);
+      var on=cs===sel, c=colorOf(cs);
       var lab=RI.filter(function(x){ return x.cs===cs; })[0];
+      if(!on&&(lab?FL.off[lab.tag]:!FL.others)) return;                    /* 沒勾的分類、其他飛機：不畫 */
+      keep[cs]=1;
       var html='<div class="rp'+(on?' sel':'')+'" style="color:'+(on?'#ffffff':c)+';transform:rotate('+(a[5]||0)+'deg)">'+plane(on?'#ffffff':c)+'</div>'+(lab||on?'<div class="rl'+(on?' rls':'')+'">'+(lab?iataShort(lab.code)+(lab.gate?'<i>'+lab.gate+'</i>':''):cs)+'</div>':'');
       var op=a[7]>120?.45:1;
       if(!marks[cs]){ var p=live(a,now); disp[cs]=[p.lat,p.lon];
@@ -292,6 +343,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
       marks[cs].setZIndexOffset(on?1000:0);
     });
     Object.keys(marks).forEach(function(cs){ if(!keep[cs]){ map.removeLayer(marks[cs]); delete marks[cs]; delete disp[cs]; } });
+    map.getContainer().classList.toggle('hassel',!!(sel&&R[sel]));
     paintBox();
     var a=sel&&R[sel]; if(fly&&a){ var q=live(a,now); map.setView([q.lat,q.lon],a[3]<0?14:10); }
     startTick();
@@ -301,15 +353,15 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
   function paintBox(){
     var box=mapEl.querySelector('.rm-i'), a=sel&&R[sel], now=Date.now(), h='';
     if(a){
-      var b=liveArr(sel,now), s=stOf(b), rx=rxOf(b), lab=rowsInfo().filter(function(x){ return x.cs===sel; })[0], code=lab?lab.code:sel;
-      h='<div class="t1"><b>'+code+'</b><span style="color:'+colorOf(sel)+'">'+s.t+'</span>'+(lab?'<span class="tg" style="background:'+colorOf(sel)+'">'+lab.tag+'</span>':'')+'<a class="bk" data-cs="">‹ 全部班機</a></div>'
+      var b=liveArr(sel,now), lab=rowsInfo().filter(function(x){ return x.cs===sel; })[0], rx=rxOf(b,lab&&lab.done), s=stFix(stOf(b),rx,b), code=lab?lab.code:sel;
+      h='<div class="t1"><b>'+code+'</b><span style="color:'+colorOf(sel)+'">'+s.t+'</span>'+(lab?'<span class="tg" style="background:'+colorOf(sel)+'">'+lab.tag+'</span>':'')+'<a class="bk" data-loc="1">定位</a><a class="bk bk2" data-cs="">‹ 全部班機</a></div>'
         +(lab?'<div class="t2">'+(lab.gate?'登機門 <b>'+lab.gate+'</b>　':'')+(lab.city?lab.city+'　':'')+(DEP?'起飛 ':'抵達 ')+'<b>'+lab.t+'</b></div>':'')
         +'<div class="g"><div><small>高度</small><i>'+(b[3]<0?'地面':n0(b[3])+' 呎')+'</i></div><div><small>速度</small><i>'+a[4]+' 節</i></div>'
         +'<div><small>距桃園</small><i>'+(s.d<10?s.d.toFixed(1):Math.round(s.d))+' 公里</i></div><div class="rxc rx-'+rx.k+'"><small>雷達</small><i>'+rx.c+'</i></div></div>'
         +'<div class="t3">最後訊號 '+tOf(b[7])+'（'+(b[7]<60?b[7]+' 秒前':Math.round(b[7]/60)+' 分前')+'）・'+s.s+(a[6]&&a[3]>=0&&Math.abs(a[6])>=200?'・'+(a[6]<0?'下降':'爬升')+' '+n0(Math.abs(a[6]))+' 呎/分':'')+'・航向 '+(a[5]||0)+'°'+(a[9]?'・'+a[9]:'')+(a[8]?'・'+a[8]:'')+'</div>';
     } else {
       /* 沒選飛機：列出看板上雷達找得到的班機，照快到的排，點了就看那班 */
-      var L2=rowsInfo().filter(function(x){ return x.cs&&R[x.cs]&&plausible(x,R[x.cs]); }).map(function(x){ var b=liveArr(x.cs,now), s=stOf(b); return {x:x,s:s,rx:rxOf(b),o:(s.eta!=null?s.eta:500+b[7]/60)}; });   /* 還在飛的照快到的排前面，落地的排後面 */
+      var L2=rowsInfo().filter(function(x){ return x.cs&&R[x.cs]&&!FL.off[x.tag]&&plausible(x,R[x.cs]); }).map(function(x){ var b=liveArr(x.cs,now), rx=rxOf(b,x.done), s=stFix(stOf(b),rx,b); return {x:x,s:s,rx:rx,o:(s.eta!=null?s.eta:500+b[7]/60)}; });   /* 還在飛的照快到的排前面，落地的排後面 */
       L2.sort(function(p,q){ return p.o-q.o; });
       h='<div class="lh">看板上的班機（雷達找得到 '+L2.length+' 班）<small>點一班看位置</small></div><div class="ll">'
         +(L2.length?L2.slice(0,12).map(function(y){ var x=y.x; return '<div class="li" data-cs="'+x.cs+'"><span class="tg" style="background:'+colorOf(x.cs)+'">'+x.tag+'</span><b>'+iataShort(x.code)+'</b><span class="gt">'+(x.gate||'—')+'</span><span class="st k-'+y.s.k+'">'+y.s.t+'</span><span class="ds">'+(y.s.eta!=null?'約 '+y.s.eta+' 分・'+Math.round(y.s.d)+' 公里':'<i class="rx rx-'+y.rx.k+'">'+y.rx.t+'</i>')+'</span></div>'; }).join('')
@@ -328,8 +380,9 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
   },150);
   var w2=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w2);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paintCards(); }catch(e){} return x; }; load(); },100);
-  /* 地圖開著每 5 秒問一次（中繼 15 秒才換新的，多問不會多抓）；沒開地圖 20 秒一次 */
-  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>19000){ LT=Date.now(); load(); } },5000);
+  /* 地圖開著每 5 秒問一次、沒開 10 秒一次（中繼 15 秒才換新的，多問不會多抓）；卡片上的數字每 5 秒自己重算 */
+  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>9000){ LT=Date.now(); load(); }
+    if(!open&&!D.hidden&&RT) try{ paintCards(); }catch(e){} },5000);
   D.addEventListener('visibilitychange',function(){ if(!D.hidden) load(); });
 })();
 </script>
