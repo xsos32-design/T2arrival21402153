@@ -329,11 +329,12 @@ const CTRY = (() => { const o = {};
   return o; })();
 const ctryOf = f => CTRY[String(f.CityCode || f.Dep || '').trim().toUpperCase()] || '';
 /* 出發地一律帶國旗；查不到就給地球，格式才會統一 */
-const flagCell = f => {
-  const ct = ctryOf(f), fg = flagOf(ct);
-  if (fg) return `<i class="cty" title="${esc(ct)}">${fg}</i>`;
+const ctryShort = n => { n = String(n || ''); if (n.length <= 2) return n; return ({ '新加坡': '星國', '愛爾蘭': '愛爾', '馬爾地夫': '馬爾' })[n] || n.charAt(0) + '國'; };
+const flagCell = f => {   /* 11/14：不用 emoji 國旗，改文字小牌 */
+  const ct = ctryOf(f);
+  if (ct) return `<i class="cty" title="${esc(ct)}">${esc(ctryShort(ct))}</i>`;
   const code = String(f.CityCode || f.Dep || '').trim().toUpperCase();
-  return `<i class="cty" title="${esc(code || '出發地不明')} 還沒對照到國家">\u{1F310}</i>`;
+  return `<i class="cty unk" title="${esc(code || '出發地不明')} 還沒對照到國家">${esc(code || '—')}</i>`;
 };
 /* 國旗：國名 → ISO 兩碼，再用 regional indicator 組出旗子（比直接存 53 面旗省字） */
 const FLAG = (() => { const o = {};
@@ -602,8 +603,7 @@ b.t{grid-area:t;font-size:28px;font-weight:700;font-variant-numeric:tabular-nums
 .st1{background:#1E1B2C;color:#A79BC4} .st2{background:#1A1F27;color:#8B93A1}
 .f{grid-area:f;font-size:26px;font-weight:700;color:#E8EAED;white-space:nowrap;text-align:left;
  letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
-.cty{font-style:normal;font-size:20px;font-weight:800;white-space:nowrap;
- margin-left:8px;vertical-align:-2px;letter-spacing:0}
+.cty{font-style:normal;font-size:12px;font-weight:900;white-space:nowrap;margin-left:6px;padding:0 5px;vertical-align:middle;color:#c9d2de;border:1px solid rgba(201,210,222,.45);letter-spacing:.06em}
 .c{grid-area:c;font-size:15px;font-weight:650;color:#98a2b0;white-space:normal;word-break:break-word;line-height:1.35;min-width:0}
 /* 人數：三格負載條＋數字＋小標字 */
 .px{font-style:normal;font-size:13px;font-weight:800;color:#dce2ea;white-space:nowrap;
@@ -737,7 +737,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
  .r{padding:5px 8px 5px 12px;gap:2px 8px;margin-bottom:6px}
  b.t{font-size:38px;font-weight:800;line-height:1}
  .f{font-size:32px;font-weight:800}
- .cty{font-size:24px;margin-left:5px;vertical-align:-3px}
+ .cty{font-size:13px}
  .g{font-size:38px;font-weight:800}
  .g .gn{padding:0 5px}
  .c{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.03em}
@@ -751,7 +751,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
  .r{grid-template-columns:96px minmax(0,1fr) 74px;gap:2px 8px;padding:5px 8px 5px 12px}
 }
 @media(max-width:400px) and (min-width:341px){
- b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:21px}
+ b.t{font-size:33px} .f{font-size:28px} .g{font-size:33px} .c{font-size:17.5px} .cty{font-size:13px}
  .r{grid-template-columns:86px minmax(0,1fr) 68px}
 }
 
