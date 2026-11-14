@@ -178,6 +178,42 @@ async function build(env) {
   return { t: pad(n.getUTCHours()) + ':' + pad(n.getUTCMinutes()), d: today.replace(/-/g, '/'), f: rows, src: 'worker-' + src, at: Date.now() };
 }
 
+/* ══ 11/14：雷達（ADS-B）中繼 /radar ══════════════════════════════════════
+   資料來源 adsb.lol（開放資料 ODbL，需標註來源）。桃園機場方圓 100 浬一次抓完，
+   大家共用 15 秒。另外記住每架飛機最後一次收到的位置 3 小時，
+   飛機停好關機、訊號斷掉以後，看板還知道它「最後停在哪、幾分鐘前關的」。
+   回傳 {t, src, a:[[呼號, 緯度, 經度, 高度(呎, -1=地面), 地速(節), 航向, 升降率, 幾秒前, 註冊號, 機型]]} */
+const RADAR_SRC = 'https://api.adsb.lol/v2/point/25.0777/121.2328/100';
+async function radar(ctx) {
+  const cache = caches.default;
+  const key = new Request('https://radar.cache/now'), hkey = new Request('https://radar.cache/hist');
+  const hit = await cache.match(key);
+  if (hit) return hit.text();
+  let hist = {};
+  try { const h = await cache.match(hkey); if (h) hist = await h.json(); } catch (e) {}
+  const now = Date.now();
+  let ok = false;
+  try {
+    const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 8000);
+    const r = await fetch(RADAR_SRC, { headers: { Accept: 'application/json', 'User-Agent': 'tpe-board (xsos32-design.github.io)' }, signal: ac.signal });
+    clearTimeout(tm);
+    if (r.ok) {
+      const j = await r.json(); ok = true;
+      for (const a of (j.ac || [])) {
+        const cs = String(a.flight || '').trim().toUpperCase(); if (!cs || a.lat == null) continue;
+        const seen = Math.max(+a.seen_pos || 0, +a.seen || 0);
+        hist[cs] = [cs, +(+a.lat).toFixed(4), +(+a.lon).toFixed(4), a.alt_baro === 'ground' ? -1 : (+a.alt_baro || 0),
+          Math.round(+a.gs || 0), Math.round(+a.track || 0), +a.baro_rate || 0, now - seen * 1000, a.r || '', a.t || ''];
+      }
+    }
+  } catch (e) {}
+  for (const k in hist) if (now - hist[k][7] > 3 * 3600000) delete hist[k];
+  const body = JSON.stringify({ t: now, ok, src: 'adsb.lol (ODbL)', a: Object.values(hist).map(x => { const y = x.slice(); y[7] = Math.round((now - x[7]) / 1000); return y; }) });
+  ctx.waitUntil(cache.put(hkey, new Response(JSON.stringify(hist), { headers: { 'Cache-Control': 'public, max-age=10800' } })));
+  ctx.waitUntil(cache.put(key, new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=15' } })));
+  return body;
+}
+
 export default {
   async fetch(req, env, ctx) {
     if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
@@ -204,6 +240,10 @@ export default {
         } catch (e) { out['認證'] = '錯誤 ' + String(e && e.message || e); }
       }
       return new Response(JSON.stringify(out, null, 1), { headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS } });
+    }
+    if (u.pathname === '/radar') {
+      const body = await radar(ctx);
+      return new Response(body, { headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...CORS } });
     }
     if (u.pathname !== '/snap') return new Response('not found', { status: 404, headers: CORS });
 
