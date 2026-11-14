@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-14a';
+var PAGE_V='2026-11-14b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3583,6 +3583,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:16px}
       if(gs>=4) return {k:'taxi',t:'滑行中',s:gs+' 節',d:d};
       return {k:'park',t:'已停妥',s:'停在地面',d:d};
     }
+    /* 低空進場時訊號斷掉（接收站收不到跑道附近）：多半已經落地 */
+    if(age>90&&alt<4000&&d<30) return {k:'land',t:'應已落地',s:'低空訊號 '+Math.max(1,Math.round(age/60))+' 分前消失',d:d};
     if(age>300) return {k:'lost',t:'訊號消失',s:Math.round(age/60)+' 分前，最後在距桃園 '+Math.round(d)+' 公里',d:d};
     var eta=Math.max(1,Math.round(d/(Math.max(gs,140)*1.852)*60+(alt>10000?4:1)));
     if(alt<10000) return {k:'app',t:'進場中',s:n0(alt)+' 呎・距 '+Math.round(d)+' 公里・約 '+eta+' 分落地',d:d,eta:eta};
