@@ -394,8 +394,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
   },150);
   var w2=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w2);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paintCards(); }catch(e){} return x; }; load(); },100);
-  /* 地圖開著每 5 秒問一次、沒開 10 秒一次（中繼 15 秒才換新的，多問不會多抓）；卡片上的數字每 5 秒自己重算 */
-  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>9000){ LT=Date.now(); load(); }
+  /* 地圖開著每 5 秒問一次、沒開 30 秒一次（省 Cloudflare 免費額度：每天 10 萬次；中繼 15 秒才換新的）；卡片上的數字每 5 秒自己重算 */
+  setInterval(function(){ var open=mapEl&&!mapEl.hidden; if(open||Date.now()-LT>29000){ LT=Date.now(); load(); }
     if(!open&&!D.hidden&&RT) try{ paintCards(); }catch(e){} },5000);
   D.addEventListener('visibilitychange',function(){ if(!D.hidden) load(); });
 })();

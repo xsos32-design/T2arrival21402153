@@ -102,7 +102,7 @@
   }
   var w=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; load(); },100);
-  setInterval(load,15000);
+  setInterval(load,30000);   /* 11/14：15 秒 → 30 秒，省 Cloudflare 免費額度 */
   D.addEventListener('visibilitychange',function(){ if(!D.hidden) load(); });
 })();
 </script>
