@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-14e';
+var PAGE_V='2026-11-14f';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3491,10 +3491,12 @@ body.fs4 .r .ac{font-size:15px!important} body.fs4 .r .nat{font-size:17.5px!impo
     menu=D.createElement('div'); menu.id='fsmenu'; menu.hidden=true;
     menu.innerHTML=NAMES.map(function(n,i){ return '<button type="button" data-l="'+i+'">'+n+'</button>'; }).join('');
     D.body.appendChild(menu);
-    b.onclick=function(e){ e.stopPropagation(); menu.hidden=!menu.hidden; if(!menu.hidden) place(); };
+    var openAt=0, openY=0;
+    b.onclick=function(e){ e.stopPropagation(); menu.hidden=!menu.hidden; if(!menu.hidden){ place(); openAt=Date.now(); openY=scrollY; } };
     menu.addEventListener('click',function(e){ var x=e.target.closest('button'); if(!x) return; e.stopPropagation(); lv=+x.dataset.l; apply(); menu.hidden=true; });
     D.addEventListener('click',function(e){ if(menu&&!menu.hidden&&!menu.contains(e.target)) menu.hidden=true; });
-    addEventListener('scroll',function(){ if(menu&&!menu.hidden) menu.hidden=true; },{passive:true});
+    /* 捲動才收選單；換字體大小時版面會自己動一下（不是手在捲），剛打開 0.8 秒內、或只動 24px 以內不算 */
+    addEventListener('scroll',function(){ if(menu&&!menu.hidden&&Date.now()-openAt>800&&Math.abs(scrollY-openY)>24) menu.hidden=true; },{passive:true});
     apply(); return true;
   }
   /* 「大字」鍵是 DOMContentLoaded 才放上去，等它出現 */
@@ -3543,14 +3545,23 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
 #rmap .rm-i .g small{display:block;font-size:11px;color:#8d99a9;font-weight:800}
 #rmap .rm-i .g i{font-style:normal;font-size:15px;font-weight:900}
 #rmap .rm-src{font-size:11px;color:#6b7686;text-align:right;margin-top:6px}
-.rp{position:relative;width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center}
-.rp svg{width:28px;height:28px;filter:drop-shadow(0 0 4px currentColor) drop-shadow(0 1px 2px #000)}
-.rp.sel svg{width:46px;height:46px}
-.rp.sel::before,.rp.sel::after{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 12px #fff,inset 0 0 10px rgba(255,255,255,.5);animation:rpring 1.8s ease-out infinite;pointer-events:none}
-.rp.sel::after{animation-delay:.9s}
-@keyframes rpring{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.5);opacity:0}}
-#rmap .hassel .rp:not(.sel){opacity:.42} #rmap .hassel .rl:not(.rls):not(.rkeep){opacity:.5}
-.rl.rls{top:36px;font-size:15px;background:#fff;color:#07040e;border-color:#fff;box-shadow:0 0 14px #fff;padding:2px 8px}
+.rp{position:relative;width:32px;height:32px;margin:-16px 0 0 -16px;display:flex;align-items:center;justify-content:center}
+/* 飛機圖：Gemini 生的客機俯視圖（img/plane.webp），當遮罩用，顏色照分類上；光暈放在外層（filter 會比 mask 先算） */
+.rp .pw{display:block;flex:none;width:32px;height:32px;filter:drop-shadow(0 0 4px currentColor) drop-shadow(0 1px 2px #000)}
+.rp .pm{display:block;width:100%;height:100%;background:currentColor;-webkit-mask:url(img/plane.webp) center/contain no-repeat;mask:url(img/plane.webp) center/contain no-repeat}
+/* 選到的那架：放大到 1.6 倍、白色，外面一個黃色準星框（不閃），一圈光環慢慢往外擴散，光暈輕輕呼吸 */
+.rp.sel{z-index:3;width:52px;height:52px;margin:-26px 0 0 -26px}
+.rp.sel .pw{width:52px;height:52px}
+.rsel{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+.rsel i{position:absolute;left:-40px;top:-40px;width:80px;height:80px;box-sizing:border-box;border-radius:50%;border:2px solid #f5ee0b;box-shadow:0 0 10px rgba(245,238,11,.7);animation:rpring 2.6s ease-out infinite}
+.rsel b{position:absolute;left:-36px;top:-36px;width:72px;height:72px;box-sizing:border-box;
+  background:linear-gradient(#f5ee0b,#f5ee0b) 0 0/18px 3px no-repeat,linear-gradient(#f5ee0b,#f5ee0b) 0 0/3px 18px no-repeat,
+    linear-gradient(#f5ee0b,#f5ee0b) 100% 0/18px 3px no-repeat,linear-gradient(#f5ee0b,#f5ee0b) 100% 0/3px 18px no-repeat,
+    linear-gradient(#f5ee0b,#f5ee0b) 0 100%/18px 3px no-repeat,linear-gradient(#f5ee0b,#f5ee0b) 0 100%/3px 18px no-repeat,
+    linear-gradient(#f5ee0b,#f5ee0b) 100% 100%/18px 3px no-repeat,linear-gradient(#f5ee0b,#f5ee0b) 100% 100%/3px 18px no-repeat;filter:drop-shadow(0 0 4px rgba(245,238,11,.8))}
+@keyframes rpring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.45);opacity:0}}
+#rmap .hassel .rp:not(.sel){opacity:.4} #rmap .hassel .rl:not(.rls):not(.rkeep){opacity:.45}
+.rl.rls{top:46px;font-size:15px;background:#f5ee0b;color:#07040e;border:1px solid #fff;box-shadow:0 0 10px rgba(245,238,11,.7);padding:2px 8px}
 .rl.rls i{background:#07040e;color:#fff}
 .rk{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:900 11px/1 system-ui,sans-serif;color:#ff7a95;text-shadow:0 0 6px rgba(255,42,109,.9),0 0 2px #000}
 .rc{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:900 12px/1 system-ui,sans-serif;color:#c9b8ff;letter-spacing:.08em;text-shadow:0 0 8px rgba(123,120,255,.9),0 0 2px #000}
@@ -3591,8 +3602,9 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
 #rmap .zfar .rk:not(.rkf),#rmap .zfar .rl:not(.rls):not(.rkeep){display:none}
 #rmap .rm-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8CF23A;margin-left:8px;box-shadow:0 0 8px #8CF23A;animation:rmlive 1.2s ease-in-out infinite}
 @keyframes rmlive{50%{opacity:.25}}
-.rp.sel svg{animation:rpsel 1.6s ease-in-out infinite}
-@keyframes rpsel{50%{filter:drop-shadow(0 0 12px #fff) drop-shadow(0 1px 2px #000)}}
+.rp.sel .pw{animation:rpsel 2.2s ease-in-out infinite}
+@keyframes rpsel{0%,100%{filter:drop-shadow(0 0 5px #fff) drop-shadow(0 1px 2px #000)}50%{filter:drop-shadow(0 0 13px #fff) drop-shadow(0 1px 2px #000)}}
+@media (prefers-reduced-motion:reduce){ .rp.sel .pw,.rsel i{animation:none} }
 #rmap .rg-rwy{filter:drop-shadow(0 0 4px #f5ee0b)}
 #rmap .leaflet-control-attribution{background:rgba(5,4,10,.7)!important;color:#6b7686!important;font-size:10px!important}
 #rmap .leaflet-control-attribution a{color:#6b7686!important}
@@ -3667,6 +3679,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
       JT=j.t||0; var sk=Date.now()-(j.t||Date.now()); if(OFF===null||sk<OFF) OFF=sk;   /* 手機跟伺服器的時間差，取看過最小的 */
       var m={}; (j.a||[]).forEach(function(a){ m[a[0]]=a;
         if(a[7]<60){ var h=hist[a[0]]||(hist[a[0]]=[]), l=h[h.length-1]; if(!l||l[0]!==a[1]||l[1]!==a[2]){ h.push([a[1],a[2]]); if(h.length>80) h.shift(); } } });
+      Object.keys(hist).forEach(function(k){ if(!m[k]||m[k][7]>1800) delete hist[k]; });
       R=m; RT=(j.t||Date.now())+OFF; paintCards(); if(mapEl&&!mapEl.hidden) paintMap();
     })['catch'](function(){}).then(function(){ clearTimeout(tm); busy=false; });
   }
@@ -3682,6 +3695,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
     var d=new Date(), eta=(+m[1])*60+(+m[2])-(d.getHours()*60+d.getMinutes()); if(eta<-720) eta+=1440;
     var ground=a[3]<0||(a[3]<=150&&a[4]<80);
     if(DEP){ if(!ground&&eta>30) return false; if(eta<-120) return false; return true; }
+    if(x.done&&!ground&&km(a[1],a[2])>30) return false;   /* 桃機已標抵達，同呼號卻在 30 公里外的空中＝飛下一趟了 */
     if(ground&&eta>90) return false;
     if(!ground&&eta<-180) return false;
     return true;
@@ -3707,7 +3721,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
   /* 地圖 */
   function css(h){ var l=D.createElement('link'); l.rel='stylesheet'; l.href=h; D.head.appendChild(l); }
   function js(s,cb){ var x=D.createElement('script'); x.src=s; x.onload=cb; D.head.appendChild(x); }
-  function plane(c){ return '<svg viewBox="0 0 24 24"><path fill="'+c+'" stroke="#000" stroke-width=".6" d="M12 2c.8 0 1.3.9 1.3 2v5.2l7.7 4.6v2l-7.7-2.3v4.8l2.2 1.7v1.6L12 20.6l-3.5 1v-1.6l2.2-1.7v-4.8L3 15.8v-2l7.7-4.6V4c0-1.1.5-2 1.3-2z"/></svg>'; }
+  function plane(c){ return '<span class="pw"><i class="pm"></i></span>'; }
   function tagColor(t){ return /2140/.test(t)?'#00f0ff':(/2153/.test(t)?'#ff2a6d':(/YA/.test(t)?'#8CF23A':(/YB/.test(t)?'#7B78FF':'#c9d2de'))); }
   function colorOf(cs){ var x=rowsInfo().filter(function(x){ return x.cs===cs; })[0]; return x?tagColor(x.tag):'#ffd84a'; }
   /* 自繪底圖（不用別人的地圖圖磚）：海岸線 Natural Earth、跑道 OurAirports，兩個都是公有領域，其他自己畫 */
@@ -3838,8 +3852,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
       var lab=RI.filter(function(x){ return x.cs===cs; })[0];
       if(!on&&(lab?FL.off[lab.tag]:!FL.others)) return;                    /* 沒勾的分類、其他飛機：不畫 */
       keep[cs]=1;
-      var html='<div class="rp'+(on?' sel':'')+'" style="color:'+(on?'#ffffff':c)+';transform:rotate('+(a[5]||0)+'deg)">'+plane(on?'#ffffff':c)+'</div>'+(lab||on?'<div class="rl'+(on?' rls':'')+'">'+(lab?iataShort(lab.code)+(lab.gate?'<i>'+lab.gate+'</i>':''):cs)+'</div>':'');
-      var op=a[7]>120?.45:1;
+      var html=(on?'<div class="rsel"><i></i><b></b></div>':'')+'<div class="rp'+(on?' sel':'')+'" style="color:'+(on?'#ffffff':c)+';transform:rotate('+(a[5]||0)+'deg)">'+plane(on?'#ffffff':c)+'</div>'+(lab||on?'<div class="rl'+(on?' rls':'')+'">'+(lab?iataShort(lab.code)+(lab.gate?'<i>'+lab.gate+'</i>':''):cs)+'</div>':'');
+      var op=(a[7]>120&&!on)?.45:1;        /* 選到的那架就算訊號舊了也不變淡 */
       if(!marks[cs]){ var p=live(a,now); disp[cs]=[p.lat,p.lon];
         marks[cs]=L.marker(disp[cs],{icon:L.divIcon({className:'',html:html,iconSize:[0,0]}),opacity:op}).addTo(map); marks[cs].__h=html;
         marks[cs].on('click',function(e){ L.DomEvent.stopPropagation(e); sel=cs; follow=true; paintMap(); }); }
@@ -3858,6 +3872,8 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
     var box=mapEl.querySelector('.rm-i'), a=sel&&R[sel], now=Date.now(), h='';
     if(a){
       var b=liveArr(sel,now), lab=rowsInfo().filter(function(x){ return x.cs===sel; })[0], rx=rxOf(b,lab&&lab.done), s=stFix(stOf(b),rx,b), code=lab?lab.code:sel;
+      /* 不在看板上的飛機（別的航廈、起飛的、路過的）：不知道它是不是要來降落，只寫在地面還是在飛 */
+      if(!lab){ var gnd=b[3]<0||(b[3]<=150&&b[4]<80); s={k:gnd?'park':'enr',t:gnd?'在地面':'飛行中',s:(gnd?'地面 ':'')+'距桃園 '+Math.round(s.d)+' 公里',d:s.d}; }
       h='<div class="t1"><b>'+code+'</b><span style="color:'+colorOf(sel)+'">'+s.t+'</span>'+(lab?'<span class="tg" style="background:'+colorOf(sel)+'">'+lab.tag+'</span>':'')+'<a class="bk" data-loc="1">定位</a><a class="bk bk2" data-cs="">‹ 全部班機</a></div>'
         +(lab?'<div class="t2">'+(lab.gate?'登機門 <b>'+lab.gate+'</b>　':'')+(lab.city?lab.city+'　':'')+(DEP?'起飛 ':'抵達 ')+'<b>'+lab.t+'</b></div>':'')
         +'<div class="g"><div><small>高度</small><i>'+(b[3]<0?'地面':n0(b[3])+' 呎')+'</i></div><div><small>速度</small><i>'+a[4]+' 節</i></div>'
