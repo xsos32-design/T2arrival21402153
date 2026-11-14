@@ -1581,7 +1581,7 @@ async function main() {
   try {
     const im = await readdir('img');
     await mkdir(join(OUT, 'img'), { recursive: true });
-    for (const f of im) if (/\.(png|jpg|jpeg|webp)$/.test(f)) await copyFile(join('img', f), join(OUT, 'img', f));
+    for (const f of im) if (/\.(png|jpg|jpeg|webp|json)$/.test(f)) await copyFile(join('img', f), join(OUT, 'img', f));
     console.log('已複製 img/（' + im.length + ' 個檔）');
   } catch { console.log('沒有 img/ 資料夾，略過'); }
   /* 試作／預覽頁：10/13 起都收在 preview/ 資料夾，整包照原樣發佈 */
