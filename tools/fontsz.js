@@ -40,10 +40,12 @@ body.fs4 .r .ac{font-size:15px!important} body.fs4 .r .nat{font-size:17.5px!impo
     menu=D.createElement('div'); menu.id='fsmenu'; menu.hidden=true;
     menu.innerHTML=NAMES.map(function(n,i){ return '<button type="button" data-l="'+i+'">'+n+'</button>'; }).join('');
     D.body.appendChild(menu);
-    b.onclick=function(e){ e.stopPropagation(); menu.hidden=!menu.hidden; if(!menu.hidden) place(); };
+    var openAt=0, openY=0;
+    b.onclick=function(e){ e.stopPropagation(); menu.hidden=!menu.hidden; if(!menu.hidden){ place(); openAt=Date.now(); openY=scrollY; } };
     menu.addEventListener('click',function(e){ var x=e.target.closest('button'); if(!x) return; e.stopPropagation(); lv=+x.dataset.l; apply(); menu.hidden=true; });
     D.addEventListener('click',function(e){ if(menu&&!menu.hidden&&!menu.contains(e.target)) menu.hidden=true; });
-    addEventListener('scroll',function(){ if(menu&&!menu.hidden) menu.hidden=true; },{passive:true});
+    /* 捲動才收選單；換字體大小時版面會自己動一下（不是手在捲），剛打開 0.8 秒內、或只動 24px 以內不算 */
+    addEventListener('scroll',function(){ if(menu&&!menu.hidden&&Date.now()-openAt>800&&Math.abs(scrollY-openY)>24) menu.hidden=true; },{passive:true});
     apply(); return true;
   }
   /* 「大字」鍵是 DOMContentLoaded 才放上去，等它出現 */

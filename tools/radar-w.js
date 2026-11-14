@@ -19,7 +19,7 @@
     VN:'HVN',VJ:'VJC',QH:'BAV',PR:'PAL','5J':'CEB',Z2:'APG',DG:'SRQ',GA:'GIA',KL:'KLM',LH:'DLH',TK:'THY',EK:'UAE',QR:'QTR',EY:'ETD',NZ:'ANZ',QF:'QFA',
     UA:'UAL',DL:'DAL',AA:'AAL',AC:'ACA',AS:'ASA',OD:'MXD',ZG:'TZP',OM:'MGL',BI:'RBA',HY:'UZB',AI:'AIC','6E':'IGO',UL:'ALK',PG:'BKP',DD:'NOK',XJ:'TAX',
     '8L':'LKE',BL:'PIC',VU:'VAG',DZ:'EPA',TV:'TBA',RF:'EOK',YP:'APZ',IJ:'SJO',MP:'MPH',CV:'CLX','5X':'UPS',FX:'FDX',CK:'CKK',PO:'PAC',K4:'CKS'};
-  var R={}, busy=false;
+  var R={}, busy=false, RETRY=0;
   function csOf(code){ var m=String(code||'').toUpperCase().replace(/\s/g,'').match(/^([A-Z0-9]{2})0*(\d{1,4})([A-Z]?)$/); if(!m||!ICAO[m[1]]) return ''; return ICAO[m[1]]+m[2]+m[3]; }
   function iataShort(code){ var m=String(code||'').toUpperCase().match(/^([A-Z0-9]{2})0*(\d{1,4}[A-Z]?)$/); return m?m[1]+m[2]:code; }
   function km(la,lo){ var r=Math.PI/180, dl=(la-TPE[0])*r, dn=(lo-TPE[1])*r, a=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(TPE[0]*r)*Math.cos(la*r)*Math.sin(dn/2)*Math.sin(dn/2); return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
@@ -74,6 +74,7 @@
     var d=new Date(), eta=(+m[1])*60+(+m[2])-(d.getHours()*60+d.getMinutes()); if(eta<-720) eta+=1440;
     var ground=a[3]<0||(a[3]<=150&&a[4]<80);
     if(DEP){ if(!ground&&eta>30) return false; if(eta<-120) return false; return true; }
+    if(x.done&&!ground&&km(a[1],a[2])>30) return false;   /* 桃機已標抵達，同呼號卻在 30 公里外的空中＝飛下一趟了 */
     if(ground&&eta>90) return false;
     if(!ground&&eta<-180) return false;
     return true;
@@ -83,7 +84,7 @@
     var ac=W.AbortController?new AbortController():null, tm=setTimeout(function(){ if(ac) ac.abort(); },8000);
     fetch(RADAR_URL,{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){ return r.json(); }).then(function(j){
       var m={}; (j.a||[]).forEach(function(a){ m[a[0]]=a; }); R=m; paint();
-    })['catch'](function(){}).then(function(){ clearTimeout(tm); busy=false; });
+    })['catch'](function(){ if(!RETRY){ RETRY=1; setTimeout(function(){ RETRY=0; load(); },4000); } }).then(function(){ clearTimeout(tm); busy=false; });
   }
   function short(t){ return String(t).replace(/距 /g,'').replace(/距桃園 /g,'').replace(/ 公里/g,'km').replace(/約 /g,'').replace(/ 分落地/g,'分落地').replace(/ 分前/g,'分前').replace(/ 呎/g,'呎').replace(/ 節/g,'節'); }
   function paint(){
@@ -91,7 +92,7 @@
     [].forEach.call(list.querySelectorAll(':scope > .rdr'),function(e){ e.remove(); });
     [].forEach.call(list.querySelectorAll('.r'),function(r){
       var fe=r.querySelector('.f'), te=r.querySelector('.t'); if(!fe) return;
-      var code=String((fe.firstChild&&fe.firstChild.nodeType===3?fe.firstChild.nodeValue:fe.textContent)||'').trim().split(/\s/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:''};
+      var code=String((fe.firstChild&&fe.firstChild.nodeType===3?fe.firstChild.nodeValue:fe.textContent)||'').trim().split(/\s/)[0], x={code:code,cs:csOf(code),t:te?te.textContent:'',done:r.classList.contains('done')};
       var a=x.cs&&R[x.cs]; if(!a||!plausible(x,a)) return;
       var rx=rxOf(a,r.classList.contains('done')), s=stFix(stOf(a),rx,a), el=D.createElement('div');
       el.className='rdr k-'+s.k;
@@ -101,7 +102,7 @@
   }
   var w=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w);
     var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; load(); },100);
-  setInterval(load,20000);
+  setInterval(load,15000);
   D.addEventListener('visibilitychange',function(){ if(!D.hidden) load(); });
 })();
 </script>
