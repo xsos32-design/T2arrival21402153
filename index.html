@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15q';
+var PAGE_V='2026-11-15r';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1641,7 +1641,6 @@ function reportText(kind){
         return fline(x);
       }));
     if(!rows.length) lines.push('（22:30 後沒有符合的班機）');
-    if(!window.__APPV) lines.push('wei');   /* App 版不署名 */
     return lines.join('\n');
   });
 }
@@ -1658,22 +1657,24 @@ function autoCopy(txt){
 function showCopy(txt,html){
   var box=document.getElementById('copybox');
   box.innerHTML='<div class="cpwrap">'
-    +(html ? html : '<textarea id="cptxt" readonly rows="3"></textarea>')
+    +(html ? html : '<span id="cpedit">要貼到群組的文字（可以直接改）</span><textarea id="cptxt" rows="3"></textarea>')
     +'<div class="cprow"><button id="cpgo" type="button">'+IC('copy')+' 複製</button>'
-    +'<span id="cpmsg">按「複製」後直接到群組貼上；再按一次上面的按鈕即收合</span></div></div>';
+    +'<span id="cpmsg">'+(html?'按「複製」後直接到群組貼上；再按一次上面的按鈕即收合':'上面的文字可以直接改，按「複製」就複製改過的')+'</span></div></div>';
   if(!html){
     var ta=document.getElementById('cptxt');
     ta.value=txt;
     ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px';
+    ta.addEventListener('input',function(){ ta.style.height='auto'; ta.style.height=(ta.scrollHeight+6)+'px'; });   /* 11/15：回報文字可以直接改 */
   }
+  var cpCur=function(){ var t=document.getElementById('cptxt'); return t?t.value:txt; };   /* 複製改過的內容 */
   document.getElementById('cpgo').addEventListener('click',function(){
     var done=function(ok){
       document.getElementById('cpmsg').innerHTML=ok?IC('check')+' 已複製，去群組貼上就行':'複製不了的話請長按文字手動複製';
     };
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt).then(function(){done(true);},function(){done(false);});
+      navigator.clipboard.writeText(cpCur()).then(function(){done(true);},function(){done(false);});
     } else {
-      var tmp=document.createElement('textarea'); tmp.value=txt; document.body.appendChild(tmp);
+      var tmp=document.createElement('textarea'); tmp.value=cpCur(); document.body.appendChild(tmp);
       tmp.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(e){}
       document.body.removeChild(tmp); done(ok);
     }
