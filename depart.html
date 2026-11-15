@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15e';
+var PAGE_V='2026-11-15f';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -3797,7 +3797,7 @@ body.fs3 .r .rdr,body.fs4 .r .rdr{font-size:15.5px} body.fs0 .r .rdr{font-size:1
   }
   function initMap(all){
     if(!map){
-      map=L.map(mapEl.querySelector('.rm-m'),{zoomControl:false,attributionControl:true,minZoom:7,maxZoom:15}).setView(TPE,11);
+      map=window.__rmap=L.map(mapEl.querySelector('.rm-m'),{zoomControl:false,attributionControl:true,minZoom:7,maxZoom:15}).setView(TPE,11);
       map.attributionControl.setPrefix(false);
       drawBase();
       L.control.zoom({position:'topright'}).addTo(map);
@@ -4320,7 +4320,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
         '打開看板時招牌閃幾下才亮、卡片一張張滑進來；背景有很淡的霓虹雨；按住卡片會微微傾斜反光；按「更新」圖示會轉、更新好掃一道光。<br>手機有開「減少動態效果」的話，動畫會自動關掉。']]},
     {v:'2026-11-15e', d:'11/15', t:'卡片排得更緊', it:[
       ['up','yl','一次看更多班','每張卡片矮了快四分之一，同一個畫面多看到一張半左右。',
-        '「表定 +29」放到時間正下方、分類（2140／2153）接在下面；機型小牌搬到登機門下面，右下只剩狀態和「詳細」；時間、班號、登機門大字縮一號，雷達那一行也變矮。內容一樣都沒少，「字體」五段照樣有效。']]}
+        '「表定 +29」放到時間正下方、分類（2140／2153）接在下面；機型小牌搬到登機門下面，右下只剩狀態和「詳細」；時間、班號、登機門大字縮一號，雷達那一行也變矮。內容一樣都沒少，「字體」五段照樣有效。']]},
+    {v:'2026-11-15f', d:'11/15', t:'雷達地圖換樣式', it:[
+      ['plane','',  '雷達樣式三選一','雷達地圖標題列多一顆「<em>樣式 ▾</em>」：霓虹、塔台雷達、戰情室。',
+        '<em>霓虹</em>：原本的賽博龐克地圖。<br><em>塔台雷達</em>：綠色螢幕，一條掃描線以桃園為中心繞圈，飛機被掃到才亮起來、再慢慢變暗。<br><em>戰情室</em>：琥珀色線條、四周座標刻度，10 公里內的飛機閃紅色鎖定框。<br>選了會記在這支手機，飛機會動、點一架跟著走、選分類都照舊。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4407,6 +4410,167 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
   /* 機型小牌是後面另一段程式補上去的，補完再搬一次 */
   try{ new MutationObserver(function(m){ for(var i=0;i<m.length;i++){ for(var j=0;j<m[i].addedNodes.length;j++){ var n=m[i].addedNodes[j]; if(n.classList&&n.classList.contains('ac')&&n.parentNode&&n.parentNode.classList.contains('c-st')){ mv(); return; } } } })
     .observe(D.getElementById('out')||D.body,{childList:true,subtree:true}); }catch(e){}
+})();
+</script>
+<!-- 11/15：雷達地圖樣式（tools/rtheme.js）。雷達標題列「樣式 ▾」選：霓虹（原本）／thA＝塔台雷達螢幕／thB＝戰情室指揮螢幕
+     只換外觀；飛機會動、點一架跟著走、選分類都照舊。飛機顏色照分類（2140 青、2153 粉…）不變 -->
+<style>
+/* ════ A 塔台雷達螢幕：綠色磷光、掃描線繞圈、飛機被掃到才亮、留殘影 ════ */
+#rmap.thA .leaflet-container{background:#010a04!important;background-image:radial-gradient(circle at 50% 45%,rgba(30,120,60,.18),transparent 70%)!important}
+#rmap.thA .leaflet-overlay-pane{filter:grayscale(1) sepia(1) hue-rotate(68deg) saturate(3.2) brightness(.78) contrast(1.1)}
+#rmap.thA .rg-ring{filter:drop-shadow(0 0 3px #3dff7a)!important}
+#rmap.thA .rk,#rmap.thA .rc,#rmap.thA .rt,#rmap.thA .rkw{color:#5dff8f!important;text-shadow:0 0 6px rgba(61,255,122,.8),0 0 2px #000!important;font-family:'Chakra Petch',ui-monospace,Menlo,monospace!important}
+#rmap.thA .rc3{color:#2a9a52!important}
+#rmap.thA .rz{background:#0a2a14!important;color:#7dffa6!important;border:1px solid #3dff7a;box-shadow:0 0 10px rgba(61,255,122,.6)!important}
+#rmap.thA .rtpe{background:#3dff7a!important;border-color:#3dff7a!important;color:#012a0e!important}
+#rmap.thA .rl:not(.rls){background:rgba(1,14,6,.85)!important;border-color:#3dff7a!important;color:#c8ffd9!important;box-shadow:0 0 8px rgba(61,255,122,.45)!important;font-family:'Chakra Petch',ui-monospace,monospace!important}
+#rmap.thA .rl i{background:#3dff7a!important;color:#012a0e!important}
+#rmap.thA .rp .pw{transition:opacity .25s linear}
+.thsweep{position:absolute;pointer-events:none;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(61,255,122,0) 0deg,rgba(61,255,122,0) 300deg,rgba(61,255,122,.05) 320deg,rgba(61,255,122,.22) 352deg,rgba(160,255,190,.55) 359.4deg,rgba(61,255,122,0) 360deg);mix-blend-mode:screen}
+.thspoke{position:absolute;pointer-events:none;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(61,255,122,.16) 0 .35deg,transparent .35deg 30deg)}
+/* 整面螢幕：圓角暗邊＋掃描細線＋微微閃爍，像老 CRT */
+#rmap.thA .rm-m::after{content:"";position:absolute;inset:0;z-index:640;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px),radial-gradient(120% 95% at 50% 50%,transparent 58%,rgba(0,0,0,.75) 100%);animation:thflick 5s steps(1) infinite}
+@keyframes thflick{0%,100%{opacity:1}47%{opacity:.88}48%{opacity:1}}
+#rmap.thA .rm-h{background:#010a04!important;border-bottom-color:#3dff7a!important}
+#rmap.thA .rm-h b{color:#5dff8f!important;text-shadow:0 0 10px rgba(61,255,122,.8)!important;font-family:'Chakra Petch',ui-monospace,monospace}
+#rmap.thA .rm-f{background:#010a04!important;border-top-color:#1f5a33!important}
+#rmap.thA .rm-i{background:#010a04!important;border-top-color:#3dff7a!important}
+#rmap.thA .rm-i .lh{color:#5dff8f!important}
+#rmap.thA .rm-i .li b,#rmap.thA .rm-i .t1 b{font-family:'Chakra Petch',ui-monospace,monospace}
+#rmap.thA .rm-i .g div{background:#03170a!important;border-color:#1f5a33!important}
+#rmap.thA .rsel i{border-color:#3dff7a!important;box-shadow:0 0 10px rgba(61,255,122,.8)!important}
+#rmap.thA .rsel b{filter:hue-rotate(60deg) drop-shadow(0 0 4px rgba(61,255,122,.8))}
+#rmap.thA .rl.rls{background:#3dff7a!important;color:#012a0e!important;border-color:#c8ffd9!important;box-shadow:0 0 12px rgba(61,255,122,.8)!important}
+
+/* ════ B 戰情室指揮螢幕：琥珀色向量線、四周座標刻度、鎖定框、快落地閃紅框 ════ */
+#rmap.thB .leaflet-container{background:#080502!important;background-image:linear-gradient(rgba(255,170,40,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,170,40,.07) 1px,transparent 1px)!important;background-size:40px 40px!important}
+#rmap.thB .leaflet-overlay-pane{filter:grayscale(1) sepia(1) saturate(3.4) hue-rotate(-12deg) brightness(.82) contrast(1.15)}
+#rmap.thB .rg-ring{filter:drop-shadow(0 0 3px #ff3b3b) hue-rotate(-25deg)!important}
+#rmap.thB .rk,#rmap.thB .rc,#rmap.thB .rt,#rmap.thB .rkw{color:#ffb347!important;text-shadow:0 0 6px rgba(255,150,30,.75),0 0 2px #000!important;font-family:'Chakra Petch',ui-monospace,Menlo,monospace!important;letter-spacing:.08em}
+#rmap.thB .rz{background:#3a0b06!important;color:#ff6a4d!important;border:1px solid #ff4b2b;box-shadow:0 0 10px rgba(255,75,43,.6)!important}
+#rmap.thB .rtpe{background:#ffb347!important;border-color:#ffb347!important;color:#2a1400!important}
+#rmap.thB .rl:not(.rls){background:rgba(16,9,2,.88)!important;border-color:#ffb347!important;color:#ffe2b8!important;box-shadow:none!important;font-family:'Chakra Petch',ui-monospace,monospace!important}
+#rmap.thB .rl i{background:#ffb347!important;color:#2a1400!important}
+/* 選到的：琥珀鎖定框慢慢轉 */
+#rmap.thB .rsel i{border-radius:0!important;border:1.5px dashed #ffb347!important;box-shadow:none!important;animation:thlock 6s linear infinite!important}
+@keyframes thlock{0%{transform:rotate(0) scale(1);opacity:.9}100%{transform:rotate(360deg) scale(1);opacity:.9}}
+#rmap.thB .rsel b{filter:hue-rotate(-25deg) saturate(1.4) drop-shadow(0 0 4px rgba(255,150,30,.9))}
+#rmap.thB .rl.rls{background:#ffb347!important;color:#2a1400!important;border-color:#ffe2b8!important;box-shadow:0 0 12px rgba(255,150,30,.8)!important}
+/* 10 公里內的班機：紅色鎖定框閃 */
+.rp .thnear{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;pointer-events:none;display:none;
+  background:linear-gradient(#ff3b3b,#ff3b3b) 0 0/11px 2px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 0 0/2px 11px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 100% 0/11px 2px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 100% 0/2px 11px no-repeat,
+             linear-gradient(#ff3b3b,#ff3b3b) 0 100%/11px 2px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 0 100%/2px 11px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 100% 100%/11px 2px no-repeat,linear-gradient(#ff3b3b,#ff3b3b) 100% 100%/2px 11px no-repeat;
+  filter:drop-shadow(0 0 4px #ff3b3b);animation:thnear .8s steps(2,jump-none) infinite}
+#rmap.thB .rp.thn .thnear{display:block} #rmap.thB .rp.sel .thnear{display:none}
+@keyframes thnear{100%{opacity:.2}}
+/* 四周刻度、四角框、座標、上下掃的光帶 */
+.thframe{position:absolute;inset:0;z-index:640;pointer-events:none;font:700 10px/1 'Chakra Petch',ui-monospace,monospace;color:#ffb347;letter-spacing:.06em}
+.thframe .tk{position:absolute;background:repeating-linear-gradient(90deg,rgba(255,179,71,.85) 0 1px,transparent 1px 10px),repeating-linear-gradient(90deg,#ffb347 0 2px,transparent 2px 50px);opacity:.75}
+.thframe .tk.t{left:24px;right:24px;top:0;height:8px} .thframe .tk.b{left:24px;right:24px;bottom:0;height:8px;transform:scaleY(-1)}
+.thframe .tk.l,.thframe .tk.r{top:24px;bottom:24px;width:8px;background:repeating-linear-gradient(0deg,rgba(255,179,71,.85) 0 1px,transparent 1px 10px),repeating-linear-gradient(0deg,#ffb347 0 2px,transparent 2px 50px)}
+.thframe .tk.l{left:0} .thframe .tk.r{right:0;transform:scaleX(-1)}
+.thframe .cn{position:absolute;width:22px;height:22px;border:2px solid #ffb347;filter:drop-shadow(0 0 4px rgba(255,150,30,.8))}
+.thframe .cn.a{left:4px;top:4px;border-right:0;border-bottom:0} .thframe .cn.b{right:4px;top:4px;border-left:0;border-bottom:0}
+.thframe .cn.c{left:4px;bottom:4px;border-right:0;border-top:0} .thframe .cn.d{right:4px;bottom:4px;border-left:0;border-top:0}
+.thframe .co{position:absolute;padding:2px 5px;background:rgba(8,5,2,.8);border:1px solid rgba(255,179,71,.5)}
+.thframe .co.n{left:34px;top:12px} .thframe .co.s{right:34px;bottom:12px}
+.thframe .co.m{left:34px;top:38px;color:#ff6a4d;border-color:rgba(255,75,43,.6)}
+.thframe .bar{position:absolute;left:0;right:0;height:60px;top:-60px;background:linear-gradient(180deg,transparent,rgba(255,170,40,.10) 85%,rgba(255,200,120,.35) 100%);animation:thbar 6s linear infinite}
+@keyframes thbar{0%{top:-60px}100%{top:100%}}
+#rmap.thB .rm-h{background:#080502!important;border-bottom-color:#ffb347!important}
+#rmap.thB .rm-h b{color:#ffb347!important;text-shadow:0 0 10px rgba(255,150,30,.8)!important;font-family:'Chakra Petch',ui-monospace,monospace;letter-spacing:.1em}
+#rmap.thB .rm-f{background:#080502!important;border-top-color:#5a3a12!important}
+#rmap.thB .rm-i{background:#0c0703!important;border-top-color:#ffb347!important}
+#rmap.thB .rm-i .lh{color:#ffb347!important}
+#rmap.thB .rm-i .li b,#rmap.thB .rm-i .t1 b{font-family:'Chakra Petch',ui-monospace,monospace}
+#rmap.thB .rm-i .g div{background:#170e05!important;border-color:#5a3a12!important}
+@media (prefers-reduced-motion:reduce){ .thsweep{display:none} .thframe .bar,.rp .thnear,#rmap.thA .rm-m::after,#rmap.thB .rsel i{animation:none!important} }
+</style>
+<style>
+/* ── 樣式選單：雷達標題列「樣式 ▾」 ── */
+#rmap .rm-sty{all:unset;box-sizing:border-box;margin-left:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:900;padding:8px 11px;border:1px solid #2a3545;color:#e8e3f5;background:#161e29}
+#rmap .rm-sty i{width:10px;height:10px;background:var(--sc,#00f0ff);box-shadow:0 0 6px var(--sc,#00f0ff)}
+#rmap .rm-sty + .rm-x{margin-left:0!important}
+#rmap .rm-h{position:relative}
+#rmap .rm-sm{position:absolute;right:10px;top:calc(100% + 6px);z-index:2000;width:min(290px,calc(100vw - 20px));padding:10px;background:#0b0816;border:1px solid #00f0ff;box-shadow:0 10px 30px rgba(0,0,0,.7),0 0 16px -4px #00f0ff;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));text-shadow:none}
+#rmap .rm-sm[hidden]{display:none}
+#rmap .rm-sm small{display:block;font-size:12px;color:#8d99a9;letter-spacing:.2em;margin:0 0 8px 2px}
+#rmap .rm-sm button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:10px;width:100%;padding:7px;margin-top:6px;border:1px solid #2a3545;background:#121826}
+#rmap .rm-sm button b{display:block;font-size:15px;color:#fff;font-weight:900}
+#rmap .rm-sm button span{display:block;font-size:12px;color:#9aa6b8;font-weight:700;margin-top:2px}
+#rmap .rm-sm button u{text-decoration:none;font-size:12px;font-weight:900;color:#07040e;background:#00efd4;padding:2px 6px;visibility:hidden}
+#rmap .rm-sm button.on{border-color:#00efd4;box-shadow:inset 0 0 0 1px #00efd4} #rmap .rm-sm button.on u{visibility:visible}
+#rmap .rm-sm .sw{width:54px;height:38px;border:1px solid rgba(255,255,255,.15)}
+#rmap .rm-sm .sw.s0{background:linear-gradient(135deg,transparent 45%,#00f0ff 46% 49%,transparent 50%),radial-gradient(circle at 70% 30%,#ff2a6d 0 3px,transparent 4px),linear-gradient(160deg,#2a1b55,#07040e)}
+#rmap .rm-sm .sw.sA{background:conic-gradient(from 20deg at 50% 60%,rgba(61,255,122,0) 0 300deg,rgba(61,255,122,.6) 358deg,transparent 360deg),repeating-radial-gradient(circle at 50% 60%,transparent 0 9px,rgba(61,255,122,.35) 9px 10px),#021006}
+#rmap .rm-sm .sw.sB{background:linear-gradient(#ffb347,#ffb347) 3px 3px/9px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 3px 3px/2px 9px no-repeat,linear-gradient(#ffb347,#ffb347) calc(100% - 3px) calc(100% - 3px)/9px 2px no-repeat,linear-gradient(#ffb347,#ffb347) calc(100% - 3px) calc(100% - 3px)/2px 9px no-repeat,
+  linear-gradient(135deg,transparent 45%,#ffb347 46% 49%,transparent 50%),linear-gradient(rgba(255,170,40,.15) 1px,transparent 1px) 0 0/9px 9px,linear-gradient(90deg,rgba(255,170,40,.15) 1px,transparent 1px) 0 0/9px 9px,#0d0803}
+</style>
+<script>
+/* 雷達地圖樣式：霓虹（原本）／塔台雷達螢幕／戰情室指揮螢幕。標題列「樣式 ▾」選，記在這支手機（localStorage rth1） */
+(function(){
+  var D=document, W=window, TPE=[25.0777,121.2328];
+  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
+  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0AB])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
+  var map=null, mm=null, sw=null, sp=null, fr=null, t0=performance.now(), PERIOD=4000;
+  function rm(){ return D.getElementById('rmap'); }
+  function placeSweep(){ if(!sw||!map) return; var p=map.latLngToLayerPoint(TPE), R=1500;
+    [sp,sw].forEach(function(e){ e.style.left=(p.x-R)+'px'; e.style.top=(p.y-R)+'px'; e.style.width=e.style.height=(2*R)+'px'; }); }
+  function coords(){ if(!fr||!map) return; var b=map.getBounds(); function f(v,p,n){ return Math.abs(v).toFixed(3)+'°'+(v>=0?p:n); }
+    fr.querySelector('.co.n').textContent=f(b.getNorth(),'N','S')+' '+f(b.getWest(),'E','W');
+    fr.querySelector('.co.s').textContent=f(b.getSouth(),'N','S')+' '+f(b.getEast(),'E','W'); }
+  function apply(){
+    var r=rm(); if(!r||!map) return;
+    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B');
+    if(TH==='A'&&!sw){ var pane=map.getPane('thpane')||map.createPane('thpane'); pane.style.zIndex=450; pane.style.pointerEvents='none';
+      sp=D.createElement('div'); sp.className='thspoke'; pane.appendChild(sp); sw=D.createElement('div'); sw.className='thsweep'; pane.appendChild(sw);
+      map.on('zoomend viewreset',placeSweep); placeSweep(); }
+    if(sw){ sw.style.display=sp.style.display=TH==='A'?'':'none'; }
+    if(TH==='B'&&!fr){ fr=D.createElement('div'); fr.className='thframe';
+      fr.innerHTML='<i class="tk t"></i><i class="tk b"></i><i class="tk l"></i><i class="tk r"></i><i class="cn a"></i><i class="cn b"></i><i class="cn c"></i><i class="cn d"></i><span class="co n"></span><span class="co s"></span><span class="co m"></span><i class="bar"></i>';
+      mm.appendChild(fr); map.on('move zoom',coords); coords(); }
+    if(fr) fr.style.display=TH==='B'?'':'none';
+    if(TH!=='A') [].forEach.call(mm.querySelectorAll('.rp .pw'),function(pw){ pw.style.opacity=''; });
+    if(TH!=='B') [].forEach.call(mm.querySelectorAll('.rp.thn'),function(p){ p.classList.remove('thn'); });
+    var b=r.querySelector('.rm-sty'); if(b){ b.style.setProperty('--sc',NAMES[TH][2]); b.querySelector('span').textContent=NAMES[TH][0]; }
+    [].forEach.call(r.querySelectorAll('.rm-sm button'),function(x){ x.classList.toggle('on',x.dataset.t===TH); });
+  }
+  function ui(){
+    var r=rm(), h=r&&r.querySelector('.rm-h'); if(!h||h.querySelector('.rm-sty')) return;
+    var b=D.createElement('button'); b.type='button'; b.className='rm-sty'; b.innerHTML='<i></i>樣式 <span></span> ▾';
+    h.insertBefore(b,h.querySelector('.rm-x'));
+    var m=D.createElement('div'); m.className='rm-sm'; m.hidden=true;
+    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
+    h.appendChild(m);
+    b.onclick=function(e){ e.stopPropagation(); m.hidden=!m.hidden; };
+    m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; TH=x.dataset.t; try{ localStorage.setItem('rth1',TH); }catch(_){} apply(); setTimeout(function(){ m.hidden=true; },180); });
+    D.addEventListener('click',function(){ m.hidden=true; });
+  }
+  function tick(t){ requestAnimationFrame(tick);
+    var r=rm(); if(!map||!r||r.hidden||!r.getClientRects().length||D.hidden||TH==='0') return;
+    if(t-(tick.l||0)<33) return; tick.l=t;
+    var c=map.latLngToContainerPoint(TPE), cr=mm.getBoundingClientRect();
+    if(TH==='A'){
+      var a=((t-t0)/PERIOD*360)%360; sw.style.transform='rotate('+a+'deg)';
+      [].forEach.call(mm.querySelectorAll('.leaflet-marker-icon .rp'),function(p){
+        var pw=p.querySelector('.pw'); if(!pw) return; if(p.classList.contains('sel')){ pw.style.opacity=''; return; }
+        var b=p.getBoundingClientRect(), dx=b.left+b.width/2-cr.left-c.x, dy=b.top+b.height/2-cr.top-c.y;
+        var ang=(Math.atan2(dx,-dy)*180/Math.PI+360)%360, d=(a-ang+360)%360;
+        pw.style.opacity=(.22+.78*Math.max(0,1-d/320)).toFixed(2); });
+    } else if(TH==='B'){
+      var n10=map.latLngToContainerPoint([TPE[0]+10/111.32,TPE[1]]), R10=Math.abs(c.y-n10.y), cnt=0;
+      [].forEach.call(mm.querySelectorAll('.leaflet-marker-icon .rp'),function(p){
+        var b=p.getBoundingClientRect(), dx=b.left+b.width/2-cr.left-c.x, dy=b.top+b.height/2-cr.top-c.y, near=Math.sqrt(dx*dx+dy*dy)<=R10;
+        if(near&&!p.querySelector('.thnear')){ var i=D.createElement('i'); i.className='thnear'; p.appendChild(i); }
+        p.classList.toggle('thn',near); if(near) cnt++; });
+      var m=fr.querySelector('.co.m'); m.textContent='10 KM 內 '+cnt+' 架'; m.style.display=cnt?'':'none';
+    }
+  }
+  var w=setInterval(function(){ if(!W.__rmap||!rm()) return; clearInterval(w); map=W.__rmap; mm=rm().querySelector('.rm-m'); ui(); apply(); requestAnimationFrame(tick); },200);
 })();
 </script>
 </body>
