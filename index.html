@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15m';
+var PAGE_V='2026-11-15n';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4627,7 +4627,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['timer','',  '自訂時段鍵','時段那排下面多一顆「<em>自訂時段鍵</em>」：四顆時段鍵可以改成自己的上班時段，跨夜也可以。',''],
       ['alert','pk','關注班機提醒','點開班機「詳細」，按「<em>落地前 15 分鐘提醒我</em>」，時間到會跳提示、震動。',
         '網頁版要開著看板才提醒得到（App 版是系統通知，關著也會響）。'],
-      ['cog','',    '新樣式：螢光、霧面','班機樣式多兩種，變成八選一：<em>螢光</em>（螢光航廈、跑道夜景背景）、<em>霧面</em>（低調霧面深色）。','']]}
+      ['cog','',    '新樣式：螢光、霧面','班機樣式多兩種，變成八選一：<em>螢光</em>（螢光航廈、跑道夜景背景）、<em>霧面</em>（低調霧面深色）。','']]},
+    {v:'2026-11-15n', d:'11/15', t:'班機、雷達樣式成對', it:[
+      ['cog','yl','十種樣式，兩邊一樣','班機樣式、雷達樣式都是同樣十種、同樣順序：霓虹、儀表板、戰情室、廢土科技、綠色終端、極簡黑、藍圖、像素街機、螢光、霧面。',
+        '選班機樣式時，雷達會自動換成同一組；也可以在「設定」或雷達地圖的「樣式 ▾」單獨換。新補：班機的<em>戰情室</em>、<em>藍圖</em>，雷達的<em>儀表板</em>、<em>極簡黑</em>、<em>螢光</em>、<em>霧面</em>。原本雷達的「塔台雷達」併入「綠色終端」。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4882,8 +4885,9 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 /* 雷達地圖樣式：霓虹（原本）／塔台雷達螢幕／戰情室指揮螢幕。標題列「樣式 ▾」選，記在這支手機（localStorage rth1） */
 (function(){
   var D=document, W=window, TPE=[25.0777,121.2328];
-  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'C':['廢土','鏽褐舊地圖、做舊紙感','#d47a3a'],'E':['像素','8-bit 像素地圖、像素小飛機','#ffe600'],'D':['藍圖','工程藍圖，白色線條方格','#7fb6ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
-  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0ABCDE])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
+  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'F':['儀表板','深藍底、青色線條、四角定位框','#00f0ff'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347'],'C':['廢土科技','鏽褐舊地圖、做舊紙感','#d47a3a'],'A':['綠色終端','綠色掃描線繞圈，掃到才亮','#3dff7a'],'G':['極簡黑','純黑、灰線條、沒有光暈','#cccccc'],'D':['藍圖','工程藍圖，白色線條方格','#7fb6ff'],'E':['像素街機','8-bit 像素地圖、像素小飛機','#ffe600'],'H':['螢光','更亮更飽和，透出螢光航廈','#c6ff3d'],'I':['霧面','低飽和柔和灰階','#b7bdc6']};
+  var ORDER=['0','F','B','C','A','G','D','E','H','I'];
+  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0A-I])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
   var map=null, mm=null, sw=null, sp=null, fr=null, t0=performance.now(), PERIOD=4000;
   function rm(){ return D.getElementById('rmap'); }
   function placeSweep(){ if(!sw||!map) return; var p=map.latLngToLayerPoint(TPE), R=1500;
@@ -4893,7 +4897,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     fr.querySelector('.co.s').textContent=f(b.getSouth(),'N','S')+' '+f(b.getEast(),'E','W'); }
   function apply(){
     var r=rm(); if(!r||!map) return;
-    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B'); r.classList.toggle('thC',TH==='C'); r.classList.toggle('thD',TH==='D'); r.classList.toggle('thE',TH==='E');
+    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B'); r.classList.toggle('thC',TH==='C'); r.classList.toggle('thD',TH==='D'); r.classList.toggle('thE',TH==='E'); ['F','G','H','I'].forEach(function(k){ r.classList.toggle('th'+k,TH===k); });
     if(TH==='A'&&!sw){ var pane=map.getPane('thpane')||map.createPane('thpane'); pane.style.zIndex=450; pane.style.pointerEvents='none';
       sp=D.createElement('div'); sp.className='thspoke'; pane.appendChild(sp); sw=D.createElement('div'); sw.className='thsweep'; pane.appendChild(sw);
       map.on('zoomend viewreset',placeSweep); placeSweep(); }
@@ -4912,7 +4916,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     var b=D.createElement('button'); b.type='button'; b.className='rm-sty'; b.innerHTML='<i></i>樣式 <span></span> ▾';
     h.insertBefore(b,h.querySelector('.rm-x'));
     var m=D.createElement('div'); m.className='rm-sm'; m.hidden=true;
-    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B','C','D','E'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
+    m.innerHTML='<small>雷達地圖樣式</small>'+ORDER.map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
     h.appendChild(m);
     b.onclick=function(e){ e.stopPropagation(); m.hidden=!m.hidden; };
     m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; W.__rthSet(x.dataset.t); setTimeout(function(){ m.hidden=true; },180); });
@@ -5239,6 +5243,166 @@ html.wst body.mkslim:not(#_) .mk::before{display:none!important}
 html.wst body.mkslim:not(#_) .mk::after{height:4px!important}
 html.tpx body.mkslim:not(#_) .mk{box-shadow:inset 0 -3px 0 var(--pv)!important;clip-path:none!important;padding-left:8px!important;padding-right:8px!important}
 html.tpx body.mkslim:not(#_) .mk::before,html.tpx body.mkslim:not(#_) .mk::after{display:none!important}
+/* ══ 11/15n：班機樣式、雷達樣式成對（同名、同順序）。補：雷達「儀表板／極簡黑／螢光／霧面」、班機「戰情室／藍圖」 ══ */
+
+/* ── 雷達 F 儀表板：深藍底、青色線條、四角定位框、儀表字體 ── */
+#rmap.thF .leaflet-container{background:#05080d!important;background-image:linear-gradient(rgba(0,240,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.06) 1px,transparent 1px)!important;background-size:48px 48px!important}
+#rmap.thF .leaflet-overlay-pane{filter:grayscale(.6) sepia(.4) hue-rotate(150deg) saturate(1.6) brightness(.95)}
+#rmap.thF .rm-m{position:relative}
+#rmap.thF .rm-m::after{content:"";position:absolute;inset:8px;z-index:640;pointer-events:none;
+  background:linear-gradient(#00f0ff,#00f0ff) 0 0/22px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 0 0/2px 22px no-repeat,linear-gradient(#00f0ff,#00f0ff) 100% 0/22px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 100% 0/2px 22px no-repeat,
+             linear-gradient(#00f0ff,#00f0ff) 0 100%/22px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 0 100%/2px 22px no-repeat,linear-gradient(#00f0ff,#00f0ff) 100% 100%/22px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 100% 100%/2px 22px no-repeat;filter:drop-shadow(0 0 4px #00f0ff)}
+#rmap.thF .rk,#rmap.thF .rc,#rmap.thF .rt,#rmap.thF .rkw{color:#7fe9ff!important;text-shadow:0 0 6px rgba(0,240,255,.6),0 0 2px #000!important;font-family:'Chakra Petch',ui-monospace,monospace!important}
+#rmap.thF .rz,#rmap.thF .rtpe{background:#062a2e!important;color:#00f0ff!important;border:1px solid #00f0ff!important;box-shadow:0 0 10px -2px #00f0ff!important}
+#rmap.thF .rl:not(.rls){background:#0b1018!important;border-color:#24344a!important;color:#d7e3f0!important;box-shadow:none!important;font-family:'Chakra Petch',ui-monospace,monospace!important}
+#rmap.thF .rl.rls{background:#00f0ff!important;color:#021014!important;border-color:#fff!important}
+#rmap.thF .rm-h,#rmap.thF .rm-f,#rmap.thF .rm-i{background:#080c12!important;border-color:#24344a!important}
+#rmap.thF .rm-h{border-bottom:1px solid rgba(0,240,255,.5)!important;box-shadow:none!important}
+#rmap.thF .rm-h b,#rmap.thF .rm-i .lh{color:#00f0ff!important;font-family:'Chakra Petch',ui-monospace,monospace}
+#rmap.thF .rm-i .g div{background:#0b1018!important;border-color:#24344a!important}
+
+/* ── 雷達 G 極簡黑：純黑、灰線條、沒有光暈 ── */
+#rmap.thG .leaflet-container{background:#000!important;background-image:none!important}
+#rmap.thG .leaflet-overlay-pane{filter:grayscale(1) brightness(.85)}
+#rmap.thG .rg-coast,#rmap.thG .rg-ring,#rmap.thG .rg-trail,#rmap.thG .rg-road,#rmap.thG .rg-rwy{filter:none!important}
+#rmap.thG .rk,#rmap.thG .rc,#rmap.thG .rt,#rmap.thG .rkw{color:#bbb!important;text-shadow:0 1px 2px #000!important}
+#rmap.thG .rz,#rmap.thG .rtpe{background:#fff!important;color:#000!important;border:0!important;box-shadow:none!important}
+#rmap.thG .rl:not(.rls){background:#111!important;border-color:#333!important;color:#eee!important;box-shadow:none!important}
+#rmap.thG .rl i{background:#fff!important;color:#000!important}
+#rmap.thG .rl.rls{background:#fff!important;color:#000!important;border-color:#fff!important;box-shadow:none!important}
+#rmap.thG .rp .pw{filter:drop-shadow(0 1px 2px #000)!important}
+#rmap.thG .rsel i{border-color:#fff!important;box-shadow:none!important}
+#rmap.thG .rsel b{filter:grayscale(1) brightness(3)}
+#rmap.thG .rm-h,#rmap.thG .rm-f,#rmap.thG .rm-i{background:#000!important;border-color:#222!important}
+#rmap.thG .rm-h{border-bottom:1px solid #333!important;box-shadow:none!important}
+#rmap.thG .rm-h b,#rmap.thG .rm-i .lh{color:#fff!important;text-shadow:none!important}
+#rmap.thG .rm-i .g div{background:#0d0d0d!important;border-color:#222!important}
+
+/* ── 雷達 H 螢光：顏色更飽和更亮、底下透一點螢光航廈夜景 ── */
+#rmap.thH .leaflet-container{background:linear-gradient(rgba(6,4,13,.86),rgba(6,4,13,.9)),url(img/cy-bg-arr.webp) center/cover!important}
+#rmap.thH .leaflet-overlay-pane{filter:saturate(1.7) brightness(1.2)}
+#rmap.thH .rk,#rmap.thH .rkw{color:#ff6b9a!important;text-shadow:0 0 8px #ff2a6d,0 0 2px #000!important}
+#rmap.thH .rc,#rmap.thH .rt{color:#c6ff3d!important;text-shadow:0 0 8px rgba(198,255,61,.8),0 0 2px #000!important}
+#rmap.thH .rz,#rmap.thH .rtpe{background:#ff2a6d!important;color:#fff!important;border:0!important;box-shadow:0 0 14px #ff2a6d!important}
+#rmap.thH .rl:not(.rls){background:rgba(6,4,13,.85)!important;border-color:#00f0ff!important;color:#fff!important;box-shadow:0 0 12px -2px #00f0ff!important}
+#rmap.thH .rl.rls{background:#c6ff3d!important;color:#0b1400!important;border-color:#fff!important;box-shadow:0 0 14px #c6ff3d!important}
+#rmap.thH .rsel i{border-color:#c6ff3d!important;box-shadow:0 0 12px #c6ff3d!important}
+#rmap.thH .rm-h{background:rgba(6,4,13,.9)!important;border-bottom:1px solid #00f0ff!important;box-shadow:0 1px 0 #ff2a6d,0 6px 20px -8px #00f0ff!important}
+#rmap.thH .rm-h b{color:#f4feff!important;text-shadow:0 0 8px #00f0ff,0 0 20px #00f0ff!important}
+
+/* ── 雷達 I 霧面：低飽和、柔和灰階、沒有光暈 ── */
+#rmap.thI .leaflet-container{background:#0d0f12!important;background-image:none!important}
+#rmap.thI .leaflet-overlay-pane{filter:saturate(.35) brightness(.9) contrast(.9)}
+#rmap.thI .rg-coast,#rmap.thI .rg-ring,#rmap.thI .rg-trail,#rmap.thI .rg-road,#rmap.thI .rg-rwy{filter:none!important}
+#rmap.thI .rk,#rmap.thI .rc,#rmap.thI .rt,#rmap.thI .rkw{color:#b7bdc6!important;text-shadow:0 1px 2px rgba(0,0,0,.8)!important}
+#rmap.thI .rz,#rmap.thI .rtpe{background:#232831!important;color:#eceef1!important;border:1px solid rgba(255,255,255,.13)!important;box-shadow:none!important;border-radius:6px!important}
+#rmap.thI .rl:not(.rls){background:rgba(21,24,29,.92)!important;border-color:rgba(255,255,255,.13)!important;color:#eceef1!important;box-shadow:none!important;border-radius:6px!important}
+#rmap.thI .rl i{background:#7cc8bd!important;color:#0d0f12!important}
+#rmap.thI .rl.rls{background:#eceef1!important;color:#0d0f12!important;border-color:#eceef1!important;box-shadow:none!important}
+#rmap.thI .rp .pw{filter:saturate(.6) drop-shadow(0 1px 2px #000)!important}
+#rmap.thI .rsel i{border-color:#eceef1!important;box-shadow:none!important}
+#rmap.thI .rsel b{filter:grayscale(1) brightness(2.5)}
+#rmap.thI .rm-h,#rmap.thI .rm-f,#rmap.thI .rm-i{background:#15181d!important;border-color:rgba(255,255,255,.07)!important}
+#rmap.thI .rm-h{border-bottom:1px solid rgba(255,255,255,.13)!important;box-shadow:none!important}
+#rmap.thI .rm-h b,#rmap.thI .rm-i .lh{color:#eceef1!important;text-shadow:none!important}
+#rmap.thI .rm-i .g div{background:#1b1f25!important;border-color:rgba(255,255,255,.07)!important}
+
+/* 雷達樣式選單的示意小圖 */
+#rmap .rm-sm .sw.sF{background:linear-gradient(#00f0ff,#00f0ff) 4px 4px/10px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 4px 4px/2px 10px no-repeat,linear-gradient(#00f0ff,#00f0ff) calc(100% - 4px) calc(100% - 4px)/10px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) calc(100% - 4px) calc(100% - 4px)/2px 10px no-repeat,#05080d}
+#rmap .rm-sm .sw.sG{background:linear-gradient(135deg,transparent 45%,#999 46% 49%,transparent 50%),#000}
+#rmap .rm-sm .sw.sH{background:linear-gradient(135deg,transparent 40%,#00f0ff 41% 46%,transparent 47%),radial-gradient(circle at 70% 30%,#c6ff3d 0 4px,transparent 5px),radial-gradient(circle at 30% 70%,#ff2a6d 0 4px,transparent 5px),#06040d}
+#rmap .rm-sm .sw.sI{background:linear-gradient(135deg,transparent 45%,#7f8794 46% 49%,transparent 50%),#15181d}
+
+/* ════ 班機 戰情室（html.twar）：黑底、琥珀色線條、紅色警示、座標刻度 ════ */
+html.twar{--wa:#ffb347;--wr:#ff4b2b;--wb:#0d0803}
+html.twar.arr body::before,html.twar.dep body::before{background:linear-gradient(rgba(255,170,40,.06) 1px,transparent 1px) 0 0/40px 40px,linear-gradient(90deg,rgba(255,170,40,.06) 1px,transparent 1px) 0 0/40px 40px,radial-gradient(120% 80% at 50% 20%,#1a1006,#060402 75%)!important}
+html.twar #fxrain{display:none!important}
+html.twar{--mkt:#0d0803}
+html.twar body:not(#_) .mk{background:var(--wb)!important;border:0!important;box-shadow:inset 0 -2px 0 var(--wa)!important;filter:none!important}
+html.twar body:not(#_) .mk b{color:var(--wa)!important;letter-spacing:.2em!important;text-shadow:0 0 10px rgba(255,150,30,.7)!important;filter:none!important;font-family:'Chakra Petch',ui-monospace,monospace!important}
+html.twar body:not(#_) .mk i{color:var(--wr)!important;text-shadow:none!important}
+html.twar body:not(#_) header{background:var(--wb)!important;border-bottom:1px solid #5a3a12!important;box-shadow:none!important}
+html.twar body:not(#_) header h1,html.twar body:not(#_) header .live{color:var(--wa)!important;text-shadow:none!important}
+html.twar body:not(#_) header .h7k,html.twar body:not(#_) #iosw,html.twar body:not(#_) #bigbtn{background:#000!important;border:1px solid #5a3a12!important;color:var(--wa)!important;text-shadow:none!important;box-shadow:none!important;clip-path:none!important}
+html.twar body:not(#_) #iosw a{color:#8a6a3a!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.twar body:not(#_) #iosw a.on{background:var(--wa)!important;color:#2a1400!important}
+html.twar body:not(#_) #dock button{background:#140c04!important;border:1px solid #5a3a12!important;color:#ffe2b8!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.twar body:not(#_) #dock button small{color:var(--wa)!important;font-family:'Chakra Petch',ui-monospace,monospace!important;text-shadow:0 0 6px rgba(255,150,30,.5)!important}
+html.twar body:not(#_) #dock button.on{background:var(--wa)!important;color:#2a1400!important;border-color:#ffe2b8!important} html.twar body:not(#_) #dock button.on small{color:#2a1400!important;text-shadow:none!important}
+html.twar body:not(#_) #dock button.hot:not(.on){border-color:var(--wr)!important}
+html.twar body:not(#_) #out .r:not(.head){--tc:var(--wa);background:linear-gradient(90deg,var(--tc) 0 4px,transparent 4px),#0d0803!important;border:1px solid #3a2810!important;box-shadow:inset 0 0 0 1px rgba(255,179,71,.08)!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.twar body:not(#_) #out .r.r40{--tc:#ffb347} html.twar body:not(#_) #out .r.r53{--tc:#ff4b2b} html.twar body:not(#_) #out .r.rYA{--tc:#c6ff3d} html.twar body:not(#_) #out .r.rYB{--tc:#c9a0ff}
+html.twar body:not(#_) #out .r::before,html.twar body:not(#_) #out .r::after{display:none!important}
+html.twar body:not(#_) #out .r.soon:not(.done){border-color:var(--wr)!important;box-shadow:0 0 0 1px var(--wr),0 0 14px -4px var(--wr)!important}
+html.twar body:not(#_) #out .r .c-time b,html.twar body:not(#_) #out .r .c-time b[class]{color:var(--wa)!important;font-family:'Chakra Petch',ui-monospace,monospace!important;text-shadow:0 0 10px rgba(255,150,30,.6)!important}
+html.twar body:not(#_) #out .r .c-time i:not(.bigd),html.twar body:not(#_) #out .r .badge.b-none,html.twar body:not(#_) #out .r .px u{color:#a07a48!important}
+html.twar body:not(#_) #out .r .c-fno b,html.twar body:not(#_) #out .r .cn{color:#ffe2b8!important;text-shadow:none!important;-webkit-text-stroke:0!important}
+html.twar body:not(#_) #out .r .px{color:var(--wa)!important}
+html.twar body:not(#_) #out .r .gn{background:transparent!important;color:var(--tc)!important;border:2px solid var(--tc)!important;box-shadow:0 0 10px -3px var(--tc)!important;text-shadow:0 0 8px var(--tc)!important;clip-path:none!important;-webkit-text-stroke:0!important}
+html.twar body:not(#_) #out .r .tag{background:var(--tc)!important;color:#1a0d00!important;border:0!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.twar body:not(#_) #out .r .cty,html.twar body:not(#_) #out .r .ac,html.twar body:not(#_) #out .r .nat{background:#000!important;border-color:#5a3a12!important;color:#c9a06a!important}
+html.twar body:not(#_) #out .r .tapmore{background:#000!important;color:var(--wa)!important;border:1px solid var(--wa)!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.twar body:not(#_) #out .r.open .tapmore{background:var(--wa)!important;color:#2a1400!important}
+html.twar body:not(#_) #out .r .dt{background:#000!important;border-color:#3a2810!important}
+html.twar body:not(#_) #out .r .rdr{background:#000!important;border:1px solid #3a2810!important;box-shadow:none!important;clip-path:none!important}
+html.twar body:not(#_) .nowline{color:var(--wr)!important;text-shadow:0 0 8px rgba(255,75,43,.7)!important}
+html.twar body:not(#_) .nowline::before,html.twar body:not(#_) .nowline::after{background:var(--wr)!important;box-shadow:0 0 6px var(--wr)!important}
+html.twar body:not(#_) #out .wave{background:rgba(255,179,71,.08)!important;border-left-color:var(--wa)!important;color:var(--wa)!important}
+html.twar body:not(#_) #fab .fabb{background:#140c04!important;border:1px solid var(--wa)!important;color:var(--wa)!important;box-shadow:0 4px 12px rgba(0,0,0,.8)!important;text-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.twar body:not(#_) .wrap>.card,html.twar body:not(#_) #infobox,html.twar body:not(#_) .empty,html.twar body:not(#_) .pend,html.twar body:not(#_) .cllink a,html.twar body:not(#_) .nhelp{background:#0d0803!important;border:1px solid #3a2810!important;color:#ffe2b8!important;box-shadow:none!important;clip-path:none!important}
+
+/* ════ 班機 藍圖（html.tbp）：工程藍圖藍底、白色方格、白色細線、等寬字 ════ */
+html.tbp{--bb:#0f3a7a;--bl:#bcd6ff;--mkt:#0b2d60}
+html.tbp.arr body::before,html.tbp.dep body::before{background:linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px) 0 0/60px 60px,linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px) 0 0/60px 60px,linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/12px 12px,linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/12px 12px,var(--bb)!important}
+html.tbp #fxrain{display:none!important}
+html.tbp body:not(#_) .mk{background:#0b2d60!important;border:0!important;box-shadow:inset 0 -2px 0 #fff!important;filter:none!important}
+html.tbp body:not(#_) .mk b{color:#fff!important;text-shadow:none!important;filter:none!important;font-family:ui-monospace,'SF Mono',Menlo,monospace!important;letter-spacing:.25em!important}
+html.tbp body:not(#_) .mk i{color:var(--bl)!important;text-shadow:none!important}
+html.tbp body:not(#_) header{background:#0b2d60!important;border-bottom:1px solid var(--bl)!important;box-shadow:none!important}
+html.tbp body:not(#_) header h1,html.tbp body:not(#_) header .live{color:#fff!important;text-shadow:none!important}
+html.tbp body:not(#_) header .h7k,html.tbp body:not(#_) #iosw,html.tbp body:not(#_) #bigbtn{background:transparent!important;border:1px dashed var(--bl)!important;color:#fff!important;text-shadow:none!important;box-shadow:none!important;clip-path:none!important}
+html.tbp body:not(#_) #iosw a{color:var(--bl)!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.tbp body:not(#_) #iosw a.on{background:#fff!important;color:var(--bb)!important}
+html.tbp body:not(#_) #dock button{background:rgba(11,45,96,.85)!important;border:1px solid var(--bl)!important;color:#fff!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.tbp body:not(#_) #dock button small{color:var(--bl)!important;font-family:ui-monospace,Menlo,monospace!important;text-shadow:none!important}
+html.tbp body:not(#_) #dock button.on{background:#fff!important;color:var(--bb)!important} html.tbp body:not(#_) #dock button.on small{color:var(--bb)!important}
+html.tbp body:not(#_) #dock button.hot:not(.on){border-color:#ffd84a!important}
+html.tbp body:not(#_) #out .r:not(.head){--tc:#fff;background:rgba(11,45,96,.9)!important;border:1px solid var(--bl)!important;border-left:5px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.tbp body:not(#_) #out .r.r40{--tc:#7fe9ff} html.tbp body:not(#_) #out .r.r53{--tc:#ff9ab8} html.tbp body:not(#_) #out .r.rYA{--tc:#c6ff3d} html.tbp body:not(#_) #out .r.rYB{--tc:#c9b8ff}
+html.tbp body:not(#_) #out .r::before,html.tbp body:not(#_) #out .r::after{display:none!important}
+html.tbp body:not(#_) #out .r.soon:not(.done){border-style:dashed!important;border-color:#ffd84a!important;border-left:5px solid var(--tc)!important}
+html.tbp body:not(#_) #out .r *{text-shadow:none!important}
+html.tbp body:not(#_) #out .r .c-time b,html.tbp body:not(#_) #out .r .c-time b[class]{color:#fff!important;font-family:ui-monospace,'SF Mono',Menlo,monospace!important}
+html.tbp body:not(#_) #out .r .c-time i:not(.bigd),html.tbp body:not(#_) #out .r .badge.b-none,html.tbp body:not(#_) #out .r .px u{color:var(--bl)!important}
+html.tbp body:not(#_) #out .r .c-fno b{color:#fff!important;font-family:ui-monospace,'SF Mono',Menlo,monospace!important;font-size:24px!important;letter-spacing:0!important;-webkit-text-stroke:0!important}
+html.tbp body:not(#_) #out .r .cn{color:#fff!important}
+html.tbp body:not(#_) #out .r .px{color:#fff!important}
+html.tbp body:not(#_) #out .r .gn{background:transparent!important;color:var(--tc)!important;border:2px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important;-webkit-text-stroke:0!important;font-family:ui-monospace,'SF Mono',Menlo,monospace!important}
+html.tbp body:not(#_) #out .r .tag{background:transparent!important;color:var(--tc)!important;border:1px dashed var(--tc)!important;box-shadow:none!important;clip-path:none!important}
+html.tbp body:not(#_) #out .r .cty,html.tbp body:not(#_) #out .r .ac,html.tbp body:not(#_) #out .r .nat{background:transparent!important;border-color:var(--bl)!important;color:var(--bl)!important}
+html.tbp body:not(#_) #out .r .tapmore{background:#fff!important;color:var(--bb)!important;border:0!important;box-shadow:none!important;clip-path:none!important}
+html.tbp body:not(#_) #out .r.open .tapmore{background:#ffd84a!important}
+html.tbp body:not(#_) #out .r .dt{background:#0b2d60!important;border-color:var(--bl)!important}
+html.tbp body:not(#_) #out .r .rdr{background:#0b2d60!important;border:1px dashed var(--bl)!important;box-shadow:none!important;clip-path:none!important}
+html.tbp body:not(#_) .nowline{color:#ffd84a!important;text-shadow:none!important}
+html.tbp body:not(#_) .nowline::before,html.tbp body:not(#_) .nowline::after{background:repeating-linear-gradient(90deg,#ffd84a 0 8px,transparent 8px 12px)!important;box-shadow:none!important}
+html.tbp body:not(#_) #out .wave{background:rgba(255,255,255,.08)!important;border-left-color:#ffd84a!important;color:#ffd84a!important}
+html.tbp body:not(#_) #fab .fabb{background:#0b2d60!important;border:1px solid #fff!important;color:#fff!important;box-shadow:0 4px 12px rgba(0,0,0,.5)!important;text-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.tbp body:not(#_) .wrap>.card,html.tbp body:not(#_) #infobox,html.tbp body:not(#_) .empty,html.tbp body:not(#_) .pend,html.tbp body:not(#_) .cllink a,html.tbp body:not(#_) .nhelp{background:#0b2d60!important;border:1px solid var(--bl)!important;color:#fff!important;box-shadow:none!important;clip-path:none!important}
+
+/* 設定裡的示意小圖 */
+#ctl .throw i.ktwar,#ctl .throw i.rB{background:linear-gradient(#ffb347,#ffb347) 1px 1px/6px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 1px 1px/2px 6px no-repeat,linear-gradient(#ff4b2b,#ff4b2b) 9px 9px/4px 4px no-repeat,#0d0803}
+#ctl .throw i.ktbp,#ctl .throw i.rD{background:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,#0f3a7a}
+#ctl .throw i.rF{background:linear-gradient(#00f0ff,#00f0ff) 2px 2px/5px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 2px 2px/2px 5px no-repeat,#0b1018}
+#ctl .throw i.rG{background:#000;border-color:#666!important}
+#ctl .throw i.rH{background:linear-gradient(135deg,#00f0ff 0 33%,#ff2a6d 33% 66%,#c6ff3d 66%)}
+#ctl .throw i.rI{background:linear-gradient(160deg,#2a2f37,#15181d);border-color:#7f8794!important}
+#ctl .throw i.rA{background:conic-gradient(from 30deg,transparent 0 290deg,#3dff7a 358deg,transparent 360deg),#021006;border-radius:50%}
+#ctl .throw i.rC{background:repeating-linear-gradient(-45deg,#f2c230 0 3px,#111 3px 6px)}
+#ctl .throw i.rE{background:linear-gradient(90deg,#ffe600 0 4px,transparent 4px 8px,#00f0ff 8px 12px,transparent 12px) 0 4px/16px 4px no-repeat,linear-gradient(90deg,#ff2a6d 0 4px,transparent 4px 8px,#9b5cff 8px 12px) 4px 10px/16px 4px no-repeat,#0b0620}
+#ctl .throw i.ktgr,#ctl .throw i.rA{border-radius:0}
+#ctl .throw .pairnote{flex:1 1 100%;font-size:12px;color:#8d99a9;font-weight:800;margin:-2px 0 2px}
+
 #ctl .throw .chip.thc{display:inline-flex;align-items:center;gap:6px}
 #ctl .throw .chip.thc i{display:inline-block;width:16px;height:16px;flex:none;border:1px solid rgba(255,255,255,.25)}
 #ctl .throw i.r0,#ctl .throw i.kcyber{background:linear-gradient(135deg,#00f0ff 0 33%,#ff2a6d 33% 66%,#c6ff3d 66%)}
@@ -5347,19 +5511,22 @@ html.tpx .fxstamp{font-family:var(--pzh)!important;border-radius:0!important}
 (function(){
   var D=document, W=window, R=D.documentElement;
   if(W.__cth) return; W.__cth=1;
-  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑'],['tpx','像素街機'],['cyber','螢光'],['matte','霧面']];
-  var RT=[['0','霓虹'],['A','塔台雷達'],['B','戰情室'],['C','廢土'],['D','藍圖'],['E','像素']];
+  /* 11/15n：班機、雷達樣式成對，同名同順序；選班機樣式時雷達跟著換成同一組（雷達之後還可以單獨換） */
+  var CT=[['0','霓虹'],['dash','儀表板'],['twar','戰情室'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑'],['tbp','藍圖'],['tpx','像素街機'],['cyber','螢光'],['matte','霧面']];
+  var PAIR={'0':'0',dash:'F',twar:'B',wst:'C',tgr:'A',tmin:'G',tbp:'D',tpx:'E',cyber:'H',matte:'I'}, RPAIR={};
+  var RT=CT.map(function(c){ RPAIR[PAIR[c[0]]]=c[0]; return [PAIR[c[0]],c[1],c[0]]; });
   function cur(){ try{ return localStorage.getItem('cth1')||'0'; }catch(e){ return '0'; } }
-  function setCT(k){ CT.forEach(function(c){ if(c[0]!=='0') R.classList.toggle(c[0],c[0]===k); }); try{ localStorage.setItem('cth1',k); }catch(e){} paint(); }
+  function setCT(k,solo){ CT.forEach(function(c){ if(c[0]!=='0') R.classList.toggle(c[0],c[0]===k); }); try{ localStorage.setItem('cth1',k); }catch(e){} if(!solo&&PAIR[k]) setRT(PAIR[k]); paint(); }
   W.__cthSet=setCT;
   function rcur(){ if(W.__rthGet) return W.__rthGet(); try{ return localStorage.getItem('rth1')||'0'; }catch(e){ return '0'; } }
   function setRT(k){ if(W.__rthSet) W.__rthSet(k); else { try{ localStorage.setItem('rth1',k); }catch(e){} } paint(); }
   function row(id,lab,list,on,pre){ return '<div class="chips ctl-row throw" id="'+id+'"><span class="v2lab">'+lab+'</span> '+list.map(function(c){
-      return '<span class="chip thc'+(c[0]===on?' act':'')+'" data-v="'+c[0]+'"><i class="'+pre+c[0]+'"></i>'+c[1]+'</span>'; }).join(' ')+'</div>'; }
+      return '<span class="chip thc'+(c[0]===on?' act':'')+'" data-v="'+c[0]+'"><i class="k'+(c[2]||c[0])+'"></i>'+c[1]+'</span>'; }).join(' ')+'</div>'; }
   function paint(){
     var ctl=D.getElementById('ctl'); if(!ctl) return;
     var a=D.getElementById('thrC'), b=D.getElementById('thrR');
     var h=row('thrC','班機樣式',CT,cur(),'k')+row('thrR','雷達樣式',RT,rcur(),'r');
+    h=h.replace('<span class="v2lab">雷達樣式</span> ','<span class="v2lab">雷達樣式</span> <span class="pairnote">選班機樣式時，雷達會跟著換成同一組；也可以在這裡單獨換</span>');
     if(!a){ ctl.insertAdjacentHTML('beforeend',h); return; }
     [['thrC',cur()],['thrR',rcur()]].forEach(function(x){ [].forEach.call(D.querySelectorAll('#'+x[0]+' .chip'),function(c){ c.classList.toggle('act',c.dataset.v===x[1]); }); });
   }
