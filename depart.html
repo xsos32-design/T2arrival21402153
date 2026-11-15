@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 桃機到站 2140 / 2153 分點看板　檔案作者：小韋 -->
 <html lang="zh-Hant">
-<head>
+<head><script>try{var _c=localStorage.getItem('cth1');if(_c&&_c!=='0')document.documentElement.classList.add(_c);}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="img/icon-dep-192.png">
@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15f';
+var PAGE_V='2026-11-15g';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4323,7 +4323,12 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
         '「表定 +29」放到時間正下方、分類（2140／2153）接在下面；機型小牌搬到登機門下面，右下只剩狀態和「詳細」；時間、班號、登機門大字縮一號，雷達那一行也變矮。內容一樣都沒少，「字體」五段照樣有效。']]},
     {v:'2026-11-15f', d:'11/15', t:'雷達地圖換樣式', it:[
       ['plane','',  '雷達樣式三選一','雷達地圖標題列多一顆「<em>樣式 ▾</em>」：霓虹、塔台雷達、戰情室。',
-        '<em>霓虹</em>：原本的賽博龐克地圖。<br><em>塔台雷達</em>：綠色螢幕，一條掃描線以桃園為中心繞圈，飛機被掃到才亮起來、再慢慢變暗。<br><em>戰情室</em>：琥珀色線條、四周座標刻度，10 公里內的飛機閃紅色鎖定框。<br>選了會記在這支手機，飛機會動、點一架跟著走、選分類都照舊。']]}
+        '<em>霓虹</em>：原本的賽博龐克地圖。<br><em>塔台雷達</em>：綠色螢幕，一條掃描線以桃園為中心繞圈，飛機被掃到才亮起來、再慢慢變暗。<br><em>戰情室</em>：琥珀色線條、四周座標刻度，10 公里內的飛機閃紅色鎖定框。<br>選了會記在這支手機，飛機會動、點一架跟著走、選分類都照舊。']]},
+    {v:'2026-11-15g', d:'11/15', t:'主題自己選', it:[
+      ['cog','yl','班機樣式五選一','到「<em>設定</em>」最下面選：霓虹、儀表板、廢土科技、綠色終端、極簡黑。',
+        '<em>霓虹</em>：原本的賽博龐克。<br><em>儀表板</em>：駕駛艙儀表，四角定位框、背光按鍵、指示燈。<br><em>廢土科技</em>：生鏽鐵板加鉚釘、真空管橘光數字、黃黑警示條，背景是廢棄機場。<br><em>綠色終端</em>：老電腦終端機，黑底綠字、等寬字。<br><em>極簡黑</em>：純黑、沒有光暈，最好讀也最省電。<br>選了會記在這支手機。'],
+      ['plane','',  '雷達樣式五選一','設定裡或雷達地圖的「<em>樣式 ▾</em>」都能換：霓虹、塔台雷達、戰情室、廢土、藍圖。',
+        '新增兩種：<em>廢土</em>（鏽褐做舊地圖、黃色標籤）、<em>藍圖</em>（工程藍圖，白色線條方格）。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4488,12 +4493,49 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 #rmap.thB .rm-i .li b,#rmap.thB .rm-i .t1 b{font-family:'Chakra Petch',ui-monospace,monospace}
 #rmap.thB .rm-i .g div{background:#170e05!important;border-color:#5a3a12!important}
 @media (prefers-reduced-motion:reduce){ .thsweep{display:none} .thframe .bar,.rp .thnear,#rmap.thA .rm-m::after,#rmap.thB .rsel i{animation:none!important} }
+#rmap .rm-sm .sw.sC{background:radial-gradient(circle at 30% 35%,rgba(180,84,42,.8) 0 5px,transparent 7px),linear-gradient(135deg,transparent 45%,#e9dcbf 46% 49%,transparent 50%),#3a2c1e}
+#rmap .rm-sm .sw.sD{background:linear-gradient(135deg,transparent 45%,#fff 46% 49%,transparent 50%),linear-gradient(rgba(255,255,255,.35) 1px,transparent 1px) 0 0/8px 8px,linear-gradient(90deg,rgba(255,255,255,.35) 1px,transparent 1px) 0 0/8px 8px,#0f3a7a}
+#rmap .rm-sm{max-height:70vh;overflow-y:auto}
+/* ════ C 廢土：鏽褐做舊地圖 ════ */
+#rmap.thC .leaflet-container{background:#2a2118!important;background-image:radial-gradient(130% 100% at 50% 50%,transparent 55%,rgba(10,5,0,.7)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")!important}
+#rmap.thC .leaflet-overlay-pane{filter:grayscale(1) sepia(.9) saturate(1.6) hue-rotate(-8deg) brightness(.95) contrast(1.05)}
+#rmap.thC .rk,#rmap.thC .rc,#rmap.thC .rt,#rmap.thC .rkw{color:#e9dcbf!important;text-shadow:0 1px 0 #000!important}
+#rmap.thC .rz,#rmap.thC .rtpe{background:#f2c230!important;color:#141008!important;border-color:#f2c230!important;box-shadow:0 2px 0 #000!important}
+#rmap.thC .rl:not(.rls){background:#1d1b16!important;border-color:#b4542a!important;color:#e9dcbf!important;box-shadow:0 2px 0 #000!important}
+#rmap.thC .rl i{background:#f2c230!important;color:#141008!important}
+#rmap.thC .rl.rls{background:#f2c230!important;color:#141008!important;border-color:#000!important;box-shadow:0 3px 0 #000!important}
+#rmap.thC .rsel i{border-color:#f2c230!important;box-shadow:none!important}
+#rmap.thC .rsel b{filter:sepia(1) saturate(2)}
+#rmap.thC .rm-h,#rmap.thC .rm-f,#rmap.thC .rm-i{background:#1d1b16!important;border-color:#5a3a1a!important}
+#rmap.thC .rm-h{border-bottom:3px solid transparent!important;border-image:repeating-linear-gradient(-45deg,#f2c230 0 8px,#111 8px 16px) 3!important;box-shadow:none!important}
+#rmap.thC .rm-h b,#rmap.thC .rm-i .lh{color:#f2c230!important;text-shadow:none!important}
+#rmap.thC .rm-i .g div{background:#2a2720!important;border-color:#000!important}
+/* ════ D 藍圖：工程藍圖，白色線條＋方格 ════ */
+#rmap.thD .leaflet-container{background:#0f3a7a!important;background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)!important;background-size:60px 60px,60px 60px,12px 12px,12px 12px!important}
+#rmap.thD .leaflet-overlay-pane{filter:grayscale(1) brightness(2.2) contrast(.9) opacity(.85)}
+#rmap.thD .leaflet-overlay-pane path{fill-opacity:.04!important}
+#rmap.thD .rk,#rmap.thD .rc,#rmap.thD .rt,#rmap.thD .rkw{color:#fff!important;text-shadow:none!important;font-family:ui-monospace,Menlo,monospace!important;font-weight:700!important}
+#rmap.thD .rc3{color:#bcd6ff!important}
+#rmap.thD .rz,#rmap.thD .rtpe{background:#fff!important;color:#0f3a7a!important;border-color:#fff!important;box-shadow:none!important}
+#rmap.thD .rl:not(.rls){background:#0f3a7a!important;border-color:#fff!important;color:#fff!important;box-shadow:none!important;font-family:ui-monospace,Menlo,monospace!important}
+#rmap.thD .rl i{background:#fff!important;color:#0f3a7a!important}
+#rmap.thD .rl.rls{background:#fff!important;color:#0f3a7a!important;border-color:#fff!important;box-shadow:none!important}
+#rmap.thD .rp .pw{filter:drop-shadow(0 0 0 #fff) drop-shadow(0 1px 0 rgba(0,0,0,.5))!important}
+#rmap.thD .rsel i{border-color:#fff!important;border-style:dashed!important;box-shadow:none!important}
+#rmap.thD .rsel b{filter:grayscale(1) brightness(3)}
+#rmap.thD .rm-h,#rmap.thD .rm-f,#rmap.thD .rm-i{background:#0b2d60!important;border-color:#bcd6ff!important}
+#rmap.thD .rm-h{box-shadow:none!important}
+#rmap.thD .rm-h b,#rmap.thD .rm-i .lh{color:#fff!important;text-shadow:none!important}
+#rmap.thD .rm-i .g div{background:#0f3a7a!important;border-color:#bcd6ff!important}
 </style>
 <style>
 /* ── 樣式選單：雷達標題列「樣式 ▾」 ── */
 #rmap .rm-sty{all:unset;box-sizing:border-box;margin-left:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:900;padding:8px 11px;border:1px solid #2a3545;color:#e8e3f5;background:#161e29}
 #rmap .rm-sty i{width:10px;height:10px;background:var(--sc,#00f0ff);box-shadow:0 0 6px var(--sc,#00f0ff)}
 #rmap .rm-sty + .rm-x{margin-left:0!important}
+#rmap .rm-h b,#rmap .rm-sty,#rmap .rm-x{white-space:nowrap;flex:none}
+#rmap .rm-h small{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+@media (max-width:420px){#rmap .rm-h small{display:none}}
 #rmap .rm-h{position:relative}
 #rmap .rm-sm{position:absolute;right:10px;top:calc(100% + 6px);z-index:2000;width:min(290px,calc(100vw - 20px));padding:10px;background:#0b0816;border:1px solid #00f0ff;box-shadow:0 10px 30px rgba(0,0,0,.7),0 0 16px -4px #00f0ff;
   clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));text-shadow:none}
@@ -4514,8 +4556,8 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 /* 雷達地圖樣式：霓虹（原本）／塔台雷達螢幕／戰情室指揮螢幕。標題列「樣式 ▾」選，記在這支手機（localStorage rth1） */
 (function(){
   var D=document, W=window, TPE=[25.0777,121.2328];
-  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
-  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0AB])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
+  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'C':['廢土','鏽褐舊地圖、做舊紙感','#d47a3a'],'D':['藍圖','工程藍圖，白色線條方格','#7fb6ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
+  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0ABCD])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
   var map=null, mm=null, sw=null, sp=null, fr=null, t0=performance.now(), PERIOD=4000;
   function rm(){ return D.getElementById('rmap'); }
   function placeSweep(){ if(!sw||!map) return; var p=map.latLngToLayerPoint(TPE), R=1500;
@@ -4525,7 +4567,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     fr.querySelector('.co.s').textContent=f(b.getSouth(),'N','S')+' '+f(b.getEast(),'E','W'); }
   function apply(){
     var r=rm(); if(!r||!map) return;
-    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B');
+    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B'); r.classList.toggle('thC',TH==='C'); r.classList.toggle('thD',TH==='D');
     if(TH==='A'&&!sw){ var pane=map.getPane('thpane')||map.createPane('thpane'); pane.style.zIndex=450; pane.style.pointerEvents='none';
       sp=D.createElement('div'); sp.className='thspoke'; pane.appendChild(sp); sw=D.createElement('div'); sw.className='thsweep'; pane.appendChild(sw);
       map.on('zoomend viewreset',placeSweep); placeSweep(); }
@@ -4544,12 +4586,14 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     var b=D.createElement('button'); b.type='button'; b.className='rm-sty'; b.innerHTML='<i></i>樣式 <span></span> ▾';
     h.insertBefore(b,h.querySelector('.rm-x'));
     var m=D.createElement('div'); m.className='rm-sm'; m.hidden=true;
-    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
+    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B','C','D'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
     h.appendChild(m);
     b.onclick=function(e){ e.stopPropagation(); m.hidden=!m.hidden; };
-    m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; TH=x.dataset.t; try{ localStorage.setItem('rth1',TH); }catch(_){} apply(); setTimeout(function(){ m.hidden=true; },180); });
+    m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; W.__rthSet(x.dataset.t); setTimeout(function(){ m.hidden=true; },180); });
     D.addEventListener('click',function(){ m.hidden=true; });
   }
+  W.__rthSet=function(k){ if(!NAMES[k]) return; TH=k; try{ localStorage.setItem('rth1',k); }catch(_){} apply(); try{ D.dispatchEvent(new CustomEvent('rthchange')); }catch(_){} };
+  W.__rthGet=function(){ return TH; };
   function tick(t){ requestAnimationFrame(tick);
     var r=rm(); if(!map||!r||r.hidden||!r.getClientRects().length||D.hidden||TH==='0') return;
     if(t-(tick.l||0)<33) return; tick.l=t;
@@ -4571,6 +4615,332 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     }
   }
   var w=setInterval(function(){ if(!W.__rmap||!rm()) return; clearInterval(w); map=W.__rmap; mm=rm().querySelector('.rm-m'); ui(); apply(); requestAnimationFrame(tick); },200);
+})();
+</script>
+<!-- 11/15：主題（tools/theme.js）＝ 儀表板（dash）＋廢土科技（wst）＋綠色終端（tgr）＋極簡黑（tmin）＋設定裡的選擇列 -->
+<!-- 11/15 預覽：賽博龐克 × 儀表板（tools/dash.js）。html.dash 才套用，按鍵位置、內容都不動。
+     像駕駛艙／機場塔台的儀表：數字用儀表字體、四角定位框、背光按鍵、警示燈、刻度條。背景、招牌照原本的賽博龐克 -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&display=swap" rel="stylesheet">
+<style>
+html.dash{--cy:#00f0ff;--pk:#ff2a6d;--am:#ffb000;--gr:#3dff8f;--panel:#0b1018;--bezel:#1d2836;--txt:#d7e3f0;--dim:#6f8196;
+  --cut:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));
+  --cut6:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  /* 四角定位框（HUD）：用 currentColor 畫，跟著各區塊的顏色 */
+  --hud:linear-gradient(currentColor,currentColor) 0 0/14px 2px no-repeat,linear-gradient(currentColor,currentColor) 0 0/2px 14px no-repeat,
+        linear-gradient(currentColor,currentColor) 100% 0/14px 2px no-repeat,linear-gradient(currentColor,currentColor) 100% 0/2px 14px no-repeat,
+        linear-gradient(currentColor,currentColor) 0 100%/14px 2px no-repeat,linear-gradient(currentColor,currentColor) 0 100%/2px 14px no-repeat,
+        linear-gradient(currentColor,currentColor) 100% 100%/14px 2px no-repeat,linear-gradient(currentColor,currentColor) 100% 100%/2px 14px no-repeat}
+html.dash body:not(#_) .r .c-time b,html.dash body:not(#_) .r .c-fno b,html.dash body:not(#_) .r .gn,html.dash body:not(#_) #dock button small,
+html.dash body:not(#_) .r .px,html.dash body:not(#_) .live,html.dash body:not(#_) .nowline,html.dash body:not(#_) .rdr .rd-dt{font-family:'Chakra Petch',ui-monospace,Menlo,monospace!important;font-variant-numeric:tabular-nums}
+
+/* ── 標題列：儀表板上緣，下面一條刻度尺 ── */
+html.dash body:not(#_) header{background:linear-gradient(180deg,#0d141e,#080c12)!important;border-bottom:0!important;position:relative;
+  box-shadow:inset 0 -1px 0 rgba(0,240,255,.35)!important}
+html.dash body:not(#_) header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(0,240,255,.55) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,rgba(0,240,255,.9) 0 1px,transparent 1px 40px);
+  -webkit-mask:linear-gradient(0deg,#000 0 3px,transparent 3px) ,linear-gradient(0deg,#000,#000);mask:none;opacity:.55}
+html.dash body:not(#_) #iosw{clip-path:var(--cut6);border:1px solid var(--bezel)!important;background:#05080d!important}
+html.dash body:not(#_) #iosw a{color:var(--dim)!important;border:0!important}
+html.dash body:not(#_) #iosw a.on{background:#062a2e!important;color:var(--cy)!important;box-shadow:inset 0 0 0 1px var(--cy),inset 0 0 14px rgba(0,240,255,.35)!important;text-shadow:0 0 8px rgba(0,240,255,.8)}
+html.dash.dep body:not(#_) #iosw a.on{background:#2e0614!important;color:var(--pk)!important;box-shadow:inset 0 0 0 1px var(--pk),inset 0 0 14px rgba(255,42,109,.35)!important;text-shadow:0 0 8px rgba(255,42,109,.8)}
+html.dash body:not(#_) #bigbtn{clip-path:var(--cut6);background:#0d141e!important;border:1px solid var(--bezel)!important;color:var(--txt)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important}
+
+/* ── 上面那排：一格一格的儀表讀數。小字標籤在上、讀數放大，右上一顆指示燈 ── */
+html.dash body:not(#_) #dock{gap:6px!important;padding:6px!important;background:#05080d;border:1px solid var(--bezel);clip-path:var(--cut);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03),inset 0 10px 24px -14px rgba(0,240,255,.25)}
+html.dash body:not(#_) #dock button{clip-path:var(--cut6)!important;min-height:62px!important;padding:6px 2px 6px!important;border:0!important;color:var(--cy)!important;
+  background:linear-gradient(180deg,#121b27,#0a0f16)!important;box-shadow:inset 0 0 0 1px #24344a,inset 0 1px 0 rgba(255,255,255,.07),inset 0 -2px 0 rgba(0,0,0,.6)!important;text-shadow:none!important}
+html.dash body:not(#_) #dock button::before{content:"";position:absolute;inset:3px;pointer-events:none;background:var(--hud);opacity:.35}
+html.dash body:not(#_) #dock button b{order:2;font-size:12px!important;font-weight:800!important;letter-spacing:.18em!important;color:var(--dim)!important}
+html.dash body:not(#_) #dock button small{order:1;font-size:19px!important;font-weight:700!important;color:var(--cy)!important;text-shadow:0 0 8px rgba(0,240,255,.55)!important;line-height:1.15;letter-spacing:.02em}
+/* 右上指示燈（取代原本的小三角）：平常暗、打開亮 */
+html.dash body:not(#_) #dock button::after{content:""!important;border:0!important;width:7px!important;height:7px!important;border-radius:50%;left:auto!important;right:7px!important;top:7px!important;
+  background:#24344a!important;box-shadow:none;transform:none!important;opacity:1!important}
+html.dash body:not(#_) #dock button.on{background:linear-gradient(180deg,#073238,#041b1f)!important;box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 0 18px rgba(0,240,255,.35)!important}
+html.dash body:not(#_) #dock button.on b{color:var(--cy)!important}
+html.dash:not(.club) body:not(#_) #dock button.on small{color:#eaffff!important;text-shadow:0 0 10px var(--cy)!important}
+html.dash body:not(#_) #dock button.on::after{background:var(--cy)!important;box-shadow:0 0 8px var(--cy)}
+html.dash body:not(#_) #dock button.on::before{opacity:.9}
+html.dash body:not(#_) #dock button.hot small{color:var(--am)!important;text-shadow:0 0 8px rgba(255,176,0,.6)!important}
+html.dash body:not(#_) #dock button.hot::after{background:var(--am)!important;box-shadow:0 0 8px var(--am);animation:dashblink 1.2s steps(2,jump-none) infinite}
+html.dash body:not(#_) #dock button:first-child small{font-size:15px!important;letter-spacing:-.02em}
+html.dash body:not(#_) #dock button[data-k="radar"] small{color:var(--gr)!important;text-shadow:0 0 8px rgba(61,255,143,.55)!important}
+@keyframes dashblink{100%{opacity:.25}}
+
+/* ── 班機卡片：儀表面板。深灰金屬底、外框細線、四角定位框用分類顏色 ── */
+html.dash body:not(#_) #out .r:not(.head){--tc:#6f8196;color:var(--tc);clip-path:var(--cut)!important;border:0!important;margin-bottom:5px!important;position:relative;
+  background:linear-gradient(180deg,#101823 0%,#0a0f16 100%)!important;
+  box-shadow:inset 0 0 0 1px #22324a,inset 0 1px 0 rgba(255,255,255,.06),inset 4px 0 0 var(--tc)!important}
+html.dash body:not(#_) #out .r:not(.head)::after{content:""!important;display:block!important;position:absolute!important;inset:4px!important;width:auto!important;height:auto!important;transform:none!important;border-radius:0!important;animation:none!important;pointer-events:none;background:var(--hud)!important;opacity:.85!important;border:0!important;box-shadow:none!important;clip-path:none!important}
+html.dash body:not(#_) #out .r:not(.head)::before{display:none!important}
+html.dash body:not(#_) #out .r.r40{--tc:var(--cy)} html.dash body:not(#_) #out .r.r53{--tc:var(--pk)}
+html.dash body:not(#_) #out .r.rYA{--tc:#8CF23A} html.dash body:not(#_) #out .r.rYB{--tc:#7B78FF}
+html.dash body:not(#_) #out .r.done{opacity:.45}
+html.dash body:not(#_) #out .r .c-time,html.dash body:not(#_) #out .r .c-time b{background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.dash body:not(#_) #out .r .c-time b{letter-spacing:.01em}
+html.dash body:not(#_) #out .r .c-time i{color:var(--dim)!important}
+html.dash body:not(#_) #out .r .c-fno b{color:#eef4fb!important;letter-spacing:.03em}
+html.dash body:not(#_) #out .r .c-city .cn{color:var(--txt)!important}
+/* 登機門：背光警示燈（像駕駛艙的 annunciator） */
+html.dash body:not(#_) #out .r .gn{clip-path:var(--cut6)!important;border:0!important;padding:0 7px!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 30%,#000),color-mix(in srgb,var(--tc) 14%,#000))!important;color:var(--tc)!important;
+  box-shadow:inset 0 0 0 1.5px var(--tc),inset 0 0 16px color-mix(in srgb,var(--tc) 55%,transparent)!important;text-shadow:0 0 10px var(--tc)!important}
+/* 分類：小 LED 標籤 */
+html.dash body:not(#_) #out .r .tag{clip-path:var(--cut6)!important;background:#05080d!important;border:0!important;color:var(--tc)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tc) 60%,transparent)!important;text-shadow:0 0 8px var(--tc)!important;padding-left:18px!important;position:relative}
+html.dash body:not(#_) #out .r .tag::before{content:"";position:absolute;left:7px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:var(--tc);box-shadow:0 0 6px var(--tc)}
+html.dash body:not(#_) #out .r .cty{background:#05080d!important;border-color:#2b3b52!important;color:var(--dim)!important}
+/* 雷達那一行：一條刻度式的進度儀表 */
+html.dash body:not(#_) #out .r .rdr{clip-path:var(--cut6);border:0!important;background:#05080d!important;box-shadow:inset 0 0 0 1px #22324a!important}
+html.dash body:not(#_) #out .r .rdr .rd-sg{clip-path:var(--cut6)!important;background:color-mix(in srgb,var(--kc) 20%,#000)!important;color:var(--kc)!important;box-shadow:inset 0 0 0 1px var(--kc)!important;text-shadow:0 0 8px var(--kc)}
+html.dash body:not(#_) #out .r .rdr .rd-bar{height:4px!important;gap:3px!important}
+html.dash body:not(#_) #out .r .rdr .rd-bar i{background:repeating-linear-gradient(90deg,#1c2838 0 3px,transparent 3px 5px)!important}
+html.dash body:not(#_) #out .r .rdr .rd-bar i.on{background:repeating-linear-gradient(90deg,var(--kc) 0 3px,transparent 3px 5px)!important;box-shadow:none!important;filter:drop-shadow(0 0 3px var(--kc))}
+
+/* ── 可以按的鍵：背光按鍵（有厚度、字會亮），一看就知道能按 ── */
+html.dash body:not(#_) .r .tapmore{clip-path:var(--cut6);border:0!important;padding:5px 12px!important;font-size:13px!important;letter-spacing:.12em!important;
+  background:linear-gradient(180deg,#1a2738,#0d141e)!important;color:var(--cy)!important;text-shadow:0 0 8px rgba(0,240,255,.7);
+  box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -3px 0 rgba(0,0,0,.5),inset 0 0 12px rgba(0,240,255,.25)!important}
+html.dash body:not(#_) .r.open .tapmore{background:linear-gradient(180deg,#073238,#041b1f)!important;box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 2px 6px rgba(0,0,0,.6),inset 0 0 18px rgba(0,240,255,.45)!important}
+html.dash body:not(#_) .r .rdr .rd-go::before{clip-path:var(--cut6);padding:4px 10px!important;font-size:12.5px!important;letter-spacing:.08em;
+  background:linear-gradient(180deg,#1a2738,#0d141e)!important;color:var(--kc)!important;text-shadow:0 0 8px var(--kc);
+  box-shadow:inset 0 0 0 1.5px var(--kc),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -3px 0 rgba(0,0,0,.5)!important}
+html.dash body:not(#_) .foldline{clip-path:var(--cut);border:0!important;background:#0a0f16!important;box-shadow:inset 0 0 0 1px #22324a!important;color:var(--dim)!important}
+html.dash body:not(#_) .foldline i{clip-path:var(--cut6);border:0!important;padding:4px 12px!important;background:linear-gradient(180deg,#1a2738,#0d141e)!important;color:var(--cy)!important;
+  box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 -3px 0 rgba(0,0,0,.5)!important;text-shadow:0 0 8px rgba(0,240,255,.7)}
+
+/* ── 現在線：儀表的指針線 ── */
+html.dash body:not(#_) .nowline{color:var(--am)!important;letter-spacing:.2em!important}
+html.dash body:not(#_) .nowline::before,html.dash body:not(#_) .nowline::after{background:repeating-linear-gradient(90deg,var(--am) 0 6px,transparent 6px 10px)!important;height:2px!important;border:0!important;box-shadow:none!important}
+
+/* ── 打開的那幾塊（設定、空檔、異動、人數）：儀表面板 ── */
+html.dash body:not(#_) .wrap>.card,html.dash body:not(#_) #infobox,html.dash body:not(#_) #nalert .na,html.dash body:not(#_) #remain{clip-path:var(--cut)!important;border:0!important;
+  background:linear-gradient(180deg,#101823,#0a0f16)!important;box-shadow:inset 0 0 0 1px #22324a,inset 0 1px 0 rgba(255,255,255,.06)!important}
+html.dash body:not(#_) #nalert .na-h,html.dash body:not(#_) .chiplabel,html.dash body:not(#_) .v2lab{color:var(--am)!important;letter-spacing:.2em!important}
+
+/* ── 下面三顆：背光按鍵 ── */
+html.dash body:not(#_) #fab .fabb{clip-path:var(--cut)!important;border:0!important;-webkit-backdrop-filter:none;backdrop-filter:none;letter-spacing:.08em;
+  background:linear-gradient(180deg,#1a2738,#0d141e)!important;color:var(--cy)!important;text-shadow:0 0 8px rgba(0,240,255,.7)!important;
+  box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 1px 0 rgba(255,255,255,.15),inset 0 -4px 0 rgba(0,0,0,.55),0 6px 18px -6px #000!important}
+html.dash body:not(#_) #fab .fabb.on{background:linear-gradient(180deg,#073238,#041b1f)!important;box-shadow:inset 0 0 0 1.5px var(--cy),inset 0 0 18px rgba(0,240,255,.45)!important}
+html.dash body:not(#_) #fab .fabb .ic{color:inherit!important}
+
+/* ── 雷達地圖 ── */
+html.dash #rmap .rm-x{clip-path:var(--cut6);background:linear-gradient(180deg,#1a2738,#0d141e)!important;color:var(--pk)!important;border:0!important;box-shadow:inset 0 0 0 1.5px var(--pk)!important}
+html.dash #rmap .rm-f button.on{clip-path:var(--cut6)}
+</style>
+<!-- 11/15 預覽：廢土科技主題（tools/wst.js，html.wst）。原創：生鏽金屬面板＋鉚釘、真空管橘光數字、模板噴漆字、黃黑警示、舊螢幕顆粒
+     背景：Gemini 生成的廢棄機場（img/bg-wst.webp）。內容、位置、按鍵都不動 -->
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
+<style>
+html.wst{--rust:#b4542a;--rust2:#7a3416;--amb:#ff8a2a;--cream:#e9dcbf;--olive:#3c3d26;--haz:#f2c230;--steel:#22201c;
+  --grime:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .18 0 0 0 0 .1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --rivet:radial-gradient(circle at 9px 9px,#8a7f6e 0 2.2px,#2a2620 2.6px 3.4px,transparent 3.8px),radial-gradient(circle at calc(100% - 9px) 9px,#8a7f6e 0 2.2px,#2a2620 2.6px 3.4px,transparent 3.8px),
+          radial-gradient(circle at 9px calc(100% - 9px),#8a7f6e 0 2.2px,#2a2620 2.6px 3.4px,transparent 3.8px),radial-gradient(circle at calc(100% - 9px) calc(100% - 9px),#8a7f6e 0 2.2px,#2a2620 2.6px 3.4px,transparent 3.8px)}
+/* 背景：廢棄機場；霓虹雨換成沙塵（直接拿掉雨） */
+html.wst.arr body::before,html.wst.dep body::before{background:linear-gradient(rgba(14,9,5,.25),rgba(14,9,5,.5)),url(img/bg-wst.webp) center bottom/cover no-repeat!important}
+html.wst #fxrain{display:none!important}
+/* 整面：舊螢幕顆粒＋細橫紋＋暗角 */
+html.wst body::after{content:"";position:fixed;inset:0;z-index:2147483000;pointer-events:none;
+  background:var(--grime),repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px),radial-gradient(130% 100% at 50% 50%,transparent 62%,rgba(10,5,0,.6));opacity:.55;mix-blend-mode:multiply}
+
+/* 招牌：生鏽鐵牌＋上下警示條，噴漆字 */
+html.wst body:not(#_) .mk{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.25)),var(--grime),linear-gradient(115deg,#5a2a12,#3a2516 40%,#5e3218 70%,#2c1d12)!important;
+  border:0!important;box-shadow:inset 0 6px 0 -1px #000,inset 0 7px 0 0 transparent,0 6px 18px rgba(0,0,0,.6)!important;position:relative}
+html.wst body:not(#_) .mk::before,html.wst body:not(#_) .mk::after{content:"";position:absolute;left:0;right:0;height:7px;background:repeating-linear-gradient(-45deg,var(--haz) 0 10px,#111 10px 20px);opacity:.9}
+html.wst body:not(#_) .mk::before{top:0} html.wst body:not(#_) .mk::after{bottom:0}
+html.wst body:not(#_) .mk b{font-family:'Black Ops One',system-ui,sans-serif!important;font-weight:400!important;color:var(--cream)!important;letter-spacing:.22em!important;text-shadow:0 2px 0 #000,0 0 14px rgba(255,138,42,.35)!important;filter:none!important}
+html.wst body:not(#_) .mk i{color:var(--haz)!important;text-shadow:0 1px 0 #000!important}
+
+/* 標題列：橄欖綠舊鐵板 */
+html.wst body:not(#_) header{background:linear-gradient(180deg,#2f3020,#1c1c12)!important;border-bottom:2px solid #000!important;box-shadow:0 1px 0 rgba(255,255,255,.06)!important}
+html.wst body:not(#_) header h1,html.wst body:not(#_) header .h7k{color:var(--cream)!important;text-shadow:none!important}
+html.wst body:not(#_) header .h7k{background:#151510!important;border-color:#5a5a3a!important;padding-left:5px!important;padding-right:5px!important;letter-spacing:0!important}
+html.wst body:not(#_) header h1{text-overflow:clip!important}
+html.wst body:not(#_) #iosw{background:#151510!important;border-color:#5a5a3a!important}
+html.wst body:not(#_) #iosw a{color:#9a9474!important;text-shadow:none!important;background:transparent!important;box-shadow:none!important}
+html.wst body:not(#_) #iosw a.on{background:var(--haz)!important;color:#111!important}
+html.wst body:not(#_) #bigbtn{background:#151510!important;border-color:#5a5a3a!important;color:var(--cream)!important;text-shadow:none!important;box-shadow:none!important}
+html.wst body:not(#_) header .live{color:var(--amb)!important}
+
+/* 上面那排：鐵板開關＋指示燈 */
+html.wst body:not(#_) #dock button{background:var(--rivet),linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.35)),var(--grime),linear-gradient(160deg,#3a3628,#211f18)!important;
+  border:1px solid #000!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 0 #000,0 4px 10px rgba(0,0,0,.6)!important;color:var(--cream)!important;text-shadow:0 1px 0 #000!important}
+html.wst body:not(#_) #dock button small{color:var(--amb)!important;text-shadow:0 0 8px rgba(255,120,20,.75)!important}
+html.wst body:not(#_) #dock button::after{content:""!important;border:0!important;width:8px!important;height:8px!important;border-radius:50%;right:7px!important;top:7px!important;left:auto!important;
+  background:#3a2a18!important;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)!important;transform:none!important;opacity:1!important}
+html.wst body:not(#_) #dock button.on{background:var(--rivet),linear-gradient(180deg,rgba(0,0,0,.25),rgba(255,255,255,.05)),var(--grime),linear-gradient(160deg,#4a3a1e,#2a2414)!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.7),0 1px 0 #000!important}
+html.wst body:not(#_) #dock button.on::after{background:#ffb347!important;box-shadow:0 0 8px #ff8a2a!important}
+html.wst body:not(#_) #dock button.hot::after{background:#ff3b1f!important;box-shadow:0 0 8px #ff3b1f!important}
+
+/* 班機卡片：舊鐵板＋四角鉚釘＋邊緣鏽 */
+html.wst body:not(#_) #out .r:not(.head){--wc:#7d8a74;
+  background:var(--rivet),linear-gradient(90deg,var(--wc) 0 5px,transparent 5px),radial-gradient(120% 140% at 100% 0,rgba(180,84,42,.28),transparent 45%),radial-gradient(90% 120% at 0 100%,rgba(122,52,22,.3),transparent 50%),var(--grime),linear-gradient(170deg,#302c24,#1d1b16)!important;
+  border:1px solid #0a0806!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 12px rgba(0,0,0,.6)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.wst body:not(#_) #out .r.r40{--wc:#4fb3a6} html.wst body:not(#_) #out .r.r53{--wc:#d0452c}
+html.wst body:not(#_) #out .r.rYA{--wc:#9bc23a} html.wst body:not(#_) #out .r.rYB{--wc:#8a83d6}
+html.wst body:not(#_) #out .r.soon:not(.done){outline:2px dashed var(--haz);outline-offset:-4px}
+/* 時間：真空管橘光數字 */
+html.wst body:not(#_) #out .r .c-time b,html.wst body:not(#_) #out .r .c-time b[class]{color:#ffb066!important;text-shadow:0 0 6px rgba(255,110,20,.9),0 0 16px rgba(255,90,0,.55)!important}
+html.wst body:not(#_) #out .r .c-time i{color:#b9ad8f!important}
+/* 班號：模板噴漆字 */
+html.wst body:not(#_) #out .r .c-fno b{font-family:'Black Ops One',system-ui,sans-serif!important;font-weight:400!important;font-size:24px!important;color:var(--cream)!important;letter-spacing:0!important;text-shadow:0 2px 0 #000!important;-webkit-text-stroke:0!important}
+html.wst body:not(#_) #out .r .cty{background:#151510!important;border-color:#5a5a3a!important;color:#b9ad8f!important}
+/* 登機門：黃色警示鐵牌 */
+html.wst body:not(#_) #out .r .gn{background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(0,0,0,.2)),var(--grime),var(--haz)!important;color:#141008!important;text-shadow:0 1px 0 rgba(255,255,255,.3)!important;
+  border:0!important;box-shadow:inset 0 -5px 0 0 rgba(0,0,0,.0),0 2px 0 #000!important;-webkit-text-stroke:0!important;font-family:'Black Ops One',system-ui,sans-serif!important;font-weight:400!important}
+html.wst body:not(#_) #out .r .ac{background:#151510!important;border-color:#5a5a3a!important;color:#cfc3a3!important}
+/* 分類：噴漆牌 */
+html.wst body:not(#_) #out .r .tag{background:var(--grime),var(--wc)!important;color:#111!important;border:0!important;box-shadow:0 2px 0 #000!important;text-shadow:none!important}
+html.wst body:not(#_) #out .r .cn{color:var(--cream)!important}
+html.wst body:not(#_) #out .r .px{color:#ffb066!important}
+html.wst body:not(#_) #out .r .nat{background:rgba(242,194,48,.12)!important;border-color:#7a6418!important;color:var(--haz)!important}
+html.wst body:not(#_) #out .r .badge{color:#cfc3a3!important}
+/* 詳細：黃色工業按鈕 */
+html.wst body:not(#_) #out .r .tapmore{background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(0,0,0,.15)),var(--haz)!important;color:#141008!important;box-shadow:0 3px 0 #6b5410,0 4px 8px rgba(0,0,0,.6)!important;border:0!important}
+html.wst body:not(#_) #out .r.open .tapmore{transform:translateY(2px);box-shadow:0 1px 0 #6b5410!important}
+html.wst body:not(#_) #out .r .dt{background:#14120e!important;border-color:#3a3628!important}
+/* 雷達那一行：凹進去的儀表槽 */
+html.wst body:not(#_) #out .r .rdr{background:#100e0a!important;border:1px solid #000!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.8)!important}
+html.wst body:not(#_) #out .r .rdr .rd-bar i.on{background:var(--amb)!important;box-shadow:0 0 6px var(--amb)!important}
+/* 現在線：警示燈 */
+html.wst body:not(#_) .nowline{color:#ff4b2b!important;text-shadow:0 0 8px rgba(255,60,30,.8)!important}
+html.wst body:not(#_) .nowline::before,html.wst body:not(#_) .nowline::after{background:repeating-linear-gradient(-45deg,var(--haz) 0 8px,#111 8px 16px)!important;height:4px!important;box-shadow:none!important;border:0!important}
+html.wst body:not(#_) #out .wave{background:rgba(242,194,48,.1)!important;border-left-color:var(--haz)!important;color:var(--haz)!important}
+/* 下面三顆：厚重鐵鍵 */
+html.wst body:not(#_) #fab .fabb{background:var(--rivet),linear-gradient(180deg,rgba(255,255,255,.1),rgba(0,0,0,.35)),var(--grime),linear-gradient(160deg,#3a3628,#211f18)!important;border:1px solid #000!important;color:var(--cream)!important;
+  text-shadow:0 1px 0 #000!important;box-shadow:0 3px 0 #000,0 6px 14px rgba(0,0,0,.7)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.wst body:not(#_) #fab .fabb.on{color:var(--amb)!important}
+/* 資訊面板 */
+html.wst body:not(#_) .wrap>.card,html.wst body:not(#_) #infobox{background:var(--rivet),var(--grime),linear-gradient(170deg,#2a2720,#1a1814)!important;border:1px solid #000!important}
+html.wst body:not(#_) .empty,html.wst body:not(#_) .pend,html.wst body:not(#_) .daybreak,html.wst body:not(#_) .cllink a,html.wst body:not(#_) .nhelp{background:var(--grime),linear-gradient(170deg,#2a2720,#1a1814)!important;border:1px solid #000!important;border-left:4px solid var(--haz)!important;color:#cfc3a3!important;box-shadow:0 3px 8px rgba(0,0,0,.5)!important}
+html.wst body:not(#_) .nhelp summary,html.wst body:not(#_) .cllink a b{color:var(--haz)!important}
+</style>
+<style>
+/* ════ 綠色終端（html.tgr）：老式電腦終端機，黑底綠字、等寬字、方框線，螢幕掃描線 ════ */
+html.tgr{--g:#3dff7a;--g2:#1f8a44;--gd:#0d3a1c;--gb:#020a04}
+html.tgr.arr body::before,html.tgr.dep body::before{background:radial-gradient(120% 80% at 50% 30%,#06200f,#010602 75%)!important}
+html.tgr #fxrain{opacity:.35;filter:hue-rotate(110deg) saturate(.6)}
+html.tgr body::after{content:"";position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),radial-gradient(130% 100% at 50% 50%,transparent 60%,rgba(0,0,0,.65))}
+html.tgr body:not(#_) .mk{background:var(--gb)!important;border:0!important;border-bottom:2px solid var(--g)!important;box-shadow:0 0 18px -6px var(--g)!important;filter:none!important}
+html.tgr body:not(#_) .mk b{font-family:ui-monospace,'SF Mono',Menlo,monospace!important;color:var(--g)!important;letter-spacing:.3em!important;text-shadow:0 0 10px rgba(61,255,122,.8)!important}
+html.tgr body:not(#_) .mk b::after{content:"_";animation:tgcur 1s steps(1) infinite}
+@keyframes tgcur{50%{opacity:0}}
+html.tgr body:not(#_) .mk i{color:var(--g2)!important;text-shadow:none!important}
+html.tgr body:not(#_) header{background:var(--gb)!important;border-bottom:1px solid var(--g2)!important;box-shadow:none!important}
+html.tgr body:not(#_) header h1,html.tgr body:not(#_) header .live{color:var(--g)!important;text-shadow:none!important}
+html.tgr body:not(#_) header .h7k,html.tgr body:not(#_) #iosw,html.tgr body:not(#_) #bigbtn{background:var(--gb)!important;border:1px solid var(--g2)!important;color:var(--g)!important;text-shadow:none!important;box-shadow:none!important;clip-path:none!important}
+html.tgr body:not(#_) #iosw a{color:var(--g2)!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.tgr body:not(#_) #iosw a.on{background:var(--g)!important;color:#012a0e!important}
+html.tgr body:not(#_) #dock button{background:var(--gb)!important;border:1px solid var(--g2)!important;color:var(--g)!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.tgr body:not(#_) #dock button small{color:#a8ffc4!important;text-shadow:0 0 6px rgba(61,255,122,.6)!important}
+html.tgr body:not(#_) #dock button.on{background:var(--g)!important;color:#012a0e!important}
+html.tgr body:not(#_) #dock button.on small{color:#012a0e!important;text-shadow:none!important}
+html.tgr body:not(#_) #dock button.hot:not(.on){border-color:#ffd84a!important}
+html.tgr body:not(#_) #out .r:not(.head){--tc:var(--g);background:var(--gb)!important;border:1px solid var(--g2)!important;border-left:4px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.tgr body:not(#_) #out .r.r40{--tc:#3df0ff} html.tgr body:not(#_) #out .r.r53{--tc:#ff5c8a} html.tgr body:not(#_) #out .r.rYA{--tc:#c8ff3d} html.tgr body:not(#_) #out .r.rYB{--tc:#a99bff}
+html.tgr body:not(#_) #out .r::before,html.tgr body:not(#_) #out .r::after{display:none!important}
+html.tgr body:not(#_) #out .r.soon:not(.done){border-color:#ffd84a!important;border-left-color:var(--tc)!important}
+html.tgr body:not(#_) #out .r *{font-family:ui-monospace,'SF Mono',Menlo,monospace!important}
+html.tgr body:not(#_) #out .r .c-time b,html.tgr body:not(#_) #out .r .c-time b[class]{color:var(--g)!important;text-shadow:0 0 8px rgba(61,255,122,.7)!important}
+html.tgr body:not(#_) #out .r .c-time i,html.tgr body:not(#_) #out .r .badge,html.tgr body:not(#_) #out .r .px u{color:var(--g2)!important}
+html.tgr body:not(#_) #out .r .c-fno b,html.tgr body:not(#_) #out .r .cn{color:#d6ffe2!important;text-shadow:none!important;-webkit-text-stroke:0!important}
+html.tgr body:not(#_) #out .r .c-fno b{font-size:24px!important;letter-spacing:0!important}
+html.tgr body:not(#_) #out .r .px{color:#a8ffc4!important}
+html.tgr body:not(#_) #out .r .gn{background:transparent!important;color:var(--tc)!important;border:2px solid var(--tc)!important;box-shadow:none!important;text-shadow:0 0 8px var(--tc)!important;clip-path:none!important;-webkit-text-stroke:0!important}
+html.tgr body:not(#_) #out .r .tag{background:var(--tc)!important;color:#011!important;border:0!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.tgr body:not(#_) #out .r .cty,html.tgr body:not(#_) #out .r .ac,html.tgr body:not(#_) #out .r .nat{background:transparent!important;border-color:var(--g2)!important;color:var(--g2)!important}
+html.tgr body:not(#_) #out .r .tapmore{background:transparent!important;color:var(--g)!important;border:1px solid var(--g)!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.tgr body:not(#_) #out .r.open .tapmore{background:var(--g)!important;color:#012a0e!important}
+html.tgr body:not(#_) #out .r .dt{background:#000!important;border-color:var(--g2)!important;color:var(--g)!important}
+html.tgr body:not(#_) #out .r .rdr{background:#000!important;border:1px solid var(--gd)!important;box-shadow:none!important;clip-path:none!important}
+html.tgr body:not(#_) .nowline{color:#ffd84a!important;text-shadow:none!important}
+html.tgr body:not(#_) .nowline::before,html.tgr body:not(#_) .nowline::after{background:repeating-linear-gradient(90deg,#ffd84a 0 6px,transparent 6px 10px)!important;box-shadow:none!important}
+html.tgr body:not(#_) #out .wave{background:rgba(61,255,122,.08)!important;border-left-color:var(--g)!important;color:var(--g)!important}
+html.tgr body:not(#_) #fab .fabb{background:var(--gb)!important;border:1px solid var(--g)!important;color:var(--g)!important;box-shadow:0 0 12px -4px var(--g)!important;text-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.tgr body:not(#_) .wrap>.card,html.tgr body:not(#_) #infobox,html.tgr body:not(#_) .empty,html.tgr body:not(#_) .pend,html.tgr body:not(#_) .cllink a,html.tgr body:not(#_) .nhelp{background:var(--gb)!important;border:1px solid var(--g2)!important;color:var(--g)!important;box-shadow:none!important;clip-path:none!important}
+
+/* ════ 極簡黑（html.tmin）：純黑、沒有光暈和動畫、顏色只留在左邊色條和登機門，最好讀、最省電 ════ */
+html.tmin.arr body::before,html.tmin.dep body::before{background:#000!important}
+html.tmin #fxrain,html.tmin .fxr,html.tmin .nowline .fxsw{display:none!important}
+html.tmin body:not(#_) .mk{background:#000!important;border:0!important;border-bottom:1px solid #222!important;box-shadow:none!important;filter:none!important;min-height:0!important}
+html.tmin body:not(#_) .mk b{color:#fff!important;text-shadow:none!important;letter-spacing:.2em!important;filter:none!important}
+html.tmin body:not(#_) .mk i{color:#888!important;text-shadow:none!important}
+html.tmin body:not(#_) .mk.fxon{animation:none!important}
+html.tmin body:not(#_) header{background:#000!important;border-bottom:1px solid #222!important;box-shadow:none!important}
+html.tmin body:not(#_) header h1,html.tmin body:not(#_) header .live{color:#ddd!important;text-shadow:none!important}
+html.tmin body:not(#_) header .h7k,html.tmin body:not(#_) #iosw,html.tmin body:not(#_) #bigbtn{background:#111!important;border:1px solid #333!important;color:#ddd!important;text-shadow:none!important;box-shadow:none!important;clip-path:none!important}
+html.tmin body:not(#_) #iosw a{color:#888!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.tmin body:not(#_) #iosw a.on{background:#fff!important;color:#000!important}
+html.tmin body:not(#_) #dock button{background:#111!important;border:1px solid #2a2a2a!important;color:#ddd!important;box-shadow:none!important;text-shadow:none!important;clip-path:none!important}
+html.tmin body:not(#_) #dock button small{color:#fff!important;text-shadow:none!important}
+html.tmin body:not(#_) #dock button.on{background:#fff!important;color:#000!important;border-color:#fff!important} html.tmin body:not(#_) #dock button.on small{color:#000!important}
+html.tmin body:not(#_) #dock button.hot:not(.on){border-color:#ffc53d!important}
+html.tmin body:not(#_) #out .r:not(.head){--tc:#888;background:#0d0d0d!important;border:1px solid #1e1e1e!important;border-left:5px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;filter:none!important}
+html.tmin body:not(#_) #out .r.r40{--tc:#00d8c4} html.tmin body:not(#_) #out .r.r53{--tc:#ff3d7a} html.tmin body:not(#_) #out .r.rYA{--tc:#8CF23A} html.tmin body:not(#_) #out .r.rYB{--tc:#7B78FF}
+html.tmin body:not(#_) #out .r::before,html.tmin body:not(#_) #out .r::after{display:none!important}
+html.tmin body:not(#_) #out .r.soon:not(.done){border-color:#5a4a10!important;border-left-color:var(--tc)!important}
+html.tmin body:not(#_) #out .r *{text-shadow:none!important}
+html.tmin body:not(#_) #out .r .c-time b,html.tmin body:not(#_) #out .r .c-time b[class]{color:#fff!important}
+html.tmin body:not(#_) #out .r .c-fno b,html.tmin body:not(#_) #out .r .cn{color:#fff!important;-webkit-text-stroke:0!important}
+html.tmin body:not(#_) #out .r .c-fno b{font-size:27px!important;letter-spacing:0!important}
+html.tmin body:not(#_) #out .r .c-time i,html.tmin body:not(#_) #out .r .badge,html.tmin body:not(#_) #out .r .px u{color:#888!important}
+html.tmin body:not(#_) #out .r .px{color:#ddd!important}
+html.tmin body:not(#_) #out .r .gn{background:var(--tc)!important;color:#000!important;border:0!important;box-shadow:none!important;clip-path:none!important;-webkit-text-stroke:0!important}
+html.tmin body:not(#_) #out .r .tag{background:transparent!important;color:var(--tc)!important;border:1px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important}
+html.tmin body:not(#_) #out .r .cty,html.tmin body:not(#_) #out .r .ac,html.tmin body:not(#_) #out .r .nat{background:transparent!important;border-color:#333!important;color:#999!important}
+html.tmin body:not(#_) #out .r .tapmore{background:#1a1a1a!important;color:#ddd!important;border:1px solid #333!important;box-shadow:none!important;clip-path:none!important}
+html.tmin body:not(#_) #out .r.open .tapmore{background:#fff!important;color:#000!important}
+html.tmin body:not(#_) #out .r .dt{background:#000!important;border-color:#222!important}
+html.tmin body:not(#_) #out .r .rdr{background:#000!important;border:1px solid #1e1e1e!important;box-shadow:none!important;clip-path:none!important}
+html.tmin body:not(#_) #out .r .rdr .rd-go::before{box-shadow:none!important}
+html.tmin body:not(#_) .nowline{color:#ff3d7a!important;text-shadow:none!important}
+html.tmin body:not(#_) .nowline::before,html.tmin body:not(#_) .nowline::after{background:#ff3d7a!important;box-shadow:none!important;height:1px!important}
+html.tmin body:not(#_) #out .wave{background:#111!important;border-left-color:#ffc53d!important;color:#ffc53d!important}
+html.tmin body:not(#_) #fab .fabb{background:#111!important;border:1px solid #333!important;color:#ddd!important;box-shadow:0 4px 12px rgba(0,0,0,.8)!important;text-shadow:none!important;clip-path:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.tmin body:not(#_) .wrap>.card,html.tmin body:not(#_) #infobox,html.tmin body:not(#_) .empty,html.tmin body:not(#_) .pend,html.tmin body:not(#_) .cllink a,html.tmin body:not(#_) .nhelp{background:#0d0d0d!important;border:1px solid #222!important;box-shadow:none!important;clip-path:none!important}
+html.tmin .fxstamp{background:#000!important;box-shadow:none!important;text-shadow:none!important}
+
+/* ════ 設定裡的「班機樣式／雷達樣式」 ════ */
+#ctl .throw .chip.thc{display:inline-flex;align-items:center;gap:6px}
+#ctl .throw .chip.thc i{display:inline-block;width:16px;height:16px;flex:none;border:1px solid rgba(255,255,255,.25)}
+#ctl .throw i.r0,#ctl .throw i.k0{background:linear-gradient(135deg,#ff2a6d 0 50%,#00f0ff 50%)}
+#ctl .throw i.kdash{background:linear-gradient(#00f0ff,#00f0ff) 2px 2px/5px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 2px 2px/2px 5px no-repeat,#0b1018}
+#ctl .throw i.kwst{background:repeating-linear-gradient(-45deg,#f2c230 0 3px,#111 3px 6px)}
+#ctl .throw i.ktgr{background:repeating-linear-gradient(0deg,#3dff7a 0 1px,#020a04 1px 3px)}
+#ctl .throw i.ktmin{background:#000;border-color:#666!important}
+#ctl .throw i.rA{background:conic-gradient(from 30deg,transparent 0 290deg,#3dff7a 358deg,transparent 360deg),#021006;border-radius:50%}
+#ctl .throw i.rB{background:linear-gradient(#ffb347,#ffb347) 1px 1px/6px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 1px 1px/2px 6px no-repeat,#0d0803}
+#ctl .throw i.rC{background:radial-gradient(circle at 30% 40%,#b4542a 0 3px,transparent 4px),#2a2118}
+#ctl .throw i.rD{background:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,#0f3a7a}
+</style>
+<script>
+/* 11/15：主題選擇（設定 → 班機樣式／雷達樣式）。班機樣式記在 localStorage cth1；雷達樣式交給雷達那段（rth1） */
+(function(){
+  var D=document, W=window, R=D.documentElement;
+  if(W.__cth) return; W.__cth=1;
+  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑']];
+  var RT=[['0','霓虹'],['A','塔台雷達'],['B','戰情室'],['C','廢土'],['D','藍圖']];
+  function cur(){ try{ return localStorage.getItem('cth1')||'0'; }catch(e){ return '0'; } }
+  function setCT(k){ CT.forEach(function(c){ if(c[0]!=='0') R.classList.toggle(c[0],c[0]===k); }); try{ localStorage.setItem('cth1',k); }catch(e){} paint(); }
+  W.__cthSet=setCT;
+  function rcur(){ if(W.__rthGet) return W.__rthGet(); try{ return localStorage.getItem('rth1')||'0'; }catch(e){ return '0'; } }
+  function setRT(k){ if(W.__rthSet) W.__rthSet(k); else { try{ localStorage.setItem('rth1',k); }catch(e){} } paint(); }
+  function row(id,lab,list,on,pre){ return '<div class="chips ctl-row throw" id="'+id+'"><span class="v2lab">'+lab+'</span> '+list.map(function(c){
+      return '<span class="chip thc'+(c[0]===on?' act':'')+'" data-v="'+c[0]+'"><i class="'+pre+c[0]+'"></i>'+c[1]+'</span>'; }).join(' ')+'</div>'; }
+  function paint(){
+    var ctl=D.getElementById('ctl'); if(!ctl) return;
+    var a=D.getElementById('thrC'), b=D.getElementById('thrR');
+    var h=row('thrC','班機樣式',CT,cur(),'k')+row('thrR','雷達樣式',RT,rcur(),'r');
+    if(!a){ ctl.insertAdjacentHTML('beforeend',h); return; }
+    [['thrC',cur()],['thrR',rcur()]].forEach(function(x){ [].forEach.call(D.querySelectorAll('#'+x[0]+' .chip'),function(c){ c.classList.toggle('act',c.dataset.v===x[1]); }); });
+  }
+  D.addEventListener('click',function(e){ var c=e.target.closest&&e.target.closest('.throw .chip[data-v]'); if(!c) return;
+    e.stopPropagation(); if(c.closest('#thrC')) setCT(c.dataset.v); else setRT(c.dataset.v); },true);
+  D.addEventListener('rthchange',paint);
+  var w=setInterval(function(){ if(!D.getElementById('ctl')) return; clearInterval(w); paint();
+    if(typeof W.render==='function'){ var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; } },150);
 })();
 </script>
 </body>
