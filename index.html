@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15a';
+var PAGE_V='2026-11-15b';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4223,5 +4223,70 @@ html.autoref #dot{animation:autodot 1.6s ease-in-out infinite} @keyframes autodo
 })();
 </script>
 
+<!-- 11/15 預覽：可以點的地方都做成看得出來的按鍵（tools/tap.js） -->
+<style>
+/* 按下去都會往下凹一點，手指知道有按到 */
+#dock button:active,.r .tapmore:active,.r .rdr:active .rd-go,.foldline:active i,#iosw a:active,#bigbtn:active,#fab .fabb:active,#rmap .li:active,#rmap .rm-f button:active{transform:translateY(1px) scale(.97)}
+/* 修：時間數字後面的深色方框（是時間的光暈造成的，iPhone 上也看得到），光暈拿掉 */
+html body:not(#_) #out .r .c-time b,html body:not(#_) #out .r .c-time b[class]{text-shadow:none!important}
+/* ① 班機卡片：右下角「詳細 ▾」小鍵（原本點卡片就能展開，但看不出來） */
+.r .tapmore{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:4px 11px;font-style:normal;font-size:13.5px;font-weight:900;letter-spacing:.04em;white-space:nowrap;
+  color:#02241f;background:#00efd4;border:0;cursor:pointer;line-height:1.4;box-shadow:0 0 12px rgba(0,239,212,.55),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.2)}
+.r .tapmore b{font-size:10px;transition:transform .15s}
+.r.open .tapmore{color:#2b0411;background:#ff2e6e;box-shadow:0 0 12px rgba(255,46,110,.55),inset 0 1px 0 rgba(255,255,255,.45)} .r.open .tapmore b{transform:rotate(180deg)}
+body.fs3 .r .tapmore,body.fs4 .r .tapmore{font-size:14px}
+@media (min-width:821px){ .r .c-st{display:flex;flex-direction:column;align-items:flex-start;gap:3px} }
+/* ② 雷達那一行：右邊「›」改成實心「看地圖」鍵 */
+.r .rdr .rd-go{font-size:0!important;line-height:0!important}
+.r .rdr .rd-go::before{content:"看地圖 ›";display:inline-block;font-size:13px;line-height:1.5;font-weight:900;padding:3px 10px;box-shadow:0 0 10px var(--kc),inset 0 1px 0 rgba(255,255,255,.45);color:#07040e;background:var(--kc);letter-spacing:.04em;white-space:nowrap}
+body.fs3 .r .rdr .rd-go::before,body.fs4 .r .rdr .rd-go::before{font-size:14px}
+/* ③ 已抵達收合那一列：右邊「展開／收起」做成鍵 */
+.foldline{cursor:pointer}
+.foldline i{font-style:normal!important;padding:4px 12px!important;border:0;background:#00efd4;color:#02241f!important;white-space:nowrap;box-shadow:0 0 10px rgba(0,239,212,.5)}
+/* ④ 上面那排：每顆右上角一個小三角，打開時翻過來，看得出「按了會展開」 */
+#dock button{position:relative}
+html:not(.club) body:not(#_) #dock button{box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.5),0 3px 0 #000,0 0 12px -4px rgba(0,239,212,.6)!important;
+  background:linear-gradient(180deg,#26364a,#151d29)!important;border:1.5px solid #4a6a8a!important;color:#fff!important}
+html:not(.club) body:not(#_) #dock button small{color:#c9d6e6!important}
+html:not(.club) body:not(#_) #dock button.on{background:linear-gradient(180deg,#00efd4,#00a896)!important;border-color:#9ffff2!important;color:#02241f!important;box-shadow:0 0 18px rgba(0,239,212,.7),inset 0 1px 0 rgba(255,255,255,.5)!important}
+html:not(.club) body:not(#_) #dock button.on small{color:#063a35!important}
+html:not(.club) body:not(#_) #dock button.hot:not(.on){border-color:#ffc53d!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -3px 0 rgba(0,0,0,.5),0 3px 0 #000,0 0 14px -2px rgba(255,197,61,.8)!important}
+#dock button::after{content:"";position:absolute;right:6px;top:6px;border:4px solid transparent;border-top:5px solid currentColor;border-bottom:0;opacity:.65;transition:transform .15s}
+#dock button.on::after{transform:rotate(180deg);opacity:1}
+#dock button[data-k="radar"]::after{border:0;width:6px;height:6px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:rotate(45deg);top:7px}
+/* ⑤ 地圖下面的班機清單：每列右邊一個「›」 */
+#rmap .rm-i .li[data-cs]{grid-template-columns:auto auto auto auto 1fr auto!important}
+#rmap .rm-i .li[data-cs]::after{content:"›";font-size:20px;font-weight:900;color:#00efd4;line-height:1}
+</style>
+<script>
+(function(){
+  var D=document, W=window;
+  function paint(){
+    [].forEach.call(D.querySelectorAll('#out .r:not(.head)'),function(r){
+      var st=r.querySelector('.c-st'); if(!st) return;
+      var m=st.querySelector('.tapmore'); if(!m){ m=D.createElement('i'); m.className='tapmore'; st.appendChild(m); }
+      var h=r.classList.contains('open')?'收起<b>▾</b>':'詳細<b>▾</b>'; if(m.innerHTML!==h) m.innerHTML=h;
+    });
+  }
+  /* 點卡片會開關詳細：之後補一次字 */
+  D.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#out .r')) setTimeout(paint,30); });
+  var w=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w);
+    var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; paint(); },100);
+})();
+</script>
+<!-- 11/15：數字改用儀表板字體 Chakra Petch（加粗），其他照原本賽博龐克 -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+<style>
+html body:not(#_) .r .c-time b,html body:not(#_) .r .c-fno b,html body:not(#_) .r .gn,html body:not(#_) #dock button small,
+html body:not(#_) .r .px,html body:not(#_) .live,html body:not(#_) .nowline,html body:not(#_) .rdr .rd-dt{
+  font-family:'Chakra Petch',ui-monospace,Menlo,monospace!important;font-weight:700!important;font-variant-numeric:tabular-nums}
+/* 只有純英數字的大字再描一圈加粗（中文不描，免得糊掉）；字距放開一點，數字不黏在一起 */
+html body:not(#_) #out .r .c-time b,html body:not(#_) #out .r .c-fno b,html body:not(#_) #out .r .gn{-webkit-text-stroke:.5px currentColor;letter-spacing:.02em!important}
+</style>
+<style>
+/* 11/15：背景圖被班機清單的深色底蓋住了（ds/board.css 的 .list 底色），清單改透明，航廈夜景／夜間起飛背景重新看得到 */
+html:is(.arr,.dep) body:not(#_) .list{background:transparent!important;border-color:transparent!important}
+</style>
 </body>
 </html>
