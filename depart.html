@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15k';
+var PAGE_V='2026-11-15m';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1385,7 +1385,7 @@ function runNow6(){
   /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00） */
   var startMin=n.getHours()*60+n.getMinutes()-30; if(startMin<0) startMin=0;
   var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
-  var endRaw=n.getHours()*60+n.getMinutes()+360, cross=endRaw>=1440;
+  var endRaw=n.getHours()*60+n.getMinutes()+(window.__FREE3?180:360), cross=endRaw>=1440;
   var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
   var m2=new Date(n.getTime()+86400000);
   var t2Iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
@@ -2298,6 +2298,7 @@ setInterval(function(){ try{ v2Next(); }catch(e){} },60000);
      同時好幾班滑行：合併成一張，一班一行；提示還在的時候又有新的，接在下面，不會蓋掉前一班 */
   var TLIST=[], TTIMER=0;
   function toast(fno,gate,cls){
+    if(document.body.classList.contains('tier-free')) return;   /* App：滑行通知只給訂閱版 */
     TLIST.push({f:fno,g:gate,c:cls});
     var t=document.querySelector('.btoast');
     if(!t){ t=document.createElement('div'); t.className='btoast'; t.onclick=function(){ t.remove(); TLIST=[]; }; document.body.appendChild(t); }
@@ -4331,7 +4332,14 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
         '新增兩種：<em>廢土</em>（鏽褐做舊地圖、黃色標籤）、<em>藍圖</em>（工程藍圖，白色線條方格）。']]},
     {v:'2026-11-15h', d:'11/15', t:'新樣式：像素', it:[
       ['timer','pk','像素街機＋像素雷達','「<em>設定</em>」裡班機、雷達各多一種像素風，變成六選一。',
-        '<em>像素街機</em>：80 年代街機的 8-bit 感，像素字、一格一格的方塊框、硬陰影按鍵、像素星空，顏色用賽博龐克的青、粉、黃、紫；招牌兩邊有像素小飛機。<br><em>像素雷達</em>：海岸線、道路變成像素塊，飛機換成像素小飛機，選到的那架有一閃一閃的黃色方框。']]}
+        '<em>像素街機</em>：80 年代街機的 8-bit 感，像素字、一格一格的方塊框、硬陰影按鍵、像素星空，顏色用賽博龐克的青、粉、黃、紫；招牌兩邊有像素小飛機。<br><em>像素雷達</em>：海岸線、道路變成像素塊，飛機換成像素小飛機，選到的那架有一閃一閃的黃色方框。']]},
+    {v:'2026-11-15m', d:'11/15', t:'App 版的功能搬過來', it:[
+      ['clock','yl','開會設定','「設定 › 回報」多一顆「<em>開會設定</em>」：可以改開會時段、每場長度、開會前後多久不能有班機、另外避開哪些分類。',
+        '排會一樣幫兩個分類各排一場、兩場不重疊、挑空檔最大的時間；前後留空排不下時會自動放寬，並寫出來。'],
+      ['timer','',  '自訂時段鍵','時段那排下面多一顆「<em>自訂時段鍵</em>」：四顆時段鍵可以改成自己的上班時段，跨夜也可以。',''],
+      ['alert','pk','關注班機提醒','點開班機「詳細」，按「<em>落地前 15 分鐘提醒我</em>」，時間到會跳提示、震動。',
+        '網頁版要開著看板才提醒得到（App 版是系統通知，關著也會響）。'],
+      ['cog','',    '新樣式：螢光、霧面','班機樣式多兩種，變成八選一：<em>螢光</em>（螢光航廈、跑道夜景背景）、<em>霧面</em>（低調霧面深色）。','']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4945,7 +4953,9 @@ html.tpx body.mkslim:not(#_) .mk{box-shadow:inset 0 -3px 0 var(--pv)!important;c
 html.tpx body.mkslim:not(#_) .mk::before,html.tpx body.mkslim:not(#_) .mk::after{display:none!important}
 #ctl .throw .chip.thc{display:inline-flex;align-items:center;gap:6px}
 #ctl .throw .chip.thc i{display:inline-block;width:16px;height:16px;flex:none;border:1px solid rgba(255,255,255,.25)}
-#ctl .throw i.r0,#ctl .throw i.k0{background:linear-gradient(135deg,#ff2a6d 0 50%,#00f0ff 50%)}
+#ctl .throw i.r0,#ctl .throw i.kcyber{background:linear-gradient(135deg,#00f0ff 0 33%,#ff2a6d 33% 66%,#c6ff3d 66%)}
+#ctl .throw i.kmatte{background:linear-gradient(160deg,#2a2f37,#15181d);border-color:#7f8794!important}
+#ctl .throw i.k0{background:linear-gradient(135deg,#ff2a6d 0 50%,#00f0ff 50%)}
 #ctl .throw i.kdash{background:linear-gradient(#00f0ff,#00f0ff) 2px 2px/5px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 2px 2px/2px 5px no-repeat,#0b1018}
 #ctl .throw i.kwst{background:repeating-linear-gradient(-45deg,#f2c230 0 3px,#111 3px 6px)}
 #ctl .throw i.ktgr{background:repeating-linear-gradient(0deg,#3dff7a 0 1px,#020a04 1px 3px)}
@@ -5049,7 +5059,7 @@ html.tpx .fxstamp{font-family:var(--pzh)!important;border-radius:0!important}
 (function(){
   var D=document, W=window, R=D.documentElement;
   if(W.__cth) return; W.__cth=1;
-  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑'],['tpx','像素街機']];
+  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑'],['tpx','像素街機'],['cyber','螢光'],['matte','霧面']];
   var RT=[['0','霓虹'],['A','塔台雷達'],['B','戰情室'],['C','廢土'],['D','藍圖'],['E','像素']];
   function cur(){ try{ return localStorage.getItem('cth1')||'0'; }catch(e){ return '0'; } }
   function setCT(k){ CT.forEach(function(c){ if(c[0]!=='0') R.classList.toggle(c[0],c[0]===k); }); try{ localStorage.setItem('cth1',k); }catch(e){} paint(); }
@@ -5070,6 +5080,458 @@ html.tpx .fxstamp{font-family:var(--pzh)!important;border-radius:0!important}
   D.addEventListener('rthchange',paint);
   var w=setInterval(function(){ if(!D.getElementById('ctl')) return; clearInterval(w); paint();
     if(typeof W.render==='function'){ var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; } },150);
+})();
+</script>
+<style>
+/* 11/15：App 版的兩種樣式搬來網頁版（App 版 cyber.css／matte.css 原樣）：螢光＝html.cyber、霧面＝html.matte */
+/* ═════════════════════════════════════════════════════════════════
+   桃機出入境看板 App 版：賽博龐克螢光主題（11/14）
+   在網頁版霓虹風上再加強：Gemini 生成的夜景背景、招牌橫幅、訂閱頁主視覺，
+   螢光青／桃紅／檸檬綠三色發光，掃描線質感。全部 html.cyber 開頭，拿掉這個 class 就回原樣。
+   ═════════════════════════════════════════════════════════════════ */
+:root{--cy-c:#00f0ff;--cy-m:#ff2a6d;--cy-l:#c6ff3d;--cy-y:#ffe14d;--cy-bg:#06040d}
+html.cyber{background:var(--cy-bg)!important}
+
+/* 背景：入境＝螢光航廈、出境＝螢光跑道起飛；上下壓暗，中間讓卡片好讀 */
+html.cyber.arr body::before,html.cyber.dep body::before,html.cyber body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(6,4,13,.25) 0%,rgba(6,4,13,.62) 34%,rgba(6,4,13,.72) 70%,rgba(6,4,13,.9) 100%),url(img/cy-bg-arr.webp) center top/cover no-repeat!important}
+html.cyber.dep body::before{background:linear-gradient(180deg,rgba(6,4,13,.2) 0%,rgba(6,4,13,.6) 34%,rgba(6,4,13,.72) 70%,rgba(6,4,13,.9) 100%),url(img/cy-bg-dep.webp) center top/cover no-repeat!important}
+/* 掃描線：很淡，只是質感 */
+html.cyber body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+
+/* ── 招牌橫幅（取代網頁版的署名招牌）── */
+#brand{position:relative;overflow:hidden;margin:0 0 6px;height:108px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
+  background:linear-gradient(180deg,rgba(6,4,13,.15),rgba(6,4,13,.55)),url(img/cy-banner.webp) center 58%/cover no-repeat;
+  border-bottom:1px solid rgba(0,240,255,.55);box-shadow:0 1px 0 rgba(255,42,109,.5),0 8px 30px -10px rgba(0,240,255,.5)}
+#brand b{font:900 25px/1.1 "Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",sans-serif;letter-spacing:.14em;color:#f4feff;
+  text-shadow:0 0 2px #fff,0 0 8px var(--cy-c),0 0 22px var(--cy-c),0 0 42px rgba(255,42,109,.7);animation:cyFlick 6s infinite}
+#brand i{font:800 11.5px/1 "Microsoft JhengHei","PingFang TC",sans-serif;font-style:normal;letter-spacing:.32em;color:#ffd3e2;
+  padding:3px 10px;border:1px solid rgba(255,42,109,.7);background:rgba(6,4,13,.55);box-shadow:0 0 12px -2px var(--cy-m),inset 0 0 8px -3px var(--cy-m);text-shadow:0 0 6px var(--cy-m)}
+@keyframes cyFlick{0%,92%,100%{opacity:1}93%{opacity:.55}94%{opacity:1}96%{opacity:.75}97%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#brand b{animation:none}}
+
+/* ── 標題列 ── */
+html.cyber body header{background:linear-gradient(180deg,rgba(6,4,13,.86),rgba(6,4,13,.7))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(0,240,255,.35)!important}
+html.cyber body header h1{color:var(--cy-c)!important;text-shadow:0 0 8px rgba(0,240,255,.8)!important}
+
+/* ── 按鈕：螢光邊、按下去更亮 ── */
+html.cyber body .chip,html.cyber body .fabb,html.cyber body #bigbtn,html.cyber body #dock button,html.cyber body .btn2,html.cyber body summary{
+  border-color:rgba(0,240,255,.6)!important;box-shadow:inset 0 0 12px -6px var(--cy-c),0 0 10px -4px var(--cy-c),0 4px 12px rgba(0,0,0,.55)!important}
+html.cyber body .chip.act,html.cyber body .fabb.on,html.cyber body #bigbtn.on{box-shadow:inset 0 0 16px -4px currentColor,0 0 18px -2px currentColor,0 0 2px currentColor!important;text-shadow:0 0 8px currentColor!important}
+html.cyber body #dock button.hot{border-color:var(--cy-y)!important;box-shadow:inset 0 0 14px -5px var(--cy-y),0 0 14px -3px var(--cy-y)!important}
+html.cyber body #dock button.hot small{color:var(--cy-y)!important;text-shadow:0 0 8px var(--cy-y)}
+html.cyber body #dock button b{text-shadow:0 0 8px rgba(0,240,255,.7)}
+
+/* ── 班機卡片：玻璃底＋分類色螢光邊條 ── */
+html.cyber body #out .r:not(.head){border:1px solid rgba(0,240,255,.22)!important;box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .r.r40{border-left:3px solid var(--cy-c)!important;box-shadow:-6px 0 18px -8px var(--cy-c),0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .r.r53{border-left:3px solid var(--cy-m)!important;box-shadow:-6px 0 18px -8px var(--cy-m),0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .c-time b{color:#f2feff!important;text-shadow:0 0 1px #fff,0 0 10px rgba(0,240,255,.85),0 0 24px rgba(0,240,255,.4)!important}
+html.cyber body #out .r.r53 .c-time b{text-shadow:0 0 1px #fff,0 0 10px rgba(255,42,109,.85),0 0 24px rgba(255,42,109,.4)!important}
+html.cyber body #out .c-fno b{color:#fff!important;text-shadow:0 0 10px rgba(255,255,255,.35)!important}
+html.cyber body #out .gn{text-shadow:0 0 10px currentColor!important;box-shadow:0 0 14px -3px currentColor,inset 0 0 10px -4px currentColor!important}
+html.cyber body #out .tag{box-shadow:0 0 12px -3px currentColor!important}
+html.cyber body #out .px{color:var(--cy-l)!important;text-shadow:0 0 8px rgba(198,255,61,.7)!important}
+html.cyber body #out .nowline{color:var(--cy-m)!important;text-shadow:0 0 8px var(--cy-m)!important}
+html.cyber body #out .r.soon{animation:cyPulse 2.4s ease-in-out infinite}
+@keyframes cyPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 8px rgba(198,255,61,.55))}}
+
+/* ── 資訊卡、設定面板 ── */
+html.cyber body .card,html.cyber body #infobox{border:1px solid rgba(0,240,255,.28)!important;box-shadow:0 0 22px -12px var(--cy-c)!important}
+html.cyber body #copybox #cpgo{background:var(--cy-c)!important;color:#001417!important;box-shadow:0 0 18px -2px var(--cy-c)!important;text-shadow:none!important}
+html.cyber body table.mt td b{color:#fff;text-shadow:0 0 8px rgba(0,240,255,.8)}
+
+/* ── 訂閱頁：Gemini 主視覺 ── */
+html.cyber #paywall{background:radial-gradient(120% 60% at 50% 0%,rgba(255,197,61,.10),transparent 60%),#05030b!important}
+#pwhero{height:150px;margin:-4px 0 4px;border:1px solid rgba(255,197,61,.55);
+  background:linear-gradient(180deg,rgba(4,3,10,0) 55%,rgba(4,3,10,.85)),url(img/cy-hero.webp) center/cover no-repeat;
+  box-shadow:0 0 26px -8px #ffc53d,inset 0 0 22px -10px #ffc53d;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+html.cyber #paywall h2{text-shadow:0 0 10px rgba(255,197,61,.8)}
+html.cyber #paywall .pw-plan{box-shadow:0 0 16px -6px #ffc53d,inset 0 0 14px -8px #ffc53d}
+html.cyber #paywall .pw-plan:active{box-shadow:0 0 22px -2px #ffc53d}
+
+/* 底部浮動列 */
+html.cyber body #fab{filter:drop-shadow(0 -6px 16px rgba(0,0,0,.6))}
+
+/* ══════════════════════════════════════════════════════════════════
+   桃機出入境看板 App 版：精緻深色霧面主題（11/14）
+   概念：機場夜間候機室的霧面玻璃＋石墨面板。拿掉霓虹光暈、金屬紋、斜切角，
+   改成柔和圓角、細邊線、低飽和的分類色，數字用等寬字，資訊一眼好掃。
+   全部用 html.matte 開頭、兩個 :not(#…) 提高優先權，蓋過原本的霓虹樣式。
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --m-bg:#0d0f12;        /* 夜色底 */
+  --m-s1:#15181d;        /* 卡片 */
+  --m-s2:#1b1f25;        /* 按鈕、輸入框 */
+  --m-s3:#232831;        /* 按下、選中底 */
+  --m-line:rgba(255,255,255,.07);
+  --m-line2:rgba(255,255,255,.13);
+  --m-fg:#eceef1;
+  --m-fg2:#b7bdc6;
+  --m-mute:#7f8794;
+  --m-c0:#7cc8bd;        /* 分類 1：霧青 */
+  --m-c1:#e19aa9;        /* 分類 2：霧玫瑰 */
+  --m-c2:#b8cf86;        /* 分類 3：霧橄欖 */
+  --m-c3:#9aa6e3;        /* 分類 4：霧藍紫 */
+  --m-gold:#d8b46e;      /* 重點、表定、訂閱 */
+  --m-ok:#8cc49b; --m-warn:#e2a65d; --m-bad:#e47474; --m-info:#86afe0;
+  --m-r:14px; --m-r2:10px;
+  --m-font:"Microsoft JhengHei","微軟正黑體","Microsoft JhengHei UI","PingFang TC","Noto Sans TC",sans-serif;
+}
+html.matte{background:var(--m-bg)!important}
+html.matte body:not(#_m1):not(#_m2){background:var(--m-bg)!important;background-image:none!important;color:var(--m-fg)!important;font-family:var(--m-font)!important;-webkit-font-smoothing:antialiased}
+html.matte body:not(#_m1):not(#_m2)::before{background:var(--m-bg)!important;background-image:none!important}
+/* 全域：拿掉斜切角、光暈、金屬紋 */
+html.matte body:not(#_m1):not(#_m2) *{clip-path:none!important;text-shadow:none!important;font-family:inherit}
+html.matte body:not(#_m1):not(#_m2) :is(.r,.card,#ctlbar,#infobox,.chip,.fabb,#dock button,.btn2,#fsearch,#fsearch input,#fsearch button,.foldline,.nx,.nn,.na,.tdxbox,.errbox,.nhelp,.cllink a,#iosw a,#bigbtn,.cb-pill,.tag,.badge,.gn,.ac,.px,.nat){box-shadow:none!important;background-image:none!important;filter:none!important}
+/* 等寬數字 */
+html.matte body:not(#_m1):not(#_m2) :is(.c-time,.gn,#live,.cb-pill,.px,.nn b,#remain b,.nowline,.gapline,.wave){font-variant-numeric:tabular-nums}
+
+/* ── 標題列 ── */
+html.matte body:not(#_m1):not(#_m2) header{background:rgba(13,15,18,.82)!important;-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--m-line)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) header h1{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) header h1 svg{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) header .h7k{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #iosw{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;padding:3px!important;gap:2px!important;overflow:hidden}
+html.matte body:not(#_m1):not(#_m2) #iosw a{border:0!important;border-radius:999px!important;background:transparent!important;color:var(--m-mute)!important;padding:5px 12px!important}
+html.matte body:not(#_m1):not(#_m2) #iosw a.on{background:var(--m-s3)!important;color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #bigbtn{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important;padding:4px 11px!important}
+html.matte body:not(#_m1):not(#_m2) #bigbtn.on{color:var(--m-c0)!important;border-color:rgba(124,200,189,.35)!important}
+html.matte body:not(#_m1):not(#_m2) #probtn{border-radius:999px!important;background:var(--m-gold)!important;border-color:var(--m-gold)!important;color:#1b1407!important;padding:4px 12px!important}
+html.matte body:not(#_m1):not(#_m2) #probtn.on{background:transparent!important;color:var(--m-gold)!important;border-color:rgba(216,180,110,.45)!important}
+html.matte body:not(#_m1):not(#_m2) .live,html.matte body:not(#_m1):not(#_m2) #live{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #dot{border-radius:50%!important;background:var(--m-ok)!important;box-shadow:0 0 0 3px rgba(140,196,155,.18)!important}
+
+/* ── 按鍵列（設定・空檔・異動・人數・搜尋）── */
+html.matte body:not(#_m1):not(#_m2) #dock{gap:6px!important}
+html.matte body:not(#_m1):not(#_m2) #dock button{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important;padding:8px 4px!important;transition:background .15s,border-color .15s}
+html.matte body:not(#_m1):not(#_m2) #dock button b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button small{color:var(--m-mute)!important;}
+html.matte body:not(#_m1):not(#_m2) #dock button.on{background:var(--m-s3)!important;border-color:var(--m-line2)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button.on b{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button.hot small{color:var(--m-warn)!important;}
+
+/* ── 設定面板與選項 ── */
+html.matte body:not(#_m1):not(#_m2) .card,html.matte body:not(#_m1):not(#_m2) #ctl,html.matte body:not(#_m1):not(#_m2) #infobox{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) .card::before,html.matte body:not(#_m1):not(#_m2) .card::after,html.matte body:not(#_m1):not(#_m2) #infobox::before,html.matte body:not(#_m1):not(#_m2) #infobox::after{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #ctlbar{background:transparent!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) .cb-pill{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) .cb-pill.k40{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) .cb-pill.k53{color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) .v2lab{color:var(--m-mute)!important;font-size:12px!important;}
+html.matte body:not(#_m1):not(#_m2) .v2lab::after{background:var(--m-line)!important}
+html.matte body:not(#_m1):not(#_m2) :is(.chip,.btn2,.dqb){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important;min-height:44px;transition:background .15s,border-color .15s,color .15s}
+html.matte body:not(#_m1):not(#_m2) :is(.chip,.btn2):active{background:var(--m-s3)!important}
+html.matte body:not(#_m1):not(#_m2) .chip.act,html.matte body:not(#_m1):not(#_m2) .chip.on{background:rgba(124,200,189,.12)!important;border-color:rgba(124,200,189,.45)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs1.act{background:rgba(225,154,169,.12)!important;border-color:rgba(225,154,169,.45)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs2.act{background:rgba(184,207,134,.12)!important;border-color:rgba(184,207,134,.45)!important;color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs3.act{background:rgba(154,166,227,.12)!important;border-color:rgba(154,166,227,.45)!important;color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) .chip svg,html.matte body:not(#_m1):not(#_m2) .fabb svg,html.matte body:not(#_m1):not(#_m2) .btn2 svg{opacity:.85}
+html.matte body:not(#_m1):not(#_m2) :is(input,select){background:var(--m-s2)!important;border:1px solid var(--m-line2)!important;border-radius:var(--m-r2)!important;color:var(--m-fg)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) .status{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) .status b{color:var(--m-fg2)!important}
+
+/* 圖示：改回清晰的線條向量圖，不用點陣霓虹圖 */
+html.matte body:not(#_m1):not(#_m2) svg.ic use{display:inline!important}
+html.matte body:not(#_m1):not(#_m2) svg.ic{background:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important;stroke:currentColor!important;fill:none!important;width:1.05em!important;height:1.05em!important;vertical-align:-.15em;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+
+/* ── 班機卡片 ── */
+html.matte body:not(#_m1):not(#_m2) #out .list{gap:8px!important;background:transparent!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .r:not(.head){background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-left:3px solid var(--m-line2)!important;border-radius:var(--m-r)!important;margin:0 0 8px!important;box-shadow:none!important;outline:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .r::before,html.matte body:not(#_m1):not(#_m2) #out .r::after{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.r40{border-left-color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.r53{border-left-color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.rYA{border-left-color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.rYB{border-left-color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.done{opacity:.55!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.soon{border-color:rgba(216,180,110,.55)!important;background:linear-gradient(180deg,rgba(216,180,110,.07),rgba(216,180,110,0) 60%),var(--m-s1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.taxi{border-color:rgba(134,175,224,.6)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b.t-late{color:var(--m-warn)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b.t-early{color:var(--m-ok)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time i{color:var(--m-mute)!important;background:none!important;font-style:normal}
+html.matte body:not(#_m1):not(#_m2) #out .c-fno b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-fno small{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-city .cn{color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .gn{background:var(--m-s3)!important;border:1px solid var(--m-line2)!important;border-radius:8px!important;color:var(--m-fg)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .r40 .gn{background:rgba(124,200,189,.14)!important;border-color:rgba(124,200,189,.35)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r53 .gn{background:rgba(225,154,169,.14)!important;border-color:rgba(225,154,169,.35)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag{background:var(--m-s3)!important;border:0!important;border-radius:6px!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .tag.t40{background:rgba(124,200,189,.14)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.t53{background:rgba(225,154,169,.14)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.tYA{background:rgba(184,207,134,.14)!important;color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.tYB{background:rgba(154,166,227,.14)!important;color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) #out .ac{background:transparent!important;border:1px solid var(--m-line2)!important;border-radius:5px!important;color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .ac.big{border-color:rgba(216,180,110,.5)!important;color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) #out .px{background:transparent!important;border:0!important;color:var(--m-gold)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .px u{color:var(--m-mute)!important;text-decoration:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .nat{background:transparent!important;border:1px solid var(--m-line2)!important;border-radius:5px!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge{background:transparent!important;border:0!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-ok{color:var(--m-ok)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-warn{color:var(--m-warn)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-bad{color:var(--m-bad)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-early{color:var(--m-info)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-taxi{color:var(--m-info)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-none{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .dt{border-top:1px solid var(--m-line)!important;background:transparent!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .dt i{color:var(--m-mute)!important}
+/* 分隔線：現在、空檔、人潮、已抵達 */
+html.matte body:not(#_m1):not(#_m2) #out .nowline{color:var(--m-gold)!important;background:none!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .nowline::before,html.matte body:not(#_m1):not(#_m2) #out .nowline::after{background:rgba(216,180,110,.45)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .gapline{color:var(--m-mute)!important;background:transparent!important;border:0!important;border-top:1px dashed var(--m-line2)!important;border-radius:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .wave{background:rgba(216,180,110,.08)!important;border:1px solid rgba(216,180,110,.25)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .wave b{color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) .foldline{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) .foldline i{color:var(--m-c0)!important}
+
+/* ── 資訊卡：下一班、接下來 1 小時、空檔、異動 ── */
+html.matte body:not(#_m1):not(#_m2) :is(.nx,.nn,.na,#remain,#prog .p){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) :is(.nx,.nn,.na) b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #remain b{color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) #prog .bar{background:var(--m-s3)!important;border-radius:999px!important;box-shadow:none!important}
+
+/* ── 搜尋 ── */
+html.matte body:not(#_m1):not(#_m2) #fsearch input{border-radius:999px!important;padding-left:16px!important}
+html.matte body:not(#_m1):not(#_m2) #fsearch button{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important}
+
+/* ── 底部浮動按鈕：霧面玻璃膠囊 ── */
+html.matte body:not(#_m1):not(#_m2) #fab{background:rgba(21,24,29,.78)!important;-webkit-backdrop-filter:saturate(1.4) blur(16px);backdrop-filter:saturate(1.4) blur(16px);border:1px solid var(--m-line2)!important;border-radius:18px!important;padding:6px!important;gap:6px!important;left:12px!important;right:12px!important;box-shadow:0 10px 30px rgba(0,0,0,.45)!important}
+html.matte body:not(#_m1):not(#_m2) #fab .fabb{background:transparent!important;border:0!important;border-radius:12px!important;color:var(--m-fg2)!important;min-height:44px}
+html.matte body:not(#_m1):not(#_m2) #fab .fabb:active,html.matte body:not(#_m1):not(#_m2) #fab .fabb.on{background:var(--m-s3)!important;color:var(--m-c0)!important}
+
+/* ── 回報／開會結果 ── */
+html.matte body:not(#_m1):not(#_m2) #copybox :is(.cpwrap,textarea){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #copybox #cpgo{background:var(--m-c0)!important;color:#0b1513!important;border:0!important;border-radius:var(--m-r2)!important;}
+html.matte body:not(#_m1):not(#_m2) .mt{border-collapse:separate!important;border-spacing:0 6px!important}
+html.matte body:not(#_m1):not(#_m2) .mt th{color:var(--m-mute)!important;background:none!important;border:0!important;font-weight:600!important}
+html.matte body:not(#_m1):not(#_m2) .mt td{background:var(--m-s1)!important;border:0!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) .mt td b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) .mt .g40 .lb{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) .mt .g53 .lb{color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) .mth{color:var(--m-fg)!important}
+
+/* ── 說明、聲明 ── */
+html.matte body:not(#_m1):not(#_m2) :is(.nhelp,.notice,.cllink a,#unofficial){background:transparent!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-mute)!important}
+
+/* ── 底部彈出面板（訂閱頁、開會設定）── */
+html.matte #paywall,html.matte .sheet{background:rgba(9,10,13,.72)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sheet{position:fixed;inset:0;z-index:210;display:flex;align-items:flex-end;justify-content:center;overflow:auto;font-family:var(--m-font)}
+.sheet .sh-in{width:min(520px,100%);box-sizing:border-box;background:var(--m-s1);border:1px solid var(--m-line2);border-bottom:0;border-radius:20px 20px 0 0;color:var(--m-fg);
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px rgba(0,0,0,.5)}
+.sheet .sh-top{display:flex;justify-content:space-between;align-items:center}
+.sheet h2{margin:0;font-size:19px;font-weight:800;letter-spacing:.02em}
+.sheet .sh-x{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;background:var(--m-s2);border:1px solid var(--m-line);color:var(--m-fg2);font-weight:700;font-size:14px}
+.sheet .sh-note{margin:0;color:var(--m-mute);font-size:13.5px;line-height:1.6}
+.sheet .sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--m-mute);font-weight:600;min-width:0}
+.sheet select{appearance:none;-webkit-appearance:none;background:var(--m-s2);border:1px solid var(--m-line2);border-radius:10px;color:var(--m-fg);font:600 16px/1.2 var(--m-font);padding:11px 12px;min-height:44px;width:100%;box-sizing:border-box}
+.sheet .sh-avoid{border:1px solid var(--m-line);border-radius:12px;padding:10px 12px 12px;margin:0;display:flex;flex-direction:column;gap:8px}
+.sheet .sh-avoid legend{padding:0 6px;color:var(--m-mute);font-size:12.5px;font-weight:600}
+.sheet .ck{flex-direction:row;align-items:center;gap:10px;color:var(--m-fg2);font-size:14.5px;font-weight:600;min-height:36px}
+.sheet .ck input{width:20px;height:20px;accent-color:var(--m-c0)}
+.sheet .sh-msg{min-height:1.2em;color:var(--m-warn);font-size:13.5px}
+.sheet .sh-row{display:flex;gap:10px}
+.sheet .sh-btn{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px 0;border-radius:12px;background:var(--m-s2);border:1px solid var(--m-line2);color:var(--m-fg2);font-weight:800;font-size:15px}
+.sheet .sh-btn.pri{background:var(--m-c0);border-color:var(--m-c0);color:#0b1513}
+.sheet :is(.sh-x,.sh-btn,select,input):focus-visible{outline:2px solid var(--m-c0);outline-offset:2px}
+@media (max-width:360px){.sheet .sh-grid{grid-template-columns:1fr}}
+/* 訂閱頁換成同一套霧面 */
+html.matte #paywall .pw-in{background:var(--m-s1);border:1px solid var(--m-line2);border-radius:20px;padding:20px}
+html.matte #paywall h2{color:var(--m-gold)!important}
+html.matte #paywall .pw-plan{border-radius:14px!important;border-color:rgba(216,180,110,.45)!important;background:rgba(216,180,110,.07)!important}
+html.matte #paywall .pw-plan b{color:var(--m-gold)!important}
+html.matte #paywall .pw-x{border-radius:999px!important}
+html.matte #unofficial{border-radius:10px}
+@media (prefers-reduced-motion:reduce){html.matte *{transition:none!important}}
+html.matte body:not(#_m1):not(#_m2) table.mt td.lb{white-space:nowrap;word-break:keep-all}
+
+/* 字體沿用原本賽博龐克版：微軟正黑體（手機自動換蘋方／思源黑體）、粗字重、數字字距收緊 */
+html.matte body:not(#_m1):not(#_m2) table.mt :is(.mth,th,td){font-weight:800!important}
+html.matte body:not(#_m1):not(#_m2) table.mt td b{font-weight:900!important;letter-spacing:-.03em}
+.sheet h2{font-weight:900;letter-spacing:.04em}
+.sheet :is(label,.ck,.sh-x,.sh-btn,select,legend){font-weight:800}
+html.matte #paywall,html.matte #paywall *{font-family:var(--m-font)!important}
+
+/* ═══ 賽博龐克版（App 預設，11/14 改回跟網頁版同風格）：開會設定面板配霓虹樣式 ═══ */
+html:not(.matte) .sheet{background:rgba(3,6,10,.82)}
+html:not(.matte) .sheet .sh-in{background:linear-gradient(180deg,#0e1620,#080c11);border:1px solid #00efd4;border-bottom:0;border-radius:0;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%,0 16px);box-shadow:0 0 0 1px rgba(0,239,212,.25) inset,0 -10px 40px rgba(0,239,212,.18)}
+html:not(.matte) .sheet h2{color:#00efd4;text-shadow:0 0 10px rgba(0,239,212,.6)}
+html:not(.matte) .sheet .sh-note,html:not(.matte) .sheet label,html:not(.matte) .sheet .sh-avoid legend{color:#8b96a6}
+html:not(.matte) .sheet select{background:#111823;border:1px solid #2a3545;border-radius:0;color:#e6edf5}
+html:not(.matte) .sheet select:focus{border-color:#00efd4;box-shadow:0 0 0 1px #00efd4,0 0 12px rgba(0,239,212,.35)}
+html:not(.matte) .sheet .sh-avoid{border:1px dashed #2a3545;border-radius:0}
+html:not(.matte) .sheet .ck{color:#c3cad4}
+html:not(.matte) .sheet .ck input{accent-color:#00efd4}
+html:not(.matte) .sheet :is(.sh-x,.sh-btn){border-radius:0;background:#111823;border:1px solid #2a3545;color:#c3cad4;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+html:not(.matte) .sheet .sh-btn.pri{background:#00efd4;border-color:#00efd4;color:#001a17;box-shadow:0 0 16px rgba(0,239,212,.45)}
+html:not(.matte) .sheet .sh-msg{color:#ffc53d}
+html:not(.matte) table.mt td.lb{white-space:nowrap;word-break:keep-all}
+
+</style>
+<style>
+/* 11/15：螢光／霧面配合網頁版目前的卡片排法 */
+html:is(.cyber,.matte) body:not(#_) #out .r .c-fno b{font-size:25px!important;letter-spacing:0!important}
+html.matte{--mkt:#0d0f12} html.cyber{--mkt:#06040d}
+html.matte body:not(#_) .mk{background:#15181d!important;box-shadow:none!important;filter:none!important;border-bottom:1px solid rgba(255,255,255,.13)!important}
+html.matte body:not(#_) .mk b{color:#eceef1!important;text-shadow:none!important;filter:none!important}
+html.matte body:not(#_) .mk i{color:#b7bdc6!important;text-shadow:none!important}
+html.matte #fxrain{display:none!important}
+</style>
+<!-- 11/15：從 App 版搬回網頁版的功能（tools/appfeat.js）：開會設定、自訂時段鍵、關注班機提醒
+     App 版（window.__APPV）自己的 app.js 已經有這三樣，這裡就不重複加。 -->
+<style>
+.sheet.st2{position:fixed;inset:0;z-index:2147483620;display:flex;align-items:flex-end;justify-content:center;overflow:auto;background:rgba(4,2,10,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.sheet.st2 .sh-in{width:min(520px,100%);box-sizing:border-box;background:linear-gradient(165deg,#1a0f33,#0c0a1d 60%,#120a26);border:1.5px solid #00f0ff;border-bottom:0;color:#e3eef8;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;box-shadow:0 0 30px -6px rgba(0,240,255,.6);
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);animation:st2in .3s cubic-bezier(.2,1,.3,1)}
+@keyframes st2in{0%{transform:translateY(40px);opacity:0}}
+.sheet.st2 .sh-top{display:flex;justify-content:space-between;align-items:center}
+.sheet.st2 h2{margin:0;font-size:19px;font-weight:900;letter-spacing:.1em;color:#fff;text-shadow:0 0 10px rgba(0,240,255,.7)}
+.sheet.st2 .sh-x{all:unset;cursor:pointer;padding:8px 14px;border:1px solid #2a3545;background:#161e29;color:#c3cad4;font-weight:800;font-size:14px}
+.sheet.st2 .sh-note{margin:0;color:#9aa6b8;font-size:13.5px;line-height:1.6;font-weight:700}
+.sheet.st2 .sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet.st2 label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:#8d99a9;font-weight:800;min-width:0}
+.sheet.st2 select{appearance:none;-webkit-appearance:none;background:#10151d;border:1px solid #2a3545;color:#fff;font:700 16px/1.2 inherit;padding:10px;min-height:44px;width:100%;box-sizing:border-box}
+.sheet.st2 fieldset{border:1px solid #2a3545;padding:8px 10px;margin:0;display:flex;flex-direction:column;gap:8px}
+.sheet.st2 legend{font-size:12.5px;color:#ffc53d;font-weight:900;padding:0 4px}
+.sheet.st2 label.ck{flex-direction:row;align-items:center;gap:8px;color:#e3eef8;font-size:14.5px}
+.sheet.st2 label.ck input{width:20px;height:20px;accent-color:#00efd4}
+.sheet.st2 .sh-msg{min-height:1.2em;color:#ff7a95;font-size:13px;font-weight:800}
+.sheet.st2 .sh-row{display:flex;gap:10px}
+.sheet.st2 .sh-btn{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px 0;font-weight:900;font-size:15px;border:1px solid #2a3545;background:#161e29;color:#c3cad4}
+.sheet.st2 .sh-btn.pri{background:#00efd4;border-color:#00efd4;color:#02241f}
+#slotrow2 #slotset2{flex:1 1 auto;justify-content:center;text-align:center}
+html body .chip[data-slot]{white-space:normal!important;line-height:1.15!important;word-break:keep-all}
+.remind2{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:8px 0 2px;padding:8px 12px;border:1px solid #00efd4;color:#00efd4;font:800 13.5px/1.2 inherit}
+.remind2.on{background:rgba(0,239,212,.15)}
+.rmtoast{position:fixed;left:10px;right:10px;top:calc(10px + env(safe-area-inset-top,0px));z-index:2147483630;padding:12px 14px;font-weight:900;font-size:16px;line-height:1.5;color:#02241f;background:#00efd4;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.rmtoast small{display:block;font-size:13px;font-weight:800;opacity:.8}
+</style>
+<script>
+(function(){
+  var D=document, W=window, B=D.body;
+  if(W.__APPV||W.__appfeat) return; W.__appfeat=1;
+  var DEP=/出境/.test(D.title);
+  function ls(k,v){ try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return null; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function hm2m(t){ var p=String(t).split(':'); return (+p[0])*60+(+p[1]); }
+  function m2hm(m){ m=Math.max(0,Math.min(1439,m)); return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); }
+  function opts(list,cur,fmt){ return list.map(function(v){ return '<option value="'+v+'"'+(String(v)===String(cur)?' selected':'')+'>'+(fmt?fmt(v):v)+'</option>'; }).join(''); }
+  function sheet(id,title,inner){ var el=D.createElement('div'); el.id=id; el.className='sheet st2'; el.setAttribute('role','dialog'); el.setAttribute('aria-label',title);
+    el.innerHTML='<div class="sh-in"><div class="sh-top"><h2>'+title+'</h2><button type="button" class="sh-x">關閉</button></div>'+inner+'</div>';
+    el.addEventListener('click',function(e){ if(e.target===el) el.remove(); }); el.querySelector('.sh-x').onclick=function(){ el.remove(); }; B.appendChild(el); return el; }
+
+  /* ── ① 開會設定：時段、每場長度、前後留空、另外避開哪些分類 ── */
+  var MEET_KEY='meetCfg1', MEET_DEF={lo:'18:00',hi:'21:30',dur:15,pre:0,post:0,avoid:[]};
+  function meetLoad(){ var c={}; try{ c=JSON.parse(ls(MEET_KEY)||'{}')||{}; }catch(e){ c={}; } var o={}; for(var k in MEET_DEF) o[k]=(c[k]!==undefined?c[k]:MEET_DEF[k]); if(!Array.isArray(o.avoid)) o.avoid=[]; return o; }
+  W.meetCfg=meetLoad;
+  W.meetCut=function(){ return m2hm(Math.min(hm2m('16:00'),hm2m(meetLoad().lo)-120)); };
+  function meetLabel(){ var c=meetLoad(), chip=D.getElementById('cpM'); if(!chip) return; var svg=chip.querySelector('svg'); chip.textContent=' 開會時間 '+c.lo+'–'+c.hi; if(svg) chip.insertBefore(svg,chip.firstChild); }
+  function addMeetGear(){ var chip=D.getElementById('cpM'); if(!chip||D.getElementById('cpMset2')) return;
+    var g=D.createElement('span'); g.className='chip'; g.id='cpMset2'; g.setAttribute('role','button'); g.tabIndex=0; g.textContent='開會設定'; g.onclick=openMeetCfg;
+    chip.parentNode.insertBefore(g,chip.nextSibling); meetLabel(); }
+  function openMeetCfg(){
+    if(D.getElementById('meetcfg2')) return;
+    var c=meetLoad(), times=[], t; for(t=0;t<1440;t+=15) times.push(m2hm(t));
+    var names=[]; try{ names=W.CATS.map(function(x){ return x.name; }); }catch(e){ names=['分類1','分類2','分類3','分類4']; }
+    var el=sheet('meetcfg2','開會設定',
+      '<p class="sh-note">會幫「'+esc(names[0]||'')+'」「'+esc(names[1]||'')+'」各排一場會，兩場不重疊，挑班機空檔最大的時間。</p>'
+      +'<div class="sh-grid">'
+      +'<label>最早開始<select id="mcLo">'+opts(times,c.lo)+'</select></label>'
+      +'<label>最晚結束<select id="mcHi">'+opts(times,c.hi)+'</select></label>'
+      +'<label>每場長度<select id="mcDur">'+opts([10,15,20,25,30,45,60],c.dur,function(v){ return v+' 分鐘'; })+'</select></label>'
+      +'<label>開會前多久不能有班機<select id="mcPre">'+opts([0,5,10,15,20,30,45],c.pre,function(v){ return v?v+' 分鐘':'不限'; })+'</select></label>'
+      +'<label>散會後多久不能有班機<select id="mcPost">'+opts([0,5,10,15,20,30,45],c.post,function(v){ return v?v+' 分鐘':'不限'; })+'</select></label>'
+      +'</div>'
+      +'<fieldset class="sh-avoid"><legend>另外也要避開這些分類的班機</legend>'
+      +names.map(function(n,i){ return i<2?'':'<label class="ck"><input type="checkbox" value="'+i+'"'+(c.avoid.indexOf(i)>=0?' checked':'')+'> '+esc(n)+'</label>'; }).join('')
+      +'<label class="ck"><input type="checkbox" value="x"'+(c.avoid.indexOf(0)>=0&&c.avoid.indexOf(1)>=0?' checked':'')+'> 兩場都避開「'+esc(names[0]||'')+'」和「'+esc(names[1]||'')+'」兩邊的班機</label>'
+      +'</fieldset><div class="sh-msg" id="mcMsg" role="status"></div>'
+      +'<div class="sh-row"><button type="button" class="sh-btn" id="mcReset">恢復預設</button><button type="button" class="sh-btn pri" id="mcSave">儲存並重新排</button></div>');
+    D.getElementById('mcReset').onclick=function(){ ls(MEET_KEY,null); el.remove(); meetLabel(); openMeetCfg(); };
+    D.getElementById('mcSave').onclick=function(){
+      var lo=D.getElementById('mcLo').value, hi=D.getElementById('mcHi').value, dur=+D.getElementById('mcDur').value;
+      if(hm2m(hi)-hm2m(lo)<dur){ D.getElementById('mcMsg').textContent='最晚結束要比最早開始晚至少 '+dur+' 分鐘'; return; }
+      if(hm2m(hi)-hm2m(lo)<dur*2){ D.getElementById('mcMsg').textContent='時段太短，排不下兩場 '+dur+' 分鐘的會'; return; }
+      var av=[]; [].forEach.call(el.querySelectorAll('.sh-avoid input:checked'),function(x){ if(x.value==='x') av.push(0,1); else av.push(+x.value); });
+      ls(MEET_KEY,JSON.stringify({lo:lo,hi:hi,dur:dur,pre:+D.getElementById('mcPre').value,post:+D.getElementById('mcPost').value,avoid:av}));
+      el.remove(); meetLabel();
+      var box=D.getElementById('copybox'); if(box&&box.innerHTML&&W.cpKind==='M'){ box.innerHTML=''; try{ cpKind=null; }catch(e){} }
+      var chip=D.getElementById('cpM'); if(chip) chip.click();
+    };
+  }
+
+  /* ── ② 自訂時段鍵：四顆時段鍵改成自己的上班時段 ── */
+  var SLOT_KEY='slotCfg1', SLOT_DEF=[['00:00','06:00'],['06:00','13:30'],['13:30','18:00'],['18:00','24:00']];
+  function slotLoad(){ try{ var a=JSON.parse(ls(SLOT_KEY)||'null'); if(a&&a.length===4&&a.every(function(x){ return x&&/^\d\d:\d\d$/.test(x[0])&&/^\d\d:\d\d$/.test(x[1]); })) return a; }catch(e){} return null; }
+  function slotChips(){ var all=[].slice.call(D.querySelectorAll('#ctl .chip[data-t]')); var marked=all.filter(function(c){ return c.hasAttribute('data-slot'); });
+    if(marked.length===4) return marked; var four=all.slice(0,4); four.forEach(function(c,i){ c.setAttribute('data-slot',i); c.setAttribute('data-o',c.getAttribute('data-t')+'|'+c.getAttribute('data-e')+'|'+c.textContent); }); return four; }
+  function endIncl(e){ return e==='24:00'?'23:59':m2hm((hm2m(e)+1439)%1440); }
+  function hLab(t){ return t==='24:00'?'24':(/:00$/.test(t)?t.slice(0,2):t); }
+  function ensureOpt(sel,v){ if(!sel||[].some.call(sel.options,function(o){ return o.value===v; })) return; var o=D.createElement('option'); o.value=v; o.textContent=v;
+    var nx=[].filter.call(sel.options,function(x){ return x.value>v; })[0]; sel.insertBefore(o,nx||null); }
+  function applySlots(){ var cfg=slotLoad(), t1=D.getElementById('t1'), t2=D.getElementById('t2');
+    slotChips().forEach(function(c,i){
+      if(!cfg){ var o=(c.getAttribute('data-o')||'').split('|'); if(o.length===3){ c.setAttribute('data-t',o[0]); c.setAttribute('data-e',o[1]); c.textContent=o[2]; } return; }
+      var s=cfg[i][0], e=endIncl(cfg[i][1]); c.setAttribute('data-t',s); c.setAttribute('data-e',e); c.textContent=hLab(s)+'–\u200b'+hLab(cfg[i][1]); ensureOpt(t1,s); ensureOpt(t2,e); });
+    if(W.paintWin) try{ paintWin(); }catch(e){}
+    return cfg; }
+  function pickSlotNow(cfg){ if(!cfg) return; var n=new Date(), m=n.getHours()*60+n.getMinutes();
+    for(var i=0;i<4;i++){ var a=hm2m(cfg[i][0]), b=cfg[i][1]==='24:00'?1440:hm2m(cfg[i][1]); if(a<b?(m>=a&&m<b):(m>=a||m<b)){ var c=slotChips()[i]; if(c) c.click(); return; } } }
+  function addSlotGear(){ var chips=slotChips(); if(!chips.length||D.getElementById('slotset2')) return;
+    var host=chips[0].parentNode, g=D.createElement('span'); g.className='chip'; g.id='slotset2'; g.setAttribute('role','button'); g.tabIndex=0; g.textContent='自訂時段鍵（改上面四顆的時間）'; g.onclick=openSlotCfg;
+    var row=D.createElement('div'); row.className='chips ctl-row'; row.id='slotrow2'; row.appendChild(g); host.parentNode.insertBefore(row,host.nextSibling);
+    var cfg=applySlots(); if(cfg&&!W.now6Mode&&!W.CUST) setTimeout(function(){ try{ if(!now6Mode&&!W.CUST) pickSlotNow(cfg); }catch(e){} },1500); }
+  function openSlotCfg(){
+    if(D.getElementById('slotcfg2')) return;
+    var cfg=slotLoad()||SLOT_DEF, st=[], en=[], t; for(t=0;t<1440;t+=15) st.push(m2hm(t)); for(t=15;t<=1440;t+=15) en.push(t===1440?'24:00':m2hm(t));
+    var el=sheet('slotcfg2','時段設定','<p class="sh-note">把上面四顆時段鍵改成你自己的上班時段。結束比開始早＝跨到隔天（例：22:00 到 06:00）。</p><div class="sh-grid">'
+      +cfg.map(function(x,i){ return '<label>時段 '+(i+1)+'　開始<select data-k="s" data-i="'+i+'">'+opts(st,x[0])+'</select></label><label>結束<select data-k="e" data-i="'+i+'">'+opts(en,x[1],function(v){ return v==='24:00'?'24:00（當天結束）':v; })+'</select></label>'; }).join('')
+      +'</div><div class="sh-msg" id="scMsg" role="status"></div><div class="sh-row"><button type="button" class="sh-btn" id="scReset">恢復預設</button><button type="button" class="sh-btn pri" id="scSave">儲存</button></div>');
+    D.getElementById('scReset').onclick=function(){ ls(SLOT_KEY,null); el.remove(); applySlots(); };
+    D.getElementById('scSave').onclick=function(){
+      var out=[0,1,2,3].map(function(i){ return [el.querySelector('select[data-k="s"][data-i="'+i+'"]').value,el.querySelector('select[data-k="e"][data-i="'+i+'"]').value]; });
+      for(var i=0;i<4;i++) if(out[i][0]===out[i][1]){ D.getElementById('scMsg').textContent='時段 '+(i+1)+' 的開始和結束不能一樣'; return; }
+      ls(SLOT_KEY,JSON.stringify(out)); el.remove(); pickSlotNow(applySlots()); };
+  }
+
+  /* ── ③ 關注班機：落地（起飛）前 15 分鐘提醒。網頁版要開著看板才提醒得到 ── */
+  function reminded(){ try{ return JSON.parse(ls('reminders2')||'{}'); }catch(e){ return {}; } }
+  function save(l){ ls('reminders2',JSON.stringify(l)); }
+  function fire(r){
+    var t=D.createElement('div'); t.className='rmtoast'; t.innerHTML=esc(r.f)+(DEP?' 即將起飛':' 即將落地')+'<small>'+(DEP?'起飛':'預計落地')+' '+esc(r.t)+(r.g?'・登機門 '+esc(r.g):'')+(r.c?'・'+esc(r.c):'')+'（以現場為準）</small>';
+    t.onclick=function(){ t.remove(); }; B.appendChild(t); setTimeout(function(){ t.remove(); },15000);
+    try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){}
+    try{ if(W.Notification&&Notification.permission==='granted') new Notification(r.f+(DEP?' 即將起飛':' 即將落地'),{body:(DEP?'起飛':'預計落地')+' '+r.t+(r.g?'・登機門 '+r.g:'')}); }catch(e){}
+  }
+  setInterval(function(){ var l=reminded(), n=Date.now(), ch=false;
+    for(var k in l){ var r=l[k]; if(typeof r!=='object'){ delete l[k]; ch=true; continue; }
+      if(n>=r.when){ if(n-r.when<30*60e3) fire(r); delete l[k]; ch=true; } }
+    if(ch) save(l); },20000);
+  function addRemind(row){
+    var dt=row.querySelector('.dt'); if(!dt||dt.querySelector('.remind2')) return;
+    var tEl=row.querySelector('.c-time b'), fno=row.getAttribute('data-k')||((row.querySelector('.c-fno b')||{}).textContent||'');
+    var gate=((row.querySelector('.c-gate .gn')||{}).textContent||'').trim(), city=((row.querySelector('.c-city .cn')||{}).textContent||'').trim();
+    var m=tEl&&/(\d{1,2}):(\d{2})/.exec(tEl.textContent); if(!m) return;
+    var at=new Date(); at.setHours(+m[1],+m[2],0,0); if(at.getTime()<Date.now()-2*3600e3) at.setDate(at.getDate()+1);
+    var key=(DEP?'D':'A')+fno+at.toDateString(), l=reminded();
+    var b=D.createElement('button'); b.type='button'; b.className='remind2'+(l[key]?' on':'');
+    var lab=DEP?'起飛前 15 分鐘提醒我':'落地前 15 分鐘提醒我';
+    b.textContent=l[key]?'✓ 已設定提醒（再按取消）':lab;
+    b.onclick=function(e){ e.stopPropagation(); var l=reminded();
+      if(l[key]){ delete l[key]; save(l); b.className='remind2'; b.textContent=lab; return; }
+      var when=at.getTime()-15*60e3; if(when<Date.now()+5e3){ b.textContent='已經不到 15 分鐘，不用提醒了'; return; }
+      l[key]={when:when,f:fno,t:m[1].padStart(2,'0')+':'+m[2],g:gate,c:city}; save(l);
+      try{ if(W.Notification&&Notification.permission==='default') Notification.requestPermission(); }catch(_){}
+      b.className='remind2 on'; b.textContent='✓ 已設定提醒（再按取消）・看板要開著才會提醒'; };
+    var x=dt.querySelector('.x'); dt.insertBefore(b,x||null);
+  }
+  D.addEventListener('click',function(e){ var r=e.target.closest&&e.target.closest('#out .r'); if(!r) return; setTimeout(function(){ addRemind(r); },60); });
+
+  var w=setInterval(function(){ if(!D.getElementById('ctl')) return; clearInterval(w); addMeetGear(); addSlotGear(); },200);
 })();
 </script>
 </body>
