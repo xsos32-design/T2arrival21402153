@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15g';
+var PAGE_V='2026-11-15h';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4328,7 +4328,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['cog','yl','班機樣式五選一','到「<em>設定</em>」最下面選：霓虹、儀表板、廢土科技、綠色終端、極簡黑。',
         '<em>霓虹</em>：原本的賽博龐克。<br><em>儀表板</em>：駕駛艙儀表，四角定位框、背光按鍵、指示燈。<br><em>廢土科技</em>：生鏽鐵板加鉚釘、真空管橘光數字、黃黑警示條，背景是廢棄機場。<br><em>綠色終端</em>：老電腦終端機，黑底綠字、等寬字。<br><em>極簡黑</em>：純黑、沒有光暈，最好讀也最省電。<br>選了會記在這支手機。'],
       ['plane','',  '雷達樣式五選一','設定裡或雷達地圖的「<em>樣式 ▾</em>」都能換：霓虹、塔台雷達、戰情室、廢土、藍圖。',
-        '新增兩種：<em>廢土</em>（鏽褐做舊地圖、黃色標籤）、<em>藍圖</em>（工程藍圖，白色線條方格）。']]}
+        '新增兩種：<em>廢土</em>（鏽褐做舊地圖、黃色標籤）、<em>藍圖</em>（工程藍圖，白色線條方格）。']]},
+    {v:'2026-11-15h', d:'11/15', t:'新樣式：像素', it:[
+      ['timer','pk','像素街機＋像素雷達','「<em>設定</em>」裡班機、雷達各多一種像素風，變成六選一。',
+        '<em>像素街機</em>：80 年代街機的 8-bit 感，像素字、一格一格的方塊框、硬陰影按鍵、像素星空，顏色用賽博龐克的青、粉、黃、紫；招牌兩邊有像素小飛機。<br><em>像素雷達</em>：海岸線、道路變成像素塊，飛機換成像素小飛機，選到的那架有一閃一閃的黃色方框。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4337,9 +4340,9 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
   function ic(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
   function show(){
     if(D.getElementById('fxnews')) return;
-    var n=0, h='';
+    var n=0, h='', lastD='';
     list.forEach(function(s){
-      h+='<div class="nw-d"><i>'+s.d+'</i><span>'+s.t+'</span></div>';
+      if(s.d!==lastD){ lastD=s.d; h+='<div class="nw-d"><i>'+s.d+'</i><span>'+list.filter(function(x){ return x.d===s.d; }).map(function(x){ return x.t; }).join('、')+'</span></div>'; }
       s.it.forEach(function(x){ h+='<div class="nw-i '+x[1]+'" style="--n:'+(n++)+'" role="button" tabindex="0" aria-expanded="false"><div class="nw-ic">'+ic(x[0])+'</div><div><b>'+x[2]+'<u>看更多 ▾</u></b><p>'+x[3]+'</p><div class="nw-x"><div>'+x[4]+'</div></div></div></div>'; });
     });
     var o=D.createElement('div'); o.id='fxnews'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','更新資訊');
@@ -4527,6 +4530,29 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 #rmap.thD .rm-h{box-shadow:none!important}
 #rmap.thD .rm-h b,#rmap.thD .rm-i .lh{color:#fff!important;text-shadow:none!important}
 #rmap.thD .rm-i .g div{background:#0f3a7a!important;border-color:#bcd6ff!important}
+#rmap .rm-sm .sw.sE{background:linear-gradient(#ffe600,#ffe600) 8px 8px/8px 8px no-repeat,linear-gradient(#ff2a6d,#ff2a6d) 32px 20px/8px 8px no-repeat,linear-gradient(#00f0ff,#00f0ff) 20px 14px/16px 4px no-repeat,linear-gradient(rgba(155,92,255,.4) 1px,transparent 1px) 0 0/6px 6px,linear-gradient(90deg,rgba(155,92,255,.4) 1px,transparent 1px) 0 0/6px 6px,#0b0620}
+/* ════ E 像素：8-bit 像素地圖，海岸線、道路變成一格一格，像素小飛機，像素字標籤 ════ */
+#rmap.thE .leaflet-container{background:#0b0620!important;background-image:linear-gradient(rgba(155,92,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(155,92,255,.14) 1px,transparent 1px)!important;background-size:8px 8px!important}
+#rmap.thE .leaflet-overlay-pane svg{filter:url(#rpxf);shape-rendering:crispEdges}
+#rmap.thE .rk,#rmap.thE .rc,#rmap.thE .rt,#rmap.thE .rkw{font-family:'DotGothic16','Press Start 2P',monospace!important;font-weight:400!important;text-shadow:2px 2px 0 #000!important}
+#rmap.thE .rk{color:#ff2a6d!important} #rmap.thE .rc,#rmap.thE .rt{color:#ffe600!important}
+#rmap.thE .rz,#rmap.thE .rtpe{font-family:'DotGothic16',monospace!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important;border-radius:0!important}
+#rmap.thE .rl:not(.rls){font-family:'Press Start 2P','DotGothic16',monospace!important;font-size:9px!important;line-height:1.6!important;background:#000!important;border:2px solid #00f0ff!important;color:#fff!important;box-shadow:2px 2px 0 #000!important;border-radius:0!important}
+#rmap.thE .rl i{background:#00f0ff!important;color:#000!important}
+#rmap.thE .rl.rls{font-family:'Press Start 2P','DotGothic16',monospace!important;font-size:11px!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important}
+#rmap.thE .rp .pm{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cg fill='%23000'%3E%3Crect x='5' y='0' width='2' height='12'/%3E%3Crect x='1' y='4' width='10' height='2'/%3E%3Crect x='0' y='5' width='12' height='1'/%3E%3Crect x='3' y='10' width='6' height='1'/%3E%3Crect x='4' y='9' width='4' height='1'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat!important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cg fill='%23000'%3E%3Crect x='5' y='0' width='2' height='12'/%3E%3Crect x='1' y='4' width='10' height='2'/%3E%3Crect x='0' y='5' width='12' height='1'/%3E%3Crect x='3' y='10' width='6' height='1'/%3E%3Crect x='4' y='9' width='4' height='1'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat!important;image-rendering:pixelated}
+#rmap.thE .rp .pw{filter:drop-shadow(2px 2px 0 #000)!important}
+#rmap.thE .rp.sel .pw{animation:none!important}
+#rmap.thE .rsel i{border-radius:0!important;border:3px solid #ffe600!important;box-shadow:none!important;animation:rpxblink .8s steps(1) infinite!important}
+@keyframes rpxblink{50%{opacity:0}}
+#rmap.thE .rsel b{filter:none}
+#rmap.thE .rm-h,#rmap.thE .rm-f,#rmap.thE .rm-i{background:#0b0620!important;border-color:#9b5cff!important}
+#rmap.thE .rm-h{border-bottom:4px solid #9b5cff!important;box-shadow:0 4px 0 #000!important}
+#rmap.thE .rm-h b{font-family:'DotGothic16',monospace!important;color:#ffe600!important;text-shadow:2px 2px 0 #ff2a6d!important}
+#rmap.thE .rm-i,#rmap.thE .rm-i *{font-family:'DotGothic16',ui-monospace,monospace!important}
+#rmap.thE .rm-i .lh{color:#ffe600!important}
+#rmap.thE .rm-i .g div{background:#120a30!important;border:2px solid #9b5cff!important}
+#rmap.thE .rm-f button{border-radius:0!important}
 </style>
 <style>
 /* ── 樣式選單：雷達標題列「樣式 ▾」 ── */
@@ -4556,8 +4582,8 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 /* 雷達地圖樣式：霓虹（原本）／塔台雷達螢幕／戰情室指揮螢幕。標題列「樣式 ▾」選，記在這支手機（localStorage rth1） */
 (function(){
   var D=document, W=window, TPE=[25.0777,121.2328];
-  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'C':['廢土','鏽褐舊地圖、做舊紙感','#d47a3a'],'D':['藍圖','工程藍圖，白色線條方格','#7fb6ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
-  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0ABCD])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
+  var NAMES={'0':['霓虹','原本的賽博龐克地圖','#00f0ff'],'C':['廢土','鏽褐舊地圖、做舊紙感','#d47a3a'],'E':['像素','8-bit 像素地圖、像素小飛機','#ffe600'],'D':['藍圖','工程藍圖，白色線條方格','#7fb6ff'],'A':['塔台雷達','綠色掃描線繞圈，掃到才亮','#3dff7a'],'B':['戰情室','琥珀色座標框，近場閃紅框','#ffb347']};
+  var TH='0'; try{ var q=(location.search.match(/[?&]rth=([0ABCDE])/)||[])[1]; TH=q||localStorage.getItem('rth1')||'0'; if(!NAMES[TH]) TH='0'; }catch(e){}
   var map=null, mm=null, sw=null, sp=null, fr=null, t0=performance.now(), PERIOD=4000;
   function rm(){ return D.getElementById('rmap'); }
   function placeSweep(){ if(!sw||!map) return; var p=map.latLngToLayerPoint(TPE), R=1500;
@@ -4567,7 +4593,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     fr.querySelector('.co.s').textContent=f(b.getSouth(),'N','S')+' '+f(b.getEast(),'E','W'); }
   function apply(){
     var r=rm(); if(!r||!map) return;
-    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B'); r.classList.toggle('thC',TH==='C'); r.classList.toggle('thD',TH==='D');
+    r.classList.toggle('thA',TH==='A'); r.classList.toggle('thB',TH==='B'); r.classList.toggle('thC',TH==='C'); r.classList.toggle('thD',TH==='D'); r.classList.toggle('thE',TH==='E');
     if(TH==='A'&&!sw){ var pane=map.getPane('thpane')||map.createPane('thpane'); pane.style.zIndex=450; pane.style.pointerEvents='none';
       sp=D.createElement('div'); sp.className='thspoke'; pane.appendChild(sp); sw=D.createElement('div'); sw.className='thsweep'; pane.appendChild(sw);
       map.on('zoomend viewreset',placeSweep); placeSweep(); }
@@ -4586,12 +4612,14 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     var b=D.createElement('button'); b.type='button'; b.className='rm-sty'; b.innerHTML='<i></i>樣式 <span></span> ▾';
     h.insertBefore(b,h.querySelector('.rm-x'));
     var m=D.createElement('div'); m.className='rm-sm'; m.hidden=true;
-    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B','C','D'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
+    m.innerHTML='<small>雷達地圖樣式</small>'+['0','A','B','C','D','E'].map(function(k){ return '<button type="button" data-t="'+k+'"><i class="sw s'+k+'"></i><div><b>'+NAMES[k][0]+'</b><span>'+NAMES[k][1]+'</span></div><u>使用中</u></button>'; }).join('');
     h.appendChild(m);
     b.onclick=function(e){ e.stopPropagation(); m.hidden=!m.hidden; };
     m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; W.__rthSet(x.dataset.t); setTimeout(function(){ m.hidden=true; },180); });
     D.addEventListener('click',function(){ m.hidden=true; });
   }
+  if(!D.getElementById('rpxdefs')){ var sv=D.createElementNS('http://www.w3.org/2000/svg','svg'); sv.id='rpxdefs'; sv.setAttribute('width','0'); sv.setAttribute('height','0'); sv.style.position='absolute';
+    sv.innerHTML='<filter id="rpxf" x="0" y="0" width="100%" height="100%"><feFlood x="2" y="2" width="1" height="1"/><feComposite width="5" height="5"/><feTile result="a"/><feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="2"/></filter>'; D.body.appendChild(sv); }
   W.__rthSet=function(k){ if(!NAMES[k]) return; TH=k; try{ localStorage.setItem('rth1',k); }catch(_){} apply(); try{ D.dispatchEvent(new CustomEvent('rthchange')); }catch(_){} };
   W.__rthGet=function(){ return TH; };
   function tick(t){ requestAnimationFrame(tick);
@@ -4617,6 +4645,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
   var w=setInterval(function(){ if(!W.__rmap||!rm()) return; clearInterval(w); map=W.__rmap; mm=rm().querySelector('.rm-m'); ui(); apply(); requestAnimationFrame(tick); },200);
 })();
 </script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap" rel="stylesheet">
 <!-- 11/15：主題（tools/theme.js）＝ 儀表板（dash）＋廢土科技（wst）＋綠色終端（tgr）＋極簡黑（tmin）＋設定裡的選擇列 -->
 <!-- 11/15 預覽：賽博龐克 × 儀表板（tools/dash.js）。html.dash 才套用，按鍵位置、內容都不動。
      像駕駛艙／機場塔台的儀表：數字用儀表字體、四角定位框、背光按鍵、警示燈、刻度條。背景、招牌照原本的賽博龐克 -->
@@ -4913,15 +4942,104 @@ html.tmin .fxstamp{background:#000!important;box-shadow:none!important;text-shad
 #ctl .throw i.rA{background:conic-gradient(from 30deg,transparent 0 290deg,#3dff7a 358deg,transparent 360deg),#021006;border-radius:50%}
 #ctl .throw i.rB{background:linear-gradient(#ffb347,#ffb347) 1px 1px/6px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 1px 1px/2px 6px no-repeat,#0d0803}
 #ctl .throw i.rC{background:radial-gradient(circle at 30% 40%,#b4542a 0 3px,transparent 4px),#2a2118}
+#ctl .throw i.rE{background:linear-gradient(#ffe600,#ffe600) 2px 2px/4px 4px no-repeat,linear-gradient(#ff2a6d,#ff2a6d) 9px 9px/4px 4px no-repeat,#0b0620}
 #ctl .throw i.rD{background:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,#0f3a7a}
+
+/* ════ 像素街機（html.tpx）：80 年代街機的 8-bit 像素感，顏色用賽博龐克（青、粉、黃、紫）
+   原創：像素字、階梯缺角的方塊框、硬陰影按鍵、像素星空、豆豆點點線、自繪像素小飛機（沒有用任何遊戲角色） ════ */
+html.tpx{--pc:#00f0ff;--pp:#ff2a6d;--py:#ffe600;--pv:#9b5cff;--pg:#3dff7a;--pbg:#0b0620;--pfont:'Press Start 2P','DotGothic16',ui-monospace,monospace;--pzh:'DotGothic16',ui-monospace,monospace;
+  --step:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px));
+  --step8:polygon(0 8px,4px 8px,4px 4px,8px 4px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 4px,calc(100% - 4px) 4px,calc(100% - 4px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 4px) calc(100% - 8px),calc(100% - 4px) calc(100% - 4px),calc(100% - 8px) calc(100% - 4px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 4px),4px calc(100% - 4px),4px calc(100% - 8px),0 calc(100% - 8px))}
+/* 背景：深紫夜空＋一格一格的像素星星＋淡淡的像素格線 */
+html.tpx.arr body::before,html.tpx.dep body::before{background:
+  radial-gradient(circle,#fff 0 1.5px,transparent 1.6px) 0 0/97px 89px,
+  radial-gradient(circle,var(--pc) 0 1.5px,transparent 1.6px) 31px 47px/131px 113px,
+  radial-gradient(circle,var(--pp) 0 1.5px,transparent 1.6px) 71px 13px/157px 149px,
+  linear-gradient(rgba(155,92,255,.08) 1px,transparent 1px) 0 0/8px 8px,linear-gradient(90deg,rgba(155,92,255,.08) 1px,transparent 1px) 0 0/8px 8px,
+  linear-gradient(180deg,#140a35,#0b0620 55%,#1a0830)!important}
+html.tpx #fxrain{display:none!important}
+html.tpx body::after{content:"";position:fixed;inset:0;z-index:2147483000;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px)}
+html.tpx body:not(#_) *{border-radius:0!important}
+
+/* 招牌：像素框＋左右各一架像素小飛機，字一閃一閃 */
+html.tpx body:not(#_) .mk{background:var(--pbg)!important;border:0!important;box-shadow:inset 0 0 0 4px var(--pv),inset 0 0 0 8px var(--pbg),inset 0 0 0 10px var(--pc)!important;filter:none!important;clip-path:var(--step8);position:relative;
+  padding-left:56px!important;padding-right:56px!important}
+html.tpx body:not(#_) .mk::before,html.tpx body:not(#_) .mk::after{content:"";position:absolute;top:50%;width:36px;height:36px;margin-top:-18px;image-rendering:pixelated;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cg fill='%2300f0ff'%3E%3Crect x='5' y='0' width='2' height='12'/%3E%3Crect x='1' y='4' width='10' height='2'/%3E%3Crect x='0' y='5' width='12' height='1'/%3E%3Crect x='3' y='10' width='6' height='1'/%3E%3Crect x='4' y='9' width='4' height='1'/%3E%3C/g%3E%3Crect x='5' y='1' width='2' height='1' fill='%23ffe600'/%3E%3C/svg%3E") center/contain no-repeat}
+html.tpx body:not(#_) .mk::before{left:12px;animation:pxbob 1s steps(2) infinite} html.tpx body:not(#_) .mk::after{right:12px;transform:scaleX(-1);animation:pxbob 1s steps(2) .5s infinite}
+@keyframes pxbob{50%{margin-top:-22px}}
+html.tpx body:not(#_) .mk b{font-family:var(--pzh)!important;color:var(--py)!important;letter-spacing:.2em!important;text-shadow:3px 3px 0 var(--pp)!important;filter:none!important}
+html.tpx body:not(#_) .mk i{font-family:var(--pzh)!important;color:var(--pc)!important;text-shadow:none!important;animation:pxblink 1.2s steps(1) infinite}
+@keyframes pxblink{50%{opacity:.35}}
+html.tpx body:not(#_) .mk.fxon{animation:none!important}
+
+/* 標題列 */
+html.tpx body:not(#_) header{background:var(--pbg)!important;border-bottom:4px solid var(--pv)!important;box-shadow:0 4px 0 #000!important}
+html.tpx body:not(#_) header h1,html.tpx body:not(#_) header .live{color:var(--pc)!important;text-shadow:none!important}
+html.tpx body:not(#_) header .live,html.tpx body:not(#_) header .h7k{font-family:var(--pfont)!important;font-size:10px!important;letter-spacing:0!important}
+html.tpx body:not(#_) header .h7k,html.tpx body:not(#_) #iosw,html.tpx body:not(#_) #bigbtn{background:#000!important;border:0!important;box-shadow:inset 0 0 0 2px var(--pc)!important;color:var(--pc)!important;text-shadow:none!important;clip-path:var(--step)}
+html.tpx body:not(#_) #iosw a{font-family:var(--pzh)!important;color:#7f6fb0!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important}
+html.tpx body:not(#_) #iosw a.on{background:var(--py)!important;color:#000!important}
+html.tpx body:not(#_) #bigbtn{font-family:var(--pzh)!important}
+
+/* 上面那排：像素方塊鍵，硬陰影，按下去整顆往下 */
+html.tpx body:not(#_) #dock button{font-family:var(--pzh)!important;background:#1a0f45!important;border:0!important;box-shadow:inset 0 0 0 3px var(--pv),inset 0 -6px 0 rgba(0,0,0,.35)!important;color:#fff!important;text-shadow:none!important;clip-path:var(--step)!important;
+  filter:drop-shadow(3px 3px 0 #000)}
+html.tpx body:not(#_) #dock button small{font-family:var(--pzh)!important;font-size:13px!important;letter-spacing:0!important;color:var(--py)!important;text-shadow:none!important}
+html.tpx body:not(#_) #dock button.on{background:var(--pc)!important;color:#000!important;box-shadow:inset 0 0 0 3px #fff,inset 0 -6px 0 rgba(0,0,0,.2)!important;transform:translate(2px,2px);filter:drop-shadow(1px 1px 0 #000)}
+html.tpx body:not(#_) #dock button.on small{color:#000!important}
+html.tpx body:not(#_) #dock button.hot:not(.on){box-shadow:inset 0 0 0 3px var(--pp),inset 0 -6px 0 rgba(0,0,0,.35)!important}
+html.tpx body:not(#_) #dock button::after{border-radius:0!important}
+
+/* 班機卡片：像素框（外框＋內框兩層色）＋階梯缺角，左邊一排像素色塊 */
+html.tpx body:not(#_) #out .r:not(.head){--tc:var(--pv);background:linear-gradient(90deg,var(--tc) 0 6px,transparent 6px),#120a30!important;border:0!important;clip-path:var(--step8)!important;
+  box-shadow:inset 0 0 0 3px var(--tc),inset 0 0 0 6px #120a30,inset 0 0 0 7px color-mix(in srgb,var(--tc) 40%,transparent)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;filter:drop-shadow(4px 4px 0 #000)}
+html.tpx body:not(#_) #out .r.r40{--tc:var(--pc)} html.tpx body:not(#_) #out .r.r53{--tc:var(--pp)} html.tpx body:not(#_) #out .r.rYA{--tc:var(--pg)} html.tpx body:not(#_) #out .r.rYB{--tc:var(--pv)}
+html.tpx body:not(#_) #out .r::before,html.tpx body:not(#_) #out .r::after{display:none!important}
+html.tpx body:not(#_) #out .r.soon:not(.done){animation:pxsoon 1s steps(1) infinite!important}
+@keyframes pxsoon{50%{box-shadow:inset 0 0 0 3px var(--py),inset 0 0 0 6px #120a30,inset 0 0 0 7px rgba(255,230,0,.4)}}
+html.tpx body:not(#_) #out .r.done{opacity:.5}
+/* 數字：像素字 */
+html.tpx body:not(#_) #out .r .c-time b,html.tpx body:not(#_) #out .r .c-time b[class]{font-family:var(--pfont)!important;font-size:22px!important;letter-spacing:0!important;color:var(--py)!important;text-shadow:3px 3px 0 #000!important;-webkit-text-stroke:0!important;line-height:1.3!important}
+html.tpx body:not(#_) #out .r .c-time i{font-family:var(--pzh)!important;color:#a99bd8!important}
+html.tpx body:not(#_) #out .r .c-fno b{font-family:var(--pfont)!important;font-size:14px!important;letter-spacing:0!important;color:#fff!important;text-shadow:2px 2px 0 var(--pv)!important;-webkit-text-stroke:0!important;line-height:1.5!important}
+html.tpx body:not(#_) #out .r .gn{font-family:var(--pfont)!important;font-size:20px!important;letter-spacing:0!important;background:var(--tc)!important;color:#000!important;border:0!important;clip-path:var(--step)!important;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)!important;text-shadow:none!important;-webkit-text-stroke:0!important;padding:6px 8px!important;line-height:1!important}
+html.tpx body:not(#_) #out .r .ac{font-family:var(--pfont)!important;font-size:8px!important;background:#000!important;border:2px solid #4a3a8a!important;color:#c9b8ff!important;padding:3px 4px!important}
+html.tpx body:not(#_) #out .r .tag{font-family:var(--pfont)!important;font-size:11px!important;background:var(--tc)!important;color:#000!important;border:0!important;clip-path:var(--step)!important;box-shadow:none!important;text-shadow:none!important;padding:4px 7px!important}
+html.tpx body:not(#_) #out .r .cty,html.tpx body:not(#_) #out .r .nat{font-family:var(--pzh)!important;background:#000!important;border:2px solid #4a3a8a!important;color:#c9b8ff!important}
+html.tpx body:not(#_) #out .r .cn,html.tpx body:not(#_) #out .r .badge{font-family:var(--pzh)!important;color:#fff!important;text-shadow:none!important}
+html.tpx body:not(#_) #out .r .badge{color:#a99bd8!important}
+html.tpx body:not(#_) #out .r .px{font-family:var(--pfont)!important;font-size:12px!important;color:var(--pc)!important}
+html.tpx body:not(#_) #out .r .px u{font-family:var(--pzh)!important;color:#a99bd8!important}
+html.tpx body:not(#_) #out .r .tapmore{font-family:var(--pzh)!important;background:var(--pp)!important;color:#fff!important;border:0!important;clip-path:var(--step)!important;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)!important;text-shadow:1px 1px 0 #000!important;filter:drop-shadow(2px 2px 0 #000)}
+html.tpx body:not(#_) #out .r.open .tapmore{background:var(--pc)!important;color:#000!important;text-shadow:none!important;transform:translate(2px,2px);filter:none}
+html.tpx body:not(#_) #out .r .dt,html.tpx body:not(#_) #out .r .dt *{font-family:var(--pzh)!important}
+html.tpx body:not(#_) #out .r .dt{background:#000!important;border:0!important;box-shadow:inset 0 0 0 2px #4a3a8a!important}
+html.tpx body:not(#_) #out .r .rdr{font-family:var(--pzh)!important;background:#000!important;border:0!important;box-shadow:inset 0 0 0 2px #2a1f5a!important;clip-path:var(--step)!important}
+html.tpx body:not(#_) #out .r .rdr .rd-bar i{background:repeating-linear-gradient(90deg,#2a1f5a 0 6px,transparent 6px 8px)!important;box-shadow:none!important}
+html.tpx body:not(#_) #out .r .rdr .rd-bar i.on{background:repeating-linear-gradient(90deg,var(--kc) 0 6px,transparent 6px 8px)!important}
+/* 現在線：一排豆豆點點 */
+html.tpx body:not(#_) .nowline{font-family:var(--pzh)!important;color:var(--py)!important;text-shadow:2px 2px 0 #000!important}
+html.tpx body:not(#_) .nowline::before,html.tpx body:not(#_) .nowline::after{height:4px!important;border:0!important;box-shadow:none!important;background:radial-gradient(circle,var(--py) 0 2px,transparent 2.2px) 0 50%/14px 4px repeat-x!important}
+html.tpx body:not(#_) #out .wave{font-family:var(--pzh)!important;background:#000!important;border-left:6px solid var(--py)!important;color:var(--py)!important}
+/* 下面三顆 */
+html.tpx body:not(#_) #fab .fabb{font-family:var(--pzh)!important;background:#1a0f45!important;border:0!important;box-shadow:inset 0 0 0 3px var(--pc),inset 0 -6px 0 rgba(0,0,0,.35)!important;color:#fff!important;text-shadow:none!important;clip-path:var(--step)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;filter:drop-shadow(3px 3px 0 #000)}
+html.tpx body:not(#_) #fab .fabb.on{background:var(--pc)!important;color:#000!important}
+/* 其他面板 */
+html.tpx body:not(#_) .wrap>.card,html.tpx body:not(#_) #infobox,html.tpx body:not(#_) .empty,html.tpx body:not(#_) .pend,html.tpx body:not(#_) .cllink a,html.tpx body:not(#_) .nhelp{font-family:var(--pzh)!important;background:#120a30!important;border:0!important;box-shadow:inset 0 0 0 3px var(--pv)!important;clip-path:var(--step)!important}
+html.tpx body:not(#_) .chip{font-family:var(--pzh)!important}
+html.tpx .fxstamp{font-family:var(--pzh)!important;border-radius:0!important}
+#ctl .throw i.ktpx{background:linear-gradient(90deg,#ffe600 0 4px,transparent 4px 8px,#00f0ff 8px 12px,transparent 12px) 0 4px/16px 4px no-repeat,linear-gradient(90deg,#ff2a6d 0 4px,transparent 4px 8px,#9b5cff 8px 12px) 4px 10px/16px 4px no-repeat,#0b0620}
+@media (prefers-reduced-motion:reduce){ html.tpx .mk::before,html.tpx .mk::after,html.tpx .mk i,html.tpx #out .r.soon{animation:none!important} }
 </style>
 <script>
 /* 11/15：主題選擇（設定 → 班機樣式／雷達樣式）。班機樣式記在 localStorage cth1；雷達樣式交給雷達那段（rth1） */
 (function(){
   var D=document, W=window, R=D.documentElement;
   if(W.__cth) return; W.__cth=1;
-  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑']];
-  var RT=[['0','霓虹'],['A','塔台雷達'],['B','戰情室'],['C','廢土'],['D','藍圖']];
+  var CT=[['0','霓虹'],['dash','儀表板'],['wst','廢土科技'],['tgr','綠色終端'],['tmin','極簡黑'],['tpx','像素街機']];
+  var RT=[['0','霓虹'],['A','塔台雷達'],['B','戰情室'],['C','廢土'],['D','藍圖'],['E','像素']];
   function cur(){ try{ return localStorage.getItem('cth1')||'0'; }catch(e){ return '0'; } }
   function setCT(k){ CT.forEach(function(c){ if(c[0]!=='0') R.classList.toggle(c[0],c[0]===k); }); try{ localStorage.setItem('cth1',k); }catch(e){} paint(); }
   W.__cthSet=setCT;
