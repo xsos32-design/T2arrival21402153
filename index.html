@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15r';
+var PAGE_V='2026-11-15s';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -6268,5 +6268,44 @@ html.dock.dk-pax body:not(#_):not(#__) #infobox>#tdpaxmore{all:unset;box-sizing:
   }
 })();
 </script>
+<style>
+/* 11/15s：異動提醒、空檔、人數這幾塊跟著班機樣式換顏色（霓虹維持原樣） */
+html.dash{--ib:#0b1018;--ibd:#22324a;--ih:#ffb000;--ifg:#d7e3f0;--it:#00f0ff;--ik40:#00f0ff;--ik53:#ff2a6d;--ilate:#ffb000;--igate:#7b78ff;--igfg:#fff}
+html.twar{--ib:#0d0803;--ibd:#3a2810;--ih:#ffb347;--ifg:#ffe2b8;--it:#ffb347;--ik40:#ffb347;--ik53:#ff4b2b;--ilate:#ffb347;--igate:#ff4b2b;--igfg:#1a0500}
+html.wst{--ib:#1d1b16;--ibd:#000;--ih:#f2c230;--ifg:#e9dcbf;--it:#ffb066;--ik40:#4fb3a6;--ik53:#d0452c;--ilate:#f2c230;--igate:#b4542a;--igfg:#fff}
+html.tgr{--ib:#020a04;--ibd:#1f8a44;--ih:#3dff7a;--ifg:#d6ffe2;--it:#3dff7a;--ik40:#3df0ff;--ik53:#ff5c8a;--ilate:#ffd84a;--igate:#3dff7a;--igfg:#012a0e}
+html.tmin{--ib:#0d0d0d;--ibd:#2a2a2a;--ih:#9a9a9a;--ifg:#eeeeee;--it:#ffffff;--ik40:#00d8c4;--ik53:#ff3d7a;--ilate:#ffc53d;--igate:#ffffff;--igfg:#000}
+html.tbp{--ib:#0b2d60;--ibd:#bcd6ff;--ih:#ffd84a;--ifg:#ffffff;--it:#ffffff;--ik40:#7fe9ff;--ik53:#ff9ab8;--ilate:#ffd84a;--igate:#ffffff;--igfg:#0f3a7a}
+html.tpx{--ib:#120a30;--ibd:#9b5cff;--ih:#ffe600;--ifg:#ffffff;--it:#ffe600;--ik40:#00f0ff;--ik53:#ff2a6d;--ilate:#ffe600;--igate:#9b5cff;--igfg:#fff}
+html.cyber{--ib:rgba(6,4,13,.82);--ibd:rgba(0,240,255,.4);--ih:#c6ff3d;--ifg:#f4feff;--it:#c6ff3d;--ik40:#00f0ff;--ik53:#ff2a6d;--ilate:#ffe14d;--igate:#ff2a6d;--igfg:#fff}
+html.matte{--ib:#1b1f25;--ibd:rgba(255,255,255,.08);--ih:#b7bdc6;--ifg:#eceef1;--it:#eceef1;--ik40:#7cc8bd;--ik53:#e19aa9;--ilate:#e0c27a;--igate:#9aa6e3;--igfg:#0d0f12}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){background:var(--ib)!important;border:1px solid var(--ibd)!important;color:var(--ifg)!important;box-shadow:none!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .na-h{color:var(--ih)!important;text-shadow:none!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .na-h small{color:var(--ifg)!important;opacity:.7}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert :is(.gp,.cg){color:var(--ifg)!important;border-color:var(--ibd)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .gp :is(.tm,b),html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .t{color:var(--it)!important;text-shadow:none!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .none{color:var(--ifg)!important;opacity:.7}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .k{background:var(--ibd)!important;color:var(--ifg)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .k.k40{background:var(--ik40)!important;color:#000!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .k.k53{background:var(--ik53)!important;color:#000!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .w.late{background:transparent!important;border:1px solid var(--ilate)!important;color:var(--ilate)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #nalert .cg .w.gate{background:var(--igate)!important;color:var(--igfg)!important;border:0!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #remain b{color:var(--it)!important;text-shadow:none!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #prog .p{color:var(--ifg)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #prog .bar{background:var(--ib)!important;box-shadow:inset 0 0 0 1px var(--ibd)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #prog .p.a .bar i{background:var(--ik40)!important} html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #prog .p.b .bar i{background:var(--ik53)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #immnote,html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #immnote :is(.imc,i,.imh){color:var(--ifg)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #immnote :is(b,em),html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #immnote .imc b{color:var(--it)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #hourbar .hb-t{color:var(--ifg)!important} html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #hourbar .hb-t b{color:var(--it)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #hourbar .hb i{background:var(--ibd)!important} html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #hourbar .hb i.now{background:var(--ilate)!important}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox :is(#offnote,#status){color:var(--ifg)!important;opacity:.75}
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.cyber,.matte) body:not(#_):not(#__) #infobox #tdpaxmore{color:var(--ih)!important;border-color:var(--ih)!important;background:transparent!important}
+html.tpx body:not(#_):not(#__) #infobox :is(#nalert,#remain,#prog,#immnote,#hourbar) *{font-family:'DotGothic16',ui-monospace,monospace!important}
+html.tpx body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){clip-path:polygon(0 4px,4px 4px,4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px))!important}
+html:is(.tmin,.tbp,.tgr,.matte,.twar) body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){clip-path:none!important}
+html.matte body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){border-radius:12px!important}
+html:is(.dash,.twar,.tbp) body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:'Chakra Petch',ui-monospace,monospace!important}
+html.tbp body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:ui-monospace,Menlo,monospace!important}
+</style>
 </body>
 </html>
