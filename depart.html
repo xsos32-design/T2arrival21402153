@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15d';
+var PAGE_V='2026-11-15e';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4317,7 +4317,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['clock','yl','數字更清楚','時間、班號、登機門換成儀表字體；每張卡片的班號、城市、人數都對齊同一條線。',
         '時間、班號、登機門、人數改用儀表字體並加粗。以前每張卡會跟著時間的寬度左右錯開，現在全部對齊。<br>另外修好兩個問題：時間數字後面的深色方框拿掉了；航廈夜景／夜間起飛的背景圖之前被清單蓋住，現在看得到了。'],
       ['timer','pk','小動畫','招牌像霓虹燈通電、背景霓虹雨；班機剛'+(DEP?'出發':'抵達')+'會蓋一個「'+(DEP?'已出發':'已抵達')+'」章。',
-        '打開看板時招牌閃幾下才亮、卡片一張張滑進來；背景有很淡的霓虹雨；按住卡片會微微傾斜反光；按「更新」圖示會轉、更新好掃一道光。<br>手機有開「減少動態效果」的話，動畫會自動關掉。']]}
+        '打開看板時招牌閃幾下才亮、卡片一張張滑進來；背景有很淡的霓虹雨；按住卡片會微微傾斜反光；按「更新」圖示會轉、更新好掃一道光。<br>手機有開「減少動態效果」的話，動畫會自動關掉。']]},
+    {v:'2026-11-15e', d:'11/15', t:'卡片排得更緊', it:[
+      ['up','yl','一次看更多班','每張卡片矮了快四分之一，同一個畫面多看到一張半左右。',
+        '「表定 +29」放到時間正下方、分類（2140／2153）接在下面；機型小牌搬到登機門下面，右下只剩狀態和「詳細」；時間、班號、登機門大字縮一號，雷達那一行也變矮。內容一樣都沒少，「字體」五段照樣有效。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -4346,6 +4349,64 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
   /* 等招牌通電、卡片進場跑完再跳 */
   function go(){ setTimeout(show,1700); }
   if(D.readyState==='complete') go(); else addEventListener('load',go);
+})();
+</script>
+<!-- 11/15 預覽：卡片排緊一點（tools/dense.js）。手機版才套用；內容一樣，只是少掉多餘空白
+     ① 機型小牌從右下欄搬到登機門下面（右下只剩狀態＋詳細，不會疊三層把卡片撐高）；「表定 +29」放時間下面、分類放它下面
+     ② 時間、班號、登機門大字縮一號；各列間距、雷達那一行上下留白收小 -->
+<style>
+@media (max-width:820px){
+  html body:not(#_) #out .r:not(.head){padding:4px 7px 4px 12px!important;margin-bottom:5px!important;row-gap:0!important}
+  /* 大字縮一號 */
+  html body:not(#_) #out .r .c-time b{font-size:34px!important;line-height:1!important}
+  html body:not(#_) #out .r .c-time i{line-height:1.25!important;margin-top:1px}
+  html body:not(#_) #out .r .c-fno b{font-size:29px!important;line-height:1.15!important}
+  html body:not(#_) #out .r .c-gate,html body:not(#_) #out .r .c-gate .gn{font-size:34px!important;line-height:1.05!important}
+  /* 登機門那格：門＋機型小牌直排靠右 */
+  html body:not(#_) #out .r .c-gate{display:flex!important;flex-direction:column;align-items:flex-end;gap:3px;align-self:start;margin-top:3px}
+  html body:not(#_) #out .r .c-gate .ac{margin:0!important;line-height:1.35}
+  /* 城市、人數行距收緊 */
+  html body:not(#_) #out .r .c-city{line-height:1.15!important}
+  /* 右下：狀態＋詳細，間距收小 */
+  html body:not(#_) #out .r .c-st{gap:2px!important;align-self:center}
+  html body:not(#_) #out .r .tapmore{margin-top:1px!important;padding:3px 10px!important}
+  /* 「表定 +29」移到時間下面那格、分類（2140／2153）放它下面：左欄不再空一大塊，第一列只剩大字的高度 */
+  html body:not(#_) #out .r:not(.head){grid-template-areas:"time fno gate" "tsub city gate" "shop city st"!important;grid-template-rows:auto auto auto!important;align-items:center}
+  html body:not(#_) #out .r .c-time{display:contents!important}
+  html body:not(#_) #out .r .c-time b{grid-area:time;justify-self:start;align-self:center}
+  html body:not(#_) #out .r .c-time i{grid-area:tsub;justify-self:start;align-self:end;margin-top:0!important;line-height:1.2!important}
+  html body:not(#_) #out .r .c-shop{grid-area:shop;align-self:start;margin-top:2px}
+  html body:not(#_) #out .r .c-shop .tag{padding:0 7px!important;line-height:1.45!important}
+  html body:not(#_) #out .r .c-fno{align-self:center}
+  html body:not(#_) #out .r .c-gate{margin-top:3px;align-self:start}
+  html body:not(#_) #out .r .c-city{align-self:center} html body:not(#_) #out .r .c-st{align-self:end;margin-top:2px}
+  html body:not(#_) #out .r .badge{line-height:1.2!important}
+  /* 雷達那一行：上下留白、標籤、按鍵都收小 */
+  html body:not(#_) #out .r .rdr{margin-top:4px!important;padding-top:3px!important;padding-bottom:6px!important;gap:6px!important}
+  html body:not(#_) #out .r .rdr .rd-sg{padding:0 6px!important;line-height:1.5!important}
+  html body:not(#_) #out .r .rdr .rd-go::before{padding:1px 9px!important}
+}
+@media (max-width:380px){
+  html body:not(#_) #out .r .c-time b{font-size:31px!important}
+  html body:not(#_) #out .r .c-fno b{font-size:26px!important}
+  html body:not(#_) #out .r .c-gate,html body:not(#_) #out .r .c-gate .gn{font-size:31px!important}
+}
+</style>
+<script>
+(function(){
+  var D=document, W=window;
+  if(W.__dense) return; W.__dense=1;
+  function mv(){
+    if(!matchMedia('(max-width:820px)').matches) return;
+    [].forEach.call(D.querySelectorAll('#out .r:not(.head) .c-st .ac'),function(a){
+      var g=a.closest('.r').querySelector('.c-gate'); if(g) g.appendChild(a); });
+  }
+  W.__denseMv=mv;
+  var w=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w);
+    var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ mv(); }catch(e){} return x; }; try{ mv(); }catch(e){} },100);
+  /* 機型小牌是後面另一段程式補上去的，補完再搬一次 */
+  try{ new MutationObserver(function(m){ for(var i=0;i<m.length;i++){ for(var j=0;j<m[i].addedNodes.length;j++){ var n=m[i].addedNodes[j]; if(n.classList&&n.classList.contains('ac')&&n.parentNode&&n.parentNode.classList.contains('c-st')){ mv(); return; } } } })
+    .observe(D.getElementById('out')||D.body,{childList:true,subtree:true}); }catch(e){}
 })();
 </script>
 </body>
