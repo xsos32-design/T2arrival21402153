@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-14g';
+var PAGE_V='2026-11-15a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1368,14 +1368,36 @@ function apiPost(body){
 /* GitHub 每 5 分鐘存的快照（同網域、35KB、秒回）：桃機抓不到時先用它，不用等 TDX */
 function snapFor(date){
   return fetch('data.json?nc='+Date.now()).then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(!j||!j.d||!j.d.length) return null;
-    var m=String(j.t||'').match(/(\d\d):(\d\d)/); if(!m) return null;
-    var n=new Date(), age=n.getHours()*60+n.getMinutes()-((+m[1])*60+(+m[2])); if(age<0) age+=1440;
-    if(age>40) return null;                       /* 超過 40 分鐘的快照不拿來用 */
-    var want=date.replace(/-/g,'/'), l=j.d.filter(function(f){ return f.ODate===want||f.RDate===want; });
-    if(!l.length) return null;
-    l.__snapT=j.t; return l;
-  })['catch'](function(){ return null; });
+    var fresh=null;
+    if(j&&j.d&&j.d.length){
+      var m=String(j.t||'').match(/(\d\d):(\d\d)/);
+      if(m){ var n=new Date(), age=n.getHours()*60+n.getMinutes()-((+m[1])*60+(+m[2])); if(age<0) age+=1440;
+        if(age<=40){ var want=date.replace(/-/g,'/'), l=j.d.filter(function(f){ return f.ODate===want||f.RDate===want; }); if(l.length){ l.__snapT=j.t; fresh=l; } } }
+    }
+    if(fresh) return fresh;
+    /* 11/15：GitHub 快照超過 40 分鐘（GitHub 排程常常不準時）→ 改用 Cloudflare 中繼的（即時的），城市中文名照用快照裡的 */
+    return relaySnap(date,j);
+  })['catch'](function(){ return relaySnap(date,null); });
+}
+var RELAY_SNAP='https://tpe-board.xsos32.workers.dev/snap';
+function relaySnap(date,old){
+  var ac=null; try{ ac=new AbortController(); }catch(e){} var tm=setTimeout(function(){ try{ ac&&ac.abort(); }catch(e){} },6000);
+  return fetch(RELAY_SNAP,{cache:'no-store',signal:ac?ac.signal:undefined}).then(function(r){ clearTimeout(tm); return r.ok?r.json():null; }).then(function(j){
+    if(!j||!j.f||!j.f.length||!j.d) return null;
+    var city={}; ((old&&old.d)||[]).forEach(function(f){ if(f.Dep&&f.CityName) city[f.Dep]=f.CityName; });
+    var base=new Date(j.d.replace(/\//g,'-')+'T12:00:00');
+    function ds(o){ var d=new Date(base.getTime()+o*86400000); return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate()); }
+    function hm(s){ return s?String(s).slice(0,2)+':'+String(s).slice(2,4)+':00':''; }
+    var want=date.replace(/-/g,'/'), out=[];
+    j.f.forEach(function(r){ var od=ds(r[6]||0), rd=r[5]?ds(r[7]||0):'';
+      if(od!==want&&rd!==want) return;
+      var mm=String(r[0]).match(/^([A-Z0-9]{2})(\d+[A-Z]?)$/)||[0,String(r[0]).slice(0,2),String(r[0]).slice(2)];
+      out.push({flightCode:r[0],ACode:mm[1],FlightNo:mm[2],AName:'',Dep:r[1],CityCode:r[1],CityName:city[r[1]]||r[1],Gate:r[2],BNO:r[3],
+        ODate:od,OTime:hm(r[4]),RDate:rd,RTime:hm(r[5]),Memo:r[8]==='滑行'?'':(r[8]||''),CurrentStatus:r[8]==='滑行'?'地面滑行':(r[8]==='已到'?'抵達機坪':'')});
+    });
+    if(!out.length) return null;
+    out.__snapT=j.t; return out;
+  })['catch'](function(){ clearTimeout(tm); return null; });
 }
 
 /* 先試桃機（資料最完整），失敗就換 TDX（手錶走這條） */
