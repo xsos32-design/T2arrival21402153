@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15i';
+var PAGE_V='2026-11-15j';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4533,7 +4533,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 #rmap .rm-sm .sw.sE{background:linear-gradient(#ffe600,#ffe600) 8px 8px/8px 8px no-repeat,linear-gradient(#ff2a6d,#ff2a6d) 32px 20px/8px 8px no-repeat,linear-gradient(#00f0ff,#00f0ff) 20px 14px/16px 4px no-repeat,linear-gradient(rgba(155,92,255,.4) 1px,transparent 1px) 0 0/6px 6px,linear-gradient(90deg,rgba(155,92,255,.4) 1px,transparent 1px) 0 0/6px 6px,#0b0620}
 /* ════ E 像素：8-bit 像素地圖，海岸線、道路變成一格一格，像素小飛機，像素字標籤 ════ */
 #rmap.thE .leaflet-container{background:#0b0620!important;background-image:linear-gradient(rgba(155,92,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(155,92,255,.14) 1px,transparent 1px)!important;background-size:8px 8px!important}
-#rmap.thE .leaflet-overlay-pane svg{filter:url(#rpxf);shape-rendering:crispEdges}
+#rmap.thE .leaflet-overlay-pane svg{shape-rendering:crispEdges}
+#rmap.thE .leaflet-overlay-pane path{stroke-width:3px!important;stroke-linecap:square!important;stroke-linejoin:miter!important}
+#rmap.thE .leaflet-overlay-pane path[stroke-dasharray]{stroke-dasharray:4 6!important}
+#rmap.thE .rg-coast,#rmap.thE .rg-ring,#rmap.thE .rg-trail,#rmap.thE .rg-road,#rmap.thE .rg-rwy{filter:none!important}
 #rmap.thE .rk,#rmap.thE .rc,#rmap.thE .rt,#rmap.thE .rkw{font-family:'DotGothic16','Press Start 2P',monospace!important;font-weight:400!important;text-shadow:2px 2px 0 #000!important}
 #rmap.thE .rk{color:#ff2a6d!important} #rmap.thE .rc,#rmap.thE .rt{color:#ffe600!important}
 #rmap.thE .rtpe{font-family:'DotGothic16',monospace!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important;border-radius:0!important}
@@ -4619,8 +4622,6 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     m.addEventListener('click',function(e){ e.stopPropagation(); var x=e.target.closest('button[data-t]'); if(!x) return; W.__rthSet(x.dataset.t); setTimeout(function(){ m.hidden=true; },180); });
     D.addEventListener('click',function(){ m.hidden=true; });
   }
-  if(!D.getElementById('rpxdefs')){ var sv=D.createElementNS('http://www.w3.org/2000/svg','svg'); sv.id='rpxdefs'; sv.setAttribute('width','0'); sv.setAttribute('height','0'); sv.style.position='absolute';
-    sv.innerHTML='<filter id="rpxf" x="0" y="0" width="100%" height="100%"><feMorphology in="SourceGraphic" operator="dilate" radius="2" result="d"/><feFlood x="2" y="2" width="1" height="1"/><feComposite width="5" height="5"/><feTile result="a"/><feComposite in="d" in2="a" operator="in"/><feMorphology operator="dilate" radius="2"/></filter>'; D.body.appendChild(sv); }
   W.__rthSet=function(k){ if(!NAMES[k]) return; TH=k; try{ localStorage.setItem('rth1',k); }catch(_){} apply(); try{ D.dispatchEvent(new CustomEvent('rthchange')); }catch(_){} };
   W.__rthGet=function(){ return TH; };
   function tick(t){ requestAnimationFrame(tick);
