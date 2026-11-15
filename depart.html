@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15n';
+var PAGE_V='2026-11-15p';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4342,7 +4342,12 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['cog','',    '新樣式：螢光、霧面','班機樣式多兩種，變成八選一：<em>螢光</em>（螢光航廈、跑道夜景背景）、<em>霧面</em>（低調霧面深色）。','']]},
     {v:'2026-11-15n', d:'11/15', t:'班機、雷達樣式成對', it:[
       ['cog','yl','十種樣式，兩邊一樣','班機樣式、雷達樣式都是同樣十種、同樣順序：霓虹、儀表板、戰情室、廢土科技、綠色終端、極簡黑、藍圖、像素街機、螢光、霧面。',
-        '選班機樣式時，雷達會自動換成同一組；也可以在「設定」或雷達地圖的「樣式 ▾」單獨換。新補：班機的<em>戰情室</em>、<em>藍圖</em>，雷達的<em>儀表板</em>、<em>極簡黑</em>、<em>螢光</em>、<em>霧面</em>。原本雷達的「塔台雷達」併入「綠色終端」。']]}
+        '選班機樣式時，雷達會自動換成同一組；也可以在「設定」或雷達地圖的「樣式 ▾」單獨換。新補：班機的<em>戰情室</em>、<em>藍圖</em>，雷達的<em>儀表板</em>、<em>極簡黑</em>、<em>螢光</em>、<em>霧面</em>。原本雷達的「塔台雷達」併入「綠色終端」。']]},
+    {v:'2026-11-15p', d:'11/15', t:'版面整理', it:[
+      ['cog','yl','設定變短一半','「設定」展開從將近兩頁縮到一頁：重複的、少用的收進小鍵或小視窗，功能都還在。',
+        '<em>外觀樣式</em>：班機、雷達兩排十顆合成一行「外觀樣式 ▾」，點開選。<br><em>時段</em>：「自訂」「選日期」「改時段鍵」收進時段那排的「更多 ▾」。<br><em>開會設定</em>：變成「開會時間」旁邊的小齒輪。<br><em>分類設定</em>：跟「全部／全不要」同一排。<br>「現在6小時」只留下面的浮動鍵。'],
+      ['up','',  '搜尋、人數、說明','搜尋改成清單最上面一條，點了才出現輸入框；上面那排剩五格。',
+        '<em>人數</em>預設只看總數和各分類已到幾班，按「看更多」才展開國籍和每小時長條圖。<br>最下面「說明」「更新日誌」合成一行。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -5699,6 +5704,172 @@ html body .chip[data-slot]{white-space:normal!important;line-height:1.15!importa
   D.addEventListener('click',function(e){ var r=e.target.closest&&e.target.closest('#out .r'); if(!r) return; setTimeout(function(){ addRemind(r); },60); });
 
   var w=setInterval(function(){ if(!D.getElementById('ctl')) return; clearInterval(w); addMeetGear(); addSlotGear(); },200);
+})();
+</script>
+<style>
+/* 外觀樣式小視窗、按鍵的示意小圖（跟設定裡一樣） */
+.tdsw i.ktwar{background:linear-gradient(#ffb347,#ffb347) 1px 1px/6px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 1px 1px/2px 6px no-repeat,linear-gradient(#ff4b2b,#ff4b2b) 9px 9px/4px 4px no-repeat,#0d0803}
+.tdsw i.ktbp{background:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px) 0 0/5px 5px,#0f3a7a}
+.tdsw i.ktgr{border-radius:0}
+.tdsw i.kcyber{background:linear-gradient(135deg,#00f0ff 0 33%,#ff2a6d 33% 66%,#c6ff3d 66%)}
+.tdsw i.kmatte{background:linear-gradient(160deg,#2a2f37,#15181d);border-color:#7f8794!important}
+.tdsw i.k0{background:linear-gradient(135deg,#ff2a6d 0 50%,#00f0ff 50%)}
+.tdsw i.kdash{background:linear-gradient(#00f0ff,#00f0ff) 2px 2px/5px 2px no-repeat,linear-gradient(#00f0ff,#00f0ff) 2px 2px/2px 5px no-repeat,#0b1018}
+.tdsw i.kwst{background:repeating-linear-gradient(-45deg,#f2c230 0 3px,#111 3px 6px)}
+.tdsw i.ktgr{background:repeating-linear-gradient(0deg,#3dff7a 0 1px,#020a04 1px 3px)}
+.tdsw i.ktmin{background:#000;border-color:#666!important}
+.tdsw i.ktpx{background:linear-gradient(90deg,#ffe600 0 4px,transparent 4px 8px,#00f0ff 8px 12px,transparent 12px) 0 4px/16px 4px no-repeat,linear-gradient(90deg,#ff2a6d 0 4px,transparent 4px 8px,#9b5cff 8px 12px) 4px 10px/16px 4px no-repeat,#0b0620}
+#ctl .ctl-row:has(#tdmore)>.chip{flex:1 1 0!important;min-width:0!important}
+</style>
+<!-- 11/15：版面整理（tools/tidy.js）。設定裡重複、太長的收成小鍵或小視窗；網頁版、App 版共用 -->
+<style>
+/* 共用小視窗 */
+.tdsheet{position:fixed;inset:0;z-index:2147483620;display:flex;align-items:flex-end;justify-content:center;background:rgba(4,2,10,.7);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:tdfade .2s ease-out}
+@keyframes tdfade{0%{opacity:0}}
+.tdsheet .tdin{width:min(520px,100%);box-sizing:border-box;max-height:86vh;overflow:auto;background:linear-gradient(165deg,#1a0f33,#0c0a1d 60%,#120a26);border:1.5px solid #00f0ff;border-bottom:0;color:#e3eef8;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;box-shadow:0 0 30px -6px rgba(0,240,255,.6);animation:tdup .28s cubic-bezier(.2,1,.3,1)}
+@keyframes tdup{0%{transform:translateY(40px)}}
+.tdsheet .tdtop{display:flex;justify-content:space-between;align-items:center}
+.tdsheet h2{margin:0;font-size:19px;font-weight:900;letter-spacing:.1em;color:#fff}
+.tdsheet .tdx{all:unset;cursor:pointer;padding:8px 14px;border:1px solid #2a3545;background:#161e29;color:#c3cad4;font-weight:800;font-size:14px}
+.tdsheet .tdnote{margin:0;color:#9aa6b8;font-size:13px;line-height:1.6;font-weight:700}
+.tdsheet .tdgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tdsheet .tdgrid button,.tdsheet .tdlist button{all:unset;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border:1px solid #2a3545;background:#121826;color:#fff;font-weight:900;font-size:16px}
+.tdsheet .tdgrid button.on{border-color:#00efd4;box-shadow:inset 0 0 0 1px #00efd4;color:#00efd4}
+.tdsheet .tdgrid button i{width:20px;height:20px;flex:none;border:1px solid rgba(255,255,255,.25)}
+.tdsheet .tdlist{display:flex;flex-direction:column;gap:8px}
+.tdsheet .tdlist button{justify-content:space-between}
+.tdsheet .tdlist button small{font-size:12.5px;color:#9aa6b8;font-weight:700}
+.tdsheet .tdlist button b{font-size:16px}
+
+/* ① 班機樣式＋雷達樣式兩排 → 一顆「外觀樣式」 */
+html body:not(#_) #ctl #thrC,html body:not(#_) #ctl #thrR{display:none!important}
+#tdstyrow .chip{flex:1 1 100%!important}
+#tdsty i{display:inline-block;width:16px;height:16px;margin-right:8px;vertical-align:-3px;border:1px solid rgba(255,255,255,.25)}
+
+/* ② 時段：「自訂」「自訂時段鍵」「選日期／時段」收進「更多 ▾」 */
+html body:not(#_) #ctl #custchip,html body:not(#_) #ctl #slotrow2,html body:not(#_) #ctl #slotrow{display:none!important}
+html body:not(#_) #ctl details.cfg.tdhide:not(.tdshow){display:none!important}
+
+/* ③ 開會設定 → 開會時間旁邊的小齒輪 */
+html body:not(#_) #ctl #cpS{flex:1 1 100%!important}
+html body:not(#_) #ctl #cpM{flex:1 1 0%!important;min-width:0}
+html body:not(#_) #ctl :is(#cpMset2,#cpMset){flex:0 0 58px!important;min-width:0!important;padding-left:0!important;padding-right:0!important;font-size:0!important;justify-content:center}
+html body:not(#_) #ctl :is(#cpMset2,#cpMset)::before{content:"";width:22px;height:22px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1'/%3E%3C/svg%3E") center/contain no-repeat}
+
+/* ④ 分類：全部／全不要／分類設定 縮成同一排小鍵 */
+html body:not(#_) #ctl #sall,html body:not(#_) #ctl #snone,html body:not(#_) #ctl #tdcatset{flex:1 1 28%!important;min-height:40px!important;font-size:14px!important;padding:4px 2px!important}
+
+/* ⑤ 設定裡的「現在6小時」拿掉（下面浮動鍵已經有），「隱藏已抵達」整行 */
+html body:not(#_) #ctl #now6{display:none!important}
+html body:not(#_) #ctl #hide{flex:1 1 100%!important}
+
+/* ⑥ 搜尋不佔上面一格：清單上面一顆小鍵，點了才出現搜尋框 */
+html body:not(#_) #dock button[data-k="search"]{display:none!important}
+html body:not(#_) #dock{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+html.dock body:not(#_):not(#__) #fsearch:not(.tdc){display:flex!important}
+html body:not(#_):not(#__) #fsearch.tdc{display:none!important}
+#tdsq{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;margin:6px 0 8px;padding:8px 12px;min-height:40px;font-weight:800;font-size:14.5px;color:#8d99a9;border:1px solid #2a3545;background:rgba(16,21,29,.75)}
+#tdsq svg{width:18px;height:18px;flex:none}
+#tdsq.tdhid{display:none}
+body.tier-free #tdsq,body.tier-free #tdpaxmore{display:none!important}
+
+/* ⑦ 最下面：說明＋更新日誌合成一行 */
+html body:not(#_) .wrap>.cllink{display:none!important}
+html body:not(#_) .wrap>details.nhelp:not([open]){display:none!important}
+html body:not(#_) .wrap>details.nhelp>summary{display:none!important}
+#tdfoot{display:flex;gap:8px;margin:14px 0 8px}
+#tdfoot>*{all:unset;box-sizing:border-box;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;font-weight:800;font-size:14.5px;color:#aeb6c2;border:1px solid #2a3545;background:rgba(16,21,29,.75)}
+#tdfoot>.on{color:#00efd4;border-color:#00efd4}
+
+/* ⑧ 人數：預設只看總數、各分類已到；國籍、每小時長條按「看更多」 */
+html.dk-pax:not(.tdpaxall) body:not(#_):not(#__) #infobox>:is(#immnote,#hourbar,#offnote){display:none!important}
+#tdpaxmore{display:none}
+html.dock.dk-pax body:not(#_):not(#__) #infobox>#tdpaxmore{all:unset;box-sizing:border-box;cursor:pointer;display:flex!important;justify-content:center;align-items:center;width:100%;margin-top:8px;min-height:40px;font-weight:900;font-size:14px;color:#00efd4;border:1px solid rgba(0,239,212,.5);background:rgba(0,239,212,.06)}
+</style>
+<script>
+(function(){
+  var D=document, W=window, R=D.documentElement;
+  if(W.__tidy) return; W.__tidy=1;
+  function ic(n){ return '<svg class="ic" viewBox="0 0 24 24"><use href="#i-'+n+'"/></svg>'; }
+  function sheet(title,inner){ var el=D.createElement('div'); el.className='tdsheet'; el.setAttribute('role','dialog'); el.setAttribute('aria-label',title);
+    el.innerHTML='<div class="tdin"><div class="tdtop"><h2>'+title+'</h2><button type="button" class="tdx">關閉</button></div>'+inner+'</div>';
+    el.addEventListener('click',function(e){ if(e.target===el) el.remove(); }); el.querySelector('.tdx').onclick=function(){ el.remove(); }; D.body.appendChild(el); return el; }
+  function rowOf(el){ while(el&&!(el.classList&&el.classList.contains('ctl-row'))) el=el.parentNode; return el; }
+  function detailsWith(sel){ var x=D.querySelector('#ctl details.cfg '+sel); return x&&x.closest('details'); }
+  function showDetails(d){ if(!d) return; d.classList.add('tdshow'); d.open=true; setTimeout(function(){ try{ d.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} },60);
+    if(!d.__td){ d.__td=1; d.addEventListener('toggle',function(){ if(!d.open) d.classList.remove('tdshow'); }); } }
+
+  /* ① 外觀樣式 */
+  function styleName(){ var k='0'; try{ k=localStorage.getItem('cth1')||'0'; }catch(e){} var c=D.querySelector('#thrC .chip[data-v="'+k+'"]'); return {k:k,n:c?c.textContent.trim():'霓虹'}; }
+  function paintSty(){ var b=D.getElementById('tdsty'); if(!b) return; var s=styleName(); b.innerHTML='<i class="k'+s.k+'"></i>外觀樣式：'+s.n+' ▾'; }
+  function openSty(){
+    var cur=styleName().k, h='<p class="tdnote">班機和雷達一起換成同一組。要單獨換雷達，到雷達地圖右上的「樣式 ▾」。</p><div class="tdgrid tdsw">';
+    [].forEach.call(D.querySelectorAll('#thrC .chip[data-v]'),function(c){ var k=c.dataset.v; h+='<button type="button" data-v="'+k+'" class="'+(k===cur?'on':'')+'"><i class="k'+k+'"></i>'+c.textContent.trim()+'</button>'; });
+    var el=sheet('外觀樣式',h+'</div>');
+    el.querySelector('.tdgrid').addEventListener('click',function(e){ var b=e.target.closest('button[data-v]'); if(!b) return;
+      if(W.__cthSet) W.__cthSet(b.dataset.v); paintSty(); [].forEach.call(el.querySelectorAll('.tdgrid button'),function(x){ x.classList.toggle('on',x===b); }); setTimeout(function(){ el.remove(); },220); });
+  }
+
+  /* ② 時段「更多」 */
+  function openMore(){
+    var cust=D.getElementById('custchip'), slot=D.getElementById('slotset2')||D.getElementById('slotset'), dd=detailsWith('#date')||detailsWith('input[type=date]');
+    var h='<div class="tdlist">'
+      +(cust?'<button type="button" data-a="cust"><b>'+ic('clock')+' 自訂時段</b><small>例：今天 18:00 → 明早 06:00</small></button>':'')
+      +(dd?'<button type="button" data-a="date"><b>'+ic('cal')+' 選日期</b><small>看明天、後天的班機</small></button>':'')
+      +(slot?'<button type="button" data-a="slot"><b>'+ic('cog')+' 改時段鍵</b><small>把上面幾顆改成自己的上班時段</small></button>':'')
+      +'</div>';
+    var el=sheet('更多時段',h);
+    el.querySelector('.tdlist').addEventListener('click',function(e){ var b=e.target.closest('button[data-a]'); if(!b) return; el.remove();
+      if(b.dataset.a==='cust'){ cust.click(); var bx=D.getElementById('custbox'); if(bx) setTimeout(function(){ try{ bx.scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){} },80); }
+      if(b.dataset.a==='date') showDetails(dd);
+      if(b.dataset.a==='slot') slot.click(); });
+  }
+  function paintMore(){ var m=D.getElementById('tdmore'), c=D.getElementById('custchip'); if(m&&c) m.classList.toggle('act',c.classList.contains('act')); }
+
+  function build(){
+    var ctl=D.getElementById('ctl'); if(!ctl) return false;
+    /* ① */
+    var thr=D.getElementById('thrC');
+    if(thr&&!D.getElementById('tdstyrow')){ var r=D.createElement('div'); r.className='chips ctl-row'; r.id='tdstyrow';
+      r.classList.add('tdsw'); r.innerHTML='<span class="v2lab">樣式</span> <span class="chip" id="tdsty" role="button" tabindex="0"></span>'; ctl.insertBefore(r,thr); D.getElementById('tdsty').onclick=openSty; }
+    paintSty();
+    /* ② */
+    var cust=D.getElementById('custchip');
+    if(cust&&!D.getElementById('tdmore')){ var m=D.createElement('span'); m.className='chip'; m.id='tdmore'; m.setAttribute('role','button'); m.tabIndex=0; m.textContent='更多 ▾'; m.onclick=openMore; cust.parentNode.insertBefore(m,cust); }
+    var dd=detailsWith('#date')||detailsWith('input[type=date]'); if(dd) dd.classList.add('tdhide');
+    paintMore();
+    /* ④ */
+    var cat=detailsWith('#catbox'); if(cat) cat.classList.add('tdhide');
+    var sn=D.getElementById('snone');
+    if(sn&&cat&&!D.getElementById('tdcatset')){ var g=D.createElement('span'); g.className='chip mini'; g.id='tdcatset'; g.setAttribute('role','button'); g.tabIndex=0; g.innerHTML='分類設定'; g.onclick=function(){ showDetails(cat); }; sn.parentNode.insertBefore(g,sn.nextSibling); }
+    /* ⑥ */
+    var fs=D.getElementById('fsearch'), out=D.getElementById('out');
+    if(fs&&!D.getElementById('tdsq')){ var q=D.createElement('button'); q.type='button'; q.id='tdsq'; q.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>搜尋班號或城市';
+      fs.parentNode.insertBefore(q,fs); var inp=fs.querySelector('input');
+      if(!(inp&&inp.value.trim())) fs.classList.add('tdc'); else q.classList.add('tdhid');
+      q.onclick=function(){ fs.classList.remove('tdc'); q.classList.add('tdhid'); if(inp) setTimeout(function(){ try{ inp.focus(); }catch(e){} },30); };
+      if(inp) inp.addEventListener('blur',function(){ setTimeout(function(){ if(!inp.value.trim()&&!fs.contains(D.activeElement)){ fs.classList.add('tdc'); q.classList.remove('tdhid'); } },200); });
+      var cl=fs.querySelector('button'); if(cl) cl.addEventListener('click',function(){ setTimeout(function(){ fs.classList.add('tdc'); q.classList.remove('tdhid'); },50); }); }
+    else if(fs&&D.getElementById('tdsq')){ var q2=D.getElementById('tdsq'); if(q2.nextSibling!==fs) fs.parentNode.insertBefore(q2,fs); var i2=fs.querySelector('input'); if(!(i2&&i2.value.trim())&&!fs.contains(D.activeElement)&&!q2.classList.contains('tdhid')) fs.classList.add('tdc'); }
+    /* ⑦ */
+    var nh=D.querySelector('.wrap>details.nhelp'), cl2=D.querySelector('.wrap>.cllink a');
+    if(nh&&cl2&&!D.getElementById('tdfoot')){ var f=D.createElement('div'); f.id='tdfoot';
+      f.innerHTML='<button type="button" id="tdhelp">ⓘ 說明</button><a href="'+cl2.getAttribute('href')+'">'+ic('cal')+' 更新日誌</a>';
+      nh.parentNode.insertBefore(f,nh); D.getElementById('tdhelp').onclick=function(){ nh.open=!nh.open; this.classList.toggle('on',nh.open); if(nh.open) setTimeout(function(){ try{ nh.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} },60); }; }
+    /* ⑧ */
+    var ib=D.getElementById('infobox');
+    if(ib&&!D.getElementById('tdpaxmore')){ var pm=D.createElement('button'); pm.type='button'; pm.id='tdpaxmore'; pm.textContent='看更多（國籍、每小時人數）▾';
+      pm.onclick=function(){ var on=R.classList.toggle('tdpaxall'); pm.textContent=on?'收起 ▴':'看更多（國籍、每小時人數）▾'; }; ib.appendChild(pm); }
+    else if(ib){ var pm2=D.getElementById('tdpaxmore'); if(pm2&&pm2.parentNode!==ib) ib.appendChild(pm2); else if(pm2&&pm2!==ib.lastElementChild) ib.appendChild(pm2); }
+    return true;
+  }
+  D.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#ctl .chip,.tdsheet')) setTimeout(function(){ paintMore(); paintSty(); },60); });
+  var w=setInterval(function(){ if(!build()) return; clearInterval(w);
+    if(typeof W.render==='function'){ var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ build(); }catch(e){} return x; }; } },200);
+  setTimeout(function(){ try{ build(); }catch(e){} },2500);
 })();
 </script>
 </body>
