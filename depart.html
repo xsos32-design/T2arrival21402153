@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15j';
+var PAGE_V='2026-11-15k';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4778,7 +4778,7 @@ html.wst body::after{content:"";position:fixed;inset:0;z-index:2147483000;pointe
 
 /* 招牌：生鏽鐵牌＋上下警示條，噴漆字 */
 html.wst body:not(#_) .mk{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.25)),var(--grime),linear-gradient(115deg,#5a2a12,#3a2516 40%,#5e3218 70%,#2c1d12)!important;
-  border:0!important;box-shadow:inset 0 6px 0 -1px #000,inset 0 7px 0 0 transparent,0 6px 18px rgba(0,0,0,.6)!important;position:relative}
+  border:0!important;box-shadow:inset 0 6px 0 -1px #000,inset 0 7px 0 0 transparent,0 6px 18px rgba(0,0,0,.6)!important}
 html.wst body:not(#_) .mk::before,html.wst body:not(#_) .mk::after{content:"";position:absolute;left:0;right:0;height:7px;background:repeating-linear-gradient(-45deg,var(--haz) 0 10px,#111 10px 20px);opacity:.9}
 html.wst body:not(#_) .mk::before{top:0} html.wst body:not(#_) .mk::after{bottom:0}
 html.wst body:not(#_) .mk b{font-family:'Black Ops One',system-ui,sans-serif!important;font-weight:400!important;color:var(--cream)!important;letter-spacing:.22em!important;text-shadow:0 2px 0 #000,0 0 14px rgba(255,138,42,.35)!important;filter:none!important}
@@ -4934,6 +4934,15 @@ html.tmin body:not(#_) .wrap>.card,html.tmin body:not(#_) #infobox,html.tmin bod
 html.tmin .fxstamp{background:#000!important;box-shadow:none!important;text-shadow:none!important}
 
 /* ════ 設定裡的「班機樣式／雷達樣式」 ════ */
+/* 11/15k：各樣式把招牌的框拿掉時，也把 iPhone 狀態列的讓位（上邊框）拿掉了，「小韋製作」會被時間、電量那條蓋住。這裡一律補回來 */
+html.dash{--mkt:#07040e} html.wst{--mkt:#2c1d12} html.tgr{--mkt:#020a04} html.tmin{--mkt:#000} html.tpx{--mkt:#0b0620}
+html:is(.arr,.dep) body:not(#_) .mk.mk.mk{border-top:env(safe-area-inset-top,0px) solid var(--mkt,#07040e)!important}
+html:is(.arr,.dep) body:not(#_):not(.mkslim) #xwkv~.mk.mk.mk{border-top-width:0!important}
+html:is(.arr,.dep) body:not(#_).mkslim .mk.mk.mk{border-top-color:var(--mkt,#0a0614)!important}
+html.wst body.mkslim:not(#_) .mk::before{display:none!important}
+html.wst body.mkslim:not(#_) .mk::after{height:4px!important}
+html.tpx body.mkslim:not(#_) .mk{box-shadow:inset 0 -3px 0 var(--pv)!important;clip-path:none!important;padding-left:8px!important;padding-right:8px!important}
+html.tpx body.mkslim:not(#_) .mk::before,html.tpx body.mkslim:not(#_) .mk::after{display:none!important}
 #ctl .throw .chip.thc{display:inline-flex;align-items:center;gap:6px}
 #ctl .throw .chip.thc i{display:inline-block;width:16px;height:16px;flex:none;border:1px solid rgba(255,255,255,.25)}
 #ctl .throw i.r0,#ctl .throw i.k0{background:linear-gradient(135deg,#ff2a6d 0 50%,#00f0ff 50%)}
@@ -4964,7 +4973,7 @@ html.tpx body::after{content:"";position:fixed;inset:0;z-index:2147483000;pointe
 html.tpx body:not(#_) *{border-radius:0!important}
 
 /* 招牌：像素框＋左右各一架像素小飛機，字一閃一閃 */
-html.tpx body:not(#_) .mk{background:var(--pbg)!important;border:0!important;box-shadow:inset 0 0 0 4px var(--pv),inset 0 0 0 8px var(--pbg),inset 0 0 0 10px var(--pc)!important;filter:none!important;clip-path:var(--step8);position:relative;
+html.tpx body:not(#_) .mk{background:var(--pbg)!important;border:0!important;box-shadow:inset 0 0 0 4px var(--pv),inset 0 0 0 8px var(--pbg),inset 0 0 0 10px var(--pc)!important;filter:none!important;clip-path:var(--step8);
   padding-left:56px!important;padding-right:56px!important}
 html.tpx body:not(#_) .mk::before,html.tpx body:not(#_) .mk::after{content:"";position:absolute;top:50%;width:36px;height:36px;margin-top:-18px;image-rendering:pixelated;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Cg fill='%2300f0ff'%3E%3Crect x='5' y='0' width='2' height='12'/%3E%3Crect x='1' y='4' width='10' height='2'/%3E%3Crect x='0' y='5' width='12' height='1'/%3E%3Crect x='3' y='10' width='6' height='1'/%3E%3Crect x='4' y='9' width='4' height='1'/%3E%3C/g%3E%3Crect x='5' y='1' width='2' height='1' fill='%23ffe600'/%3E%3C/svg%3E") center/contain no-repeat}
