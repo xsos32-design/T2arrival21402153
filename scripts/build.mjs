@@ -1381,8 +1381,20 @@ async function writeUnlocked() {
 async function main() {
   /* 離峰時段（02:00–13:00）只在整點跑一次。
      直接結束、不產生 dist，workflow 會跳過部署，線上維持上一份，不會被清空。 */
-  if (SKIP) {
-    console.log(`⏭️ ${stamp} 這一輪不抓資料也不重新部署（忙碌時段每 10 分鐘更新一次就夠）`);
+  /* 11/15：GitHub 排程實際上幾個小時才跑一次，跑的時候常常不是整點，以前就整輪跳過，快照一停就是十幾小時。
+     改成看「線上那份是多久以前部署的」：超過 50 分鐘就照樣更新，不管現在幾分。 */
+  let skip = SKIP;
+  if (skip) {
+    try {
+      const r = await fetch('https://xsos32-design.github.io/T2arrival21402153/data.json?cb=' + Date.now(), { method: 'HEAD', signal: AbortSignal.timeout(8000) });
+      const lm = Date.parse(r.headers.get('last-modified') || '');
+      const age = isNaN(lm) ? Infinity : (Date.now() - lm) / 60000;
+      console.log(`線上快照是 ${isFinite(age) ? Math.round(age) + ' 分鐘' : '不知道多久'}前部署的`);
+      if (age >= 50) { skip = false; console.log('超過 50 分鐘沒更新 → 這輪照樣更新'); }
+    } catch (e) { skip = false; console.log('查不到線上快照時間 → 這輪照樣更新'); }
+  }
+  if (skip) {
+    console.log(`⏭️ ${stamp} 這一輪不抓資料也不重新部署（線上那份還很新）`);
     if (process.env.GITHUB_OUTPUT) {
       await writeFile(process.env.GITHUB_OUTPUT, 'skip=true\n', { flag: 'a' });
     }
