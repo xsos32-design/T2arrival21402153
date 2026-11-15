@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15p';
+var PAGE_V='2026-11-15q';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1622,6 +1622,8 @@ function reportText(kind){
         if(r.late) h+='<tr class="'+r.cls+' sub"><td></td><td colspan="2">'+IC('alert')+' 第一班 '+r.f.t+' 就進來了，這場會來不及開完，建議提早或縮短</td></tr>';
       });
       h+='</table>';
+      /* 11/15：開會文字可自訂格式（tools/meetfmt.js） */
+      try{ if(window.meetFmt){ var cf=window.meetFmt({md:md,lo:LO,hi:HI,dur:DUR,rows:ord.map(function(r){ return {name:r.name,s:r.slot.s,e:r.slot.e,first:r.f?fline(r.f):'',firstT:r.f?r.f.t:'',late:!!r.late,rl:!!r.rl}; })}); if(cf) lines=cf; } }catch(e){}
       return {text:lines.join('\n'), html:h};
     }
 
@@ -4635,7 +4637,10 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['cog','yl','設定變短一半','「設定」展開從將近兩頁縮到一頁：重複的、少用的收進小鍵或小視窗，功能都還在。',
         '<em>外觀樣式</em>：班機、雷達兩排十顆合成一行「外觀樣式 ▾」，點開選。<br><em>時段</em>：「自訂」「選日期」「改時段鍵」收進時段那排的「更多 ▾」。<br><em>開會設定</em>：變成「開會時間」旁邊的小齒輪。<br><em>分類設定</em>：跟「全部／全不要」同一排。<br>「現在6小時」只留下面的浮動鍵。'],
       ['up','',  '搜尋、人數、說明','搜尋改成清單最上面一條，點了才出現輸入框；上面那排剩五格。',
-        '<em>人數</em>預設只看總數和各分類已到幾班，按「看更多」才展開國籍和每小時長條圖。<br>最下面「說明」「更新日誌」合成一行。']]}
+        '<em>人數</em>預設只看總數和各分類已到幾班，按「看更多」才展開國籍和每小時長條圖。<br>最下面「說明」「更新日誌」合成一行。']]},
+    {v:'2026-11-15q', d:'11/15', t:'開會文字可以改', it:[
+      ['clock','yl','開會文字可以改、可以自訂','按「開會時間」後，表格下面多一個<em>可以直接改的文字框</em>，按「複製」就複製改過的內容。',
+        '旁邊的「<em>自訂格式</em>」可以改標題、每一場怎麼寫、最後要加什麼（提醒、署名），存起來之後每次都照這個格式排；只記在這支手機。']]}
   ];
   var K='news1', seen=''; try{ seen=localStorage.getItem(K)||''; }catch(e){}
   var list=NEWS.filter(function(n){ return n.v>seen; });
@@ -6158,6 +6163,108 @@ html.dock.dk-pax body:not(#_):not(#__) #infobox>#tdpaxmore{all:unset;box-sizing:
   var w=setInterval(function(){ if(!build()) return; clearInterval(w);
     if(typeof W.render==='function'){ var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ build(); }catch(e){} return x; }; } },200);
   setTimeout(function(){ try{ build(); }catch(e){} },2500);
+})();
+</script>
+<!-- 11/15：開會時間的文字可以直接改，也可以自訂格式（tools/meetfmt.js）。格式存在這支手機 localStorage meetFmt1 -->
+<style>
+#cpedit{display:block;margin:10px 0 2px;font-size:12.5px;font-weight:900;color:#ffc53d;letter-spacing:.06em}
+#cptxt2{width:100%;box-sizing:border-box;font:14px/1.7 ui-monospace,Menlo,Consolas,monospace;background:#0b1019;border:1px solid #00efd4;color:#f2f4f7;padding:10px;resize:vertical;min-height:90px}
+#cpfmt{all:unset;cursor:pointer;flex:0 0 auto;padding:0 12px;min-height:44px;display:inline-flex;align-items:center;gap:6px;font-weight:900;font-size:14px;color:#00efd4;border:1px solid rgba(0,239,212,.6);background:rgba(0,239,212,.06)}
+.mfsheet{position:fixed;inset:0;z-index:2147483620;display:flex;align-items:flex-end;justify-content:center;background:rgba(4,2,10,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mfsheet .mfin{width:min(560px,100%);box-sizing:border-box;max-height:90vh;overflow:auto;background:linear-gradient(165deg,#1a0f33,#0c0a1d 60%,#120a26);border:1.5px solid #00f0ff;border-bottom:0;color:#e3eef8;
+  padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.mfsheet .mftop{display:flex;justify-content:space-between;align-items:center}
+.mfsheet h2{margin:0;font-size:19px;font-weight:900;letter-spacing:.1em;color:#fff}
+.mfsheet .mfx{all:unset;cursor:pointer;padding:8px 14px;border:1px solid #2a3545;background:#161e29;color:#c3cad4;font-weight:800;font-size:14px}
+.mfsheet label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:900;color:#ffc53d}
+.mfsheet input[type=text],.mfsheet textarea{font:15px/1.5 inherit;font-weight:700;background:#10151d;border:1px solid #2a3545;color:#fff;padding:10px;width:100%;box-sizing:border-box}
+.mfsheet textarea{min-height:64px;resize:vertical}
+.mfsheet input[type=text]:focus,.mfsheet textarea:focus{outline:none;border-color:#00efd4}
+.mfsheet .mftok{display:flex;flex-wrap:wrap;gap:6px}
+.mfsheet .mftok button{all:unset;cursor:pointer;padding:5px 9px;font-size:13px;font-weight:900;color:#00efd4;border:1px dashed rgba(0,239,212,.6)}
+.mfsheet .ck{flex-direction:row;align-items:center;gap:8px;color:#e3eef8;font-size:14.5px}
+.mfsheet .ck input{width:20px;height:20px;accent-color:#00efd4}
+.mfsheet .mfpv{white-space:pre-wrap;font:13.5px/1.7 ui-monospace,Menlo,monospace;background:#05080d;border:1px solid #22324a;padding:10px;color:#d7e3f0}
+.mfsheet .mfpvh{font-size:12.5px;font-weight:900;color:#8d99a9;margin-bottom:-6px}
+.mfsheet .mfrow{display:flex;gap:10px}
+.mfsheet .mfbtn{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px 0;font-weight:900;font-size:15px;border:1px solid #2a3545;background:#161e29;color:#c3cad4}
+.mfsheet .mfbtn.pri{background:#00efd4;border-color:#00efd4;color:#02241f}
+.mfsheet .mfnote{margin:0;color:#9aa6b8;font-size:12.5px;line-height:1.6;font-weight:700}
+</style>
+<script>
+(function(){
+  var D=document, W=window;
+  if(W.__meetfmt) return; W.__meetfmt=1;
+  var K='meetFmt1';
+  var DEF={head:'{日期} 開會時間（{時段}，每場 {分鐘} 分鐘）', row:'【{分類}】{開始}–{結束}　{散會後}', tail:'', late:true, rl:true};
+  function load(){ var c={}; try{ c=JSON.parse(localStorage.getItem(K)||'{}')||{}; }catch(e){} var o={}; for(var k in DEF) o[k]=(c[k]!==undefined?c[k]:DEF[k]); return o; }
+  function fill(t,m){ return String(t||'').replace(/\{([^}]+)\}/g,function(a,k){ return m.hasOwnProperty(k)?m[k]:a; }); }
+  function build(d,c){
+    var out=[]; var hd=fill(c.head,{'日期':d.md,'時段':d.lo+'–'+d.hi,'分鐘':d.dur}); if(hd.trim()) out.push(hd);
+    d.rows.forEach(function(r){
+      var ln=fill(c.row,{'分類':r.name,'開始':r.s,'結束':r.e,'第一班':r.first||'沒有','散會後':r.first?'散會後第一班 '+r.first:'散會後沒有班機，時間彈性'});
+      if(c.late&&r.late) ln+='　第一班就在 '+r.firstT.replace(':','：')+'，這場會來不及開完';
+      if(c.rl&&r.rl) ln+='　（前後留空排不下，已放寬）';
+      out.push(ln); });
+    var tl=fill(c.tail,{'日期':d.md,'時段':d.lo+'–'+d.hi,'分鐘':d.dur}); if(tl.trim()) out=out.concat(tl.split('\n'));
+    return out;
+  }
+  /* 主程式排好會之後呼叫這個：有自訂格式就照自訂的排字 */
+  W.meetFmt=function(d){ W.__meetLast=d; try{ if(!localStorage.getItem(K)) return null; }catch(e){ return null; } return build(d,load()); };
+
+  /* 開會結果下面：可以直接改的文字框＋「自訂格式」 */
+  function decorate(){
+    var box=D.getElementById('copybox'); if(!box||!box.querySelector('table.mt')||D.getElementById('cptxt2')) return;
+    var txt=W.__meetText||'';
+    var lab=D.createElement('span'); lab.id='cpedit'; lab.textContent='要貼到群組的文字（可以直接改）';
+    var ta=D.createElement('textarea'); ta.id='cptxt2'; ta.value=txt; ta.rows=Math.max(3,txt.split('\n').length+1);
+    var row=box.querySelector('.cprow'); row.parentNode.insertBefore(lab,row); row.parentNode.insertBefore(ta,row);
+    function fit(){ ta.style.height='auto'; ta.style.height=(ta.scrollHeight+4)+'px'; } fit(); ta.addEventListener('input',fit); setTimeout(fit,50);
+    var go=D.getElementById('cpgo');
+    if(go){ var g2=go.cloneNode(true); go.parentNode.replaceChild(g2,go);
+      g2.addEventListener('click',function(){ var v=ta.value, m=D.getElementById('cpmsg');
+        var done=function(ok){ if(m) m.innerHTML=ok?'✓ 已複製（含你改過的字），去群組貼上就行':'複製不了的話請長按文字手動複製'; };
+        if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(function(){ done(true); },function(){ done(false); });
+        else { ta.select(); var ok=false; try{ ok=D.execCommand('copy'); }catch(e){} done(ok); } }); }
+    var fb=D.createElement('button'); fb.type='button'; fb.id='cpfmt'; fb.textContent='自訂格式'; fb.onclick=openFmt;
+    (D.getElementById('cpgo')||row.firstChild).insertAdjacentElement('afterend',fb);
+    var m=D.getElementById('cpmsg'); if(m) m.textContent='可以直接改上面的文字再複製；常改的地方用「自訂格式」存起來';
+  }
+  /* 記下這次產生的純文字（主程式把 text 交給 showCopy） */
+  var w=setInterval(function(){ if(typeof W.showCopy!=='function') return; clearInterval(w);
+    var _s=W.showCopy; W.showCopy=function(t,h){ W.__meetText=h?t:''; var x=_s.apply(this,arguments); try{ decorate(); }catch(e){} return x; };
+    try{ showCopy=W.showCopy; }catch(e){} },100);
+
+  function regen(){ var box=D.getElementById('copybox'); if(box) box.innerHTML=''; try{ cpKind=null; }catch(e){} try{ W.cpKind=null; }catch(e){} var c=D.getElementById('cpM'); if(c) c.click(); }
+  function openFmt(){
+    if(D.querySelector('.mfsheet')) return;
+    var c=load(), d=W.__meetLast||{md:'11/15',lo:'18:00',hi:'21:30',dur:15,rows:[{name:'2140',s:'19:00',e:'19:15',first:'19:55 BR0396 越南／胡志明　C1',firstT:'19:55',late:false,rl:false},{name:'2153',s:'19:20',e:'19:35',first:'20:25 BR0129 日本／關西　C9',firstT:'20:25',late:false,rl:false}]};
+    var el=D.createElement('div'); el.className='mfsheet'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','開會文字格式');
+    function tok(list,target){ return '<div class="mftok" data-t="'+target+'">'+list.map(function(t){ return '<button type="button">{'+t+'}</button>'; }).join('')+'</div>'; }
+    el.innerHTML='<div class="mfin"><div class="mftop"><h2>開會文字格式</h2><button type="button" class="mfx">關閉</button></div>'
+      +'<p class="mfnote">大括號裡的字會自動換成當天的內容，點下面的小鍵可以插入。存起來之後每次按「開會時間」都照這個格式排。</p>'
+      +'<label>第一行（標題）<input type="text" id="mfHead" value=""></label>'+tok(['日期','時段','分鐘'],'mfHead')
+      +'<label>每一場一行<input type="text" id="mfRow" value=""></label>'+tok(['分類','開始','結束','散會後','第一班'],'mfRow')
+      +'<label>最後加上（可以多行，例如提醒、署名）<textarea id="mfTail"></textarea></label>'
+      +'<label class="ck"><input type="checkbox" id="mfLate"> 第一班趕不上時加註「來不及開完」</label>'
+      +'<label class="ck"><input type="checkbox" id="mfRl"> 前後留空排不下時加註「已放寬」</label>'
+      +'<div class="mfpvh">預覽（用今天排出來的會）</div><div class="mfpv" id="mfPv"></div>'
+      +'<div class="mfrow"><button type="button" class="mfbtn" id="mfReset">恢復預設</button><button type="button" class="mfbtn pri" id="mfSave">儲存並重新排</button></div></div>';
+    D.body.appendChild(el);
+    var H=el.querySelector('#mfHead'), Rw=el.querySelector('#mfRow'), T=el.querySelector('#mfTail'), L=el.querySelector('#mfLate'), RL=el.querySelector('#mfRl');
+    H.value=c.head; Rw.value=c.row; T.value=c.tail; L.checked=!!c.late; RL.checked=!!c.rl;
+    function cur(){ return {head:H.value,row:Rw.value,tail:T.value,late:L.checked,rl:RL.checked}; }
+    function pv(){ el.querySelector('#mfPv').textContent=build(d,cur()).join('\n'); }
+    [H,Rw,T,L,RL].forEach(function(x){ x.addEventListener('input',pv); x.addEventListener('change',pv); }); pv();
+    var lastF=H; [H,Rw].forEach(function(x){ x.addEventListener('focus',function(){ lastF=x; }); });
+    [].forEach.call(el.querySelectorAll('.mftok'),function(g){ g.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return;
+      var f=el.querySelector('#'+g.dataset.t), s=f.selectionStart!=null?f.selectionStart:f.value.length, en=f.selectionEnd!=null?f.selectionEnd:s;
+      f.value=f.value.slice(0,s)+b.textContent+f.value.slice(en); f.focus(); try{ f.setSelectionRange(s+b.textContent.length,s+b.textContent.length); }catch(_){} pv(); }); });
+    function close(){ el.remove(); }
+    el.querySelector('.mfx').onclick=close; el.addEventListener('click',function(e){ if(e.target===el) close(); });
+    el.querySelector('#mfReset').onclick=function(){ try{ localStorage.removeItem(K); }catch(e){} close(); regen(); };
+    el.querySelector('#mfSave').onclick=function(){ try{ localStorage.setItem(K,JSON.stringify(cur())); }catch(e){} close(); regen(); };
+  }
 })();
 </script>
 </body>
