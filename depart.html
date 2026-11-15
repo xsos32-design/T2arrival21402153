@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15h';
+var PAGE_V='2026-11-15i';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4536,7 +4536,8 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
 #rmap.thE .leaflet-overlay-pane svg{filter:url(#rpxf);shape-rendering:crispEdges}
 #rmap.thE .rk,#rmap.thE .rc,#rmap.thE .rt,#rmap.thE .rkw{font-family:'DotGothic16','Press Start 2P',monospace!important;font-weight:400!important;text-shadow:2px 2px 0 #000!important}
 #rmap.thE .rk{color:#ff2a6d!important} #rmap.thE .rc,#rmap.thE .rt{color:#ffe600!important}
-#rmap.thE .rz,#rmap.thE .rtpe{font-family:'DotGothic16',monospace!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important;border-radius:0!important}
+#rmap.thE .rtpe{font-family:'DotGothic16',monospace!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important;border-radius:0!important}
+#rmap.thE .rz{font-family:'DotGothic16',monospace!important;font-size:13px!important;padding:1px 5px!important;background:rgba(11,6,32,.55)!important;color:#ffe600!important;border:2px solid #ffe600!important;box-shadow:none!important;border-radius:0!important;pointer-events:none;z-index:-1}
 #rmap.thE .rl:not(.rls){font-family:'Press Start 2P','DotGothic16',monospace!important;font-size:9px!important;line-height:1.6!important;background:#000!important;border:2px solid #00f0ff!important;color:#fff!important;box-shadow:2px 2px 0 #000!important;border-radius:0!important}
 #rmap.thE .rl i{background:#00f0ff!important;color:#000!important}
 #rmap.thE .rl.rls{font-family:'Press Start 2P','DotGothic16',monospace!important;font-size:11px!important;background:#ffe600!important;color:#000!important;border:0!important;box-shadow:3px 3px 0 #000!important}
@@ -4619,7 +4620,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
     D.addEventListener('click',function(){ m.hidden=true; });
   }
   if(!D.getElementById('rpxdefs')){ var sv=D.createElementNS('http://www.w3.org/2000/svg','svg'); sv.id='rpxdefs'; sv.setAttribute('width','0'); sv.setAttribute('height','0'); sv.style.position='absolute';
-    sv.innerHTML='<filter id="rpxf" x="0" y="0" width="100%" height="100%"><feFlood x="2" y="2" width="1" height="1"/><feComposite width="5" height="5"/><feTile result="a"/><feComposite in="SourceGraphic" in2="a" operator="in"/><feMorphology operator="dilate" radius="2"/></filter>'; D.body.appendChild(sv); }
+    sv.innerHTML='<filter id="rpxf" x="0" y="0" width="100%" height="100%"><feMorphology in="SourceGraphic" operator="dilate" radius="2" result="d"/><feFlood x="2" y="2" width="1" height="1"/><feComposite width="5" height="5"/><feTile result="a"/><feComposite in="d" in2="a" operator="in"/><feMorphology operator="dilate" radius="2"/></filter>'; D.body.appendChild(sv); }
   W.__rthSet=function(k){ if(!NAMES[k]) return; TH=k; try{ localStorage.setItem('rth1',k); }catch(_){} apply(); try{ D.dispatchEvent(new CustomEvent('rthchange')); }catch(_){} };
   W.__rthGet=function(){ return TH; };
   function tick(t){ requestAnimationFrame(tick);
@@ -4708,7 +4709,7 @@ html.dash body:not(#_) #out .r.rYA{--tc:#8CF23A} html.dash body:not(#_) #out .r.
 html.dash body:not(#_) #out .r.done{opacity:.45}
 html.dash body:not(#_) #out .r .c-time,html.dash body:not(#_) #out .r .c-time b{background:transparent!important;box-shadow:none!important;text-shadow:none!important}
 html.dash body:not(#_) #out .r .c-time b{letter-spacing:.01em}
-html.dash body:not(#_) #out .r .c-time i{color:var(--dim)!important}
+html.dash body:not(#_) #out .r .c-time i:not(.bigd){color:var(--dim)!important}
 html.dash body:not(#_) #out .r .c-fno b{color:#eef4fb!important;letter-spacing:.03em}
 html.dash body:not(#_) #out .r .c-city .cn{color:var(--txt)!important}
 /* 登機門：背光警示燈（像駕駛艙的 annunciator） */
@@ -4812,7 +4813,7 @@ html.wst body:not(#_) #out .r.rYA{--wc:#9bc23a} html.wst body:not(#_) #out .r.rY
 html.wst body:not(#_) #out .r.soon:not(.done){outline:2px dashed var(--haz);outline-offset:-4px}
 /* 時間：真空管橘光數字 */
 html.wst body:not(#_) #out .r .c-time b,html.wst body:not(#_) #out .r .c-time b[class]{color:#ffb066!important;text-shadow:0 0 6px rgba(255,110,20,.9),0 0 16px rgba(255,90,0,.55)!important}
-html.wst body:not(#_) #out .r .c-time i{color:#b9ad8f!important}
+html.wst body:not(#_) #out .r .c-time i:not(.bigd){color:#b9ad8f!important}
 /* 班號：模板噴漆字 */
 html.wst body:not(#_) #out .r .c-fno b{font-family:'Black Ops One',system-ui,sans-serif!important;font-weight:400!important;font-size:24px!important;color:var(--cream)!important;letter-spacing:0!important;text-shadow:0 2px 0 #000!important;-webkit-text-stroke:0!important}
 html.wst body:not(#_) #out .r .cty{background:#151510!important;border-color:#5a5a3a!important;color:#b9ad8f!important}
@@ -4825,7 +4826,7 @@ html.wst body:not(#_) #out .r .tag{background:var(--grime),var(--wc)!important;c
 html.wst body:not(#_) #out .r .cn{color:var(--cream)!important}
 html.wst body:not(#_) #out .r .px{color:#ffb066!important}
 html.wst body:not(#_) #out .r .nat{background:rgba(242,194,48,.12)!important;border-color:#7a6418!important;color:var(--haz)!important}
-html.wst body:not(#_) #out .r .badge{color:#cfc3a3!important}
+html.wst body:not(#_) #out .r .badge.b-none{color:#cfc3a3!important}
 /* 詳細：黃色工業按鈕 */
 html.wst body:not(#_) #out .r .tapmore{background:linear-gradient(180deg,rgba(255,255,255,.25),rgba(0,0,0,.15)),var(--haz)!important;color:#141008!important;box-shadow:0 3px 0 #6b5410,0 4px 8px rgba(0,0,0,.6)!important;border:0!important}
 html.wst body:not(#_) #out .r.open .tapmore{transform:translateY(2px);box-shadow:0 1px 0 #6b5410!important}
@@ -4873,7 +4874,7 @@ html.tgr body:not(#_) #out .r::before,html.tgr body:not(#_) #out .r::after{displ
 html.tgr body:not(#_) #out .r.soon:not(.done){border-color:#ffd84a!important;border-left-color:var(--tc)!important}
 html.tgr body:not(#_) #out .r *{font-family:ui-monospace,'SF Mono',Menlo,monospace!important}
 html.tgr body:not(#_) #out .r .c-time b,html.tgr body:not(#_) #out .r .c-time b[class]{color:var(--g)!important;text-shadow:0 0 8px rgba(61,255,122,.7)!important}
-html.tgr body:not(#_) #out .r .c-time i,html.tgr body:not(#_) #out .r .badge,html.tgr body:not(#_) #out .r .px u{color:var(--g2)!important}
+html.tgr body:not(#_) #out .r .c-time i:not(.bigd),html.tgr body:not(#_) #out .r .badge.b-none,html.tgr body:not(#_) #out .r .px u{color:var(--g2)!important}
 html.tgr body:not(#_) #out .r .c-fno b,html.tgr body:not(#_) #out .r .cn{color:#d6ffe2!important;text-shadow:none!important;-webkit-text-stroke:0!important}
 html.tgr body:not(#_) #out .r .c-fno b{font-size:24px!important;letter-spacing:0!important}
 html.tgr body:not(#_) #out .r .px{color:#a8ffc4!important}
@@ -4914,7 +4915,7 @@ html.tmin body:not(#_) #out .r *{text-shadow:none!important}
 html.tmin body:not(#_) #out .r .c-time b,html.tmin body:not(#_) #out .r .c-time b[class]{color:#fff!important}
 html.tmin body:not(#_) #out .r .c-fno b,html.tmin body:not(#_) #out .r .cn{color:#fff!important;-webkit-text-stroke:0!important}
 html.tmin body:not(#_) #out .r .c-fno b{font-size:27px!important;letter-spacing:0!important}
-html.tmin body:not(#_) #out .r .c-time i,html.tmin body:not(#_) #out .r .badge,html.tmin body:not(#_) #out .r .px u{color:#888!important}
+html.tmin body:not(#_) #out .r .c-time i:not(.bigd),html.tmin body:not(#_) #out .r .badge.b-none,html.tmin body:not(#_) #out .r .px u{color:#888!important}
 html.tmin body:not(#_) #out .r .px{color:#ddd!important}
 html.tmin body:not(#_) #out .r .gn{background:var(--tc)!important;color:#000!important;border:0!important;box-shadow:none!important;clip-path:none!important;-webkit-text-stroke:0!important}
 html.tmin body:not(#_) #out .r .tag{background:transparent!important;color:var(--tc)!important;border:1px solid var(--tc)!important;box-shadow:none!important;clip-path:none!important}
@@ -4998,17 +4999,17 @@ html.tpx body:not(#_) #out .r.r40{--tc:var(--pc)} html.tpx body:not(#_) #out .r.
 html.tpx body:not(#_) #out .r::before,html.tpx body:not(#_) #out .r::after{display:none!important}
 html.tpx body:not(#_) #out .r.soon:not(.done){animation:pxsoon 1s steps(1) infinite!important}
 @keyframes pxsoon{50%{box-shadow:inset 0 0 0 3px var(--py),inset 0 0 0 6px #120a30,inset 0 0 0 7px rgba(255,230,0,.4)}}
-html.tpx body:not(#_) #out .r.done{opacity:.5}
+html.tpx body:not(#_) #out .r.done{opacity:.62}
 /* 數字：像素字 */
 html.tpx body:not(#_) #out .r .c-time b,html.tpx body:not(#_) #out .r .c-time b[class]{font-family:var(--pfont)!important;font-size:22px!important;letter-spacing:0!important;color:var(--py)!important;text-shadow:3px 3px 0 #000!important;-webkit-text-stroke:0!important;line-height:1.3!important}
-html.tpx body:not(#_) #out .r .c-time i{font-family:var(--pzh)!important;color:#a99bd8!important}
+html.tpx body:not(#_) #out .r .c-time i:not(.bigd){font-family:var(--pzh)!important;color:#a99bd8!important}
 html.tpx body:not(#_) #out .r .c-fno b{font-family:var(--pfont)!important;font-size:14px!important;letter-spacing:0!important;color:#fff!important;text-shadow:2px 2px 0 var(--pv)!important;-webkit-text-stroke:0!important;line-height:1.5!important}
 html.tpx body:not(#_) #out .r .gn{font-family:var(--pfont)!important;font-size:20px!important;letter-spacing:0!important;background:var(--tc)!important;color:#000!important;border:0!important;clip-path:var(--step)!important;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)!important;text-shadow:none!important;-webkit-text-stroke:0!important;padding:6px 8px!important;line-height:1!important}
 html.tpx body:not(#_) #out .r .ac{font-family:var(--pfont)!important;font-size:8px!important;background:#000!important;border:2px solid #4a3a8a!important;color:#c9b8ff!important;padding:3px 4px!important}
 html.tpx body:not(#_) #out .r .tag{font-family:var(--pfont)!important;font-size:11px!important;background:var(--tc)!important;color:#000!important;border:0!important;clip-path:var(--step)!important;box-shadow:none!important;text-shadow:none!important;padding:4px 7px!important}
 html.tpx body:not(#_) #out .r .cty,html.tpx body:not(#_) #out .r .nat{font-family:var(--pzh)!important;background:#000!important;border:2px solid #4a3a8a!important;color:#c9b8ff!important}
-html.tpx body:not(#_) #out .r .cn,html.tpx body:not(#_) #out .r .badge{font-family:var(--pzh)!important;color:#fff!important;text-shadow:none!important}
-html.tpx body:not(#_) #out .r .badge{color:#a99bd8!important}
+html.tpx body:not(#_) #out .r .cn,html.tpx body:not(#_) #out .r .badge.b-none{font-family:var(--pzh)!important;color:#fff!important;text-shadow:none!important}
+html.tpx body:not(#_) #out .r .badge.b-none{color:#a99bd8!important}
 html.tpx body:not(#_) #out .r .px{font-family:var(--pfont)!important;font-size:12px!important;color:var(--pc)!important}
 html.tpx body:not(#_) #out .r .px u{font-family:var(--pzh)!important;color:#a99bd8!important}
 html.tpx body:not(#_) #out .r .tapmore{font-family:var(--pzh)!important;background:var(--pp)!important;color:#fff!important;border:0!important;clip-path:var(--step)!important;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3)!important;text-shadow:1px 1px 0 #000!important;filter:drop-shadow(2px 2px 0 #000)}
