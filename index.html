@@ -751,7 +751,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15b';
+var PAGE_V='2026-11-15c';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -4288,5 +4288,227 @@ html body:not(#_) #out .r .c-time b,html body:not(#_) #out .r .c-fno b,html body
 /* 11/15：背景圖被班機清單的深色底蓋住了（ds/board.css 的 .list 底色），清單改透明，航廈夜景／夜間起飛背景重新看得到 */
 html:is(.arr,.dep) body:not(#_) .list{background:transparent!important;border-color:transparent!important}
 </style>
+<!-- 11/15 預覽 v2：動畫＋彩蛋（tools/fx.js）。顏色跟現在線上的賽博龐克一樣，內容、位置都不動
+     開場：霓虹招牌通電、卡片滑進來；背景霓虹雨；按卡片 3D 傾斜＋反光；
+     班機抵達蓋「已抵達」章；長按招牌出現今天的登機證 -->
+<style>
+/* ── 面板對齊：手機版卡片左欄寬度統一（原本跟著每張卡的時間寬度變，班號、城市會左右錯開） ── */
+@media (max-width:820px){ body:not(#_) #out .r:not(.head){grid-template-columns:var(--fxtw,minmax(0,auto)) minmax(0,1fr) 86px!important}
+  body:not(#_) #out .r:not(.head) .c-fno{text-align:left!important;justify-content:flex-start!important;justify-self:start!important} }
+
+/* ── 背景霓虹雨（在卡片後面，很淡） ── */
+#fxrain{position:fixed;inset:0;z-index:-1;pointer-events:none;width:100%;height:100%;opacity:.9}
+
+/* ── 開場：招牌像霓虹燈管通電，閃幾下才亮 ── */
+.mk.fxon{animation:fxneon 1.5s linear both}
+@keyframes fxneon{0%{filter:brightness(.08) saturate(.3)}10%{filter:brightness(1.1)}13%{filter:brightness(.1)}24%{filter:brightness(.1)}27%{filter:brightness(1.3)}30%{filter:brightness(.25)}46%{filter:brightness(.25)}50%{filter:brightness(1.4) saturate(1.3)}100%{filter:none}}
+
+
+/* ── 點一下：霓虹光環 ── */
+.fxr{position:fixed;z-index:2147483600;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;pointer-events:none;
+  border:2px solid var(--fxc,#00f0ff);box-shadow:0 0 10px var(--fxc,#00f0ff),inset 0 0 6px var(--fxc,#00f0ff);animation:fxr .45s ease-out forwards}
+@keyframes fxr{0%{transform:scale(.4);opacity:1}100%{transform:scale(4.2);opacity:0}}
+
+/* ── 按住卡片：往手指那邊微微傾斜，一道反光跟著手指 ── */
+#out .r:not(.head){position:relative;transition:transform .35s cubic-bezier(.2,.8,.3,1);transform-style:preserve-3d}
+#out .r.fxtilt{transition:transform .12s ease-out}
+.fxgl{position:absolute;inset:0;pointer-events:none;z-index:3;mix-blend-mode:screen;opacity:0;transition:opacity .3s;
+  background:radial-gradient(220px 140px at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.28),rgba(255,255,255,.06) 45%,transparent 70%),
+             linear-gradient(115deg,transparent 30%,rgba(0,240,255,.12) 45%,rgba(255,42,109,.12) 55%,transparent 70%)}
+#out .r.fxtilt .fxgl{opacity:1}
+
+/* ── 第一次打開：卡片滑進來 ── */
+html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--fxi,0) * 55ms)}
+@keyframes fxup{0%{opacity:0;transform:translateY(18px) scale(.98)}100%{opacity:1;transform:none}}
+#out .r.open .dt{animation:fxdrop .22s ease-out}
+@keyframes fxdrop{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
+
+/* ── 班機抵達：蓋一個「已抵達」霓虹章 ── */
+.fxstamp{position:absolute;z-index:4;right:22%;top:50%;pointer-events:none;padding:4px 14px;font:900 22px/1.2 inherit;letter-spacing:.2em;white-space:nowrap;
+  color:#3dff8f;border:3px solid #3dff8f;text-shadow:0 0 10px #3dff8f;box-shadow:0 0 16px -2px #3dff8f,inset 0 0 12px -4px #3dff8f;background:rgba(5,20,12,.55);
+  transform:translateY(-50%) rotate(-12deg);animation:fxstamp 3.4s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes fxstamp{0%{opacity:0;transform:translateY(-50%) rotate(-12deg) scale(2.6)}12%{opacity:1;transform:translateY(-50%) rotate(-12deg) scale(1)}
+  80%{opacity:1}100%{opacity:0;transform:translateY(-50%) rotate(-12deg) scale(1)}}
+#out .r.fxshake{animation:fxshake .3s ease-out}
+@keyframes fxshake{25%{transform:translate(2px,1px)}50%{transform:translate(-2px,-1px)}75%{transform:translate(1px,0)}}
+
+/* ── 現在線：一道光掃過；更新：圖示轉圈＋掃描線 ── */
+.nowline{position:relative;overflow:hidden}
+.nowline .fxsw{position:absolute;top:0;bottom:0;width:60px;left:-70px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);mix-blend-mode:overlay;animation:fxsw 4.5s ease-in-out infinite}
+@keyframes fxsw{0%,55%{left:-70px}100%{left:calc(100% + 10px)}}
+#fGo.fxspin svg.ic{animation:fxspin .7s linear infinite}
+@keyframes fxspin{100%{transform:rotate(360deg)}}
+.fxscan{position:fixed;left:0;right:0;top:0;height:3px;z-index:2147483500;pointer-events:none;background:var(--fxc,#00f0ff);
+  box-shadow:0 0 14px 3px var(--fxc,#00f0ff),0 -30px 40px -10px color-mix(in srgb,var(--fxc,#00f0ff) 35%,transparent);animation:fxscan .65s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes fxscan{0%{transform:translateY(0)}100%{transform:translateY(100vh);opacity:.2}}
+
+/* ── 彩蛋：飛機飛過（連點 2140 / 2153 三下） ── */
+.fxplane{position:fixed;z-index:2147483400;top:var(--fy,120px);left:-80px;width:46px;height:46px;pointer-events:none;background:var(--fxc,#00f0ff);
+  -webkit-mask:url(img/plane.webp) center/contain no-repeat;mask:url(img/plane.webp) center/contain no-repeat;transform:rotate(90deg);filter:drop-shadow(0 0 6px var(--fxc,#00f0ff));animation:fxfly 1.6s cubic-bezier(.45,.05,.55,.95) forwards}
+.fxtrail{position:fixed;z-index:2147483399;top:calc(var(--fy,120px) + 22px);left:0;height:2px;width:0;pointer-events:none;background:linear-gradient(90deg,transparent,var(--fxc,#00f0ff));box-shadow:0 0 8px var(--fxc,#00f0ff);animation:fxtrail 1.6s cubic-bezier(.45,.05,.55,.95) forwards}
+@keyframes fxfly{0%{left:-80px}100%{left:calc(100vw + 40px)}}
+@keyframes fxtrail{0%{width:0;opacity:1}75%{opacity:.9}100%{width:100vw;opacity:0}}
+
+/* ── 彩蛋：長按招牌 → 今天的登機證 ── */
+#fxbp{position:fixed;inset:0;z-index:2147483640;display:flex;align-items:center;justify-content:center;background:rgba(4,2,10,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  perspective:900px;animation:fxfade .25s ease-out}
+@keyframes fxfade{0%{opacity:0}}
+#fxbp .fxp{width:min(360px,88vw);color:#e8f6ff;font-weight:800;transform-origin:50% 100%;animation:fxbpin .7s cubic-bezier(.2,1.2,.3,1) both;
+  background:linear-gradient(160deg,#1a0f33,#0b0a1c 60%,#120a26);border:1.5px solid var(--fxc,#00f0ff);
+  box-shadow:0 0 30px -6px var(--fxc,#00f0ff),inset 0 0 40px -20px var(--fxc,#00f0ff);
+  -webkit-mask:radial-gradient(circle 13px at 0 66%,transparent 12px,#000 13px) left/51% 100% no-repeat,radial-gradient(circle 13px at 100% 66%,transparent 12px,#000 13px) right/51% 100% no-repeat;
+          mask:radial-gradient(circle 13px at 0 66%,transparent 12px,#000 13px) left/51% 100% no-repeat,radial-gradient(circle 13px at 100% 66%,transparent 12px,#000 13px) right/51% 100% no-repeat}
+@keyframes fxbpin{0%{opacity:0;transform:rotateX(-75deg) translateY(60px)}100%{opacity:1;transform:none}}
+#fxbp .fxh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 10px;border-bottom:1px dashed rgba(0,240,255,.35);letter-spacing:.22em;font-size:12px;color:var(--fxc,#00f0ff)}
+#fxbp .fxh b{font-size:15px;color:#fff;letter-spacing:.12em;text-shadow:0 0 8px var(--fxc,#00f0ff)}
+#fxbp .fxt{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px}
+#fxbp .fxt div{text-align:center} #fxbp .fxt small{display:block;font-size:11px;color:#8b8fb0;letter-spacing:.15em}
+#fxbp .fxt b{font:700 30px/1.1 'Chakra Petch',ui-monospace,monospace;color:#fff;text-shadow:0 0 12px var(--fxc,#00f0ff)}
+#fxbp .fxt i{flex:1;height:2px;margin:0 12px;background:repeating-linear-gradient(90deg,var(--fxc,#00f0ff) 0 6px,transparent 6px 11px);position:relative}
+#fxbp .fxt i::after{content:"";position:absolute;right:-4px;top:-5px;border:6px solid transparent;border-left:9px solid var(--fxc,#00f0ff)}
+#fxbp .fxg{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;padding:10px 18px 16px}
+#fxbp .fxg small{display:block;font-size:11px;color:#8b8fb0;letter-spacing:.15em}
+#fxbp .fxg b{font:700 19px/1.2 'Chakra Petch',ui-monospace,monospace;color:#fff} #fxbp .fxg b em{font-style:normal;font-size:13px;color:#ffe27a;margin-left:4px}
+#fxbp .fxc{border-top:1px dashed rgba(0,240,255,.35);padding:14px 18px 16px;display:flex;flex-direction:column;align-items:center;gap:6px}
+#fxbp .fxc i{display:block;width:100%;height:44px;background:var(--bars);opacity:.92}
+#fxbp .fxc span{font-size:11px;color:#8b8fb0;letter-spacing:.3em}
+
+/* ── 彩蛋：長按右上角時間 ── */
+.fxbox{position:fixed;z-index:2147483600;right:12px;top:calc(64px + env(safe-area-inset-top));padding:10px 14px;pointer-events:none;background:rgba(10,6,20,.92);border:1px solid var(--fxc,#00f0ff);
+  box-shadow:0 0 16px -2px var(--fxc,#00f0ff);color:#e6f6ff;font-weight:900;font-size:14px;line-height:1.6;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));animation:fxfade .25s ease-out}
+.fxbox b{color:var(--fxc,#00f0ff);font-family:'Chakra Petch',ui-monospace,monospace;font-size:18px}
+
+@media (prefers-reduced-motion:reduce){
+  #fxrain,.fxr,.fxscan,.fxplane,.fxtrail,.fxgl{display:none!important}
+  .mk.fxon,html.fxin #out .r:not(.head),.fxstamp,#out .r.fxshake,.nowline .fxsw,#fxbp .fxp{animation:none!important}
+  #out .r:not(.head){transform:none!important}
+}
+</style>
+<script>
+(function(){
+  var D=document, W=window, R=D.documentElement;
+  if(W.__fx) return; W.__fx=1;
+  var DEP=/出境/.test(D.title), C1=DEP?'#ff2a6d':'#00f0ff';
+  var RM=W.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
+  R.style.setProperty('--fxc',C1);
+  function col(el){ var r=el&&el.closest&&el.closest('.r'); if(r&&r.classList.contains('r53')) return '#ff2a6d'; if(r&&r.classList.contains('r40')) return '#00f0ff'; return C1; }
+  function add(cls,css,ms){ var e=D.createElement('div'); e.className=cls; for(var k in css) e.style.setProperty(k,css[k]); D.body.appendChild(e); if(ms) setTimeout(function(){ e.remove(); },ms); return e; }
+
+
+  /* ── 背景霓虹雨 ── */
+  if(!RM&&R.matches('.arr,.dep')){
+    var cv=D.createElement('canvas'); cv.id='fxrain'; D.body.appendChild(cv); var cx=cv.getContext('2d'), drops=[], wd=0, ht=0, dpr=Math.min(2,W.devicePixelRatio||1);
+    function size(){ wd=innerWidth; ht=innerHeight; cv.width=wd*dpr; cv.height=ht*dpr; cx.setTransform(dpr,0,0,dpr,0,0); }
+    function drop(y){ return {x:Math.random()*wd*1.2,y:y==null?Math.random()*ht:-60,l:18+Math.random()*46,v:5+Math.random()*7,a:.10+Math.random()*.22,c:Math.random()<.55?'0,240,255':'255,42,109'}; }
+    size(); addEventListener('resize',size); for(var i=0;i<46;i++) drops.push(drop());
+    var lt=0;
+    (function tick(t){ requestAnimationFrame(tick); if(D.hidden||t-lt<33) return; lt=t; cx.clearRect(0,0,wd,ht);
+      for(var i=0;i<drops.length;i++){ var d=drops[i]; d.y+=d.v; d.x-=d.v*.18; if(d.y>ht+60||d.x<-40){ drops[i]=drop(-1); continue; }
+        var g=cx.createLinearGradient(d.x,d.y,d.x+d.l*.18,d.y-d.l); g.addColorStop(0,'rgba('+d.c+','+d.a+')'); g.addColorStop(1,'rgba('+d.c+',0)');
+        cx.strokeStyle=g; cx.lineWidth=1.3; cx.beginPath(); cx.moveTo(d.x,d.y); cx.lineTo(d.x+d.l*.18,d.y-d.l); cx.stroke(); } })(0);
+  }
+
+  /* ── 點一下的光環 ── */
+  var TAP='button,a,.chip,.fabb,.tapmore,.rdr,.foldline,#out .r:not(.head),.mk,.h7k,.live,summary';
+  D.addEventListener('pointerdown',function(e){ var t=e.target.closest&&e.target.closest(TAP); if(!t||RM) return;
+    add('fxr',{left:e.clientX+'px',top:e.clientY+'px','--fxc':col(e.target)},500); },{passive:true});
+
+  /* ── 按住卡片：3D 傾斜＋反光 ── */
+  var tc=null;
+  D.addEventListener('pointerdown',function(e){ if(RM) return; var r=e.target.closest&&e.target.closest('#out .r:not(.head)'); if(!r||e.target.closest('.tapmore,.rdr,.dt')) return;
+    var b=r.getBoundingClientRect(), x=(e.clientX-b.left)/b.width, y=(e.clientY-b.top)/b.height;
+    var g=r.querySelector('.fxgl'); if(!g){ g=D.createElement('i'); g.className='fxgl'; r.appendChild(g); }
+    r.style.setProperty('--gx',(x*100)+'%'); r.style.setProperty('--gy',(y*100)+'%');
+    r.style.transform='perspective(800px) rotateX('+((.5-y)*7).toFixed(2)+'deg) rotateY('+((x-.5)*7).toFixed(2)+'deg) scale(.985)'; r.classList.add('fxtilt'); tc=r; },{passive:true});
+  function untilt(){ if(!tc) return; tc.style.transform=''; tc.classList.remove('fxtilt'); tc=null; }
+  ['pointerup','pointercancel','pointerleave','scroll'].forEach(function(ev){ (ev==='scroll'?W:D).addEventListener(ev,untilt,{passive:true}); });
+
+  /* ── 開場 ── */
+  var mk=D.querySelector('.mk'); if(mk&&!RM){ mk.classList.add('fxon'); setTimeout(function(){ mk.classList.remove('fxon'); },1600); }
+  R.classList.add('fxin'); setTimeout(function(){ R.classList.remove('fxin'); },2800);
+
+  /* ── 更新鍵 ── */
+  var spinning=0;
+  D.addEventListener('click',function(e){ var g=e.target.closest&&e.target.closest('#fGo'); if(!g) return;
+    g.classList.add('fxspin'); spinning=Date.now(); setTimeout(function(){ if(g.classList.contains('fxspin')) done(); },4000); },true);
+  function done(){ var g=D.getElementById('fGo'); if(!g) return; var w=Math.max(0,700-(Date.now()-spinning)); spinning=0;
+    setTimeout(function(){ g.classList.remove('fxspin'); if(!RM) add('fxscan',{'--fxc':C1},700); },w); }
+
+  /* ── 已抵達的章 ── */
+  function stamp(r){ if(RM||!r) return; var s=D.createElement('span'); s.className='fxstamp'; s.textContent=DEP?'已出發':'已抵達'; r.appendChild(s);
+    setTimeout(function(){ r.classList.add('fxshake'); },380); setTimeout(function(){ r.classList.remove('fxshake'); },700); setTimeout(function(){ s.remove(); },3500); }
+  W.__fxStamp=stamp;
+
+  /* ── 每次重畫 ── */
+  var last={}, first=true;
+  /* 面板對齊：量每張卡左欄（時間＋表定）的字實際多寬，取最大值當全部卡片的左欄寬，班號、城市就會對齊同一條線 */
+  function align(){
+    var out=D.getElementById('out'); if(!out) return; var tw=0, rg=D.createRange();
+    [].forEach.call(out.querySelectorAll('.r:not(.head) .c-time>*'),function(c){ rg.selectNodeContents(c); tw=Math.max(tw,Math.ceil(rg.getBoundingClientRect().width)); });
+    if(tw) out.style.setProperty('--fxtw',(tw+4)+'px');
+  }
+  /* 字體（儀表字體）下載好之前量到的是替代字體，下載完再量一次 */
+  try{ D.fonts.ready.then(function(){ align(); }); D.fonts.addEventListener('loadingdone',function(){ align(); }); }catch(e){}
+  try{ new MutationObserver(function(){ requestAnimationFrame(align); }).observe(D.body,{attributes:true,attributeFilter:['class']}); }catch(e){}
+  function paint(){
+    if(spinning) done();
+    var rows=D.querySelectorAll('#out .r:not(.head)'); align();
+    [].forEach.call(rows,function(r,i){ r.style.setProperty('--fxi',Math.min(i,12));
+      var k=r.getAttribute('data-k'); if(!k) return;
+      var dn=r.classList.contains('done'), o=last[k];
+      if(!first&&o&&dn&&!o.d) stamp(r);
+      last[k]={d:dn}; });
+    first=false;
+    var nl=D.querySelector('.nowline'); if(nl&&!nl.querySelector('.fxsw')){ var s=D.createElement('i'); s.className='fxsw'; nl.appendChild(s); }
+  }
+  var w=setInterval(function(){ if(typeof W.render!=='function') return; clearInterval(w);
+    var _r=W.render; W.render=function(){ var x=_r.apply(this,arguments); try{ paint(); }catch(e){} return x; }; try{ paint(); }catch(e){} },100);
+
+  /* ── 彩蛋：連點「2140 / 2153」三下，飛機飛過 ── */
+  var ht2=[];
+  D.addEventListener('click',function(e){ var h=e.target.closest&&e.target.closest('.h7k'); if(!h) return;
+    var n=Date.now(); ht2=ht2.filter(function(x){ return n-x<1500; }); ht2.push(n); if(ht2.length<3) return; ht2=[];
+    var y=Math.max(10,h.getBoundingClientRect().top-12)+'px';
+    add('fxtrail',{'--fy':y,'--fxc':C1},1700); add('fxplane',{'--fy':y,'--fxc':C1},1700); });
+
+  /* ── 彩蛋：長按招牌 0.7 秒 → 今天的登機證 ── */
+  function pass(){
+    if(D.getElementById('fxbp')) return;
+    var rows=[].slice.call(D.querySelectorAll('#out .r:not(.head)')), pax=0, top=null, ts=[];
+    rows.forEach(function(r){ var p=r.querySelector('.px'), n=p?parseInt(String(p.firstChild&&p.firstChild.textContent||p.textContent).replace(/\D/g,''),10)||0:0; pax+=n;
+      var f=(r.querySelector('.c-fno b')||{}).textContent||'', t=(r.querySelector('.c-time b')||{}).textContent||''; if(t) ts.push(t);
+      if(!top||n>top.n) top={n:n,f:f}; });
+    ts.sort();
+    var bars=[], seed=pax+rows.length*97, x=0; while(x<100){ seed=(seed*9301+49297)%233280; var wd=(seed%3)+1, gp=((seed>>3)%3)+1;
+      bars.push('#e8f6ff '+x+'% '+(x+wd*.7)+'%'); bars.push('transparent '+(x+wd*.7)+'% '+(x+wd*.7+gp*.7)+'%'); x+=wd*.7+gp*.7; }
+    var d=new Date(), ds=(d.getMonth()+1)+'/'+d.getDate();
+    var o=D.createElement('div'); o.id='fxbp';
+    o.innerHTML='<div class="fxp" style="--bars:linear-gradient(90deg,'+bars.join(',')+')">'+
+      '<div class="fxh"><span>BOARDING PASS</span><b>'+(DEP?'出境':'入境')+' · '+ds+'</b></div>'+
+      '<div class="fxt"><div><small>FROM</small><b>'+(DEP?'TPE':'WORLD')+'</b></div><i></i><div><small>TO</small><b>'+(DEP?'WORLD':'TPE')+'</b></div></div>'+
+      '<div class="fxg"><div><small>班機</small><b>'+rows.length+'<em>班</em></b></div><div><small>'+(DEP?'出境':'入境')+'人數</small><b>'+pax.toLocaleString()+'<em>人</em></b></div>'+
+      '<div><small>第一班</small><b>'+(ts[0]||'—')+'</b></div><div><small>最後一班</small><b>'+(ts[ts.length-1]||'—')+'</b></div>'+
+      '<div style="grid-column:1/-1"><small>最多人的一班</small><b>'+(top?top.f:'—')+'<em>'+(top?top.n+' 人':'')+'</em></b></div></div>'+
+      '<div class="fxc"><i></i><span>2140 · 2153 · 小韋製作</span></div></div>';
+    o.addEventListener('click',function(){ o.remove(); }); D.body.appendChild(o);
+  }
+  W.__fxPass=pass;
+  var lpm=0, mkt=[];
+  D.addEventListener('pointerdown',function(e){ if(!(e.target.closest&&e.target.closest('.mk'))) return; clearTimeout(lpm); lpm=setTimeout(pass,700); });
+  /* 連點招牌 5 下：霓虹燈跳電 */
+  D.addEventListener('click',function(e){ var m=e.target.closest&&e.target.closest('.mk'); if(!m) return;
+    var n=Date.now(); mkt=mkt.filter(function(x){ return n-x<2200; }); mkt.push(n); if(mkt.length<5) return; mkt=[];
+    m.classList.remove('fxon'); void m.offsetWidth; m.classList.add('fxon'); setTimeout(function(){ m.classList.remove('fxon'); },1600); });
+
+  /* ── 彩蛋：長按右上角時間 ── */
+  var cnt={d:'',t:0,all:0}; try{ cnt=JSON.parse(localStorage.getItem('fxcnt1'))||cnt; }catch(e){}
+  var today=new Date().toDateString(); if(cnt.d!==today){ cnt.d=today; cnt.t=0; } cnt.t++; cnt.all=(cnt.all||0)+1;
+  try{ localStorage.setItem('fxcnt1',JSON.stringify(cnt)); }catch(e){}
+  var lp=0;
+  D.addEventListener('pointerdown',function(e){ if(!(e.target.closest&&e.target.closest('header .live'))) return;
+    clearTimeout(lp); lp=setTimeout(function(){ var b=add('fxbox',{'--fxc':C1},3200); b.innerHTML='今天第 <b>'+cnt.t+'</b> 次打開看板<br>總共陪你看了 <b>'+cnt.all+'</b> 次'; },800); });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ D.addEventListener(ev,function(){ clearTimeout(lp); clearTimeout(lpm); }); });
+})();
+</script>
 </body>
 </html>
