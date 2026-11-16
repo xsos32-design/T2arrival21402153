@@ -1,4 +1,5 @@
 @import url("theme-fit.css");   /* 11/16：按鍵跟著「班機樣式」換色（網頁版與 App 共用） */
+@import url("stamp.css");       /* 11/16：已抵達／已出發的章一直蓋著 */
 /* 小韋班機看板 — 美化層（polish.css）
    在 board.css 後面載入，只改外觀，不動任何功能。
    顏色都用 tokens.css 的變數。 */
