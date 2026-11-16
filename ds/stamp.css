@@ -13,3 +13,5 @@ html.tmin #out .r.done:not(.head) .c-fno::after{background:#000;text-shadow:none
 html.tpx #out .r.done:not(.head) .c-fno::after{border-radius:0}
 html.matte #out .r.done:not(.head) .c-fno::after{border-radius:8px;border-width:2px;transform:translateY(-50%) rotate(-8deg)}
 @media (min-width:821px){ #out .r.done:not(.head) .c-fno::after{font-size:16px;right:30%} }
+/* 11/16b：已抵達只留章一個地方，右邊狀態的「抵達／已飛」字拿掉，不重複 */
+#out .r.done:not(.head) .badge{display:none!important}
