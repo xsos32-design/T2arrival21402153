@@ -1,3 +1,4 @@
+@import url("watch-fix.css");   /* 11/16：手錶頁小修正（只管手錶的 #list） */
 /* 小韋班機看板 — 設計系統元件樣式（board.css）
    跟設計系統頁 https://claude.ai/artifact/G14T9xAJpySgbGvejF4Z8x 的 components/bundle.css 同一份。
    只管「顏色、框線、字體」，版面（格線、大小、排列）留給各頁自己。
