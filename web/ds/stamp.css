@@ -1,0 +1,17 @@
+/* 已抵達／已出發的「章」一直蓋著（11/16）。原本只在剛變成已抵達那一刻閃 3 秒就消失。
+   用班號欄的 ::after 畫，不用改程式；字跟著頁面：入境「已抵達」、出境「已出發」 */
+#out .r.done:not(.head) .c-fno::after{content:"已抵達";position:absolute;z-index:3;right:22%;top:50%;pointer-events:none;
+  padding:3px 12px;font:900 20px/1.2 inherit;letter-spacing:.2em;white-space:nowrap;
+  color:#3dff8f;border:3px solid #3dff8f;text-shadow:0 0 10px #3dff8f;box-shadow:0 0 16px -2px #3dff8f,inset 0 0 12px -4px #3dff8f;background:rgba(5,20,12,.55);
+  transform:translateY(-50%) rotate(-12deg)}
+html.dep #out .r.done:not(.head) .c-fno::after,body.dep #out .r.done:not(.head) .c-fno::after{content:"已出發"}
+/* 剛抵達那一下的動畫章還在時，先不疊第二個 */
+#out .r.done:has(> .fxstamp) .c-fno::after{display:none}
+/* 主題配色 */
+html:is(.dash,.twar,.wst,.tgr,.tmin,.tbp,.tpx,.matte) #out .r.done:not(.head) .c-fno::after{color:var(--tf-acc);border-color:var(--tf-acc);text-shadow:var(--tf-glow);box-shadow:var(--tf-glow);background:var(--tf-panel);font-family:var(--tf-font)}
+html.tmin #out .r.done:not(.head) .c-fno::after{background:#000;text-shadow:none;box-shadow:none}
+html.tpx #out .r.done:not(.head) .c-fno::after{border-radius:0}
+html.matte #out .r.done:not(.head) .c-fno::after{border-radius:8px;border-width:2px;transform:translateY(-50%) rotate(-8deg)}
+@media (min-width:821px){ #out .r.done:not(.head) .c-fno::after{font-size:16px;right:30%} }
+/* 11/16b：已抵達只留章一個地方，右邊狀態的「抵達／已飛」字拿掉，不重複 */
+#out .r.done:not(.head) .badge{display:none!important}
