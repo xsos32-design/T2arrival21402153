@@ -1603,6 +1603,13 @@ async function main() {
     for (const f of pv) if (/\.(html|png|json|txt)$/.test(f)) await copyFile(join('preview', f), join(OUT, 'preview', f));
     console.log('已複製 preview/（' + pv.length + ' 個檔）');
   } catch { console.log('沒有 preview/ 資料夾，略過'); }
+  /* 11/17：網頁正式版（免費／完整版，綠界啟用碼）：web/ 整個資料夾（含子資料夾）原樣發佈 */
+  try {
+    const { cp } = await import('node:fs/promises');
+    await access('web');
+    await cp('web', join(OUT, 'web'), { recursive: true });
+    console.log('已複製 web/（網頁正式版）');
+  } catch { console.log('沒有 web/ 資料夾，略過'); }
   /* 移民署人數：由你電腦上的 self-hosted runner 寫進 repo 的 data/imm.json，這裡原樣發佈 */
   try { await access('data/imm.json'); await copyFile('data/imm.json', join(OUT, 'imm.json')); console.log('已複製 data/imm.json → imm.json'); }
   catch { console.log('還沒有 data/imm.json（移民署中繼還沒跑過），略過'); }
