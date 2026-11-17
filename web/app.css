@@ -1,0 +1,97 @@
+/* 桃機出入境看板 App 版：免費／訂閱分級、訂閱頁、廣告空間、字級 */
+:root{--pw-bg:#0b0d10;--pw-line:#2a3545;--pw-fg:#e6edf5;--pw-mute:#8b96a6;--pw-cyan:#00efd4;--pw-gold:#ffc53d;--ad-h:0px}
+
+/* 公開版不顯示：署名招牌、開會時間 */
+html body div.mk.mk.mk{display:none!important}
+/* 開會時間：訂閱功能 */
+html body.tier-free #cpM.chip.chip,html body.tier-free #cpMset.chip.chip{display:none!important}
+
+/* 底部留給 AdMob 橫幅，浮動按鈕往上移 */
+body{padding-bottom:calc(var(--ad-h) + env(safe-area-inset-bottom,0px))!important}
+#fab{bottom:calc(var(--ad-h) + 8px + env(safe-area-inset-bottom,0px))!important}
+
+/* ── 免費版：只看現在起 3 小時、陽春清單 ── */
+body.tier-free #nnext,body.tier-free #nalert,body.tier-free #hourbar,body.tier-free #nextnote,body.tier-free #remain,body.tier-free #prog,body.tier-free #ibmore,body.tier-free #offnote,body.tier-free #immnote{display:none!important}
+body.tier-free #out .px,body.tier-free #out .nat,body.tier-free #out .wave,body.tier-free #out .gapline,body.tier-free #out .foldline{display:none!important}
+body.tier-free #out .badge{background:transparent!important;color:#c4ccd7!important;border-color:#3a4554!important;box-shadow:none!important;text-shadow:none!important}
+body.tier-free #out .c-time b,body.tier-free #out .c-time i,body.tier-free #out .bigd{color:#e6edf5!important;text-shadow:none!important;background:none!important}
+body.tier-free #out .ac{display:none!important}
+body.tier-free #out .r{cursor:default}
+body.tier-free #out .r.soon,body.tier-free #out .r.taxi{box-shadow:none!important;animation:none!important}
+body.tier-free :is(#now6,#hide,#fNow,#cpgo,#fsearch,.chip[data-t],#custchip,#shopslot .chip[data-i="2"],#shopslot .chip[data-i="3"],#dTom),body.tier-free details.cfg:has(#date),body.tier-free #colbox,body.tier-free .rep:has(> [data-cp]){display:none!important}
+body.tier-free .chips:has(> #now6),body.tier-free .chips:has(.chip[data-t]){display:none!important}
+html body.tier-free:not(#_) .chips:has(.chip[data-t]),html body.tier-free:not(#_) .chips:has(#shopslot),html body.tier-free:not(#_) .chips:has(> #sall){display:none!important}
+
+/* 標題列的「訂閱」鍵 */
+#probtn{all:unset;cursor:pointer;flex:0 0 auto;margin-right:6px;padding:5px 10px;min-height:30px;box-sizing:border-box;display:inline-flex;align-items:center;
+  font:900 13px/1 system-ui,"PingFang TC",sans-serif;color:#1a1300;background:var(--pw-gold);border:1px solid var(--pw-gold)}
+#probtn.on{color:var(--pw-gold);background:transparent}
+#probtn:focus-visible{outline:2px solid var(--pw-cyan);outline-offset:2px}
+
+/* 字級：用網頁版自己的「字體」選單 */
+#fzpop{position:fixed;z-index:120;display:flex;gap:4px;padding:6px;background:var(--pw-bg);border:1px solid var(--pw-line);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#fzpop button{all:unset;cursor:pointer;padding:9px 11px;font:800 14px/1 system-ui,"PingFang TC",sans-serif;color:#c3cad4;border:1px solid var(--pw-line);background:#161e29}
+#fzpop button.on{color:var(--pw-cyan);border-color:var(--pw-cyan);background:rgba(0,239,212,.15)}
+
+/* 訂閱頁 */
+#paywall{position:fixed;inset:0;z-index:200;overflow:auto;background:rgba(5,7,10,.96);color:var(--pw-fg);
+  font:500 15px/1.55 system-ui,"PingFang TC","Noto Sans TC",sans-serif;
+  padding:calc(20px + env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));box-sizing:border-box}
+#paywall .pw-in{max-width:460px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+#paywall .pw-top{display:flex;justify-content:space-between;align-items:center}
+#paywall h2{margin:0;font-size:21px;font-weight:900;color:var(--pw-gold);letter-spacing:.03em}
+#paywall .pw-x{all:unset;cursor:pointer;padding:8px 12px;border:1px solid var(--pw-line);color:var(--pw-mute);font-weight:800;font-size:14px}
+#paywall ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+#paywall li{display:flex;gap:8px;align-items:baseline}
+#paywall li::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--pw-gold);transform:translateY(-1px)}
+#paywall .pw-free{font-size:13px;color:var(--pw-mute)}
+#paywall .pw-plan{all:unset;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--pw-gold);background:rgba(255,197,61,.08);font-weight:800}
+#paywall .pw-plan b{font-size:18px;color:var(--pw-gold)}
+#paywall .pw-plan small{display:block;font-weight:500;font-size:12.5px;color:var(--pw-mute)}
+#paywall .pw-plan[disabled]{opacity:.5;cursor:default}
+#paywall .pw-plan:focus-visible,#paywall .pw-x:focus-visible,#paywall .pw-link:focus-visible{outline:2px solid var(--pw-cyan);outline-offset:2px}
+#paywall .pw-msg{min-height:1.5em;font-size:13.5px;color:var(--pw-cyan)}
+#paywall .pw-row{display:flex;flex-wrap:wrap;gap:10px 16px;font-size:13px}
+#paywall .pw-link{all:unset;cursor:pointer;color:var(--pw-cyan);text-decoration:underline}
+#paywall a{color:var(--pw-cyan)}
+#paywall .pw-legal{font-size:12px;line-height:1.6;color:var(--pw-mute)}
+
+/* 關注班機：落地前提醒鍵（訂閱） */
+.remind{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:8px 0 2px;padding:8px 12px;border:1px solid var(--pw-cyan);color:var(--pw-cyan);font:800 13px/1 system-ui,"PingFang TC",sans-serif}
+.remind.on{background:rgba(0,239,212,.15)}
+body.tier-free .remind{display:none!important}
+
+/* 只在瀏覽器測試時出現：模擬訂閱的開關 */
+#devtier{all:unset;position:fixed;right:max(8px,env(safe-area-inset-right,0px));bottom:calc(var(--ad-h) + 90px + env(safe-area-inset-bottom,0px));z-index:150;cursor:pointer;
+  padding:6px 9px;font:800 11px/1 system-ui,sans-serif;background:#2a1f00;color:var(--pw-gold);border:1px dashed var(--pw-gold)}
+
+/* 非官方聲明（頁面最下面） */
+#unofficial{margin:14px 0 6px;padding:10px 12px;border:1px solid var(--pw-line);color:var(--pw-mute);font:500 12px/1.6 system-ui,"PingFang TC",sans-serif}
+
+/* 11/12 新的按鍵列：免費版只留「設定」 */
+body.tier-free #dock button:is([data-k="gap"],[data-k="chg"],[data-k="pax"],[data-k="search"]){display:none!important}
+
+/* 免費版：固定 2 組分類，不能選、不能多設 */
+body.tier-free .chips:has(#shopslot),body.tier-free .chips:has(> #sall),body.tier-free #catbox .catrow:nth-child(n+3){display:none!important}
+
+/* 滑行通知欄：訂閱功能 */
+body.tier-free .btoast{display:none!important}
+
+/* 時段鍵自訂：訂閱功能 */
+body.tier-free #slotrow{display:none!important}
+#slotrow #slotset{flex:1 1 auto;justify-content:center;text-align:center}
+/* 自訂後時間字比較長：允許折成兩行 */
+html body .chip[data-slot]{white-space:normal!important;line-height:1.15!important;font-size:13px!important;padding-left:2px!important;padding-right:2px!important;overflow:visible!important;text-overflow:clip!important;word-break:keep-all}
+
+/* 雷達（11/14 網頁版新功能）：訂閱功能 */
+body.tier-free #out .rdr,body.tier-free .rx,body.tier-free #dock button[data-k="radar"],body.tier-free #rmap{display:none!important}
+/* 11/16 網頁版新增「詳細 ▾」小鍵：免費版不能展開卡片，所以不顯示 */
+body.tier-free #out .r .tapmore{display:none!important}
+
+/* 班機樣式（外觀樣式）：訂閱功能 */
+body.tier-free :is(#tdsty,#thrC,#thrR),body.tier-free .chips:has(> #tdsty){display:none!important}
+/* 網頁版：輸入啟用碼 */
+#paywall .pw-code{margin-top:4px;font-size:13.5px;color:var(--pw-mute)}
+#paywall .pw-code>div{display:flex;gap:8px;margin-top:6px}
+#paywall .pw-code input{flex:1;min-width:0;font:700 16px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.35);color:inherit;border:1px solid var(--pw-gold);padding:10px 12px}
+#paywall .pw-code .pw-link{border:1px solid var(--pw-gold);padding:0 16px}

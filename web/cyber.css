@@ -1,0 +1,70 @@
+/* ═════════════════════════════════════════════════════════════════
+   桃機出入境看板 App 版：賽博龐克螢光主題（11/14）
+   在網頁版霓虹風上再加強：Gemini 生成的夜景背景、招牌橫幅、訂閱頁主視覺，
+   螢光青／桃紅／檸檬綠三色發光，掃描線質感。全部 html.cyber 開頭，拿掉這個 class 就回原樣。
+   ═════════════════════════════════════════════════════════════════ */
+:root{--cy-c:#00f0ff;--cy-m:#ff2a6d;--cy-l:#c6ff3d;--cy-y:#ffe14d;--cy-bg:#06040d}
+html.cyber{background:var(--cy-bg)!important}
+
+/* 背景：入境＝螢光航廈、出境＝螢光跑道起飛；上下壓暗，中間讓卡片好讀 */
+html.cyber.arr body::before,html.cyber.dep body::before,html.cyber body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(6,4,13,.25) 0%,rgba(6,4,13,.62) 34%,rgba(6,4,13,.72) 70%,rgba(6,4,13,.9) 100%),url(img/cy-bg-arr.webp) center top/cover no-repeat!important}
+html.cyber.dep body::before{background:linear-gradient(180deg,rgba(6,4,13,.2) 0%,rgba(6,4,13,.6) 34%,rgba(6,4,13,.72) 70%,rgba(6,4,13,.9) 100%),url(img/cy-bg-dep.webp) center top/cover no-repeat!important}
+/* 掃描線：很淡，只是質感 */
+html.cyber body::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+
+/* ── 招牌橫幅（取代網頁版的署名招牌）── */
+#brand{position:relative;overflow:hidden;margin:0 0 6px;height:108px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;
+  background:linear-gradient(180deg,rgba(6,4,13,.15),rgba(6,4,13,.55)),url(img/cy-banner.webp) center 58%/cover no-repeat;
+  border-bottom:1px solid rgba(0,240,255,.55);box-shadow:0 1px 0 rgba(255,42,109,.5),0 8px 30px -10px rgba(0,240,255,.5)}
+#brand b{font:900 25px/1.1 "Microsoft JhengHei","微軟正黑體","PingFang TC","Noto Sans TC",sans-serif;letter-spacing:.14em;color:#f4feff;
+  text-shadow:0 0 2px #fff,0 0 8px var(--cy-c),0 0 22px var(--cy-c),0 0 42px rgba(255,42,109,.7);animation:cyFlick 6s infinite}
+#brand i{font:800 11.5px/1 "Microsoft JhengHei","PingFang TC",sans-serif;font-style:normal;letter-spacing:.32em;color:#ffd3e2;
+  padding:3px 10px;border:1px solid rgba(255,42,109,.7);background:rgba(6,4,13,.55);box-shadow:0 0 12px -2px var(--cy-m),inset 0 0 8px -3px var(--cy-m);text-shadow:0 0 6px var(--cy-m)}
+@keyframes cyFlick{0%,92%,100%{opacity:1}93%{opacity:.55}94%{opacity:1}96%{opacity:.75}97%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#brand b{animation:none}}
+
+/* ── 標題列 ── */
+html.cyber body header{background:linear-gradient(180deg,rgba(6,4,13,.86),rgba(6,4,13,.7))!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(0,240,255,.35)!important}
+html.cyber body header h1{color:var(--cy-c)!important;text-shadow:0 0 8px rgba(0,240,255,.8)!important}
+
+/* ── 按鈕：螢光邊、按下去更亮 ── */
+html.cyber body .chip,html.cyber body .fabb,html.cyber body #bigbtn,html.cyber body #dock button,html.cyber body .btn2,html.cyber body summary{
+  border-color:rgba(0,240,255,.6)!important;box-shadow:inset 0 0 12px -6px var(--cy-c),0 0 10px -4px var(--cy-c),0 4px 12px rgba(0,0,0,.55)!important}
+html.cyber body .chip.act,html.cyber body .fabb.on,html.cyber body #bigbtn.on{box-shadow:inset 0 0 16px -4px currentColor,0 0 18px -2px currentColor,0 0 2px currentColor!important;text-shadow:0 0 8px currentColor!important}
+html.cyber body #dock button.hot{border-color:var(--cy-y)!important;box-shadow:inset 0 0 14px -5px var(--cy-y),0 0 14px -3px var(--cy-y)!important}
+html.cyber body #dock button.hot small{color:var(--cy-y)!important;text-shadow:0 0 8px var(--cy-y)}
+html.cyber body #dock button b{text-shadow:0 0 8px rgba(0,240,255,.7)}
+
+/* ── 班機卡片：玻璃底＋分類色螢光邊條 ── */
+html.cyber body #out .r:not(.head){border:1px solid rgba(0,240,255,.22)!important;box-shadow:0 0 0 1px rgba(255,255,255,.03) inset,0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .r.r40{border-left:3px solid var(--cy-c)!important;box-shadow:-6px 0 18px -8px var(--cy-c),0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .r.r53{border-left:3px solid var(--cy-m)!important;box-shadow:-6px 0 18px -8px var(--cy-m),0 10px 24px -14px rgba(0,0,0,.9)!important}
+html.cyber body #out .c-time b{color:#f2feff!important;text-shadow:0 0 1px #fff,0 0 10px rgba(0,240,255,.85),0 0 24px rgba(0,240,255,.4)!important}
+html.cyber body #out .r.r53 .c-time b{text-shadow:0 0 1px #fff,0 0 10px rgba(255,42,109,.85),0 0 24px rgba(255,42,109,.4)!important}
+html.cyber body #out .c-fno b{color:#fff!important;text-shadow:0 0 10px rgba(255,255,255,.35)!important}
+html.cyber body #out .gn{text-shadow:0 0 10px currentColor!important;box-shadow:0 0 14px -3px currentColor,inset 0 0 10px -4px currentColor!important}
+html.cyber body #out .tag{box-shadow:0 0 12px -3px currentColor!important}
+html.cyber body #out .px{color:var(--cy-l)!important;text-shadow:0 0 8px rgba(198,255,61,.7)!important}
+html.cyber body #out .nowline{color:var(--cy-m)!important;text-shadow:0 0 8px var(--cy-m)!important}
+html.cyber body #out .r.soon{animation:cyPulse 2.4s ease-in-out infinite}
+@keyframes cyPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 8px rgba(198,255,61,.55))}}
+
+/* ── 資訊卡、設定面板 ── */
+html.cyber body .card,html.cyber body #infobox{border:1px solid rgba(0,240,255,.28)!important;box-shadow:0 0 22px -12px var(--cy-c)!important}
+html.cyber body #copybox #cpgo{background:var(--cy-c)!important;color:#001417!important;box-shadow:0 0 18px -2px var(--cy-c)!important;text-shadow:none!important}
+html.cyber body table.mt td b{color:#fff;text-shadow:0 0 8px rgba(0,240,255,.8)}
+
+/* ── 訂閱頁：Gemini 主視覺 ── */
+html.cyber #paywall{background:radial-gradient(120% 60% at 50% 0%,rgba(255,197,61,.10),transparent 60%),#05030b!important}
+#pwhero{height:150px;margin:-4px 0 4px;border:1px solid rgba(255,197,61,.55);
+  background:linear-gradient(180deg,rgba(4,3,10,0) 55%,rgba(4,3,10,.85)),url(img/cy-hero.webp) center/cover no-repeat;
+  box-shadow:0 0 26px -8px #ffc53d,inset 0 0 22px -10px #ffc53d;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+html.cyber #paywall h2{text-shadow:0 0 10px rgba(255,197,61,.8)}
+html.cyber #paywall .pw-plan{box-shadow:0 0 16px -6px #ffc53d,inset 0 0 14px -8px #ffc53d}
+html.cyber #paywall .pw-plan:active{box-shadow:0 0 22px -2px #ffc53d}
+
+/* 底部浮動列 */
+html.cyber body #fab{filter:drop-shadow(0 -6px 16px rgba(0,0,0,.6))}

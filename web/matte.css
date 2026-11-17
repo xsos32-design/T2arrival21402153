@@ -1,0 +1,214 @@
+/* ══════════════════════════════════════════════════════════════════
+   桃機出入境看板 App 版：精緻深色霧面主題（11/14）
+   概念：機場夜間候機室的霧面玻璃＋石墨面板。拿掉霓虹光暈、金屬紋、斜切角，
+   改成柔和圓角、細邊線、低飽和的分類色，數字用等寬字，資訊一眼好掃。
+   全部用 html.matte 開頭、兩個 :not(#…) 提高優先權，蓋過原本的霓虹樣式。
+   ══════════════════════════════════════════════════════════════════ */
+:root{
+  --m-bg:#0d0f12;        /* 夜色底 */
+  --m-s1:#15181d;        /* 卡片 */
+  --m-s2:#1b1f25;        /* 按鈕、輸入框 */
+  --m-s3:#232831;        /* 按下、選中底 */
+  --m-line:rgba(255,255,255,.07);
+  --m-line2:rgba(255,255,255,.13);
+  --m-fg:#eceef1;
+  --m-fg2:#b7bdc6;
+  --m-mute:#7f8794;
+  --m-c0:#7cc8bd;        /* 分類 1：霧青 */
+  --m-c1:#e19aa9;        /* 分類 2：霧玫瑰 */
+  --m-c2:#b8cf86;        /* 分類 3：霧橄欖 */
+  --m-c3:#9aa6e3;        /* 分類 4：霧藍紫 */
+  --m-gold:#d8b46e;      /* 重點、表定、訂閱 */
+  --m-ok:#8cc49b; --m-warn:#e2a65d; --m-bad:#e47474; --m-info:#86afe0;
+  --m-r:14px; --m-r2:10px;
+  --m-font:"Microsoft JhengHei","微軟正黑體","Microsoft JhengHei UI","PingFang TC","Noto Sans TC",sans-serif;
+}
+html.matte{background:var(--m-bg)!important}
+html.matte body:not(#_m1):not(#_m2){background:var(--m-bg)!important;background-image:none!important;color:var(--m-fg)!important;font-family:var(--m-font)!important;-webkit-font-smoothing:antialiased}
+html.matte body:not(#_m1):not(#_m2)::before{background:var(--m-bg)!important;background-image:none!important}
+/* 全域：拿掉斜切角、光暈、金屬紋 */
+html.matte body:not(#_m1):not(#_m2) *{clip-path:none!important;text-shadow:none!important;font-family:inherit}
+html.matte body:not(#_m1):not(#_m2) :is(.r,.card,#ctlbar,#infobox,.chip,.fabb,#dock button,.btn2,#fsearch,#fsearch input,#fsearch button,.foldline,.nx,.nn,.na,.tdxbox,.errbox,.nhelp,.cllink a,#iosw a,#bigbtn,.cb-pill,.tag,.badge,.gn,.ac,.px,.nat){box-shadow:none!important;background-image:none!important;filter:none!important}
+/* 等寬數字 */
+html.matte body:not(#_m1):not(#_m2) :is(.c-time,.gn,#live,.cb-pill,.px,.nn b,#remain b,.nowline,.gapline,.wave){font-variant-numeric:tabular-nums}
+
+/* ── 標題列 ── */
+html.matte body:not(#_m1):not(#_m2) header{background:rgba(13,15,18,.82)!important;-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--m-line)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) header h1{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) header h1 svg{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) header .h7k{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #iosw{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;padding:3px!important;gap:2px!important;overflow:hidden}
+html.matte body:not(#_m1):not(#_m2) #iosw a{border:0!important;border-radius:999px!important;background:transparent!important;color:var(--m-mute)!important;padding:5px 12px!important}
+html.matte body:not(#_m1):not(#_m2) #iosw a.on{background:var(--m-s3)!important;color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #bigbtn{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important;padding:4px 11px!important}
+html.matte body:not(#_m1):not(#_m2) #bigbtn.on{color:var(--m-c0)!important;border-color:rgba(124,200,189,.35)!important}
+html.matte body:not(#_m1):not(#_m2) #probtn{border-radius:999px!important;background:var(--m-gold)!important;border-color:var(--m-gold)!important;color:#1b1407!important;padding:4px 12px!important}
+html.matte body:not(#_m1):not(#_m2) #probtn.on{background:transparent!important;color:var(--m-gold)!important;border-color:rgba(216,180,110,.45)!important}
+html.matte body:not(#_m1):not(#_m2) .live,html.matte body:not(#_m1):not(#_m2) #live{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #dot{border-radius:50%!important;background:var(--m-ok)!important;box-shadow:0 0 0 3px rgba(140,196,155,.18)!important}
+
+/* ── 按鍵列（設定・空檔・異動・人數・搜尋）── */
+html.matte body:not(#_m1):not(#_m2) #dock{gap:6px!important}
+html.matte body:not(#_m1):not(#_m2) #dock button{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important;padding:8px 4px!important;transition:background .15s,border-color .15s}
+html.matte body:not(#_m1):not(#_m2) #dock button b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button small{color:var(--m-mute)!important;}
+html.matte body:not(#_m1):not(#_m2) #dock button.on{background:var(--m-s3)!important;border-color:var(--m-line2)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button.on b{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #dock button.hot small{color:var(--m-warn)!important;}
+
+/* ── 設定面板與選項 ── */
+html.matte body:not(#_m1):not(#_m2) .card,html.matte body:not(#_m1):not(#_m2) #ctl,html.matte body:not(#_m1):not(#_m2) #infobox{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) .card::before,html.matte body:not(#_m1):not(#_m2) .card::after,html.matte body:not(#_m1):not(#_m2) #infobox::before,html.matte body:not(#_m1):not(#_m2) #infobox::after{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #ctlbar{background:transparent!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) .cb-pill{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) .cb-pill.k40{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) .cb-pill.k53{color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) .v2lab{color:var(--m-mute)!important;font-size:12px!important;}
+html.matte body:not(#_m1):not(#_m2) .v2lab::after{background:var(--m-line)!important}
+html.matte body:not(#_m1):not(#_m2) :is(.chip,.btn2,.dqb){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important;min-height:44px;transition:background .15s,border-color .15s,color .15s}
+html.matte body:not(#_m1):not(#_m2) :is(.chip,.btn2):active{background:var(--m-s3)!important}
+html.matte body:not(#_m1):not(#_m2) .chip.act,html.matte body:not(#_m1):not(#_m2) .chip.on{background:rgba(124,200,189,.12)!important;border-color:rgba(124,200,189,.45)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs1.act{background:rgba(225,154,169,.12)!important;border-color:rgba(225,154,169,.45)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs2.act{background:rgba(184,207,134,.12)!important;border-color:rgba(184,207,134,.45)!important;color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #shopslot .chip.cs3.act{background:rgba(154,166,227,.12)!important;border-color:rgba(154,166,227,.45)!important;color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) .chip svg,html.matte body:not(#_m1):not(#_m2) .fabb svg,html.matte body:not(#_m1):not(#_m2) .btn2 svg{opacity:.85}
+html.matte body:not(#_m1):not(#_m2) :is(input,select){background:var(--m-s2)!important;border:1px solid var(--m-line2)!important;border-radius:var(--m-r2)!important;color:var(--m-fg)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) .status{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) .status b{color:var(--m-fg2)!important}
+
+/* 圖示：改回清晰的線條向量圖，不用點陣霓虹圖 */
+html.matte body:not(#_m1):not(#_m2) svg.ic use{display:inline!important}
+html.matte body:not(#_m1):not(#_m2) svg.ic{background:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important;stroke:currentColor!important;fill:none!important;width:1.05em!important;height:1.05em!important;vertical-align:-.15em;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+
+/* ── 班機卡片 ── */
+html.matte body:not(#_m1):not(#_m2) #out .list{gap:8px!important;background:transparent!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .r:not(.head){background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-left:3px solid var(--m-line2)!important;border-radius:var(--m-r)!important;margin:0 0 8px!important;box-shadow:none!important;outline:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .r::before,html.matte body:not(#_m1):not(#_m2) #out .r::after{display:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.r40{border-left-color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.r53{border-left-color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.rYA{border-left-color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.rYB{border-left-color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.done{opacity:.55!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.soon{border-color:rgba(216,180,110,.55)!important;background:linear-gradient(180deg,rgba(216,180,110,.07),rgba(216,180,110,0) 60%),var(--m-s1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r.taxi{border-color:rgba(134,175,224,.6)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b.t-late{color:var(--m-warn)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time b.t-early{color:var(--m-ok)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-time i{color:var(--m-mute)!important;background:none!important;font-style:normal}
+html.matte body:not(#_m1):not(#_m2) #out .c-fno b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-fno small{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .c-city .cn{color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .gn{background:var(--m-s3)!important;border:1px solid var(--m-line2)!important;border-radius:8px!important;color:var(--m-fg)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .r40 .gn{background:rgba(124,200,189,.14)!important;border-color:rgba(124,200,189,.35)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .r53 .gn{background:rgba(225,154,169,.14)!important;border-color:rgba(225,154,169,.35)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag{background:var(--m-s3)!important;border:0!important;border-radius:6px!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .tag.t40{background:rgba(124,200,189,.14)!important;color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.t53{background:rgba(225,154,169,.14)!important;color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.tYA{background:rgba(184,207,134,.14)!important;color:var(--m-c2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .tag.tYB{background:rgba(154,166,227,.14)!important;color:var(--m-c3)!important}
+html.matte body:not(#_m1):not(#_m2) #out .ac{background:transparent!important;border:1px solid var(--m-line2)!important;border-radius:5px!important;color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .ac.big{border-color:rgba(216,180,110,.5)!important;color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) #out .px{background:transparent!important;border:0!important;color:var(--m-gold)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .px u{color:var(--m-mute)!important;text-decoration:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .nat{background:transparent!important;border:1px solid var(--m-line2)!important;border-radius:5px!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge{background:transparent!important;border:0!important;color:var(--m-fg2)!important;}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-ok{color:var(--m-ok)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-warn{color:var(--m-warn)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-bad{color:var(--m-bad)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-early{color:var(--m-info)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-taxi{color:var(--m-info)!important}
+html.matte body:not(#_m1):not(#_m2) #out .badge.b-none{color:var(--m-mute)!important}
+html.matte body:not(#_m1):not(#_m2) #out .dt{border-top:1px solid var(--m-line)!important;background:transparent!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .dt i{color:var(--m-mute)!important}
+/* 分隔線：現在、空檔、人潮、已抵達 */
+html.matte body:not(#_m1):not(#_m2) #out .nowline{color:var(--m-gold)!important;background:none!important;border:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .nowline::before,html.matte body:not(#_m1):not(#_m2) #out .nowline::after{background:rgba(216,180,110,.45)!important;box-shadow:none!important}
+html.matte body:not(#_m1):not(#_m2) #out .gapline{color:var(--m-mute)!important;background:transparent!important;border:0!important;border-top:1px dashed var(--m-line2)!important;border-radius:0!important}
+html.matte body:not(#_m1):not(#_m2) #out .wave{background:rgba(216,180,110,.08)!important;border:1px solid rgba(216,180,110,.25)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) #out .wave b{color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) .foldline{background:var(--m-s1)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) .foldline i{color:var(--m-c0)!important}
+
+/* ── 資訊卡：下一班、接下來 1 小時、空檔、異動 ── */
+html.matte body:not(#_m1):not(#_m2) :is(.nx,.nn,.na,#remain,#prog .p){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) :is(.nx,.nn,.na) b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #remain b{color:var(--m-gold)!important}
+html.matte body:not(#_m1):not(#_m2) #prog .bar{background:var(--m-s3)!important;border-radius:999px!important;box-shadow:none!important}
+
+/* ── 搜尋 ── */
+html.matte body:not(#_m1):not(#_m2) #fsearch input{border-radius:999px!important;padding-left:16px!important}
+html.matte body:not(#_m1):not(#_m2) #fsearch button{background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:999px!important;color:var(--m-fg2)!important}
+
+/* ── 底部浮動按鈕：霧面玻璃膠囊 ── */
+html.matte body:not(#_m1):not(#_m2) #fab{background:rgba(21,24,29,.78)!important;-webkit-backdrop-filter:saturate(1.4) blur(16px);backdrop-filter:saturate(1.4) blur(16px);border:1px solid var(--m-line2)!important;border-radius:18px!important;padding:6px!important;gap:6px!important;left:12px!important;right:12px!important;box-shadow:0 10px 30px rgba(0,0,0,.45)!important}
+html.matte body:not(#_m1):not(#_m2) #fab .fabb{background:transparent!important;border:0!important;border-radius:12px!important;color:var(--m-fg2)!important;min-height:44px}
+html.matte body:not(#_m1):not(#_m2) #fab .fabb:active,html.matte body:not(#_m1):not(#_m2) #fab .fabb.on{background:var(--m-s3)!important;color:var(--m-c0)!important}
+
+/* ── 回報／開會結果 ── */
+html.matte body:not(#_m1):not(#_m2) #copybox :is(.cpwrap,textarea){background:var(--m-s2)!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) #copybox #cpgo{background:var(--m-c0)!important;color:#0b1513!important;border:0!important;border-radius:var(--m-r2)!important;}
+html.matte body:not(#_m1):not(#_m2) .mt{border-collapse:separate!important;border-spacing:0 6px!important}
+html.matte body:not(#_m1):not(#_m2) .mt th{color:var(--m-mute)!important;background:none!important;border:0!important;font-weight:600!important}
+html.matte body:not(#_m1):not(#_m2) .mt td{background:var(--m-s1)!important;border:0!important;color:var(--m-fg2)!important}
+html.matte body:not(#_m1):not(#_m2) .mt td b{color:var(--m-fg)!important}
+html.matte body:not(#_m1):not(#_m2) .mt .g40 .lb{color:var(--m-c0)!important}
+html.matte body:not(#_m1):not(#_m2) .mt .g53 .lb{color:var(--m-c1)!important}
+html.matte body:not(#_m1):not(#_m2) .mth{color:var(--m-fg)!important}
+
+/* ── 說明、聲明 ── */
+html.matte body:not(#_m1):not(#_m2) :is(.nhelp,.notice,.cllink a,#unofficial){background:transparent!important;border:1px solid var(--m-line)!important;border-radius:var(--m-r2)!important;color:var(--m-mute)!important}
+
+/* ── 底部彈出面板（訂閱頁、開會設定）── */
+html.matte #paywall,html.matte .sheet{background:rgba(9,10,13,.72)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sheet{position:fixed;inset:0;z-index:210;display:flex;align-items:flex-end;justify-content:center;overflow:auto;font-family:var(--m-font)}
+.sheet .sh-in{width:min(520px,100%);box-sizing:border-box;background:var(--m-s1);border:1px solid var(--m-line2);border-bottom:0;border-radius:20px 20px 0 0;color:var(--m-fg);
+  padding:18px max(18px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px;box-shadow:0 -20px 50px rgba(0,0,0,.5)}
+.sheet .sh-top{display:flex;justify-content:space-between;align-items:center}
+.sheet h2{margin:0;font-size:19px;font-weight:800;letter-spacing:.02em}
+.sheet .sh-x{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;background:var(--m-s2);border:1px solid var(--m-line);color:var(--m-fg2);font-weight:700;font-size:14px}
+.sheet .sh-note{margin:0;color:var(--m-mute);font-size:13.5px;line-height:1.6}
+.sheet .sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--m-mute);font-weight:600;min-width:0}
+.sheet select{appearance:none;-webkit-appearance:none;background:var(--m-s2);border:1px solid var(--m-line2);border-radius:10px;color:var(--m-fg);font:600 16px/1.2 var(--m-font);padding:11px 12px;min-height:44px;width:100%;box-sizing:border-box}
+.sheet .sh-avoid{border:1px solid var(--m-line);border-radius:12px;padding:10px 12px 12px;margin:0;display:flex;flex-direction:column;gap:8px}
+.sheet .sh-avoid legend{padding:0 6px;color:var(--m-mute);font-size:12.5px;font-weight:600}
+.sheet .ck{flex-direction:row;align-items:center;gap:10px;color:var(--m-fg2);font-size:14.5px;font-weight:600;min-height:36px}
+.sheet .ck input{width:20px;height:20px;accent-color:var(--m-c0)}
+.sheet .sh-msg{min-height:1.2em;color:var(--m-warn);font-size:13.5px}
+.sheet .sh-row{display:flex;gap:10px}
+.sheet .sh-btn{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px 0;border-radius:12px;background:var(--m-s2);border:1px solid var(--m-line2);color:var(--m-fg2);font-weight:800;font-size:15px}
+.sheet .sh-btn.pri{background:var(--m-c0);border-color:var(--m-c0);color:#0b1513}
+.sheet :is(.sh-x,.sh-btn,select,input):focus-visible{outline:2px solid var(--m-c0);outline-offset:2px}
+@media (max-width:360px){.sheet .sh-grid{grid-template-columns:1fr}}
+/* 訂閱頁換成同一套霧面 */
+html.matte #paywall .pw-in{background:var(--m-s1);border:1px solid var(--m-line2);border-radius:20px;padding:20px}
+html.matte #paywall h2{color:var(--m-gold)!important}
+html.matte #paywall .pw-plan{border-radius:14px!important;border-color:rgba(216,180,110,.45)!important;background:rgba(216,180,110,.07)!important}
+html.matte #paywall .pw-plan b{color:var(--m-gold)!important}
+html.matte #paywall .pw-x{border-radius:999px!important}
+html.matte #unofficial{border-radius:10px}
+@media (prefers-reduced-motion:reduce){html.matte *{transition:none!important}}
+html.matte body:not(#_m1):not(#_m2) table.mt td.lb{white-space:nowrap;word-break:keep-all}
+
+/* 字體沿用原本賽博龐克版：微軟正黑體（手機自動換蘋方／思源黑體）、粗字重、數字字距收緊 */
+html.matte body:not(#_m1):not(#_m2) table.mt :is(.mth,th,td){font-weight:800!important}
+html.matte body:not(#_m1):not(#_m2) table.mt td b{font-weight:900!important;letter-spacing:-.03em}
+.sheet h2{font-weight:900;letter-spacing:.04em}
+.sheet :is(label,.ck,.sh-x,.sh-btn,select,legend){font-weight:800}
+html.matte #paywall,html.matte #paywall *{font-family:var(--m-font)!important}
+
+/* ═══ 賽博龐克版（App 預設，11/14 改回跟網頁版同風格）：開會設定面板配霓虹樣式 ═══ */
+html:not(.matte) .sheet{background:rgba(3,6,10,.82)}
+html:not(.matte) .sheet .sh-in{background:linear-gradient(180deg,#0e1620,#080c11);border:1px solid #00efd4;border-bottom:0;border-radius:0;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%,0 16px);box-shadow:0 0 0 1px rgba(0,239,212,.25) inset,0 -10px 40px rgba(0,239,212,.18)}
+html:not(.matte) .sheet h2{color:#00efd4;text-shadow:0 0 10px rgba(0,239,212,.6)}
+html:not(.matte) .sheet .sh-note,html:not(.matte) .sheet label,html:not(.matte) .sheet .sh-avoid legend{color:#8b96a6}
+html:not(.matte) .sheet select{background:#111823;border:1px solid #2a3545;border-radius:0;color:#e6edf5}
+html:not(.matte) .sheet select:focus{border-color:#00efd4;box-shadow:0 0 0 1px #00efd4,0 0 12px rgba(0,239,212,.35)}
+html:not(.matte) .sheet .sh-avoid{border:1px dashed #2a3545;border-radius:0}
+html:not(.matte) .sheet .ck{color:#c3cad4}
+html:not(.matte) .sheet .ck input{accent-color:#00efd4}
+html:not(.matte) .sheet :is(.sh-x,.sh-btn){border-radius:0;background:#111823;border:1px solid #2a3545;color:#c3cad4;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+html:not(.matte) .sheet .sh-btn.pri{background:#00efd4;border-color:#00efd4;color:#001a17;box-shadow:0 0 16px rgba(0,239,212,.45)}
+html:not(.matte) .sheet .sh-msg{color:#ffc53d}
+html:not(.matte) table.mt td.lb{white-space:nowrap;word-break:keep-all}
