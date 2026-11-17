@@ -643,6 +643,13 @@
 </style>
 <link rel="stylesheet" href="ds/tokens.css?v=13h">
 <style>html,body{background:#05070a}</style>
+<style>
+/* 11/17：群組回報「幾點後」時間欄 */
+.chip.cptime{display:inline-flex;align-items:center;gap:8px;cursor:default}
+.chip.cptime>span{font-size:.92em;opacity:.85}
+.chip.cptime input{font:inherit;font-weight:800;background:transparent;color:inherit;border:0;border-bottom:1px dashed currentColor;padding:0 2px;min-width:5.6em;color-scheme:dark}
+html body:not(#_) .ctl-row .chip.cptime{flex:0 0 auto}
+</style>
 </head>
 <body>
 <svg class="sprite" viewBox="0 0 24 24" aria-hidden="true"><defs><g id="i-land"><path d="M2 21h4.5"/><path d="M9.75 21h4.5"/><path d="M17.5 21h4.5"/><path d="M4 6.5 6.8 5.8 10.4 11.4 19.5 9 20.2 12.6 7.4 16 3.6 11.4Z"/></g><g id="i-timer"><path d="M9.5 2.5h5"/><path d="M12 2.5v3.5"/><path d="M9.9 6 14.1 6 18 9.9v4.2L14.1 18H9.9L6 14.1V9.9Z"/><path d="M12 13.8V9.5"/><rect fill="currentColor" stroke="none" x="11" y="13" width="2" height="2"/></g><g id="i-refresh"><path d="M20.5 12A8.5 8.5 0 1 1 16.6 4.8"/><path d="M21.5 3.5V10H15Z"/></g><g id="i-cal"><path d="M3 5h13.6L21 9.4V21H3Z"/><path d="M3 10.5h18"/><path d="M8 2.5v4"/><path d="M15.5 2.5v4"/><rect fill="currentColor" stroke="none" x="6" y="13.5" width="4" height="4"/></g><g id="i-hide"><path d="M2 12 6 7h12l4 5-4 5H6Z"/><rect fill="currentColor" stroke="none" x="10" y="10" width="4" height="4"/><path d="M3 3 21 21"/></g><g id="i-show"><path d="M2 12 6 7h12l4 5-4 5H6Z"/><rect fill="currentColor" stroke="none" x="10" y="10" width="4" height="4"/></g><g id="i-clock"><path d="M9.2 3h5.6L20 7.2v9.6L14.8 21H9.2L4 16.8V7.2Z"/><path d="M12 4.5v2"/><path d="M19 12h-2"/><path d="M12 19.5v-2"/><path d="M5 12h2"/><path d="M12 7.5V12h4"/></g><g id="i-cog"><path d="M3 6h7"/><path d="M15 6h6"/><rect fill="currentColor" stroke="none" x="10.5" y="3.5" width="3.5" height="5"/><path d="M3 12h4"/><path d="M12 12h9"/><rect fill="currentColor" stroke="none" x="7.5" y="9.5" width="3.5" height="5"/><path d="M3 18h9"/><path d="M17 18h4"/><rect fill="currentColor" stroke="none" x="12.5" y="15.5" width="3.5" height="5"/></g><g id="i-undo"><path d="M8.5 4.5 4 9l4.5 4.5"/><path d="M4 9h11l4 4v3l-4 3H8.5"/></g><g id="i-up"><path d="M4 3h16"/><path d="M12 21V7"/><path d="M5.5 13.5 12 7l6.5 6.5"/></g><g id="i-alert"><path d="M10.6 3.3h2.8L22.4 20H1.6Z"/><path d="M12 9.5v4.5"/><rect fill="currentColor" stroke="none" x="11" y="16" width="2" height="2"/></g><g id="i-users"><path d="M2.5 5.5h2.8L6.5 6.7v2.8H2.5Z"/><path d="M9.9 4h3.2l1.2 1.2v3.3H9.9Z"/><path d="M17.5 5.5h2.8l1.2 1.2v2.8h-4Z"/><path d="M1 20.5v-2l2-3.5h3"/><path d="M7 20.5v-2.5l2-3.5h6l2 3.5v2.5"/><path d="M23 20.5v-2l-2-3.5h-3"/></g><g id="i-unlock"><path d="M3.5 10h13.6L20.5 13v8h-17Z"/><path d="M12 10V5.5h9.5"/><rect fill="currentColor" stroke="none" x="11" y="13.8" width="2" height="4"/></g><g id="i-lock"><path d="M3.5 10h13.6L20.5 13v8h-17Z"/><path d="M7 10V5.5h10V10"/><rect fill="currentColor" stroke="none" x="11" y="13.8" width="2" height="4"/></g><g id="i-copy"><path d="M9 8.5h8.6L21 11.9V21H9Z"/><path d="M5.5 15.5H3V3h9.6L15 5.4"/></g><g id="i-check"><path d="M3.5 12.5 9 18 20.5 6.5"/></g><g id="i-box"><path d="M12 2.5 21 7v10l-9 4.5L3 17V7Z"/><path d="M3 7l9 4.5L21 7"/><path d="M12 11.5v10"/></g><g id="i-signal"><path d="M3.5 20.5V17"/><path d="M9 20.5v-7"/><path d="M14.5 20.5V9"/><rect fill="currentColor" stroke="none" x="19" y="4" width="2.5" height="16.5"/></g></defs></svg>
@@ -696,8 +703,9 @@
     </div>
 
     <div class="chips">
-      <span class="chiplabel">群組回報（今天 22:30 後）</span>
-      <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 2140+2153</span>
+      <span class="chiplabel">群組回報（只報上面有勾的分類）</span>
+      <label class="chip cptime" for="cpT"><span>今天幾點後</span><input type="time" id="cpT" value="22:30" step="300"></label>
+      <span class="chip" id="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> <span id="cpSn">2140+2153</span></span>
       <span class="chip" id="cpM"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clock"/></svg> 開會時間 18:00–21:30</span>
     </div>
     <div id="copybox"></div>
@@ -1506,18 +1514,35 @@ function runNow6(){
 /* ── 群組回報產生器：今天 22:30 後的班機，一鍵複製 ──────────
    2122D區＝二航 D 開頭登機門；2140+2153＝分點別登機門設定那兩組 */
 function fwColon(t){ return t.replace(':','：'); }
+/* 11/17：回報的「幾點後」與按鍵名稱（跟著上面勾的分類變） */
+var CPT_KEY='cpT1';
+function cpCut(){ var e=document.getElementById('cpT'), v=(e&&e.value)||''; return /^\d\d:\d\d$/.test(v)?v:'22:30'; }
+function cpLabel(){
+  var bare=function(x){ return String(x||'').replace(/[（(\[].*$/,'').trim(); };
+  var n=[]; try{ catsExpand().forEach(function(c,i){ if(c.hasSpec&&show[c.id]&&(!window.__FREE3||i<2)) n.push(bare(c.name)); }); }catch(e){}
+  return n.length?n.join('+'):'先在上面勾分類';
+}
+window.__cpLabel=cpLabel;
+function cpPaint(){ var e=document.getElementById('cpSn'); if(e) e.textContent=cpLabel(); }
+(function(){
+  var t=document.getElementById('cpT'); if(!t) return;
+  try{ var v=localStorage.getItem(CPT_KEY); if(v&&/^\d\d:\d\d$/.test(v)) t.value=v; }catch(e){}
+  t.addEventListener('change',function(){ try{ localStorage.setItem(CPT_KEY,cpCut()); }catch(e){}
+    var box=document.getElementById('copybox'); if(cpKind==='S'&&box&&box.innerHTML){ box.innerHTML=''; cpKind=null; } });
+  ['click','touchstart'].forEach(function(ev){ t.addEventListener(ev,function(e){ e.stopPropagation(); }); });
+})();
 function reportText(kind){
   var d=new Date();
   var date=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   var md=(d.getMonth()+1)+'/'+d.getDate();
-  var cut = kind==='M' ? (window.meetCut?window.meetCut():'16:00') : '22:30';   /* 11/4：開會多抓 18:00 前的班機，算得出 18:00 前後的空檔 */
+  var cut = kind==='M' ? (window.meetCut?window.meetCut():'16:00') : cpCut();   /* 11/17：回報時間可自己選（預設 22:30） */   /* 11/4：開會多抓 18:00 前的班機，算得出 18:00 前後的空檔 */
   return getFlights(date).then(function(all){
     var want=date.replace(/-/g,'/');
     var seen={}, list=[];
     (all||[]).forEach(function(f){
       if(f.ODate!==want&&f.RDate!==want) return;
       var g=(f.Gate||'').trim().toUpperCase(); if(!g) return;
-      if(String(f.BNO)!=='2') return;
+      if(kind==='M'&&String(f.BNO)!=='2') return;   /* 11/17：回報改成看勾選的分類（大夜YA 有一航 A 區），只有開會還限二航 */
       if(/取消/.test(f.Memo||'')) return;
       var t=arrAt(f); if(t<cut) return;
       var k=hhmm(f.OTime)+'|'+g+'|'+(f.CityName||'');
@@ -1627,20 +1652,19 @@ function reportText(kind){
       return {text:lines.join('\n'), html:h};
     }
 
-    var rows=list.filter(function(x){
-      return kind==='D' ? x.g.charAt(0)==='D' : !!(g40[x.g]||g53[x.g]);
-    });
+    /* 11/17：只回報「上面分類鍵有勾」而且「分類設定有填登機門」的分類（App 免費版只有前兩組） */
+    var RC=EXr.filter(function(c,i){ return c.hasSpec&&!!show[c.id]&&(!window.__FREE3||i<2); });
+    var rows=list.filter(function(x){ var id=''; try{ id=shopOf(x.f0,EXr); }catch(e){} return RC.some(function(c){ return c.id===id; }); });
     rows.sort(function(a,b){ return a.t.localeCompare(b.t); });
     /* 兩種回報用同一套格式：@All／日期＋標題／時間 班號 出發地 登機門／署名 */
     /* 回報標題只取分類名稱的主要部分，括號註記（例：2153（香化））不帶進群組訊息 */
     var bare=function(x){ return String(x||'').replace(/[（(\[].*$/,'').trim(); };
-    var title = kind==='D' ? '2122後續班機'
-              : (bare(CATS[0].name)+'、'+bare(CATS[1].name)+' 後續班機');
+    var title = (RC.length ? RC.map(function(c){ return bare(c.name); }).join('、') : '（上面分類都沒勾）')+' 後續班機';
     var lines = ['@All ', md+' '+title]
       .concat(rows.map(function(x){
         return fline(x);
       }));
-    if(!rows.length) lines.push('（22:30 後沒有符合的班機）');
+    if(!rows.length) lines.push('（'+cut+' 後沒有符合的班機）');
     return lines.join('\n');
   });
 }
@@ -1830,6 +1854,7 @@ function paintShops(){
         + (on?'✓ ':'　')+esc(c.name)+'</span>';
   });
   slot.innerHTML=html;
+  try{ cpPaint(); }catch(e){}
   [].forEach.call(slot.querySelectorAll('.chip.shop'),function(el){
     el.addEventListener('click',function(){
       var i=+el.getAttribute('data-i');
@@ -3210,7 +3235,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
         html+='<button type="button" class="nx '+cls+'" data-r="'+(list.length-1)+'"><span class="tg">'+k+'</span><span class="m"><span class="t">'+txt(r.querySelector('.c-time b'))+'</span><span class="f">'+txt(r.querySelector('.c-fno b'))+'</span>'
           +'<span class="s">'+txt(r.querySelector('.c-city .cn'))+(n?'・約 '+n+' 人':'')+'・<span class="cd">'+(taxi?'滑行中':left(e))+'</span></span></span><span class="g">'+(txt(r.querySelector('.gn'))||'待定')+'</span></button>'; });
       if(!S.length) html+='<div class="nx none">分類都沒勾，按「設定」勾 2140／2153</div>';
-      if(N.N6&&late&&!DEP&&D.getElementById('cpS')) html+='<div class="rep"><button type="button" data-cp="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 複製 2140+2153</button></div>';
+      if(N.N6&&late&&!DEP&&D.getElementById('cpS')) html+='<div class="rep"><button type="button" data-cp="cpS"><svg class="ic" viewBox="0 0 24 24"><use href="#i-copy"/></svg> 複製 '+(W.__cpLabel?W.__cpLabel():'2140+2153')+'</button></div>';
       if(nx.__h!==html){ nx.innerHTML=html; nx.__h=html; }
       nx.onclick=function(e){ var b=e.target.closest('[data-r],[data-go],[data-cp]'); if(!b) return;
         if(b.dataset.cp){ var c=D.getElementById(b.dataset.cp); if(c){ poke=0; c.click(); b.textContent='✓ 已複製，貼到群組就好'; } return; }
