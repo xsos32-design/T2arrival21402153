@@ -336,6 +336,8 @@
       })
       .then(function () {
         return ADS.showBanner({ adId: CONFIG.bannerId, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0, isTesting: CONFIG.adTesting });
+      }).then(function () {   // 沒收到高度事件時，先保守讓出一條橫幅的高度（自適應橫幅最高約 90，手機直式約 50–62）
+        setTimeout(function () { if (!parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h'))) D.documentElement.style.setProperty('--ad-h', '62px'); }, 1500);
       })['catch'](function () {});
   }
 
@@ -685,12 +687,12 @@
       el.querySelector('.tg-next').textContent = i === steps.length - 1 ? '完成' : '下一步';
       if (!t) { hole.style.cssText = 'left:50%;top:40%;width:0;height:0'; card.style.cssText = 'left:12px;right:12px;top:34%'; return; }
       var r0 = gRect(t);
-      if (r0.top < 80 || r0.bottom > innerHeight - 220) { try { (t.firstElementChild && !t.getBoundingClientRect().width ? t.firstElementChild : t).scrollIntoView({ block: 'center' }); } catch (e) {} }
+      if (r0.top < 80 || r0.bottom > innerHeight - 220 - (parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h')) || 0)) { try { (t.firstElementChild && !t.getBoundingClientRect().width ? t.firstElementChild : t).scrollIntoView({ block: 'center' }); } catch (e) {} }
       setTimeout(function () {
         var r = gRect(t), pad = 6;
         hole.style.cssText = 'left:' + (r.left - pad) + 'px;top:' + (r.top - pad) + 'px;width:' + (r.width + pad * 2) + 'px;height:' + (r.height + pad * 2) + 'px';
-        var below = r.bottom + 14, h = card.offsetHeight || 170;
-        card.style.cssText = 'left:12px;right:12px;' + (below + h < innerHeight - 10 ? 'top:' + below + 'px' : 'top:' + Math.max(10, r.top - h - 14) + 'px');
+        var below = r.bottom + 14, h = card.offsetHeight || 170, adH = parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h')) || 0;
+        card.style.cssText = 'left:12px;right:12px;' + (below + h < innerHeight - adH - 10 ? 'top:' + below + 'px' : 'top:' + Math.max(10, r.top - h - 14) + 'px');
       }, 260);
     }
     function end() { el.remove(); ls(GUIDE_KEY, 'done'); }
