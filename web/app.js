@@ -234,8 +234,8 @@
       + '<div class="pw-free">免費版：只看現在起 3 小時的班機清單、登機門群組 2 組，回報文字要自己複製。' + (WEB ? '' : '兩版都有廣告。') + '</div>'
       + (!WEB && NATIVE && !subPro ? '<button type="button" class="pw-plan pw-rw" id="pwRw"><span>看廣告，免費用 ' + CONFIG.rewardHours + ' 小時<small>' + (rewardActive() ? '試用中，剩 ' + rewardLabel().replace('試用 ', '') + '・' : '') + '今天還可以 ' + rewardLeft() + ' 次・不含手錶版</small></span><b>▶</b></button>'
         + '<div class="pw-rwinfo"><b>看廣告可以用：</b>' + RW_FEATURES + '<br><b>每天免費時間：</b>每天 ' + CONFIG.rewardPerDay + ' 次，每次 ' + CONFIG.rewardHours + ' 小時（一天最多 ' + (CONFIG.rewardPerDay * CONFIG.rewardHours) + ' 小時），每天 0 點重新計算。<br>Apple Watch 手錶版只限訂閱。</div>' : '')
-      + (WEB ? webPlans() : (subPro ? '' : '<button type="button" class="pw-plan" id="pwM" disabled><span>月繳<small>每月自動續訂</small></span><b id="pwMp">讀取中…</b></button>'
-        + '<button type="button" class="pw-plan" id="pwY" disabled><span>年繳<small>每年自動續訂</small></span><b id="pwYp">讀取中…</b></button>'))
+      + (WEB ? webPlans() : (subPro ? '' : '<button type="button" class="pw-plan pw-best" id="pwY" disabled><em class="pw-badge" id="pwYbadge">最划算・年繳更省</em><span>年繳<small id="pwYsub">每年自動續訂</small></span><b id="pwYp">讀取中…</b></button>'
+        + '<button type="button" class="pw-plan" id="pwM" disabled><span>月繳<small>每月自動續訂</small></span><b id="pwMp">讀取中…</b></button>'))
       + '<div class="pw-msg" id="pwMsg" role="status"></div>'
       + (WEB ? '<div class="pw-row"><a href="' + CONFIG.pricingUrl + '">方案與退款說明</a><a href="' + CONFIG.privacyUrl + '">隱私權政策</a></div>'
         + '<div class="pw-legal">網頁版以信用卡單次付款（綠界科技 ECPay），不會自動續扣；到期前會提醒你。付款完成後會給你一組啟用碼，換手機或換瀏覽器時輸入同一組即可。</div>'
@@ -257,8 +257,8 @@
     var c = webCode(), until = +ls('proUntil') || 0;
     var day = until ? new Date(until).toLocaleDateString('zh-TW') : '';
     return (pro && day ? '<div class="pw-free">完整版可以用到 <b>' + day + '</b>，啟用碼 ' + esc(c.replace(/(.{4})(?=.)/g, '$1-')) + '。下面買的天數會接在後面延長。</div>' : '')
+      + '<button type="button" class="pw-plan pw-best" id="pwY"><em class="pw-badge">最划算・省 NT$90</em><span>365 天<small>平均每月不到 NT$83・比買 12 次 30 天省 NT$90</small></span><b>NT$990</b></button>'
       + '<button type="button" class="pw-plan" id="pwM"><span>30 天<small>單次付款・不自動續扣</small></span><b>NT$90</b></button>'
-      + '<button type="button" class="pw-plan" id="pwY"><span>365 天<small>單次付款・不自動續扣</small></span><b>NT$990</b></button>'
       + '<div class="pw-code"><label for="pwC">已經買過？輸入啟用碼</label><div><input id="pwC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" value="' + esc(c ? c.replace(/(.{4})(?=.)/g, '$1-') : '') + '">'
       + '<button type="button" class="pw-link" id="pwCgo">啟用</button></div></div>';
   }
@@ -292,7 +292,16 @@
         D.getElementById('pw' + x[0] + 'p').textContent = p.priceString || p.price;
         b.disabled = false; b.onclick = function () { buy(x[1]); };
       });
+      yearDeal(map[CONFIG.products.monthly], map[CONFIG.products.yearly]);
     })['catch'](function () { msg('讀不到價格，請確認網路後再開一次'); });
+  }
+  // 年繳省多少：用 App Store 回傳的實際價格算（不同國家價格不同，不寫死）
+  function yearDeal(m, y) {
+    var pm = m && +m.price, py = y && +y.price; if (!(pm > 0 && py > 0)) return;
+    var save = Math.round((1 - py / (pm * 12)) * 100), cur = String((y.priceString || '').replace(/[\d.,\s]/g, '')) || '';
+    var bd = D.getElementById('pwYbadge'), sb = D.getElementById('pwYsub');
+    if (bd && save > 0) bd.textContent = '最划算・省 ' + save + '%';
+    if (sb) sb.textContent = '平均每月 ' + cur + (Math.round(py / 12 * 10) / 10) + (save > 0 ? '・比月繳一年省 ' + cur + Math.round(pm * 12 - py) : '') + '・每年自動續訂';
   }
   function buy(id) {
     msg('處理中…');
@@ -543,6 +552,173 @@
     };
   }
 
+  /* ───────── 1.3：設定引導＋功能導覽（第一次打開跑一次；可跳過；設定裡可以重看）───────── */
+  var GUIDE_KEY = 'guide1';   // '' 沒看過；'skip' 跳過；'done' 看完
+  var PAL = ['#00F0FF', '#FF2A6D', '#8CF23A', '#7B78FF', '#4DA3FF', '#FF8A3D', '#C65CFF', '#FFC53D', '#E8EDF3'];
+  var CDEF = ['#00F0FF', '#FF2A6D', '#8CF23A', '#7B78FF'], CK = ['c0', 'c1', 'a2', 'a3'];
+  function gColors() { try { return JSON.parse(ls('tpeCatCol1') || '{}') || {}; } catch (e) { return {}; } }
+  function gBusy() { return D.getElementById('fxnews') || D.getElementById('paywall') || D.getElementById('setupg') || D.getElementById('tourg') || D.querySelector('.sheet'); }
+  function guideClose(state) { var a = D.getElementById('setupg'); if (a) a.remove(); if (state && !ls(GUIDE_KEY)) ls(GUIDE_KEY, state); else if (state === 'done') ls(GUIDE_KEY, 'done'); }
+
+  function openSetup(step) {
+    var old = D.getElementById('setupg'); if (old) old.remove();
+    step = step || 0;
+    var C = W.CATS || [], col = gColors(), N = 4;
+    var el = D.createElement('div'); el.id = 'setupg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '設定引導');
+    var dots = '<div class="sg-dots">' + [0, 1, 2, 3].map(function (i) { return '<i' + (i === step ? ' class="on"' : '') + '></i>'; }).join('') + '</div>';
+    var body = '';
+    if (step === 0) {
+      body = '<div class="sg-kicker">歡迎使用</div><h2>下一班誰先到，一眼看懂</h2>'
+        + '<p>一般航班表照「表定時間」排，延誤、提早一多就亂了。這裡照<b>實際' + (DEP ? '起飛' : '落地') + '時間</b>重新排序，最上面永遠是下一班。</p>'
+        + '<div class="sg-demo"><div><b>12:41</b><small>表定 +16</small><span>CZ3087</span><em>C7</em></div>'
+        + '<div><b>12:58</b><small>表定 −7</small><span>BR0852</span><em>B9</em></div>'
+        + '<div><b>13:24</b><small>表定 +9</small><span>BR0133</span><em>B8</em></div></div>'
+        + '<p class="sg-mute">花 30 秒設定你負責的登機門，之後打開就只看你要的。</p>';
+    } else if (step === 1) {
+      body = '<div class="sg-kicker">第 1 步・你的工作區域</div><h2>你負責哪些登機門？</h2>'
+        + '<p class="sg-mute">分成兩組，取你們自己習慣的名字。登機門可以寫範圍，例如「C1-C4, B7」；留空＝那個航廈其他的門。</p>'
+        + [0, 1].map(function (i) {
+            var c = C[i] || {}, cur = (col[CK[i]] || CDEF[i]).toUpperCase();
+            return '<fieldset class="sg-cat"><legend>第 ' + (i + 1) + ' 組</legend>'
+              + '<label>名稱<input data-k="name" data-i="' + i + '" maxlength="12" value="' + esc(c.name || '') + '"></label>'
+              + '<label>登機門<input data-k="spec" data-i="' + i + '" placeholder="例：C1-C4, B7-B9" value="' + esc(c.spec || '') + '"></label>'
+              + '<label>航廈<select data-k="term" data-i="' + i + '"><option value="2"' + (c.term === '2' ? ' selected' : '') + '>二航</option><option value="1"' + (c.term === '1' ? ' selected' : '') + '>一航</option><option value="any"' + (c.term === 'any' ? ' selected' : '') + '>不分</option></select></label>'
+              + '<div class="sg-pal" data-i="' + i + '">' + PAL.map(function (h) { return '<button type="button" data-c="' + h + '" style="background:' + h + '"' + (h === cur ? ' class="on"' : '') + ' aria-label="顏色 ' + h + '"></button>'; }).join('') + '</div>'
+              + '</fieldset>';
+          }).join('')
+        + '<p class="sg-mute">之後都能在「設定 › 分類設定」改。' + (pro ? '' : '訂閱完整版可以用到 4 組。') + '</p>';
+    } else if (step === 2) {
+      var lv = +(ls('fsLevel1') || 1), NM = ['小', '標準', '大', '特大', '超大'];
+      body = '<div class="sg-kicker">第 2 步・字體</div><h2>字要多大？</h2><p class="sg-mute">站著看、走路看，選看得最清楚的。右上「字體」隨時可以換。</p>'
+        + '<div class="sg-fs">' + NM.map(function (n, i) { return '<button type="button" data-l="' + i + '" style="font-size:' + (13 + i * 2.5) + 'px"' + (i === lv ? ' class="on"' : '') + '>' + n + '<small>12:41 C7</small></button>'; }).join('') + '</div>';
+    } else {
+      body = '<div class="sg-kicker">設定好了</div><h2>要不要看 30 秒功能導覽？</h2>'
+        + '<p>會一個一個指給你看：時間怎麼看、登機門顏色、設定在哪、' + (NATIVE && !pro ? '怎麼看廣告免費用完整版、' : '') + '回報文字怎麼複製。</p>'
+        + '<p class="sg-mute">之後想再看，到「設定」最下面按「使用引導」。</p>';
+    }
+    var foot = step === 0 ? '<button type="button" class="sg-btn" data-a="skip">跳過，直接用</button><button type="button" class="sg-btn pri" data-a="next">開始設定（30 秒）</button>'
+      : step < 3 ? '<button type="button" class="sg-btn" data-a="back">上一步</button><button type="button" class="sg-btn pri" data-a="next">' + (step === 1 ? '儲存，下一步' : '下一步') + '</button>'
+      : '<button type="button" class="sg-btn" data-a="done">先不用</button><button type="button" class="sg-btn pri" data-a="tour">看功能導覽</button>';
+    el.innerHTML = '<div class="sg-in">' + '<div class="sg-top">' + dots + (step < 3 ? '<button type="button" class="sg-skip" data-a="skip">跳過引導</button>' : '') + '</div>'
+      + body + '<div class="sg-foot">' + foot + '</div></div>';
+    B.appendChild(el);
+    [].forEach.call(el.querySelectorAll('.sg-pal button'), function (b) {
+      b.onclick = function () { [].forEach.call(b.parentNode.children, function (x) { x.classList.toggle('on', x === b); }); };
+    });
+    [].forEach.call(el.querySelectorAll('.sg-fs button'), function (b) {
+      b.onclick = function () {
+        [].forEach.call(b.parentNode.children, function (x) { x.classList.toggle('on', x === b); });
+        var m = D.querySelector('#fsmenu button[data-l="' + b.getAttribute('data-l') + '"]');
+        if (m) m.click(); else ls('fsLevel1', b.getAttribute('data-l'));
+      };
+    });
+    function saveCats() {
+      try {
+        [0, 1].forEach(function (i) {
+          var c = W.CATS[i]; if (!c) return;
+          var n = el.querySelector('input[data-k="name"][data-i="' + i + '"]').value.trim();
+          c.name = n || ('分類' + (i + 1));
+          c.spec = el.querySelector('input[data-k="spec"][data-i="' + i + '"]').value;
+          c.term = el.querySelector('select[data-k="term"][data-i="' + i + '"]').value;
+        });
+        if (W.catsSave) W.catsSave();
+        if (W.paintCatBox) W.paintCatBox();
+        if (W.paintShops) W.paintShops();
+        var o = gColors();
+        [0, 1].forEach(function (i) { var on = el.querySelector('.sg-pal[data-i="' + i + '"] button.on'); if (on) o[CK[i]] = on.getAttribute('data-c'); });
+        ls('tpeCatCol1', JSON.stringify(o));
+        if (W.catColApply) W.catColApply();
+        if (W.render) W.render();
+        syncWatch();
+      } catch (e) {}
+    }
+    el.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('[data-a]'); if (!a) return;
+      var k = a.getAttribute('data-a');
+      if (k === 'skip') { guideClose('skip'); tip('隨時可以到「設定」最下面按「使用引導」再看一次。'); }
+      else if (k === 'next') { if (step === 1) saveCats(); openSetup(step + 1); }
+      else if (k === 'back') openSetup(step - 1);
+      else if (k === 'done') { guideClose('done'); }
+      else if (k === 'tour') { guideClose('done'); setTimeout(openTour, 300); }
+    });
+  }
+
+  function gRect(t) {   // 有些格子是 display:contents（自己沒有大小），改用裡面字的範圍
+    var r = t.getBoundingClientRect(); if (r.width && r.height) return r;
+    var L = 1e9, T = 1e9, R = -1e9, Bm = -1e9;
+    [].forEach.call(t.children, function (c) { var q = c.getBoundingClientRect(); if (!q.width) return; L = Math.min(L, q.left); T = Math.min(T, q.top); R = Math.max(R, q.right); Bm = Math.max(Bm, q.bottom); });
+    return R > L ? { left: L, top: T, right: R, bottom: Bm, width: R - L, height: Bm - T } : r;
+  }
+  function tourSteps() {
+    var row = D.querySelector('#out .r:not(.head):not(.done)') || D.querySelector('#out .r:not(.head)');
+    var T = DEP ? '起飛' : '落地';
+    var s = [
+      [row && row.querySelector('.c-time'), '時間', '大字是實際（預計）' + T + '時間；下面「表定 +16」＝比表定晚 16 分鐘，負的就是提早。整張清單照這個時間排，最上面就是下一班。'],
+      [row && row.querySelector('.c-gate'), '登機門', '顏色跟著分類走，一眼分出是哪一組的門。'],
+      [row && row.querySelector('.tag'), '分類標籤', '你在引導設的組名。名稱、顏色、登機門都能在「設定 › 分類設定」改。'],
+      [D.querySelector('#dock button'), '設定', '時段、日期、分類、A～D 區、隱藏已' + (DEP ? '起飛' : '抵達') + '、回報文字、外觀樣式，都在這裡。'],
+      [D.getElementById('rwbar'), '看廣告免費用', '看一則廣告就能用完整版 ' + CONFIG.rewardHours + ' 小時，每天 ' + CONFIG.rewardPerDay + ' 次，每天 0 點重新計算（手錶版不含）。'],
+      [D.getElementById('probtn'), pro ? '完整版' : '訂閱', pro ? '這裡看你的訂閱或試用剩多久。' : '看完整版有哪些功能：全時段、每班人數、雷達、群組回報一鍵複製' + (WEB ? '' : '、Apple Watch') + '。年繳最划算。'],
+      [D.querySelector('header a:not(.on)') || D.querySelector('header a'), '入境／出境', '兩邊切換，分類設定共用。'],
+      [D.getElementById('bigbtn'), '字體', '5 段大小，隨時換。'],
+      [D.getElementById('fGo'), '更新', '平常會自動更新；想馬上更新就按這裡。'],
+      [null, '就這樣', '想再看一次：「設定」最下面按「使用引導」。']
+    ];
+    return s.filter(function (x) { if (!x[0] && x[1] !== '就這樣') return false; if (!x[0]) return true; var r = gRect(x[0]); return r.width > 0 && r.height > 0; });
+  }
+  function openTour() {
+    if (D.getElementById('tourg')) return;
+    var steps = tourSteps(), i = 0;
+    var el = D.createElement('div'); el.id = 'tourg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '功能導覽');
+    el.innerHTML = '<div class="tg-hole"></div><div class="tg-card" role="status"><div class="tg-n"></div><b class="tg-h"></b><p class="tg-t"></p>'
+      + '<div class="tg-foot"><button type="button" class="tg-skip">跳過</button><span></span><button type="button" class="tg-back">上一步</button><button type="button" class="tg-next">下一步</button></div></div>';
+    B.appendChild(el);
+    var hole = el.querySelector('.tg-hole'), card = el.querySelector('.tg-card');
+    function place() {
+      var s = steps[i], t = s[0];
+      el.querySelector('.tg-n').textContent = (i + 1) + ' / ' + steps.length;
+      el.querySelector('.tg-h').textContent = s[1]; el.querySelector('.tg-t').textContent = s[2];
+      el.querySelector('.tg-back').style.visibility = i ? '' : 'hidden';
+      el.querySelector('.tg-next').textContent = i === steps.length - 1 ? '完成' : '下一步';
+      if (!t) { hole.style.cssText = 'left:50%;top:40%;width:0;height:0'; card.style.cssText = 'left:12px;right:12px;top:34%'; return; }
+      var r0 = gRect(t);
+      if (r0.top < 80 || r0.bottom > innerHeight - 220) { try { (t.firstElementChild && !t.getBoundingClientRect().width ? t.firstElementChild : t).scrollIntoView({ block: 'center' }); } catch (e) {} }
+      setTimeout(function () {
+        var r = gRect(t), pad = 6;
+        hole.style.cssText = 'left:' + (r.left - pad) + 'px;top:' + (r.top - pad) + 'px;width:' + (r.width + pad * 2) + 'px;height:' + (r.height + pad * 2) + 'px';
+        var below = r.bottom + 14, h = card.offsetHeight || 170;
+        card.style.cssText = 'left:12px;right:12px;' + (below + h < innerHeight - 10 ? 'top:' + below + 'px' : 'top:' + Math.max(10, r.top - h - 14) + 'px');
+      }, 260);
+    }
+    function end() { el.remove(); ls(GUIDE_KEY, 'done'); }
+    el.querySelector('.tg-skip').onclick = end;
+    el.querySelector('.tg-back').onclick = function () { if (i) { i--; place(); } };
+    el.querySelector('.tg-next').onclick = function () { if (i < steps.length - 1) { i++; place(); } else end(); };
+    addEventListener('resize', function () { if (D.getElementById('tourg')) place(); });
+    place();
+  }
+  W.tpeGuide = openSetup; W.tpeTour = openTour;
+
+  function addGuideEntry() {   // 設定最下面：使用引導
+    if (D.getElementById('guiderow')) return;
+    var card = D.querySelector('.wrap .card'); if (!card) return;
+    var row = D.createElement('div'); row.className = 'chips'; row.id = 'guiderow';
+    row.innerHTML = '<span class="chip" id="gSetup" role="button" tabindex="0">使用引導：重新設定</span><span class="chip" id="gTour" role="button" tabindex="0">功能導覽</span>';
+    card.appendChild(row);
+    D.getElementById('gSetup').onclick = function () { openSetup(0); };
+    D.getElementById('gTour').onclick = function () { try { W.scrollTo(0, 0); } catch (e) {} var dk = D.querySelector('#dock button'); if (dk && card.offsetParent) dk.click(); setTimeout(openTour, 400); };
+  }
+  function guideBoot() {
+    addGuideEntry();
+    if (ls(GUIDE_KEY)) return;
+    var n = 0, iv = setInterval(function () {   // 等班機出來、更新日誌關掉再跳
+      n++;
+      if (n > 240) { clearInterval(iv); return; }
+      if (!D.querySelector('#out .r:not(.head)') || gBusy()) return;
+      clearInterval(iv); setTimeout(function () { if (!gBusy() && !ls(GUIDE_KEY)) openSetup(0); }, 600);
+    }, 500);
+  }
+
   /* ───────── 啟動 ───────── */
   function addUnofficial() {
     if (D.getElementById('unofficial')) return;
@@ -556,7 +732,7 @@
     var h = D.querySelector('header'); if (h) h.parentNode.insertBefore(n, h); else B.insertBefore(n, B.firstChild);
   }
   function boot() {
-    addBrand(); addProButton(); addRewardBar(); applyFont(); addUnofficial(); addMeetGear(); addSlotGear();
+    addBrand(); addProButton(); addRewardBar(); applyFont(); addUnofficial(); addMeetGear(); addSlotGear(); guideBoot();
     B.classList.toggle('tier-free', !cachedPro()); W.__FREE3 = !cachedPro();
     var tries = 0, iv = setInterval(function () {
       tries++;
