@@ -653,7 +653,10 @@
     var row = D.querySelector('#out .r:not(.head):not(.done)') || D.querySelector('#out .r:not(.head)');
     var T = DEP ? '起飛' : '落地';
     var s = [
-      [row && row.querySelector('.c-time'), '時間', '大字是實際（預計）' + T + '時間；下面「表定 +16」＝比表定晚 16 分鐘，負的就是提早。整張清單照這個時間排，最上面就是下一班。'],
+      [row && row.querySelector('.c-time'), '時間', (function () {
+        var m = /表定\s*([+−-])\s*(\d+)/.exec(((row && row.querySelector('.c-time i')) || {}).textContent || ''), ex = m ? '「表定 ' + m[1] + m[2] + '」＝比表定' + (m[1] === '+' ? '晚 ' : '早 ') + m[2] + ' 分鐘' : '「表定 +16」＝比表定晚 16 分鐘';
+        return '大字是實際（預計）' + T + '時間；下面' + ex + '，+ 是延後、− 是提早。整張清單照這個時間排，最上面就是下一班。';
+      })()],
       [row && row.querySelector('.c-gate'), '登機門', '顏色跟著分類走，一眼分出是哪一組的門。'],
       [row && row.querySelector('.tag'), '分類標籤', '你在引導設的組名。名稱、顏色、登機門都能在「設定 › 分類設定」改。'],
       [D.querySelector('#dock button'), '設定', '時段、日期、分類、A～D 區、隱藏已' + (DEP ? '起飛' : '抵達') + '、回報文字、外觀樣式，都在這裡。'],
