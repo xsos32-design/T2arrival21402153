@@ -559,7 +559,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
 <!-- 手錶（≤340px）整排不顯示：螢幕就那麼點大，更新可以點最上面那條標題列，開會時間手機上看就好 -->
 <span id="bmeet" hidden></span>
 <div class="cfgbox" id="cfgbox" hidden>
-  <h4>名稱／航廈／登機門（留空＝該航廈其餘）・大夜YA＝A、D 門／大夜YB＝B、C 門</h4>
+  <h4>名稱／航廈／登機門（留空＝該航廈其餘）・YA＝A、D 門／YB＝B、C 門</h4>
   <div id="catbox"></div>
   <span class="btn" id="catReset" style="min-height:40px;font-size:13px"><svg class="ic" viewBox="0 0 24 24"><use href="#i-undo"/></svg> 恢復預設</span>
 </div>
@@ -583,7 +583,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15s';
+var PAGE_V='2026-11-20a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -605,8 +605,8 @@ var PAGE_V='2026-11-15s';
 var CAT_DEFAULT=[
   {name:'2140', spec:'C1-C4, C5R, B7-B9', term:'2'},
   {name:'2153', spec:'B6, C5, C6-C10',    term:'2'},
-  {name:'大夜YA', spec:'A1-A10, D1-D18',  term:'any'},   /* 入境登機口 A、D */
-  {name:'大夜YB', spec:'B1-B9, C1-C10',   term:'any'}    /* 入境登機口 B、C（2140／2153 的門先算） */
+  {name:'YA', spec:'A1-A10, D1-D18',  term:'any'},   /* 入境登機口 A、D */
+  {name:'YB', spec:'B1-B9, C1-C10',   term:'any'}    /* 入境登機口 B、C（2140／2153 的門先算） */
 ];
 var CAT_CLS=['s40','s53','sYA','sYB'];
 var CAT_KEY='tpeCats1';
@@ -634,7 +634,7 @@ function expandSpec(spec){
   });
   return set;
 }
-/* 10/19：入境的第 3、4 格改成「大夜YA」（入境 A、D 登機門）、「大夜YB」（入境 B、C 登機門）。
+/* 10/19：入境的第 3、4 格改成「YA」（入境 A、D 登機門）、「YB」（入境 B、C 登機門）。
    出境頁也讀同一個 tpeCats1，所以入境把第 3、4 格另外存在 tpeCatsArr1，不動出境的「其他一航／其他二航」；
    第 1、2 格（2140／2153）照舊跟出境共用。 */
 var CAT_ARR_KEY='tpeCatsArr1';
@@ -645,6 +645,8 @@ function catsLoad(){
     if(a&&a.length===4){ out[0]=catsFix(a[0],0); out[1]=catsFix(a[1],1); } }catch(e){}
   try{ var b=JSON.parse(localStorage.getItem(CAT_ARR_KEY)||'null');
     if(b&&b.length===2){ out[2]=catsFix(b[0],2); out[3]=catsFix(b[1],3); } }catch(e){}
+  /* 11/20：「大夜YA／大夜YB」改名「YA／YB」；手機裡存過舊名字的也一起改 */
+  out.forEach(function(c){ if(c.name==='大夜YA') c.name='YA'; else if(c.name==='大夜YB') c.name='YB'; });
   return out;
 }
 function catsSave(){
@@ -793,7 +795,7 @@ function shopOf(f){
     if(c.hasSpec) continue;
     if(c.term==='any' || c.term===bno) return c.id;
   }
-  /* 都沒對到：照開頭字母分，A、D＝大夜YA，B、C＝大夜YB */
+  /* 都沒對到：照開頭字母分，A、D＝YA，B、C＝YB */
   var L=g.charAt(0); if((L==='A'||L==='D')&&EX[2]) return 'c2';
   return 'c'+(EX.length-1);
 }
@@ -828,7 +830,7 @@ function fno4(code){
   return m[1]+d;
 }
 
-/* 11/2：縮小模式的短標籤：2140→40、2153→53、大夜YA→YA */
+/* 11/2：縮小模式的短標籤：2140→40、2153→53、YA→YA */
 function tagShort(t){ var b=String(t||'').replace(/[（(\[].*$/,'').trim(), m;
   if((m=b.match(/^\d{2}(\d{2})$/))) return m[1];
   if((m=b.match(/(Y[A-Z])\s*$/i))) return m[1].toUpperCase();
@@ -885,7 +887,7 @@ function paxHtml(f){ var p=paxOf(f);
   return ' <i class="px p'+p.lv+'">'+p.inn+'<u>預估入境</u></i>'; }
 
 /* ── 畫面狀態 ── */
-/* 一開啟只勾自己的兩家分點（2140／2153）；大夜YA／YB 要看再自己按 */
+/* 一開啟只勾自己的兩家分點（2140／2153）；YA／YB 要看再自己按 */
 var cats={c0:true,c1:true,c2:false,c3:false};
 var zones={'A':true,'B':true,'C':true,'D':true};   /* 登機門開頭字母（607 這種無字母的一律顯示） */
 var win=['00:00','23:59'];
@@ -2157,7 +2159,7 @@ html,body{background:transparent!important} html{background:#05040a!important}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(5,4,10,.84),rgba(5,4,10,.88)),url(img/bg-term.webp) center bottom/cover no-repeat}
 </style>
 <script>
-/* 10/19：「⋯」裡分類放最上面：大夜YA／YB → 全部／清空 → 時段 → 日期 → 區域 → 隱藏／設定 → 更新／開會 */
+/* 10/19：「⋯」裡分類放最上面：YA／YB → 全部／清空 → 時段 → 日期 → 區域 → 隱藏／設定 → 更新／開會 */
 (function(){
   var more=document.getElementById('more'), s2=document.getElementById('catslot2'), ba=document.getElementById('ball');
   var g1=s2&&s2.closest('.grp'), g2=ba&&ba.closest('.grp');
@@ -2165,7 +2167,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 })();
 </script>
 <style>
-/* ══ 10/19：大夜YA＝萊姆綠、大夜YB＝靛藍（入境頁、手錶頁共用）══
+/* ══ 10/19：YA＝萊姆綠、YB＝靛藍（入境頁、手錶頁共用）══
    挑色原則：不跟看板上已經有意義的顏色撞。已用：青綠 2140、桃紅 2153、黃＝表定／快到、
    金＝移民署／延誤、橘＝晚到、紅＝取消、綠＝準時、藍＝提早／滑行、紫＝空檔線。
    剩下最空的兩段色相就是萊姆綠（約 93°）和靛藍（約 241°）。 */
@@ -2203,7 +2205,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
 (function(){
   var W=window, D=document, K='tpeCatCol1';
   var DEP=/出境/.test(D.title), TDX=!!D.getElementById('cfgbox');
-  /* 預設顏色：2140 青綠、2153 桃紅、大夜YA 萊姆綠、大夜YB 靛藍（出境的其他一航／二航維持原本灰紫） */
+  /* 預設顏色：2140 青綠、2153 桃紅、YA 萊姆綠、YB 靛藍（出境的其他一航／二航維持原本灰紫） */
   var DEF=['#00F0FF','#FF2A6D','#8CF23A','#7B78FF'];
   /* 可挑的色：都是看板上分得開的顏色；也可以按最右邊自己調 */
   var PAL=['#00F0FF','#FF2A6D','#8CF23A','#7B78FF','#4DA3FF','#FF8A3D','#C65CFF','#FFC53D','#E8EDF3'];
@@ -2218,7 +2220,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
   function ink(h){ return lum(h)>.32?'#0B0B12':'#FFFFFF'; }
   function soft(h){ var c=rgb(h).map(function(v){ return Math.round(v+(255-v)*.45); }); return 'rgb('+c.join(',')+')'; }
   function near(a,b){ var x=rgb(a),y=rgb(b); return Math.sqrt(Math.pow(x[0]-y[0],2)+Math.pow(x[1]-y[1],2)+Math.pow(x[2]-y[2],2))<70; }
-  function names(){ try{ return CATS.map(function(c){ return c.name; }); }catch(e){ return ['2140','2153','大夜YA','大夜YB']; } }
+  function names(){ try{ return CATS.map(function(c){ return c.name; }); }catch(e){ return ['2140','2153','YA','YB']; } }
 
   var ROW=['.r.r40','.r.r53','.r.rYA','.r.rYB'];
   var TAG=TDX?['.tag.s40','.tag.s53','.tag.sYA','.tag.sYB']:['.tag.t40','.tag.t53','.tag.tYA','.tag.tYB'];
@@ -2242,7 +2244,7 @@ html body:not(#_) .catno.cs2{color:var(--ya)!important} html body:not(#_) .catno
     var o=load(), h=[];
     for(var i=0;i<4;i++){
       var custom=ok(o[key(i)]);
-      /* 2140／2153 沒改過就維持原本的霓虹樣式；大夜YA／YB 一律套（下一班、進度條也要跟著變色） */
+      /* 2140／2153 沒改過就維持原本的霓虹樣式；YA／YB 一律套（下一班、進度條也要跟著變色） */
       if(custom||(i>=2&&!DEP)){ var c=colOf(i,o); if(c) h.push(css(i,c)); }
     }
     st.textContent=h.join('\n');

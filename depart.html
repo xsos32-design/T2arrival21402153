@@ -744,7 +744,7 @@
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-15s';
+var PAGE_V='2026-11-20a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -2937,7 +2937,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
       var html='<div class="h"><span>下一班'+(DEP?'起飛':'落地')+'</span><a data-go="now">看清單 ▾</a></div>';
       var list=[];
       S.forEach(function(k){ var r=RS.filter(function(r){ if(tagOf(r)!==k||r.classList.contains('done')||r.style.display==='none') return false; var e=eta2(r); return r.classList.contains('taxi')||(e!==null&&e>=-15); }).sort(function(a,b){ return eta2(a)-eta2(b); })[0];
-        var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===k&&ci<0) ci=i; }); }catch(_){ } var cls=(ci===0?'k40':(ci===1?'k53':''))+(ci>=0?' kc'+ci:'');   /* 10/21：依分類格子上色（大夜YA／YB、自選顏色） */
+        var ci=-1; try{ CATS.forEach(function(c,i){ if(c.name===k&&ci<0) ci=i; }); }catch(_){ } var cls=(ci===0?'k40':(ci===1?'k53':''))+(ci>=0?' kc'+ci:'');   /* 10/21：依分類格子上色（YA／YB、自選顏色） */
         if(!r){ html+='<div class="nx none">'+k+'　這個時段沒有還沒到的班機了</div>'; return; }
         var e=eta2(r), taxi=r.classList.contains('taxi'), n=pxN(r);
         list.push(r);
@@ -2989,7 +2989,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
 (function(){
   var W=window, D=document, K='tpeCatCol1';
   var DEP=/出境/.test(D.title), TDX=!!D.getElementById('cfgbox');
-  /* 預設顏色：2140 青綠、2153 桃紅、大夜YA 萊姆綠、大夜YB 靛藍（出境的其他一航／二航維持原本灰紫） */
+  /* 預設顏色：2140 青綠、2153 桃紅、YA 萊姆綠、YB 靛藍（出境的其他一航／二航維持原本灰紫） */
   var DEF=['#00F0FF','#FF2A6D','#8CF23A','#7B78FF'];
   /* 可挑的色：都是看板上分得開的顏色；也可以按最右邊自己調 */
   var PAL=['#00F0FF','#FF2A6D','#8CF23A','#7B78FF','#4DA3FF','#FF8A3D','#C65CFF','#FFC53D','#E8EDF3'];
@@ -3004,7 +3004,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
   function ink(h){ return lum(h)>.32?'#0B0B12':'#FFFFFF'; }
   function soft(h){ var c=rgb(h).map(function(v){ return Math.round(v+(255-v)*.45); }); return 'rgb('+c.join(',')+')'; }
   function near(a,b){ var x=rgb(a),y=rgb(b); return Math.sqrt(Math.pow(x[0]-y[0],2)+Math.pow(x[1]-y[1],2)+Math.pow(x[2]-y[2],2))<70; }
-  function names(){ try{ return CATS.map(function(c){ return c.name; }); }catch(e){ return ['2140','2153','大夜YA','大夜YB']; } }
+  function names(){ try{ return CATS.map(function(c){ return c.name; }); }catch(e){ return ['2140','2153','YA','YB']; } }
 
   var ROW=['.r.r40','.r.r53','.r.rYA','.r.rYB'];
   var TAG=TDX?['.tag.s40','.tag.s53','.tag.sYA','.tag.sYB']:['.tag.t40','.tag.t53','.tag.tYA','.tag.tYB'];
@@ -3028,7 +3028,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
     var o=load(), h=[];
     for(var i=0;i<4;i++){
       var custom=ok(o[key(i)]);
-      /* 2140／2153 沒改過就維持原本的霓虹樣式；大夜YA／YB 一律套（下一班、進度條也要跟著變色） */
+      /* 2140／2153 沒改過就維持原本的霓虹樣式；YA／YB 一律套（下一班、進度條也要跟著變色） */
       if(custom||(i>=2&&!DEP)){ var c=colOf(i,o); if(c) h.push(css(i,c)); }
     }
     st.textContent=h.join('\n');
