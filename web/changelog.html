@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>更新日誌 · 桃機出入境看板</title>
+<style>
+body{margin:0;background:#0a0614;color:#e6edf5;font:16px/1.75 system-ui,"PingFang TC","Noto Sans TC",sans-serif}
+main{max-width:720px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:24px;margin:0 0 4px} .mute{color:#8b96a6;font-size:14px}
+h2{font-size:18px;margin:28px 0 6px;color:#00efd4} h2 small{color:#8b96a6;font-weight:600;margin-left:8px}
+.it{border-left:2px solid #00efd4;padding:6px 12px;margin:10px 0;background:rgba(0,240,255,.05)}
+.it b{display:block;font-size:16px} .it p{margin:4px 0;color:#d3e2ef} .it div{font-size:14px;color:#a9b8c6}
+em{font-style:normal;color:#00f0ff} a{color:#00efd4}
+</style></head><body><main>
+<h1>桃機出入境看板・更新日誌</h1>
+<p class="mute">網頁版（tpeboard.com）、iPhone App、Apple Watch 同步更新。<a href="./">回到看板</a></p>
+<div id="log"></div>
+</main>
+<script src="web-news.js"></script>
+<script>
+(function(){var N=(window.__TPE_NEWS||[]).slice().reverse(),h='';
+N.forEach(function(s){h+='<h2>'+s.t+'<small>'+s.d+'</small></h2>';s.it.forEach(function(x){h+='<div class="it"><b>'+x[2]+'</b><p>'+x[3]+'</p><div>'+x[4]+'</div></div>';});});
+document.getElementById('log').innerHTML=h||'<p class="mute">目前沒有更新紀錄。</p>';})();
+</script>
+</body></html>

@@ -17,6 +17,10 @@
       : 'ca-app-pub-7535692982479289/1491072768',
     // true＝只顯示測試廣告（自己測試時不會被算成無效點擊）。送審前改成 false，才會有真的廣告和收入
     adTesting: false,
+    // 1.2：獎勵廣告「看廣告解鎖 2 小時」，每天最多 2 次（不含 Apple Watch，手錶只看 Apple 訂閱）
+    rewardId: 'ca-app-pub-7535692982479289/5682516489',
+    rewardHours: 2,
+    rewardPerDay: 2,
     privacyUrl: 'https://xsos32-design.github.io/T2arrival21402153/preview/privacy.html',
     termsUrl: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
     manageUrl: 'https://apps.apple.com/account/subscriptions',
@@ -30,7 +34,7 @@
   var IAP = P.NativePurchases, ADS = P.AdMob, LN = P.LocalNotifications;
   var NATIVE = !!W.__APP;
   var WEB = !NATIVE && !!W.__WEBPAY;   // 網頁正式版：用啟用碼解鎖
-  var pro = false, bypass = false;
+  var pro = false, bypass = false, subPro = false;
 
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -65,14 +69,93 @@
     })['catch'](function () { return cachedPro(); }); // 沒網路：用上次確認到的到期日
   }
 
+  /* ───────── 看廣告解鎖（1.2）───────── */
+  function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function rewardUntil() { return +ls('rwUntil') || 0; }
+  function rewardActive() { return rewardUntil() > Date.now(); }
+  function rewardUsed() { var v = (ls('rwDay') || '').split('|'); return v[0] === today() ? (+v[1] || 0) : 0; }
+  function rewardLeft() { return Math.max(0, CONFIG.rewardPerDay - rewardUsed()); }
+  function rewardGrant() {
+    ls('rwDay', today() + '|' + (rewardUsed() + 1));
+    ls('rwUntil', String(Math.max(Date.now(), rewardUntil()) + CONFIG.rewardHours * 3600e3));
+    applyTier(subPro);
+  }
+  function rewardLabel() { var m = Math.max(0, Math.ceil((rewardUntil() - Date.now()) / 60000)); return '試用 ' + Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); }
+  var rwBusy = false;
+  function watchReward() {
+    if (!NATIVE || !ADS) { msg('App 裡才能看廣告解鎖'); return; }
+    if (rwBusy) return;
+    if (!rewardLeft()) { msg('今天的 ' + CONFIG.rewardPerDay + ' 次已經用完，明天再來，或直接訂閱'); return; }
+    rwBusy = true; msg('廣告載入中…');
+    var got = false, granted = false, hs = [];
+    function done() { rwBusy = false; hs.forEach(function (h) { try { h.remove(); } catch (e) {} }); }
+    function finish() {
+      if (granted) return;
+      if (got) { granted = true; rewardGrant(); msg('已解鎖完整版 ' + CONFIG.rewardHours + ' 小時'); setTimeout(function () { var p = D.getElementById('paywall'); if (p) p.remove(); }, 1200); }
+      else msg('要看完廣告才能解鎖');
+      done();
+    }
+    Promise.all([
+      ADS.addListener('onRewardedVideoAdReward', function () { got = true; }),
+      ADS.addListener('onRewardedVideoAdDismissed', function () { setTimeout(finish, 300); }),
+      ADS.addListener('onRewardedVideoAdFailedToShow', function () { msg('廣告播放失敗，請稍後再試'); done(); })
+    ]).then(function (a) { hs = a; return ADS.prepareRewardVideoAd({ adId: CONFIG.rewardId, isTesting: CONFIG.adTesting }); })
+      .then(function () { msg(''); return ADS.showRewardVideoAd(); })
+      .then(function () { got = true; })
+      ['catch'](function () { msg('目前沒有可以看的廣告，請稍後再試'); done(); });
+  }
+  setInterval(function () {
+    if (pro && !subPro && !rewardActive()) applyTier(subPro);   // 試用時間到，回到免費版
+    else if (pro && !subPro) { var pb = D.getElementById('probtn'); if (pb) pb.textContent = rewardLabel(); }
+  }, 30000);
+
+  /* ───────── 1.2：讓人知道分類名稱／顏色可以改 ───────── */
+  function catLabel() {   // 設定裡的標題寫清楚可以改顏色
+    [].forEach.call(D.querySelectorAll('details > summary'), function (sm) {
+      if (/分類設定（名稱／登機門）/.test(sm.innerHTML)) sm.innerHTML = sm.innerHTML.replace('分類設定（名稱／登機門）', '分類設定（名稱／顏色／登機門）');
+    });
+  }
+  function tip(t) {
+    var el = D.createElement('div'); el.className = 'app-tip'; el.setAttribute('role', 'status');
+    el.innerHTML = '<span>' + t + '</span><button type="button">知道了</button>';
+    el.querySelector('button').onclick = function () { el.remove(); };
+    B.appendChild(el); setTimeout(function () { if (el.parentNode) el.remove(); }, 12000);
+  }
+  function catTip() {   // 第一次變成完整版（訂閱或看廣告）時提示一次
+    if (!pro || ls('tipCat')) return;
+    ls('tipCat', '1');
+    setTimeout(function () { tip('小提醒：分類的<b>名稱、顏色、登機門</b>都可以自己改，在「設定 › 分類設定」。'); }, 1500);
+  }
+
+  /* ───────── 1.3：分類設定同步到 Apple Watch ───────── */
+  var WSYNC = (NATIVE && W.Capacitor && W.Capacitor.registerPlugin) ? W.Capacitor.registerPlugin('WatchSync') : null;
+  function syncWatch() {
+    if (!WSYNC || /depall\.html/.test(location.pathname)) return;
+    try {
+      var C = W.CATS || [], col = {};
+      try { col = JSON.parse(ls('tpeCatCol1') || '{}') || {}; } catch (e) {}
+      var DEF = ['#00F0FF', '#FF2A6D', '#8CF23A', '#7B78FF'], K = ['c0', 'c1', 'a2', 'a3'];
+      var out = [0, 1, 2, 3].map(function (i) {
+        var c = C[i] || {}, cc = col[K[i]];
+        return { name: String(c.name || ''), spec: String(c.spec || ''), term: String(c.term || 'any'),
+          color: /^#[0-9a-fA-F]{6}$/.test(cc || '') ? String(cc).toUpperCase() : DEF[i] };
+      });
+      var j = JSON.stringify(out); if (j === ls('watchSent')) return;
+      WSYNC.send({ json: j }).then(function (r) { if (r && r.ok) ls('watchSent', j); })['catch'](function () {});
+    } catch (e) {}
+  }
+  setTimeout(syncWatch, 3000); setInterval(syncWatch, 10000);
+
   /* ───────── 免費／訂閱切換畫面 ───────── */
   function clickQuiet(el) { if (!el) return; bypass = true; try { el.click(); } finally { bypass = false; } }
   function applyTier(isPro) {
-    pro = isPro;
+    subPro = !!isPro;
+    pro = subPro || rewardActive();
+    try { catLabel(); catTip(); paintRewardBar(); } catch (e) {}
     B.classList.toggle('tier-free', !pro);
     W.__FREE3 = !pro;
     var pb = D.getElementById('probtn');
-    if (pb) { pb.textContent = pro ? '已訂閱' : '訂閱'; pb.classList.toggle('on', pro); }
+    if (pb) { pb.textContent = subPro ? '已訂閱' : (pro ? rewardLabel() : '訂閱'); pb.classList.toggle('on', pro); }
     var dv = D.getElementById('devtier'); if (dv) dv.textContent = '測試：' + (pro ? '訂閱版' : '免費版');
     // 班機樣式（設定 › 外觀樣式）是訂閱功能：免費版固定「螢光」；之前訂閱時選的樣式先記著，再訂閱時換回來
     try {
@@ -107,6 +190,20 @@
   }
 
   /* ───────── 標題列：訂閱鍵 ───────── */
+  function addRewardBar() {   // 免費版：清單上方一條「看廣告免費用」
+    if (!NATIVE || D.getElementById('rwbar')) return;
+    var hd = D.querySelector('header'); if (!hd) return;
+    var b = D.createElement('button'); b.type = 'button'; b.id = 'rwbar';
+    b.onclick = openPaywall;
+    hd.parentNode.insertBefore(b, hd.nextSibling);
+    paintRewardBar();
+  }
+  function paintRewardBar() {
+    var b = D.getElementById('rwbar'); if (!b) return;
+    var n = rewardLeft();
+    b.innerHTML = n ? '▶ 看廣告，免費用完整版 ' + CONFIG.rewardHours + ' 小時<small>今天還剩 ' + n + ' 次・每天最多 ' + (CONFIG.rewardPerDay * CONFIG.rewardHours) + ' 小時・點這裡看能用哪些功能</small>'
+      : '今天的免費時間用完了<small>明天 0 點重新計算，或訂閱完整版不限時間</small>';
+  }
   function addProButton() {
     var hd = D.querySelector('header'); if (!hd || D.getElementById('probtn')) return;
     var b = D.createElement('button'); b.type = 'button'; b.id = 'probtn'; b.textContent = '訂閱';
@@ -117,18 +214,27 @@
 
   /* ───────── 訂閱頁 ───────── */
   var UNOFFICIAL = '本 App 為個人開發的非官方工具，與桃園國際機場股份有限公司無關。班機資料來自桃園機場與交通部公開資料，預估人數為估計值，一律以現場與官方公告為準。';
-  var FEATURES = ['時段隨意切換：整天、自訂、明天、現在 6 小時', '狀態顏色、快到班機標示', '點卡片看機型、共用班號',
+  var RW_FEATURES = '全時段與明天的班機、狀態顏色、每班預估人數、人潮波段、門改延誤取消提醒、雷達地圖、搜尋、隱藏已抵達、分類名稱／顏色／登機門自訂、回報文字一鍵複製、10 種外觀樣式。';
+  var FEAT = [['照實際落地時間排序', '提早、延誤後自動重排，下一班一眼看到'], ['每班預估人數', '人潮波段、到幾點前還有幾班幾人'],
+    ['提早延誤・班距空檔', '表定差幾分鐘、哪段時間有空檔'], ['雷達地圖', '飛機在哪、離桃園還有幾公里'],
+    ['分類名稱、登機門自己設', '照你的工作區域分組'], ['分類顏色自己選', '卡片、登機門、標籤一起變色'],
+    ['群組回報一鍵複製', '幾點後的班機整理好，直接貼 LINE'], ['Apple Watch 手錶版', '抬手就知道下一班', '只限訂閱']];
+  var MORE = '時段隨意切換（整天、自訂、明天）、門改延誤取消提醒、隱藏已抵達、搜尋班號或城市、10 種外觀樣式、落地前 15 分鐘提醒、開會時間自動排。';
+  var FEATURES = ['Apple Watch 手錶版（只限訂閱）', '時段隨意切換：整天、自訂、明天、現在 6 小時', '狀態顏色、快到班機標示', '點卡片看機型、共用班號',
     '每班預估入境人數、國籍人數', '下一班落地、接下來 1 小時、空檔與門改提醒', '人潮提示、班距空檔虛線',
-    '隱藏已抵達、搜尋班號或城市', '回報文字一鍵複製', '登機門群組不限組數、分類顏色自選', '落地前 15 分鐘提醒（關注班機）'];
+    '隱藏已抵達、搜尋班號或城市', '回報文字一鍵複製', '分類名稱、顏色、登機門自己改（設定 › 分類設定），不限組數', '落地前 15 分鐘提醒（關注班機）'];
   function openPaywall() {
     if (D.getElementById('paywall')) return;
     var el = D.createElement('div'); el.id = 'paywall'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '訂閱');
     el.innerHTML = '<div class="pw-in">'
-      + '<div class="pw-top"><h2>' + (pro ? '你已經是訂閱會員' : '訂閱完整版') + '</h2><button type="button" class="pw-x" id="pwX">關閉</button></div>'
+      + '<div class="pw-top"><h2>' + (subPro ? '你已經是訂閱會員' : '訂閱完整版') + '</h2><button type="button" class="pw-x" id="pwX">關閉</button></div>'
       + '<div id="pwhero" aria-hidden="true"></div>'
-      + '<ul>' + FEATURES.map(function (f) { return '<li>' + esc(f) + '</li>'; }).join('') + '</ul>'
+      + '<div class="pw-feat">' + FEAT.map(function (f, i) { return '<div>' + (f[2] ? '<em>' + f[2] + '</em>' : '') + '<i style="background-position:' + (i * 100 / 7).toFixed(4) + '% 0"></i><b>' + f[0] + '</b><small>' + f[1] + '</small></div>'; }).join('') + '</div>'
+      + '<div class="pw-more"><b>還有：</b>' + MORE + '</div>'
       + '<div class="pw-free">免費版：只看現在起 3 小時的班機清單、登機門群組 2 組，回報文字要自己複製。' + (WEB ? '' : '兩版都有廣告。') + '</div>'
-      + (WEB ? webPlans() : (pro ? '' : '<button type="button" class="pw-plan" id="pwM" disabled><span>月繳<small>每月自動續訂</small></span><b id="pwMp">讀取中…</b></button>'
+      + (!WEB && NATIVE && !subPro ? '<button type="button" class="pw-plan pw-rw" id="pwRw"><span>看廣告，免費用 ' + CONFIG.rewardHours + ' 小時<small>' + (rewardActive() ? '試用中，剩 ' + rewardLabel().replace('試用 ', '') + '・' : '') + '今天還可以 ' + rewardLeft() + ' 次・不含手錶版</small></span><b>▶</b></button>'
+        + '<div class="pw-rwinfo"><b>看廣告可以用：</b>' + RW_FEATURES + '<br><b>每天免費時間：</b>每天 ' + CONFIG.rewardPerDay + ' 次，每次 ' + CONFIG.rewardHours + ' 小時（一天最多 ' + (CONFIG.rewardPerDay * CONFIG.rewardHours) + ' 小時），每天 0 點重新計算。<br>Apple Watch 手錶版只限訂閱。</div>' : '')
+      + (WEB ? webPlans() : (subPro ? '' : '<button type="button" class="pw-plan" id="pwM" disabled><span>月繳<small>每月自動續訂</small></span><b id="pwMp">讀取中…</b></button>'
         + '<button type="button" class="pw-plan" id="pwY" disabled><span>年繳<small>每年自動續訂</small></span><b id="pwYp">讀取中…</b></button>'))
       + '<div class="pw-msg" id="pwMsg" role="status"></div>'
       + (WEB ? '<div class="pw-row"><a href="' + CONFIG.pricingUrl + '">方案與退款說明</a><a href="' + CONFIG.privacyUrl + '">隱私權政策</a></div>'
@@ -144,7 +250,8 @@
     D.getElementById('pwX').onclick = function () { el.remove(); };
     if (WEB) { webBind(); return; }
     D.getElementById('pwR').onclick = restore;
-    if (!pro) loadPrices();
+    var rw = D.getElementById('pwRw'); if (rw) rw.onclick = watchReward;
+    if (!subPro) loadPrices();
   }
   function webPlans() {
     var c = webCode(), until = +ls('proUntil') || 0;
@@ -449,7 +556,7 @@
     var h = D.querySelector('header'); if (h) h.parentNode.insertBefore(n, h); else B.insertBefore(n, B.firstChild);
   }
   function boot() {
-    addBrand(); addProButton(); applyFont(); addUnofficial(); addMeetGear(); addSlotGear();
+    addBrand(); addProButton(); addRewardBar(); applyFont(); addUnofficial(); addMeetGear(); addSlotGear();
     B.classList.toggle('tier-free', !cachedPro()); W.__FREE3 = !cachedPro();
     var tries = 0, iv = setInterval(function () {
       tries++;

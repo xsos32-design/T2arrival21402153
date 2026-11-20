@@ -3411,7 +3411,7 @@ html.dock body:not(#_) #nnext.dkrep>:not(.rep){display:none!important}
     KEYS.forEach(function(x){ H.classList.toggle('dk-'+x[0],x[0]===k); });
     /* 設定：連同完整的選項一起打開；關掉時收回去 */
     var card=D.querySelector('.wrap>.card'), bar=D.getElementById('ctlbar');
-    if(card&&bar){
+    if(card&&bar){   /* 11/17：電腦寬螢幕也要同步（之前收起來的狀態會讓「設定」打不開） */
       var isOpen=card.classList.contains('open');
       if((k==='set')!==isOpen) bar.click();
     }
@@ -5919,5 +5919,6 @@ html.tbp body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:ui-monospace,
 <link rel="stylesheet" href="cyber.css">
 <link rel="stylesheet" href="theme-fit.css">
 <script src="app.js"></script>
+<script src="web-news.js"></script>
 </body>
 </html>
