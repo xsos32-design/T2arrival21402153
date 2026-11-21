@@ -62,6 +62,10 @@ export default {
         const r = await env.DB.prepare('SELECT COUNT(*) n, SUM(sent=0) wait, COUNT(DISTINCT tok) dev FROM w').first();
         return j({ ...r, key: env.APNS_KEY ? '有設定' : '沒設定', id: env.APNS_KEY_ID || '', board: !!env.BOARD });
       }
+      if (p === '/need') {   // GitHub 那邊問：現在有沒有人在等出境班機（沒有就不用多抓出境資料）
+        const n = Date.now(), d = await env.DB.prepare('SELECT COUNT(*) n FROM w WHERE sent=0 AND d=1 AND at BETWEEN ? AND ?').bind(n - 8 * H, n + 4 * H).first('n');
+        return j({ d });
+      }
       if (p === '/tick') { const out = await tick(env); return j(out); }   // 手動跑一次（測試用，不回傳任何裝置代碼）
       return j({ error: 'not found' }, 404);
     } catch (e) { return j({ error: String(e && e.message || e) }, 500); }
