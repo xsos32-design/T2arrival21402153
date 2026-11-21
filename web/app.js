@@ -144,9 +144,19 @@
         return { name: String(c.name || ''), spec: String(c.spec || ''), term: String(c.term || 'any'),
           color: /^#[0-9a-fA-F]{6}$/.test(cc || '') ? String(cc).toUpperCase() : DEF[i] };
       });
-      var j = JSON.stringify(out); if (j === watchSent) return;   // 每次打開 App 至少送一次（不記在手機上，免得以為送過了）
-      WSYNC.send({ json: j }).then(function (r) {
-        if (r && r.ok) watchSent = j;
+      // 出境分類：第 1、2 格跟入境共用；第 3、4 格是出境頁自己的（tpeCats1 的 3、4 格，顏色 d2／d3）
+      var DD = [{ name: '一航', spec: '', term: '1' }, { name: '二航其他', spec: '', term: '2' }], dc = [];
+      try { dc = JSON.parse(ls('tpeCats1') || '[]') || []; } catch (e) {}
+      var dout = [0, 1, 2, 3].map(function (i) {
+        if (i < 2) return out[i];
+        var c = (dc.length === 4 && dc[i]) || DD[i - 2], cc = col['d' + i];
+        return { name: String(c.name || DD[i - 2].name).slice(0, 12), spec: String(c.spec || ''), term: (c.term === '1' || c.term === 'any') ? c.term : '2',
+          color: /^#[0-9a-fA-F]{6}$/.test(cc || '') ? String(cc).toUpperCase() : (i === 2 ? '#A78BFA' : '#9AA3B0') };
+      });
+      var dj = JSON.stringify(dout);
+      var j = JSON.stringify(out); if (j + dj === watchSent) return;   // 每次打開 App 至少送一次（不記在手機上，免得以為送過了）
+      WSYNC.send({ json: j, djson: dj }).then(function (r) {
+        if (r && r.ok) watchSent = j + dj;
         var why = { ok: '已傳到手錶', inactive: '連線中…', unpaired: '這支 iPhone 沒有配對 Apple Watch', noapp: '手錶上還沒裝手錶版 App', error: '傳送失敗，稍後自動重試' };
         var d = new Date(), msg = '手錶同步：' + (why[r && r.why] || (r && r.ok ? '已傳到手錶' : '稍後自動重試')) + ((r && r.ok) ? '（' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + '）' : '');
         var box = D.getElementById('catbox'); if (!box) return;
@@ -245,6 +255,7 @@
       + '<div class="pw-free">免費版：只看現在起 4 小時的班機清單、登機門群組 2 組，回報文字要自己複製' + (WEB ? '。' : '，有廣告（每 1 小時一則全螢幕廣告）。<b>訂閱完整版沒有任何廣告。</b>') + '</div>'
       + (!WEB && NATIVE && !subPro ? '<button type="button" class="pw-plan pw-rw" id="pwRw"><span>看廣告，免費用 ' + CONFIG.rewardHours + ' 小時<small>' + (rewardActive() ? '試用中，剩 ' + rewardLabel().replace('試用 ', '') + '・' : '') + '今天還可以 ' + rewardLeft() + ' 次・不含手錶版</small></span><b>▶</b></button>'
         + '<div class="pw-rwinfo"><b>看廣告可以用：</b>' + RW_FEATURES + '<br><b>每天免費時間：</b>每天 ' + CONFIG.rewardPerDay + ' 次，每次 ' + CONFIG.rewardHours + ' 小時（一天最多 ' + (CONFIG.rewardPerDay * CONFIG.rewardHours) + ' 小時），每天 0 點重新計算。<br>Apple Watch 手錶版只限訂閱。</div>' : '')
+      + '<div class="pw-watch">⚠ ' + (WEB ? '網頁啟用碼<b>不含 Apple Watch</b>。手錶版只能在 iPhone App 內用 App Store 訂閱開通' : '<b>Apple Watch 手錶版</b>只能用這裡的 App Store 訂閱開通（網頁版付費不含手錶）') + '</div>'
       + (WEB ? webPlans() : (subPro ? '' : '<button type="button" class="pw-plan pw-best" id="pwY" disabled><em class="pw-badge" id="pwYbadge">最划算・年繳更省</em><span>年繳<small id="pwYsub">每年自動續訂</small></span><b id="pwYp">讀取中…</b></button>'
         + '<button type="button" class="pw-plan" id="pwM" disabled><span>月繳<small>每月自動續訂</small></span><b id="pwMp">讀取中…</b></button>'))
       + '<div class="pw-msg" id="pwMsg" role="status"></div>'
@@ -375,7 +386,7 @@
   }
   function itBlocked() { return D.getElementById('paywall') || D.getElementById('setupg') || D.getElementById('tourg') || D.getElementById('fxnews') || D.querySelector('.sheet'); }
   function maybeInterstitial() {
-    if (!NATIVE || !ADS || !adsReady || pro || itBusy || D.hidden || itBlocked() || !itDue()) return;
+    if (!NATIVE || !ADS || !adsReady || subPro || itBusy || D.hidden || itBlocked() || !itDue()) return;
     if (!CONFIG.interstitialId || /INTERSTITIAL/.test(CONFIG.interstitialId)) return;
     itBusy = true;
     ADS.prepareInterstitial({ adId: CONFIG.interstitialId, isTesting: CONFIG.adTesting })

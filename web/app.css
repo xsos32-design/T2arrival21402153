@@ -189,3 +189,7 @@ body.tier-free #rwbar{display:block}
 #setupg .sg-in{padding-left:46px;padding-right:46px;box-sizing:border-box}
 #setupg .sg-foot{display:none}
 #tourg .tg-foot{justify-content:flex-start}
+
+/* 11/21：手錶版只限 App Store 訂閱，付費頁顯眼提醒 */
+.pw-watch{margin:10px 0;padding:10px 12px;border:2px solid #FFC53D;background:rgba(255,197,61,.12);color:#FFE3A1;border-radius:10px;font-size:14px;font-weight:800;line-height:1.5}
+.pw-watch b{color:#FFC53D}
