@@ -1562,6 +1562,30 @@ async function main() {
   ]);
   await writeFile(join(OUT, 'snap.json'), JSON.stringify({ t: stamp, d: today, f: rows }), 'utf8');
   console.log(`snap.json：${rows.length} 班（省流量用）`);
+
+  /* 11/22：出境快照 dep.json（給「起飛推播」tpe-push 當備援：Cloudflare 常被桃機擋）
+     每列＝[班號, 目的地, 登機門, 航廈, 表定時刻, 實際時刻, 表定日偏移, 實際日偏移, 備註, 目前狀態] */
+  try {
+    const depOne = async iso => {
+      const r = await fetch('https://www.taoyuan-airport.com/api/api/flight/a_flight', { method: 'POST', signal: AbortSignal.timeout(20000),
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': TDX_UA,
+                   Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/' },
+        body: JSON.stringify({ AState: 'D', ODate: iso.replace(/-/g, '/'), language: 'ch' }) });
+      if (!r.ok) throw new Error('桃機出境 ' + r.status);
+      return r.json();
+    };
+    const tmrISO = new Date(Date.parse(todayISO + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10);
+    const [d0, d1] = await Promise.all([depOne(todayISO), depOne(tmrISO).catch(() => [])]);
+    const drows = (d0 || []).concat(d1 || []).filter(f => f && f.OTime && !String(f.Memo || '').includes('貨')).map(f => [
+      String(f.flightCode || ((f.ACode || '') + (f.FlightNo || ''))).trim(), String(f.CityCode || '').trim(), String(f.Gate || '').trim(),
+      String(f.BNO || ''), hm4(f.OTime), hm4(f.RTime), dayOff(f.ODate), f.RTime ? dayOff(f.RDate || f.ODate) : 0,
+      String(f.Memo || '').trim(), String(f.CurrentStatus || '').trim(),
+    ]);
+    if (drows.length) {
+      await writeFile(join(OUT, 'dep.json'), JSON.stringify({ t: stamp, d: today, f: drows }), 'utf8');
+      console.log(`dep.json：${drows.length} 班出境`);
+    }
+  } catch (e) { console.log('dep.json 略過：' + (e && e.message || e)); }
   console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
 
   await writeUnlocked();
