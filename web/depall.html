@@ -670,8 +670,8 @@
 
     <div class="chips">
       <span class="chip" data-t="00:00" data-e="05:59">00–06</span>
-      <span class="chip" data-t="06:00" data-e="13:29">06–13:30</span>
-      <span class="chip" data-t="13:30" data-e="17:59">13:30–18</span>
+      <span class="chip" data-t="06:00" data-e="11:59">06–12</span>
+      <span class="chip" data-t="12:00" data-e="17:59">12–18</span>
       <span class="chip" data-t="18:00" data-e="23:59">18–24</span>
       <span class="chip" data-t="00:00" data-e="23:59">整天</span>
     </div>
@@ -1653,7 +1653,8 @@ document.getElementById('hide').addEventListener('click',function(){
      算出來會設成不存在的值，select 直接變空白，時段鍵當然也就不會亮。 */
   var m=n.getHours()*60+n.getMinutes();
   var w = (m<360) ? ['00:00','05:59']          /* 00–06 */
-        : (m<1080) ? ['13:30','17:59']         /* 13:30–18（06:00–13:30 本頁不顯示） */
+        : (m<720) ? ['06:00','11:59']          /* 06–12 */
+        : (m<1080) ? ['12:00','17:59']         /* 12–18 */
         : ['18:00','23:59'];                   /* 18–24 */
   document.getElementById('t1').value=w[0];
   document.getElementById('t2').value=w[1];
@@ -4339,7 +4340,7 @@ html.fxin #out .r:not(.head){animation:fxup .5s cubic-bezier(.2,.8,.3,1) both;an
       ['clock','yl','開會設定','「設定 › 回報」多一顆「<em>開會設定</em>」：可以改開會時段、每場長度、開會前後多久不能有班機、另外避開哪些分類。',
         '排會一樣幫兩個分類各排一場、兩場不重疊、挑空檔最大的時間；前後留空排不下時會自動放寬，並寫出來。'],
       ['timer','',  '自訂時段鍵','時段那排下面多一顆「<em>自訂時段鍵</em>」：四顆時段鍵可以改成自己的上班時段，跨夜也可以。',''],
-      ['alert','pk','關注班機提醒','點開班機「詳細」，按「<em>落地前 15 分鐘提醒我</em>」，時間到會跳提示、震動。',
+      ['alert','pk','班機抵達通知','點開班機「詳細」，按「<em>抵達時通知我</em>」，班機一抵達就跳通知（訂閱完整版）。',
         '網頁版要開著看板才提醒得到（App 版是系統通知，關著也會響）。'],
       ['cog','',    '新樣式：螢光、霧面','班機樣式多兩種，變成八選一：<em>螢光</em>（螢光航廈、跑道夜景背景）、<em>霧面</em>（低調霧面深色）。','']]},
     {v:'2026-11-15n', d:'11/15', t:'班機、雷達樣式成對', it:[
@@ -5642,7 +5643,7 @@ html body .chip[data-slot]{white-space:normal!important;line-height:1.15!importa
   }
 
   /* ── ② 自訂時段鍵：四顆時段鍵改成自己的上班時段 ── */
-  var SLOT_KEY='slotCfg1', SLOT_DEF=[['00:00','06:00'],['06:00','13:30'],['13:30','18:00'],['18:00','24:00']];
+  var SLOT_KEY='slotCfg1', SLOT_DEF=[['00:00','06:00'],['06:00','12:00'],['12:00','18:00'],['18:00','24:00']];
   function slotLoad(){ try{ var a=JSON.parse(ls(SLOT_KEY)||'null'); if(a&&a.length===4&&a.every(function(x){ return x&&/^\d\d:\d\d$/.test(x[0])&&/^\d\d:\d\d$/.test(x[1]); })) return a; }catch(e){} return null; }
   function slotChips(){ var all=[].slice.call(D.querySelectorAll('#ctl .chip[data-t]')); var marked=all.filter(function(c){ return c.hasAttribute('data-slot'); });
     if(marked.length===4) return marked; var four=all.slice(0,4); four.forEach(function(c,i){ c.setAttribute('data-slot',i); c.setAttribute('data-o',c.getAttribute('data-t')+'|'+c.getAttribute('data-e')+'|'+c.textContent); }); return four; }
@@ -5706,7 +5707,7 @@ html body .chip[data-slot]{white-space:normal!important;line-height:1.15!importa
       b.className='remind2 on'; b.textContent='✓ 已設定提醒（再按取消）・看板要開著才會提醒'; };
     var x=dt.querySelector('.x'); dt.insertBefore(b,x||null);
   }
-  D.addEventListener('click',function(e){ var r=e.target.closest&&e.target.closest('#out .r'); if(!r) return; setTimeout(function(){ addRemind(r); },60); });
+  /* 11/22：改成 app.js 的「抵達時通知我」（訂閱），這裡的前 15 分鐘提醒不再加 */
 
   var w=setInterval(function(){ if(!D.getElementById('ctl')) return; clearInterval(w); addMeetGear(); addSlotGear(); },200);
 })();
@@ -5916,11 +5917,11 @@ html.matte body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){border-radius
 html:is(.dash,.twar,.tbp) body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:'Chakra Petch',ui-monospace,monospace!important}
 html.tbp body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:ui-monospace,Menlo,monospace!important}
 </style>
-<link rel="stylesheet" href="app.css?v=1121d">
+<link rel="stylesheet" href="app.css?v=1122a">
 <link rel="stylesheet" href="matte.css">
 <link rel="stylesheet" href="cyber.css">
 <link rel="stylesheet" href="theme-fit.css">
-<script src="app.js?v=1121d"></script>
-<script src="web-news.js?v=1121d"></script>
+<script src="app.js?v=1122a"></script>
+<script src="web-news.js?v=1122a"></script>
 </body>
 </html>

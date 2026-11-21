@@ -131,10 +131,19 @@
   }
 
   /* ───────── 1.3：分類設定同步到 Apple Watch ───────── */
-  var WSYNC = (NATIVE && W.Capacitor && W.Capacitor.registerPlugin) ? W.Capacitor.registerPlugin('WatchSync') : null;
+  /* 11/21：外掛是 App 啟動後才註冊的，用到時才找（先找 Capacitor.Plugins，再用 registerPlugin） */
+  var WSYNC = null;
+  function wsPlugin() {
+    if (WSYNC) return WSYNC;
+    try { if (W.Capacitor && W.Capacitor.Plugins && W.Capacitor.Plugins.WatchSync) WSYNC = W.Capacitor.Plugins.WatchSync; } catch (e) {}
+    try { if (!WSYNC && W.Capacitor && W.Capacitor.registerPlugin) WSYNC = W.Capacitor.registerPlugin('WatchSync'); } catch (e) {}
+    return WSYNC;
+  }
   var watchSent = '';
   function syncWatch() {
-    if (!WSYNC || /depall\.html/.test(location.pathname)) return;
+    if (!NATIVE || /depall\.html/.test(location.pathname)) return;
+    var MH = W.webkit && W.webkit.messageHandlers && W.webkit.messageHandlers.watchSync;
+    if (!MH && !wsPlugin()) { wsMsg('手錶同步：iPhone 端同步元件沒載入（稍後自動重試）', false); return; }
     try {
       var C = W.CATS || [], col = {};
       try { col = JSON.parse(ls('tpeCatCol1') || '{}') || {}; } catch (e) {}
@@ -155,15 +164,28 @@
       });
       var dj = JSON.stringify(dout);
       var j = JSON.stringify(out); if (j + dj === watchSent) return;   // 每次打開 App 至少送一次（不記在手機上，免得以為送過了）
-      WSYNC.send({ json: j, djson: dj }).then(function (r) {
+      var answered = false; setTimeout(function () { if (!answered) wsMsg('手錶同步：iPhone 端沒有回應（同步元件可能沒啟動）', false); }, 8000);
+      /* 11/21：先走原生直接掛的 watchSync（不靠 Capacitor 外掛），結果由 window.__wsyncDone 回來 */
+      var send = MH ? new Promise(function (res) { W.__wsyncDone = function (why) { res({ ok: why === 'ok', why: why }); }; MH.postMessage({ json: j, djson: dj }); })
+                    : WSYNC.send({ json: j, djson: dj });
+      send.then(function (r) { answered = true;
         if (r && r.ok) watchSent = j + dj;
-        var why = { ok: '已傳到手錶', inactive: '連線中…', unpaired: '這支 iPhone 沒有配對 Apple Watch', noapp: '手錶上還沒裝手錶版 App', error: '傳送失敗，稍後自動重試' };
-        var d = new Date(), msg = '手錶同步：' + (why[r && r.why] || (r && r.ok ? '已傳到手錶' : '稍後自動重試')) + ((r && r.ok) ? '（' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + '）' : '');
-        var box = D.getElementById('catbox'); if (!box) return;
-        var el = D.getElementById('wsyncmsg'); if (!el) { el = D.createElement('div'); el.id = 'wsyncmsg'; el.style.cssText = 'font-size:12px;color:#8b96a6;margin:6px 0'; box.parentNode.insertBefore(el, box.nextSibling); }
-        el.textContent = msg;
-      })['catch'](function () {});
-    } catch (e) {}
+        var why = { ok: '已傳到手錶', empty: '分類是空的', nosupport: '這支 iPhone 不支援手錶連線', inactive: '連線中…', unpaired: '這支 iPhone 沒有配對 Apple Watch', noapp: '手錶上還沒裝手錶版 App', error: '傳送失敗，稍後自動重試' };
+        var d = new Date();
+        wsMsg('手錶同步：' + (why[r && r.why] || (r && r.ok ? '已傳到手錶' : '稍後自動重試（' + String(r && r.why) + '）')) + ((r && r.ok) ? '（' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + '）' : ''), r && r.ok);
+      })['catch'](function (e) { answered = true; wsMsg('手錶同步失敗：iPhone 端同步元件沒啟動（' + String(e && (e.message || e.code) || e) + '）', false); });
+    } catch (e) { wsMsg('手錶同步失敗：' + String(e && e.message || e), false); }
+  }
+  /* 同步狀態顯示在兩個地方：分類設定裡、設定面板「分類設定」按鈕那一排下面（不用展開就看得到） */
+  function wsMsg(t, ok) {
+    W.__wsync = t;
+    [['wsyncmsg', D.getElementById('catbox')], ['wsyncmsg2', (D.getElementById('tdcatset') || D.getElementById('snone')) && (D.getElementById('tdcatset') || D.getElementById('snone')).parentNode]].forEach(function (x) {
+      var host = x[1]; if (!host || !host.parentNode) return;
+      var el = D.getElementById(x[0]);
+      if (!el) { el = D.createElement('div'); el.id = x[0]; el.style.cssText = 'font-size:12px;margin:6px 2px;font-weight:700'; host.parentNode.insertBefore(el, host.nextSibling); }
+      el.style.color = ok ? '#49E3A3' : '#FFC53D';
+      el.textContent = t;
+    });
   }
   setTimeout(syncWatch, 3000); setInterval(syncWatch, 10000);
 
@@ -240,10 +262,10 @@
     ['提早延誤・班距空檔', '表定差幾分鐘、哪段時間有空檔'], ['雷達地圖', '飛機在哪、離桃園還有幾公里'],
     ['分類名稱、登機門自己設', '照你的工作區域分組'], ['分類顏色自己選', '卡片、登機門、標籤一起變色'],
     ['群組回報一鍵複製', '幾點後的班機整理好，直接貼 LINE'], ['Apple Watch 手錶版', '抬手就知道下一班', WEB ? 'iPhone App 訂閱限定' : '只限訂閱']];
-  var MORE = (WEB ? '' : '完全沒有廣告、') + '時段隨意切換（整天、自訂、明天）、門改延誤取消提醒、隱藏已抵達、搜尋班號或城市、10 種外觀樣式、落地前 15 分鐘提醒、開會時間自動排。';
+  var MORE = (WEB ? '' : '完全沒有廣告、') + '時段隨意切換（整天、自訂、明天）、門改延誤取消提醒、隱藏已抵達、搜尋班號或城市、10 種外觀樣式、班機抵達通知、開會時間自動排。';
   var FEATURES = [(WEB ? 'Apple Watch 手錶版（iPhone App 訂閱限定，網頁啟用碼不含）' : 'Apple Watch 手錶版（只限訂閱）'), '時段隨意切換：整天、自訂、明天、現在 6 小時', '狀態顏色、快到班機標示', '點卡片看機型、共用班號',
     '每班預估入境人數、國籍人數', '下一班落地、接下來 1 小時、空檔與門改提醒', '人潮提示、班距空檔虛線',
-    '隱藏已抵達、搜尋班號或城市', '回報文字一鍵複製', '分類名稱、顏色、登機門自己改（設定 › 分類設定），不限組數', '落地前 15 分鐘提醒（關注班機）'];
+    '隱藏已抵達、搜尋班號或城市', '回報文字一鍵複製', '分類名稱、顏色、登機門自己改（設定 › 分類設定），不限組數', '班機抵達通知（iPhone 內建通知；網頁允許通知後也會跳）'];
   function openPaywall() {
     if (D.getElementById('paywall')) return;
     var el = D.createElement('div'); el.id = 'paywall'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '訂閱');
@@ -404,46 +426,110 @@
     try { var v = ls('appFont'); if (v !== null && ls('fsLevel1') === null) { ls('fsLevel1', String(Math.max(0, Math.min(4, +v)))); } ls('appFont', null); } catch (e) {}
   }
 
-  /* ───────── 關注班機：落地（起飛）前 15 分鐘提醒（訂閱）───────── */
+  /* ───────── 11/22：班機抵達（起飛）通知（訂閱）─────────
+     點開班機按「抵達時通知我」：
+       iPhone App：用 iPhone 內建通知。App 開著時，班機一標「抵達」就馬上通知；
+                   App 沒開時，先排一則「預計抵達」通知在預計時間（每次打開 App 會照最新預計時間改）。
+       網頁：瀏覽器允許通知後跳通知（電腦、Android 都可以；iPhone 要先「加入主畫面」），看板要開著。
+       手錶：iPhone 收到的通知會照 Apple 規則轉到手錶。 */
   var DEP = /depall\.html/.test(location.pathname);
-  function reminded() { try { return JSON.parse(ls('reminders') || '{}'); } catch (e) { return {}; } }
-  function remindId(key) { var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0; return Math.abs(h) % 2000000000; }
-  function addRemind(row) {
-    var dt = row.querySelector('.dt'); if (!dt || dt.querySelector('.remind')) return;
-    var tEl = row.querySelector('.c-time b'), fno = row.getAttribute('data-k') || ((row.querySelector('.c-fno b') || {}).textContent || '');
-    var gate = ((row.querySelector('.c-gate .gn') || {}).textContent || '').trim();
-    var city = ((row.querySelector('.c-city .cn') || {}).textContent || '').trim();
-    var m = tEl && /(\d{1,2}):(\d{2})/.exec(tEl.textContent); if (!m) return;
-    var at = new Date(); at.setHours(+m[1], +m[2], 0, 0);
-    if (at.getTime() < Date.now() - 2 * 3600e3) at.setDate(at.getDate() + 1);
-    var key = (DEP ? 'D' : 'A') + fno + at.toDateString(), id = remindId(key), list = reminded();
-    var b = D.createElement('button'); b.type = 'button'; b.className = 'remind' + (list[key] ? ' on' : '');
-    b.textContent = list[key] ? '✓ 已設定提醒（再按取消）' : (DEP ? '起飛前 15 分鐘提醒我' : '落地前 15 分鐘提醒我');
-    b.onclick = function (e) {
-      e.stopPropagation();
-      if (!NATIVE || !LN) { b.textContent = 'App 裡才能設定提醒'; return; }
-      var l = reminded();
-      if (l[key]) {
-        LN.cancel({ notifications: [{ id: id }] })['catch'](function () {});
-        delete l[key]; ls('reminders', JSON.stringify(l)); b.className = 'remind'; b.textContent = DEP ? '起飛前 15 分鐘提醒我' : '落地前 15 分鐘提醒我'; return;
+  var AN_KEY = 'arrNotif1';
+  function anList() { try { return JSON.parse(ls(AN_KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function anSave(l) { ls(AN_KEY, JSON.stringify(l)); }
+  function anId(key) { var h = 0; for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0; return Math.abs(h) % 1000000000 * 2; }
+  function rowInfo(row) {
+    var tEl = row.querySelector('.c-time b'), m = tEl && /(\d{1,2}):(\d{2})/.exec(tEl.textContent);
+    return { f: ((row.querySelector('.c-fno b') || {}).textContent || '').trim(), m: m,
+      t: m ? (('0' + m[1]).slice(-2) + ':' + m[2]) : '',
+      g: ((row.querySelector('.c-gate .gn') || {}).textContent || '').trim(),
+      c: ((row.querySelector('.c-city .cn') || {}).textContent || '').trim(),
+      done: row.classList.contains('done') };
+  }
+  function atOf(m) { var at = new Date(); at.setHours(+m[1], +m[2], 0, 0); if (at.getTime() < Date.now() - 6 * 3600e3) at.setDate(at.getDate() + 1); return at.getTime(); }
+  var WORD = DEP ? '起飛' : '抵達';
+  function anToast(title, body) {
+    var t = D.createElement('div'); t.className = 'app-tip'; t.setAttribute('role', 'status');
+    t.innerHTML = '<span><b>' + title + '</b><br>' + body + '</span><button type="button">知道了</button>';
+    t.querySelector('button').onclick = function () { t.remove(); }; B.appendChild(t); setTimeout(function () { if (t.parentNode) t.remove(); }, 20000);
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+  }
+  /* 跳通知：App 用內建通知（at 沒給＝馬上）；網頁用瀏覽器通知＋畫面提示 */
+  function anFire(id, title, body, at) {
+    if (NATIVE && LN) return LN.schedule({ notifications: [{ id: id, title: title, body: body, schedule: { at: new Date(at || Date.now() + 1000) } }] })['catch'](function () {});
+    if (at) return;   // 網頁不能預約，只在看板開著時當場通知
+    try { if (W.Notification && Notification.permission === 'granted') new Notification(title, { body: body, tag: String(id) }); } catch (e) {}
+    anToast(title, body);
+  }
+  function anCancel(id) { if (NATIVE && LN) LN.cancel({ notifications: [{ id: id }] })['catch'](function () {}); }
+  function anBody(r, t) { return (r.g ? '登機門 ' + r.g : '') + (r.c ? (r.g ? '・' : '') + r.c : '') + (t ? '・' + t : '') + '（以現場為準）'; }
+  /* App 沒開時的備案：在預計時間排一則「預計抵達」 */
+  function anPlan(r) { if (!(NATIVE && LN) || r.at < Date.now() + 5e3) return; anCancel(r.id);
+    anFire(r.id, r.f + ' 預計現在' + WORD, anBody(r, '預計 ' + r.t), r.at); }
+  /* 每 20 秒＋每次畫面更新：看關注的班機是不是已經抵達、預計時間有沒有變 */
+  function anCheck() {
+    var l = anList(), ch = false, rows = {}, now = Date.now();
+    [].forEach.call(D.querySelectorAll('#out .r:not(.head)'), function (row) { var x = rowInfo(row); if (x.f) rows[(DEP ? 'D' : 'A') + x.f] = x; });
+    for (var k in l) {
+      var r = l[k]; if (!r || typeof r !== 'object') { delete l[k]; ch = true; continue; }
+      if (r.dep !== DEP) continue;
+      var x = rows[(DEP ? 'D' : 'A') + r.f];
+      if (x && x.done && !r.sent) {   // 已經標「抵達／已起飛」→ 馬上通知，取消預計那則
+        anCancel(r.id); anFire(r.id + 1, r.f + ' 已' + WORD, anBody(x, x.t ? '實際 ' + x.t : ''));
+        r.sent = 1; ch = true;
+      } else if (x && !x.done && x.m && x.t !== r.t) {   // 預計時間改了 → 重排
+        r.t = x.t; r.at = atOf(x.m); r.g = x.g || r.g; anPlan(r); ch = true;
+      } else if (!r.sent && !NATIVE && now >= r.at + 5 * 60e3 && !r.soft) {   // 網頁：過了預計時間還沒標抵達，先提醒一次
+        anFire(r.id, r.f + ' 預計已' + WORD, anBody(r, '預計 ' + r.t)); r.soft = 1; ch = true;
       }
-      var when = new Date(at.getTime() - 15 * 60e3);
-      if (when.getTime() < Date.now() + 5e3) { b.textContent = '已經不到 15 分鐘，不用提醒了'; return; }
-      LN.requestPermissions().then(function (p) {
-        if (p && p.display && p.display !== 'granted') throw new Error('denied');
-        return LN.schedule({ notifications: [{ id: id, title: fno + (DEP ? ' 即將起飛' : ' 即將落地'),
-          body: (DEP ? '起飛' : '預計落地') + ' ' + m[1].padStart(2, '0') + ':' + m[2] + (gate ? '・登機門 ' + gate : '') + (city ? '・' + city : '') + '（以現場為準）',
-          schedule: { at: when } }] });
-      }).then(function () {
-        l[key] = when.getTime(); ls('reminders', JSON.stringify(l)); b.className = 'remind on'; b.textContent = '✓ 已設定提醒（再按取消）';
-      })['catch'](function () { b.textContent = '請到「設定 › 通知」允許本 App 通知'; });
+      if (now > r.at + 3 * 3600e3) { delete l[k]; ch = true; }
+    }
+    if (ch) anSave(l);
+    paintAnBtns();
+  }
+  setInterval(anCheck, 20000);
+  function paintAnBtns() {
+    var l = anList();
+    [].forEach.call(D.querySelectorAll('button.anbtn'), function (b) {
+      var on = !!l[b.getAttribute('data-key')];
+      b.className = 'remind anbtn' + (on ? ' on' : '');
+      b.textContent = on ? '✓ ' + WORD + '時會通知你（再按取消）' : WORD + '時通知我';
+    });
+  }
+  function addRemind(row) {
+    var dt = row.querySelector('.dt'); if (!dt || dt.querySelector('.anbtn')) return;
+    [].forEach.call(dt.querySelectorAll('.remind,.remind2'), function (x) { x.remove(); });   // 舊的「前 15 分鐘提醒」按鍵拿掉
+    var x = rowInfo(row); if (!x.f || !x.m) return;
+    var key = (DEP ? 'D' : 'A') + x.f;
+    var b = D.createElement('button'); b.type = 'button'; b.className = 'remind anbtn'; b.setAttribute('data-key', key);
+    if (!pro) {   // 免費版：按了開訂閱頁
+      b.className = 'remind anbtn'; b.textContent = WORD + '時通知我（訂閱完整版）';
+      b.onclick = function (e) { e.stopPropagation(); try { openPaywall(); } catch (_) {} };
+      dt.insertBefore(b, dt.querySelector('.x') || null); return;
+    }
+    b.onclick = function (e) {
+      e.stopPropagation(); var l = anList();
+      if (l[key]) { anCancel(l[key].id); delete l[key]; anSave(l); paintAnBtns(); return; }
+      if (x.done) { b.textContent = '這班已經' + WORD + '了'; return; }
+      var r = { id: anId(key + Date.now()), f: x.f, t: x.t, at: atOf(x.m), g: x.g, c: x.c, dep: DEP };
+      function ok() { l[key] = r; anSave(l); anPlan(r); paintAnBtns(); }
+      if (NATIVE && LN) {
+        LN.requestPermissions().then(function (p) { if (p && p.display && p.display !== 'granted') throw new Error('denied'); ok(); })
+          ['catch'](function () { b.textContent = '請到 iPhone「設定 › 通知」允許本 App 通知'; });
+      } else {
+        ok();
+        try {
+          if (W.Notification && Notification.permission === 'default') Notification.requestPermission().then(function () { paintAnBtns(); });
+          else if (!W.Notification || Notification.permission === 'denied') anToast('已設定（只會在看板上提示）', '這個瀏覽器沒開通知權限；iPhone 請先把網頁「加入主畫面」再允許通知。');
+        } catch (_) {}
+      }
     };
-    var x = dt.querySelector('.x'); dt.insertBefore(b, x || null);
+    dt.insertBefore(b, dt.querySelector('.x') || null); paintAnBtns();
   }
   D.addEventListener('click', function (e) {
-    if (!pro) return; var r = e.target.closest && e.target.closest('#out .r'); if (!r) return;
-    setTimeout(function () { addRemind(r); }, 60);
+    var r = e.target.closest && e.target.closest('#out .r'); if (!r) return;
+    setTimeout(function () { addRemind(r); anCheck(); }, 60);
   });
+  setTimeout(anCheck, 4000);
 
   /* ───────── 瀏覽器測試用：模擬訂閱開關（App 裡不會出現）───────── */
   function devToggle() {
@@ -522,9 +608,9 @@
   }
 
 
-  /* ───────── 時段鍵自訂（訂閱）：00–06、06–13:30、13:30–18、18–24 四顆可改起訖 ───────── */
+  /* ───────── 時段鍵（11/22 統一：00–06、06–12、12–18、18–24；訂閱可自訂起訖）───────── */
   var SLOT_KEY = 'slotCfg1';
-  var SLOT_DEF = [['00:00', '06:00'], ['06:00', '13:30'], ['13:30', '18:00'], ['18:00', '24:00']];   // 迄＝不含（24:00＝當天結束）
+  var SLOT_DEF = [['00:00', '06:00'], ['06:00', '12:00'], ['12:00', '18:00'], ['18:00', '24:00']];   // 迄＝不含（24:00＝當天結束）
   function slotLoad() {
     try { var a = JSON.parse(ls(SLOT_KEY) || 'null'); if (a && a.length === 4 && a.every(function (x) { return x && /^\d\d:\d\d$/.test(x[0]) && /^\d\d:\d\d$/.test(x[1]); })) return a; } catch (e) {}
     return SLOT_DEF.map(function (x) { return x.slice(); });
@@ -575,7 +661,8 @@
     host.parentNode.insertBefore(row, host.nextSibling);
     var cfg = applySlots();
     // 有自訂過，而且現在不是「現在 6 小時」或自訂區間：照新時段重新挑現在這一段
-    if (ls(SLOT_KEY) && !W.now6Mode && !W.CUST) setTimeout(function () { if ((pro || cachedPro()) && !W.now6Mode && !W.CUST) pickSlotNow(cfg); }, 1500);
+    // 照新時段重新挑現在這一段（原本頁面預設是舊的 13:30 分段）
+    if (!W.now6Mode && !W.CUST) setTimeout(function () { if ((pro || cachedPro()) && !W.now6Mode && !W.CUST) pickSlotNow(cfg); }, 1500);
     if (W.paintWin) W.paintWin();
   }
   function openSlotCfg() {
