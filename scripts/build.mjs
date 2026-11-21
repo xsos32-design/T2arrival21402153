@@ -1563,28 +1563,36 @@ async function main() {
   await writeFile(join(OUT, 'snap.json'), JSON.stringify({ t: stamp, d: today, f: rows }), 'utf8');
   console.log(`snap.json：${rows.length} 班（省流量用）`);
 
-  /* 11/22：出境快照 dep.json（給「起飛推播」tpe-push 當備援：Cloudflare 常被桃機擋）
-     每列＝[班號, 目的地, 登機門, 航廈, 表定時刻, 實際時刻, 表定日偏移, 實際日偏移, 備註, 目前狀態] */
+  /* 11/22：出境快照 dep.json（給「起飛推播」tpe-push 用：Cloudflare、GitHub 都被桃機官網擋，改用 TDX）
+     只有推播那邊真的有人在等出境班機才抓（省 TDX 流量）。
+     每列＝[班號, 目的地, 登機門, 航廈, 表定時刻, 實際時刻, 表定日偏移, 實際日偏移, 備註, ''] */
   try {
-    const depOne = async iso => {
-      const r = await fetch('https://www.taoyuan-airport.com/api/api/flight/a_flight', { method: 'POST', signal: AbortSignal.timeout(20000),
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': TDX_UA,
-                   Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/' },
-        body: JSON.stringify({ AState: 'D', ODate: iso.replace(/-/g, '/'), language: 'ch' }) });
-      if (!r.ok) throw new Error('桃機出境 ' + r.status);
-      return r.json();
-    };
-    const tmrISO = new Date(Date.parse(todayISO + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10);
-    const [d0, d1] = await Promise.all([depOne(todayISO), depOne(tmrISO).catch(() => [])]);
-    const drows = (d0 || []).concat(d1 || []).filter(f => f && f.OTime && !String(f.Memo || '').includes('貨')).map(f => [
-      String(f.flightCode || ((f.ACode || '') + (f.FlightNo || ''))).trim(), String(f.CityCode || '').trim(), String(f.Gate || '').trim(),
-      String(f.BNO || ''), hm4(f.OTime), hm4(f.RTime), dayOff(f.ODate), f.RTime ? dayOff(f.RDate || f.ODate) : 0,
-      String(f.Memo || '').trim(), String(f.CurrentStatus || '').trim(),
-    ]);
-    if (drows.length) {
-      await writeFile(join(OUT, 'dep.json'), JSON.stringify({ t: stamp, d: today, f: drows }), 'utf8');
-      console.log(`dep.json：${drows.length} 班出境`);
+    const need = await fetch('https://tpe-push.xsos32.workers.dev/need', { signal: AbortSignal.timeout(8000) }).then(r => r.json()).catch(() => ({ d: 0 }));
+    if (!need || !need.d) throw new Error('沒人在等出境班機');
+    const SEL = 'FlightDate,AirlineID,FlightNumber,ArrivalAirportID,Terminal,Gate,ScheduleDepartureTime,ActualDepartureTime,EstimatedDepartureTime,DepartureRemark';
+    const flt = H >= 18 ? `date(FlightDate) ge ${todayISO} and date(FlightDate) le ${tomorrowISO} and IsCargo eq false`
+                        : `date(FlightDate) eq ${todayISO} and IsCargo eq false`;
+    let raw = null;
+    for (const mode of ['anon', 'key']) {
+      try {
+        const auth = mode === 'key' ? await tdxAuth() : '';
+        const r = await fetch(tdxURL('Departure', flt, SEL), { headers: tdxHeaders(auth), signal: AbortSignal.timeout(25000) });
+        if (!r.ok) throw new Error('TDX 出境 ' + r.status);
+        raw = await r.json(); if (raw && raw.length) break;
+      } catch (e) { console.log('dep.json ' + mode + '：' + (e && e.message || e)); }
     }
+    if (!raw || !raw.length) throw new Error('TDX 出境 0 筆');
+    const thm = s => (String(s || '').split('T')[1] || '').slice(0, 5);
+    const tdt = s => String(s || '').split('T')[0].replace(/-/g, '/');
+    const drows = raw.map(f => {
+      const sch = f.ScheduleDepartureTime || '', act = f.ActualDepartureTime || f.EstimatedDepartureTime || '';
+      const rm = String(f.DepartureRemark || '');
+      const memo = /取消|CANCEL/i.test(rm) ? '取消' : /已飛|出發|DEPARTED/i.test(rm) ? '出發' : /延誤|延遲|DELAY/i.test(rm) ? '延遲' : /更改|變更/.test(rm) ? '時間更改' : /準時|ON TIME/i.test(rm) ? '準時' : '';
+      return [String(f.AirlineID || '') + String(f.FlightNumber || ''), String(f.ArrivalAirportID || ''), String(f.Gate || '').trim(), String(f.Terminal || ''),
+        hm4(thm(sch)), act ? hm4(thm(act)) : '', dayOff(tdt(sch)), act ? dayOff(tdt(act)) : 0, memo, ''];
+    }).filter(r => r[4]);
+    await writeFile(join(OUT, 'dep.json'), JSON.stringify({ t: stamp, d: today, f: drows }), 'utf8');
+    console.log(`dep.json：${drows.length} 班出境（TDX）`);
   } catch (e) { console.log('dep.json 略過：' + (e && e.message || e)); }
   console.log(`data.json 快照 ${snap.length} 筆（含隔日 ${tomorrowSnap.length} 筆）`);
 
