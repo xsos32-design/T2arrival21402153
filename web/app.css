@@ -182,8 +182,8 @@ body.tier-free #rwbar{display:block}
   font:800 14px/1.15 system-ui,"PingFang TC","Noto Sans TC",sans-serif;color:#e8edf3;background:rgba(16,24,33,.92);border:1px solid #2f3b4b}
 .sg-side b{font-size:28px;line-height:1;font-weight:900}
 .sg-side span{writing-mode:vertical-rl;letter-spacing:.12em}
-.sg-side.l{left:max(4px,env(safe-area-inset-left,0px))}
-.sg-side.r{right:max(4px,env(safe-area-inset-right,0px));background:#00efd4;border-color:#00efd4;color:#04131a}
+.sg-side.sg-l{left:max(4px,env(safe-area-inset-left,0px))}
+.sg-side.sg-r{right:max(4px,env(safe-area-inset-right,0px));background:#00efd4;border-color:#00efd4;color:#04131a}
 .sg-side:active{filter:brightness(1.2)}
 .sg-side:focus-visible{outline:2px solid #00efd4;outline-offset:2px}
 #setupg .sg-in{padding-left:46px;padding-right:46px;box-sizing:border-box}

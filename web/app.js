@@ -648,7 +648,7 @@
     var R = step === 0 ? ['next', '開始設定'] : (step === 1 ? ['next', '儲存'] : (step === 2 ? ['next', '下一步'] : ['tour', '看導覽']));
     function side(cls, x, arrow) { return '<button type="button" class="sg-side ' + cls + '" data-a="' + x[0] + '" aria-label="' + x[1] + '"><b>' + arrow + '</b><span>' + x[1] + '</span></button>'; }
     el.innerHTML = '<div class="sg-in">' + '<div class="sg-top">' + dots + (step < 3 ? '<button type="button" class="sg-skip" data-a="skip">跳過引導</button>' : '') + '</div>'
-      + body + '</div>' + side('l', L, '‹') + side('r', R, '›');
+      + body + '</div>' + side('sg-l', L, '‹') + side('sg-r', R, '›');
     B.appendChild(el);
     [].forEach.call(el.querySelectorAll('.sg-pal button'), function (b) {
       b.onclick = function () { [].forEach.call(b.parentNode.children, function (x) { x.classList.toggle('on', x === b); }); };
@@ -723,8 +723,8 @@
     var el = D.createElement('div'); el.id = 'tourg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '功能導覽');
     el.innerHTML = '<div class="tg-hole"></div><div class="tg-card" role="status"><div class="tg-n"></div><b class="tg-h"></b><p class="tg-t"></p>'
       + '<div class="tg-foot"><button type="button" class="tg-skip">跳過導覽</button></div></div>'
-      + '<button type="button" class="sg-side l tg-back" aria-label="上一步"><b>‹</b><span>上一步</span></button>'
-      + '<button type="button" class="sg-side r tg-next" aria-label="下一步"><b>›</b><span>下一步</span></button>';
+      + '<button type="button" class="sg-side sg-l tg-back" aria-label="上一步"><b>‹</b><span>上一步</span></button>'
+      + '<button type="button" class="sg-side sg-r tg-next" aria-label="下一步"><b>›</b><span>下一步</span></button>';
     B.appendChild(el);
     var hole = el.querySelector('.tg-hole'), card = el.querySelector('.tg-card');
     function place() {
