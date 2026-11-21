@@ -1,0 +1,27 @@
+# 抵達／起飛推播 Worker（tpe-push）。說明見 worker.js 開頭
+name = "tpe-push"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+account_id = "0e0a06fd2de2392205bbd45aed38f439"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tpe-push"
+database_id = "29eba22a-3710-408a-b966-6daa4c223f7a"
+
+[[services]]
+binding = "BOARD"
+service = "tpe-board"
+
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+APNS_KEY_ID = "3YF2PJJGY2"
+APNS_TEAM_ID = "T6YQYK84R2"
+APNS_TOPIC = "tw.xsos32.t2board"
+# APNS_KEY（.p8 內容）是「祕密」，在 Cloudflare 後台自己貼，不放這裡
+
+[observability]
+enabled = true
