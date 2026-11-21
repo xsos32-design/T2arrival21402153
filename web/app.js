@@ -1,5 +1,5 @@
 /* 桃機出入境看板 App 版
-   - 免費版：只看現在起 3 小時、陽春清單、登機門群組 2 組、回報文字只能看
+   - 免費版：只看現在起 4 小時、陽春清單、登機門群組 2 組、回報文字只能看
    - 訂閱版：時段隨意切換、狀態顏色、人數、提醒…（Apple App 內購買，自動續訂）
    - 兩版都有 AdMob 底部橫幅
    上架前要換掉的設定都在 CONFIG。 */
@@ -21,6 +21,9 @@
     rewardId: 'ca-app-pub-7535692982479289/5682516489',
     rewardHours: 2,
     rewardPerDay: 2,
+    // 1.3：免費版每 1 小時一則全螢幕廣告（看完繼續用免費版）；訂閱完整版完全沒有廣告
+    interstitialId: 'ca-app-pub-7535692982479289/9311353460',
+    interstitialEveryMin: 60,
     privacyUrl: 'https://xsos32-design.github.io/T2arrival21402153/preview/privacy.html',
     termsUrl: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
     manageUrl: 'https://apps.apple.com/account/subscriptions',
@@ -129,6 +132,7 @@
 
   /* ───────── 1.3：分類設定同步到 Apple Watch ───────── */
   var WSYNC = (NATIVE && W.Capacitor && W.Capacitor.registerPlugin) ? W.Capacitor.registerPlugin('WatchSync') : null;
+  var watchSent = '';
   function syncWatch() {
     if (!WSYNC || /depall\.html/.test(location.pathname)) return;
     try {
@@ -140,8 +144,15 @@
         return { name: String(c.name || ''), spec: String(c.spec || ''), term: String(c.term || 'any'),
           color: /^#[0-9a-fA-F]{6}$/.test(cc || '') ? String(cc).toUpperCase() : DEF[i] };
       });
-      var j = JSON.stringify(out); if (j === ls('watchSent')) return;
-      WSYNC.send({ json: j }).then(function (r) { if (r && r.ok) ls('watchSent', j); })['catch'](function () {});
+      var j = JSON.stringify(out); if (j === watchSent) return;   // 每次打開 App 至少送一次（不記在手機上，免得以為送過了）
+      WSYNC.send({ json: j }).then(function (r) {
+        if (r && r.ok) watchSent = j;
+        var why = { ok: '已傳到手錶', inactive: '連線中…', unpaired: '這支 iPhone 沒有配對 Apple Watch', noapp: '手錶上還沒裝手錶版 App', error: '傳送失敗，稍後自動重試' };
+        var d = new Date(), msg = '手錶同步：' + (why[r && r.why] || (r && r.ok ? '已傳到手錶' : '稍後自動重試')) + ((r && r.ok) ? '（' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + '）' : '');
+        var box = D.getElementById('catbox'); if (!box) return;
+        var el = D.getElementById('wsyncmsg'); if (!el) { el = D.createElement('div'); el.id = 'wsyncmsg'; el.style.cssText = 'font-size:12px;color:#8b96a6;margin:6px 0'; box.parentNode.insertBefore(el, box.nextSibling); }
+        el.textContent = msg;
+      })['catch'](function () {});
     } catch (e) {}
   }
   setTimeout(syncWatch, 3000); setInterval(syncWatch, 10000);
@@ -149,9 +160,9 @@
   /* ───────── 免費／訂閱切換畫面 ───────── */
   function clickQuiet(el) { if (!el) return; bypass = true; try { el.click(); } finally { bypass = false; } }
   function applyTier(isPro) {
-    subPro = !!isPro;
+    subPro = !!isPro; tierKnown = true;
     pro = subPro || rewardActive();
-    try { catLabel(); catTip(); paintRewardBar(); } catch (e) {}
+    try { catLabel(); catTip(); paintRewardBar(); syncBanner(); } catch (e) {}
     B.classList.toggle('tier-free', !pro);
     W.__FREE3 = !pro;
     var pb = D.getElementById('probtn');
@@ -219,7 +230,7 @@
     ['提早延誤・班距空檔', '表定差幾分鐘、哪段時間有空檔'], ['雷達地圖', '飛機在哪、離桃園還有幾公里'],
     ['分類名稱、登機門自己設', '照你的工作區域分組'], ['分類顏色自己選', '卡片、登機門、標籤一起變色'],
     ['群組回報一鍵複製', '幾點後的班機整理好，直接貼 LINE'], ['Apple Watch 手錶版', '抬手就知道下一班', WEB ? 'iPhone App 訂閱限定' : '只限訂閱']];
-  var MORE = '時段隨意切換（整天、自訂、明天）、門改延誤取消提醒、隱藏已抵達、搜尋班號或城市、10 種外觀樣式、落地前 15 分鐘提醒、開會時間自動排。';
+  var MORE = (WEB ? '' : '完全沒有廣告、') + '時段隨意切換（整天、自訂、明天）、門改延誤取消提醒、隱藏已抵達、搜尋班號或城市、10 種外觀樣式、落地前 15 分鐘提醒、開會時間自動排。';
   var FEATURES = [(WEB ? 'Apple Watch 手錶版（iPhone App 訂閱限定，網頁啟用碼不含）' : 'Apple Watch 手錶版（只限訂閱）'), '時段隨意切換：整天、自訂、明天、現在 6 小時', '狀態顏色、快到班機標示', '點卡片看機型、共用班號',
     '每班預估入境人數、國籍人數', '下一班落地、接下來 1 小時、空檔與門改提醒', '人潮提示、班距空檔虛線',
     '隱藏已抵達、搜尋班號或城市', '回報文字一鍵複製', '分類名稱、顏色、登機門自己改（設定 › 分類設定），不限組數', '落地前 15 分鐘提醒（關注班機）'];
@@ -231,7 +242,7 @@
       + '<div id="pwhero" aria-hidden="true"></div>'
       + '<div class="pw-feat">' + FEAT.map(function (f, i) { return '<div>' + (f[2] ? '<em>' + f[2] + '</em>' : '') + '<i style="background-position:' + (i * 100 / 7).toFixed(4) + '% 0"></i><b>' + f[0] + '</b><small>' + f[1] + '</small></div>'; }).join('') + '</div>'
       + '<div class="pw-more"><b>還有：</b>' + MORE + '</div>'
-      + '<div class="pw-free">免費版：只看現在起 3 小時的班機清單、登機門群組 2 組，回報文字要自己複製。' + (WEB ? '' : '兩版都有廣告。') + '</div>'
+      + '<div class="pw-free">免費版：只看現在起 4 小時的班機清單、登機門群組 2 組，回報文字要自己複製' + (WEB ? '。' : '，有廣告（每 1 小時一則全螢幕廣告）。<b>訂閱完整版沒有任何廣告。</b>') + '</div>'
       + (!WEB && NATIVE && !subPro ? '<button type="button" class="pw-plan pw-rw" id="pwRw"><span>看廣告，免費用 ' + CONFIG.rewardHours + ' 小時<small>' + (rewardActive() ? '試用中，剩 ' + rewardLabel().replace('試用 ', '') + '・' : '') + '今天還可以 ' + rewardLeft() + ' 次・不含手錶版</small></span><b>▶</b></button>'
         + '<div class="pw-rwinfo"><b>看廣告可以用：</b>' + RW_FEATURES + '<br><b>每天免費時間：</b>每天 ' + CONFIG.rewardPerDay + ' 次，每次 ' + CONFIG.rewardHours + ' 小時（一天最多 ' + (CONFIG.rewardPerDay * CONFIG.rewardHours) + ' 小時），每天 0 點重新計算。<br>Apple Watch 手錶版只限訂閱。</div>' : '')
       + (WEB ? webPlans() : (subPro ? '' : '<button type="button" class="pw-plan pw-best" id="pwY" disabled><em class="pw-badge" id="pwYbadge">最划算・年繳更省</em><span>年繳<small id="pwYsub">每年自動續訂</small></span><b id="pwYp">讀取中…</b></button>'
@@ -324,6 +335,8 @@
   }
 
   /* ───────── 廣告（兩版都有）───────── */
+  var adsReady = false, bannerOn = false, bannerBusy = false, tierKnown = false;
+  function setAdH(px) { D.documentElement.style.setProperty('--ad-h', px); }
   function startAds() {
     if (!NATIVE || !ADS) return;
     var ask = ADS.trackingAuthorizationStatus().then(function (s) {
@@ -331,15 +344,47 @@
     })['catch'](function () {});
     ask.then(function () { return ADS.initialize({ initializeForTesting: CONFIG.adTesting }); })
       .then(function () {
-        ADS.addListener('bannerAdSizeChanged', function (s) { D.documentElement.style.setProperty('--ad-h', ((s && s.height) || 0) + 'px'); });
-        return ADS.removeBanner()['catch'](function () {});
-      })
-      .then(function () {
-        return ADS.showBanner({ adId: CONFIG.bannerId, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0, isTesting: CONFIG.adTesting });
-      }).then(function () {   // 沒收到高度事件時，先保守讓出一條橫幅的高度（自適應橫幅最高約 90，手機直式約 50–62）
-        setTimeout(function () { if (!parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h'))) D.documentElement.style.setProperty('--ad-h', '62px'); }, 1500);
+        ADS.addListener('bannerAdSizeChanged', function (s) { if (bannerOn) setAdH(((s && s.height) || 0) + 'px'); });
+        adsReady = true; syncBanner();
       })['catch'](function () {});
   }
+  // 訂閱完整版：拿掉橫幅廣告；免費版／看廣告試用中：顯示橫幅
+  function syncBanner() {
+    if (!adsReady || !tierKnown || bannerBusy) return;
+    var want = !subPro;
+    if (want === bannerOn) return;
+    bannerBusy = true;
+    if (!want) {
+      ADS.removeBanner()['catch'](function () {}).then(function () { bannerOn = false; setAdH('0px'); bannerBusy = false; syncBanner(); });
+      return;
+    }
+    ADS.removeBanner()['catch'](function () {})
+      .then(function () { return ADS.showBanner({ adId: CONFIG.bannerId, adSize: 'ADAPTIVE_BANNER', position: 'BOTTOM_CENTER', margin: 0, isTesting: CONFIG.adTesting }); })
+      .then(function () {
+        bannerOn = true; bannerBusy = false; syncBanner();
+        // 沒收到高度事件時，先保守讓出一條橫幅的高度（自適應橫幅手機直式約 50–62）
+        setTimeout(function () { if (bannerOn && !parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h'))) setAdH('62px'); }, 1500);
+      })['catch'](function () { bannerBusy = false; });
+  }
+  // 免費版：每 1 小時跳一則全螢幕廣告，看完（或關掉）就繼續用免費版
+  var itBusy = false;
+  function itDue() {
+    var last = +ls('itLast') || 0;
+    if (!last) { ls('itLast', String(Date.now())); return false; }   // 第一次打開不跳
+    return Date.now() - last >= CONFIG.interstitialEveryMin * 60000;
+  }
+  function itBlocked() { return D.getElementById('paywall') || D.getElementById('setupg') || D.getElementById('tourg') || D.getElementById('fxnews') || D.querySelector('.sheet'); }
+  function maybeInterstitial() {
+    if (!NATIVE || !ADS || !adsReady || pro || itBusy || D.hidden || itBlocked() || !itDue()) return;
+    if (!CONFIG.interstitialId || /INTERSTITIAL/.test(CONFIG.interstitialId)) return;
+    itBusy = true;
+    ADS.prepareInterstitial({ adId: CONFIG.interstitialId, isTesting: CONFIG.adTesting })
+      .then(function () { return ADS.showInterstitial(); })
+      .then(function () { ls('itLast', String(Date.now())); itBusy = false; })
+      ['catch'](function () { ls('itLast', String(Date.now() - (CONFIG.interstitialEveryMin - 10) * 60000)); itBusy = false; });   // 沒廣告可播：10 分鐘後再試
+  }
+  setInterval(maybeInterstitial, 60000);
+  D.addEventListener('visibilitychange', function () { if (!D.hidden) setTimeout(maybeInterstitial, 3000); });
 
   /* ───────── 字級 5 段（兩版都有）───────── */
   // 11/14 起網頁版自己有「字體」選單（小／標準／大／特大／超大，tools/fontsz.js），App 直接用它，不再另做一套。
@@ -598,11 +643,12 @@
         + '<p>會一個一個指給你看：時間怎麼看、登機門顏色、設定在哪、' + (NATIVE && !pro ? '怎麼看廣告免費用完整版、' : '') + '回報文字怎麼複製。</p>'
         + '<p class="sg-mute">之後想再看，到「設定」最下面按「使用引導」。</p>';
     }
-    var foot = step === 0 ? '<button type="button" class="sg-btn" data-a="skip">跳過，直接用</button><button type="button" class="sg-btn pri" data-a="next">開始設定（30 秒）</button>'
-      : step < 3 ? '<button type="button" class="sg-btn" data-a="back">上一步</button><button type="button" class="sg-btn pri" data-a="next">' + (step === 1 ? '儲存，下一步' : '下一步') + '</button>'
-      : '<button type="button" class="sg-btn" data-a="done">先不用</button><button type="button" class="sg-btn pri" data-a="tour">看功能導覽</button>';
+    // 1.3：上一步／下一步放在左右兩側（不放最下面，免得被廣告擋住）
+    var L = step === 0 ? ['skip', '跳過'] : (step < 3 ? ['back', '上一步'] : ['done', '先不用']);
+    var R = step === 0 ? ['next', '開始設定'] : (step === 1 ? ['next', '儲存'] : (step === 2 ? ['next', '下一步'] : ['tour', '看導覽']));
+    function side(cls, x, arrow) { return '<button type="button" class="sg-side ' + cls + '" data-a="' + x[0] + '" aria-label="' + x[1] + '"><b>' + arrow + '</b><span>' + x[1] + '</span></button>'; }
     el.innerHTML = '<div class="sg-in">' + '<div class="sg-top">' + dots + (step < 3 ? '<button type="button" class="sg-skip" data-a="skip">跳過引導</button>' : '') + '</div>'
-      + body + '<div class="sg-foot">' + foot + '</div></div>';
+      + body + '</div>' + side('l', L, '‹') + side('r', R, '›');
     B.appendChild(el);
     [].forEach.call(el.querySelectorAll('.sg-pal button'), function (b) {
       b.onclick = function () { [].forEach.call(b.parentNode.children, function (x) { x.classList.toggle('on', x === b); }); };
@@ -663,7 +709,7 @@
       [row && row.querySelector('.tag'), '分類標籤', '你在引導設的組名。名稱、顏色、登機門都能在「設定 › 分類設定」改。'],
       [D.querySelector('#dock button'), '設定', '時段、日期、分類、A～D 區、隱藏已' + (DEP ? '起飛' : '抵達') + '、回報文字、外觀樣式，都在這裡。'],
       [D.getElementById('rwbar'), '看廣告免費用', '看一則廣告就能用完整版 ' + CONFIG.rewardHours + ' 小時，每天 ' + CONFIG.rewardPerDay + ' 次，每天 0 點重新計算（手錶版不含）。'],
-      [D.getElementById('probtn'), pro ? '完整版' : '訂閱', pro ? '這裡看你的訂閱或試用剩多久。' : '看完整版有哪些功能：全時段、每班人數、雷達、群組回報一鍵複製' + (WEB ? '' : '、Apple Watch') + '。年繳最划算。'],
+      [D.getElementById('probtn'), pro ? '完整版' : '訂閱', pro ? '這裡看你的訂閱或試用剩多久。' : '看完整版有哪些功能：全時段、每班人數、雷達、群組回報一鍵複製' + (WEB ? '' : '、Apple Watch，而且沒有廣告') + '。年繳最划算。'],
       [D.querySelector('header a:not(.on)') || D.querySelector('header a'), '入境／出境', '兩邊切換，分類設定共用。'],
       [D.getElementById('bigbtn'), '字體', '5 段大小，隨時換。'],
       [D.getElementById('fGo'), '更新', '平常會自動更新；想馬上更新就按這裡。'],
@@ -676,7 +722,9 @@
     var steps = tourSteps(), i = 0;
     var el = D.createElement('div'); el.id = 'tourg'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '功能導覽');
     el.innerHTML = '<div class="tg-hole"></div><div class="tg-card" role="status"><div class="tg-n"></div><b class="tg-h"></b><p class="tg-t"></p>'
-      + '<div class="tg-foot"><button type="button" class="tg-skip">跳過</button><span></span><button type="button" class="tg-back">上一步</button><button type="button" class="tg-next">下一步</button></div></div>';
+      + '<div class="tg-foot"><button type="button" class="tg-skip">跳過導覽</button></div></div>'
+      + '<button type="button" class="sg-side l tg-back" aria-label="上一步"><b>‹</b><span>上一步</span></button>'
+      + '<button type="button" class="sg-side r tg-next" aria-label="下一步"><b>›</b><span>下一步</span></button>';
     B.appendChild(el);
     var hole = el.querySelector('.tg-hole'), card = el.querySelector('.tg-card');
     function place() {
@@ -684,15 +732,15 @@
       el.querySelector('.tg-n').textContent = (i + 1) + ' / ' + steps.length;
       el.querySelector('.tg-h').textContent = s[1]; el.querySelector('.tg-t').textContent = s[2];
       el.querySelector('.tg-back').style.visibility = i ? '' : 'hidden';
-      el.querySelector('.tg-next').textContent = i === steps.length - 1 ? '完成' : '下一步';
-      if (!t) { hole.style.cssText = 'left:50%;top:40%;width:0;height:0'; card.style.cssText = 'left:12px;right:12px;top:34%'; return; }
+      el.querySelector('.tg-next span').textContent = i === steps.length - 1 ? '完成' : '下一步';
+      if (!t) { hole.style.cssText = 'left:50%;top:40%;width:0;height:0'; card.style.cssText = 'left:58px;right:58px;top:34%'; return; }
       var r0 = gRect(t);
       if (r0.top < 80 || r0.bottom > innerHeight - 220 - (parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h')) || 0)) { try { (t.firstElementChild && !t.getBoundingClientRect().width ? t.firstElementChild : t).scrollIntoView({ block: 'center' }); } catch (e) {} }
       setTimeout(function () {
         var r = gRect(t), pad = 6;
         hole.style.cssText = 'left:' + (r.left - pad) + 'px;top:' + (r.top - pad) + 'px;width:' + (r.width + pad * 2) + 'px;height:' + (r.height + pad * 2) + 'px';
         var below = r.bottom + 14, h = card.offsetHeight || 170, adH = parseFloat(getComputedStyle(D.documentElement).getPropertyValue('--ad-h')) || 0;
-        card.style.cssText = 'left:12px;right:12px;' + (below + h < innerHeight - adH - 10 ? 'top:' + below + 'px' : 'top:' + Math.max(10, r.top - h - 14) + 'px');
+        card.style.cssText = 'left:58px;right:58px;' + (below + h < innerHeight - adH - 10 ? 'top:' + below + 'px' : 'top:' + Math.max(10, r.top - h - 14) + 'px');
       }, 260);
     }
     function end() { el.remove(); ls(GUIDE_KEY, 'done'); }

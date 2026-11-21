@@ -1389,7 +1389,7 @@ function runNow6(){
   /* 按下時間往前半小時、往後六小時（例：13:00 → 12:30–19:00） */
   var startMin=n.getHours()*60+n.getMinutes()-30; if(startMin<0) startMin=0;
   var lo=pad(Math.floor(startMin/60))+':'+pad(startMin%60);
-  var endRaw=n.getHours()*60+n.getMinutes()+(window.__FREE3?180:360), cross=endRaw>=1440;
+  var endRaw=n.getHours()*60+n.getMinutes()+(window.__FREE3?240:360), cross=endRaw>=1440;
   var hi=cross?'23:59':pad(Math.floor(endRaw/60))+':'+pad(endRaw%60);
   var m2=new Date(n.getTime()+86400000);
   var t2Iso=m2.getFullYear()+'-'+pad(m2.getMonth()+1)+'-'+pad(m2.getDate());
@@ -2170,7 +2170,7 @@ render=function(){ _renderG(); try{ gateTrack('.c-fno b','.c-gate .gn',false); }
     var t1=document.getElementById('t1'), t2=document.getElementById('t2');
     var pre=ctl.querySelector('.chips .chip.act[data-t]'), n6=document.getElementById('now6');
     var e2=t2?String(t2.value||''):'', m2=e2.match(/^(\d\d):59$/); if(m2) e2=('0'+(+m2[1]+1)).slice(-2)+':00';
-    var range=(window.CUST&&window.custLabel)?'自訂 '+custLabel():(n6&&n6.classList.contains('act'))?(window.__FREE3?'現在起 3 小時':'現在起 6 小時'):(pre?txt(pre):((t1?t1.value:'')+'–'+e2));
+    var range=(window.CUST&&window.custLabel)?'自訂 '+custLabel():(n6&&n6.classList.contains('act'))?(window.__FREE3?'現在起 4 小時':'現在起 6 小時'):(pre?txt(pre):((t1?t1.value:'')+'–'+e2));
     var cats=[].map.call(ctl.querySelectorAll('#shopslot .chip.act, .chip.shop.act'),function(c){ return txt(c); })
       .filter(function(v,i,a){ return v&&a.indexOf(v)===i; });
     var zs=[].filter.call(ctl.querySelectorAll('.chip.zone'),function(z){ return z.classList.contains('act'); })
@@ -2876,7 +2876,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
   D.addEventListener('change',function(e){ if(e.target&&/^(t1|t2|date)$/.test(e.target.id)) poke=Date.now(); },true);
   function feedback(){
     var S=sel(), pre=D.querySelector('.chip.act[data-t]'), n6=D.getElementById('now6'), t2=D.getElementById('t2'), t1=D.getElementById('t1');
-    var range=(window.CUST&&window.custLabel)?'自訂 '+custLabel():(n6&&n6.classList.contains('act'))?(window.__FREE3?'現在起 3 小時':'現在起 6 小時'):(pre?txt(pre).replace(/[✓\s]/g,''):((t1&&t1.value)+'–'+(t2&&t2.value)));
+    var range=(window.CUST&&window.custLabel)?'自訂 '+custLabel():(n6&&n6.classList.contains('act'))?(window.__FREE3?'現在起 4 小時':'現在起 6 小時'):(pre?txt(pre).replace(/[✓\s]/g,''):((t1&&t1.value)+'–'+(t2&&t2.value)));
     var mine=rows().filter(function(r){ return S.indexOf(tagOf(r))>=0&&r.style.display!=='none'; }).length;
     var sig=range+'|'+S.join(',')+'|'+mine;
     if(sig!==lastSig&&Date.now()-poke<4000){
@@ -3296,7 +3296,7 @@ html:is(.arr,.dep) body:not(.mkslim) .mk{background:url(img/neon-wide.webp) cent
       if(rec&&rec.from){ try{ oldTg=tagOf(shopOf({Gate:rec.from,BNO:f.BNO},EX)).txt; }catch(e){} }
       var outOf=!inMine&&oldTg&&S.indexOf(oldTg)>=0;
       if(!inMine&&!outOf) return;
-      if(live&&f.__m!==null&&(f.__m<nowM-30||f.__m>nowM+(window.__FREE3?180:360))) return;
+      if(live&&f.__m!==null&&(f.__m<nowM-30||f.__m>nowM+(window.__FREE3?240:360))) return;
       if(/取消/.test(f.Memo||'')) w.push(['bad','取消']);
       else {
         var dm=(hhmm(f.RTime)&&hhmm(f.OTime))?(mins(f.RTime)-mins(f.OTime)+(isNextDay(f)?1440:0)):0;
@@ -5916,11 +5916,11 @@ html.matte body:not(#_):not(#__) #infobox :is(#nalert .na,#remain){border-radius
 html:is(.dash,.twar,.tbp) body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:'Chakra Petch',ui-monospace,monospace!important}
 html.tbp body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:ui-monospace,Menlo,monospace!important}
 </style>
-<link rel="stylesheet" href="app.css?v=1120e">
+<link rel="stylesheet" href="app.css?v=1121a">
 <link rel="stylesheet" href="matte.css">
 <link rel="stylesheet" href="cyber.css">
 <link rel="stylesheet" href="theme-fit.css">
-<script src="app.js?v=1120e"></script>
-<script src="web-news.js?v=1120e"></script>
+<script src="app.js?v=1121a"></script>
+<script src="web-news.js?v=1121a"></script>
 </body>
 </html>

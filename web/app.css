@@ -175,3 +175,17 @@ body.tier-free #rwbar{display:block}
 /* 1.3：底部橫幅廣告不能擋住任何畫面（全螢幕視窗、引導、導覽、提示都讓出廣告的高度） */
 #setupg,#tourg,#paywall,.sheet,.sheet.st2,.tdsheet,.mfsheet,#rmap,#fxnews,#fxbp{bottom:var(--ad-h,0px)!important}
 #nfb{bottom:calc(var(--ad-h,0px) + 84px + env(safe-area-inset-bottom,0px))!important}
+
+/* 1.3：引導的上一步／下一步放左右兩側（固定在畫面中間高度，不會被底部廣告擋住） */
+.sg-side{all:unset;cursor:pointer;position:fixed;z-index:270;top:calc((100% - var(--ad-h,0px)) / 2);transform:translateY(-50%);
+  width:44px;min-height:132px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 0;box-sizing:border-box;
+  font:800 14px/1.15 system-ui,"PingFang TC","Noto Sans TC",sans-serif;color:#e8edf3;background:rgba(16,24,33,.92);border:1px solid #2f3b4b}
+.sg-side b{font-size:28px;line-height:1;font-weight:900}
+.sg-side span{writing-mode:vertical-rl;letter-spacing:.12em}
+.sg-side.l{left:max(4px,env(safe-area-inset-left,0px))}
+.sg-side.r{right:max(4px,env(safe-area-inset-right,0px));background:#00efd4;border-color:#00efd4;color:#04131a}
+.sg-side:active{filter:brightness(1.2)}
+.sg-side:focus-visible{outline:2px solid #00efd4;outline-offset:2px}
+#setupg .sg-in{padding-left:46px;padding-right:46px;box-sizing:border-box}
+#setupg .sg-foot{display:none}
+#tourg .tg-foot{justify-content:flex-start}
