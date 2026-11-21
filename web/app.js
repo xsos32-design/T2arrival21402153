@@ -462,6 +462,33 @@
   }
   function anCancel(id) { if (NATIVE && LN) LN.cancel({ notifications: [{ id: id }] })['catch'](function () {}); }
   function anBody(r, t) { return (r.g ? '登機門 ' + r.g : '') + (r.c ? (r.g ? '・' : '') + r.c : '') + (t ? '・' + t : '') + '（以現場為準）'; }
+  /* 1.4：伺服器推播——App 沒開也收得到「已抵達／已起飛」（tpe-push Worker 每分鐘看一次） */
+  var PUSH = 'https://tpe-push.xsos32.workers.dev';
+  function pushTok() {
+    return new Promise(function (res) {
+      var MH = W.webkit && W.webkit.messageHandlers && W.webkit.messageHandlers.pushReg, done = 0;
+      function old() { var t = ls('apnsTok'); return t ? { t: t, sb: ls('apnsSb') === '1' } : null; }
+      if (!MH) return res(null);
+      W.__pushToken = function (t, sb) { if (t) { ls('apnsTok', t); ls('apnsSb', sb ? '1' : '0'); } if (!done) { done = 1; res(t ? { t: t, sb: !!sb } : old()); } };
+      try { MH.postMessage({}); } catch (e) { done = 1; return res(old()); }
+      setTimeout(function () { if (!done) { done = 1; res(old()); } }, 8000);
+    });
+  }
+  function srvWatch(r) {
+    if (!NATIVE) return;
+    pushTok().then(function (k) {
+      if (!k) return;
+      return fetch(PUSH + '/watch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: k.t, sandbox: k.sb, f: r.f, dep: !!r.dep, at: r.at, g: r.g, c: r.c }) })
+        .then(function (x) { return x.json(); }).then(function (o) {
+          if (!(o && o.ok)) return; var l = anList(), kk = (r.dep ? 'D' : 'A') + r.f; if (l[kk]) { l[kk].srv = 1; anSave(l); }
+        });
+    })['catch'](function () {});
+  }
+  function srvUnwatch(r) {
+    var t = ls('apnsTok'); if (!NATIVE || !t) return;
+    fetch(PUSH + '/unwatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: t, f: r.f, dep: !!r.dep }) })['catch'](function () {});
+  }
   /* App 沒開時的備案：在預計時間排一則「預計抵達」 */
   function anPlan(r) { if (!(NATIVE && LN) || r.at < Date.now() + 5e3) return; anCancel(r.id);
     anFire(r.id, r.f + ' 預計現在' + WORD, anBody(r, '預計 ' + r.t), r.at); }
@@ -477,7 +504,7 @@
         anCancel(r.id); anFire(r.id + 1, r.f + ' 已' + WORD, anBody(x, x.t ? '實際 ' + x.t : ''));
         r.sent = 1; ch = true;
       } else if (x && !x.done && x.m && x.t !== r.t) {   // 預計時間改了 → 重排
-        r.t = x.t; r.at = atOf(x.m); r.g = x.g || r.g; anPlan(r); ch = true;
+        r.t = x.t; r.at = atOf(x.m); r.g = x.g || r.g; anPlan(r); srvWatch(r); ch = true;
       } else if (!r.sent && !NATIVE && now >= r.at + 5 * 60e3 && !r.soft) {   // 網頁：過了預計時間還沒標抵達，先提醒一次
         anFire(r.id, r.f + ' 預計已' + WORD, anBody(r, '預計 ' + r.t)); r.soft = 1; ch = true;
       }
@@ -508,10 +535,10 @@
     }
     b.onclick = function (e) {
       e.stopPropagation(); var l = anList();
-      if (l[key]) { anCancel(l[key].id); delete l[key]; anSave(l); paintAnBtns(); return; }
+      if (l[key]) { anCancel(l[key].id); srvUnwatch(l[key]); delete l[key]; anSave(l); paintAnBtns(); return; }
       if (x.done) { b.textContent = '這班已經' + WORD + '了'; return; }
       var r = { id: anId(key + Date.now()), f: x.f, t: x.t, at: atOf(x.m), g: x.g, c: x.c, dep: DEP };
-      function ok() { l[key] = r; anSave(l); anPlan(r); paintAnBtns(); }
+      function ok() { l[key] = r; anSave(l); anPlan(r); srvWatch(r); paintAnBtns(); }
       if (NATIVE && LN) {
         LN.requestPermissions().then(function (p) { if (p && p.display && p.display !== 'granted') throw new Error('denied'); ok(); })
           ['catch'](function () { b.textContent = '請到 iPhone「設定 › 通知」允許本 App 通知'; });
