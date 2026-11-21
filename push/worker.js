@@ -7,7 +7,7 @@
  *
  * 綁定（Settings › Bindings）：
  *   DB     D1 資料庫 tpe-push
- *   BOARD  Service binding → tpe-board（入境資料，已有 60～90 秒共用快取）
+ *   BOARD  Service binding → tpe-board（入境資料，已有 60～90 秒共用快取；抓不到改用 GitHub snap.json）
  * 變數：
  *   APNS_KEY_ID   3YF2PJJGY2
  *   APNS_TEAM_ID  T6YQYK84R2
@@ -120,7 +120,7 @@ async function tick(env) {
     if (res === 'ok') { sent++; await env.DB.prepare('UPDATE w SET sent=1 WHERE tok=? AND k=?').bind(r.tok, r.k).run(); }
     else if (res === 'gone') { gone++; await env.DB.prepare('DELETE FROM w WHERE tok=?').bind(r.tok).run(); }
   }
-  return { wait: list.length, sent, gone, arr: arr && (arr.err || arr.rows.length), dep: dep && (dep.err || dep.rows.length) };
+  return { wait: list.length, sent, gone, arr: arr && (arr.err || arr.rows.length + '班@' + arr.at), dep: dep && (dep.err || dep.rows.length + '班@' + dep.at) };
 }
 
 /* 找同一班、表定時間最接近使用者按的那一班（±12 小時內） */
@@ -137,46 +137,62 @@ function pick(src, r) {
   return best;
 }
 
-/* 入境：用 tpe-board 的 /snap（同一份資料大家共用） */
+/* 入境：tpe-board 的 /snap（大家共用）＋ GitHub 每 5 分鐘的 snap.json，哪份比較新用哪份 */
+const SITE = 'https://xsos32-design.github.io/T2arrival21402153/';
+const fresh = t => { const m = /(\d\d):(\d\d)/.exec(t || ''); if (!m) return 9999; const n = new Date(Date.now() + 8 * H); let a = n.getUTCHours() * 60 + n.getUTCMinutes() - (+m[1] * 60 + +m[2]); if (a < 0) a += 1440; return a; };
+async function getJ(u, init) { const r = await (init || fetch)(u, { headers: { Accept: 'application/json' }, cf: { cacheTtl: 30 } }); if (!r.ok) throw new Error(r.status); return r.json(); }
 async function arrivals(env) {
-  const r = env.BOARD ? await env.BOARD.fetch('https://tpe-board/snap') : await fetch('https://tpe-board.xsos32.workers.dev/snap');
-  if (!r.ok) throw new Error('snap ' + r.status);
-  const s = await r.json();
+  const [a, b] = await Promise.all([
+    getJ('https://tpe-board/snap', env.BOARD ? (u, o) => env.BOARD.fetch(u, o) : null).catch(() => null),
+    getJ(SITE + 'snap.json?v=' + Math.floor(Date.now() / 60e3)).catch(() => null),
+  ]);
+  const s = [a, b].filter(x => x && x.f && x.f.length).sort((x, y) => fresh(x.t) - fresh(y.t))[0];
+  if (!s) throw new Error('入境資料抓不到');
+  if (fresh(s.t) > 45) throw new Error('入境資料太舊 ' + s.t);
   const base = String(s.d || '').replace(/\//g, '-');
-  const rows = (s.f || []).map(a => {
+  const rows = s.f.map(a => {
     const sch = tw(base, a[4]) + (a[6] || 0) * DAY, e = a[5] ? tw(base, a[5]) + (a[7] || 0) * DAY : 0;
     const memo = String(a[8] || '');
     return { k: codeKey(a[0]), s: sch, e, g: a[2], done: /已到/.test(memo), cancel: /取消/.test(memo), t: e ? hm(e) : '' };
   });
-  return { rows };
+  return { rows, at: s.t };
 }
 
-/* 出境：桃機官網（AState D），要哪幾天抓哪幾天 */
+/* 出境：先問桃機官網（AState D）；被擋就用 GitHub 每 5 分鐘的 dep.json */
 async function departures(days) {
   const rows = [];
-  for (const iso of days) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 9000);
-    let a;
-    try {
-      const r = await fetch(APT, { method: 'POST', signal: ac.signal,
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': UA, Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/' },
-        body: JSON.stringify({ AState: 'D', ODate: iso.replace(/-/g, '/'), language: 'ch' }) });
-      if (!r.ok) throw new Error('桃機 ' + r.status);
-      a = await r.json();
-    } finally { clearTimeout(tm); }
-    for (const f of a || []) {
-      const ot = String(f.OTime || '').slice(0, 5); if (!ot) continue;
-      const od = String(f.ODate || iso).slice(0, 10).replace(/\//g, '-');
-      const sch = tw(od, ot.replace(':', ''));
-      const rt = String(f.RTime || '').slice(0, 5), rd = String(f.RDate || od).slice(0, 10).replace(/\//g, '-');
-      const e = rt ? tw(rd, rt.replace(':', '')) : 0;
-      const memo = String(f.Memo || ''), cur = String(f.CurrentStatus || '');
-      rows.push({ k: codeKey(f.flightCode || (String(f.ACode || '') + String(f.FlightNo || ''))), s: sch, e, g: String(f.Gate || '').trim(),
-        done: /已飛|起飛/.test(cur) || /出發/.test(memo), cancel: /取消/.test(memo), t: e ? hm(e) : '' });
+  try {
+    for (const iso of days) {
+      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 9000);
+      let a;
+      try {
+        const r = await fetch(APT, { method: 'POST', signal: ac.signal,
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': UA, Origin: 'https://www.taoyuan-airport.com', Referer: 'https://www.taoyuan-airport.com/' },
+          body: JSON.stringify({ AState: 'D', ODate: iso.replace(/-/g, '/'), language: 'ch' }) });
+        if (!r.ok) throw new Error('桃機 ' + r.status);
+        a = await r.json();
+      } finally { clearTimeout(tm); }
+      for (const f of a || []) {
+        const ot = String(f.OTime || '').slice(0, 5); if (!ot) continue;
+        const od = String(f.ODate || iso).slice(0, 10).replace(/\//g, '-');
+        const sch = tw(od, ot.replace(':', ''));
+        const rt = String(f.RTime || '').slice(0, 5), rd = String(f.RDate || od).slice(0, 10).replace(/\//g, '-');
+        const e = rt ? tw(rd, rt.replace(':', '')) : 0;
+        rows.push(depRow(f.flightCode || (String(f.ACode || '') + String(f.FlightNo || '')), sch, e, f.Gate, f.Memo, f.CurrentStatus));
+      }
     }
-  }
-  if (!rows.length) throw new Error('出境 0 班');
-  return { rows };
+    if (rows.length) return { rows, at: 'apt' };
+  } catch (e) {}
+  const s = await getJ(SITE + 'dep.json?v=' + Math.floor(Date.now() / 60e3));
+  if (!s || !s.f || !s.f.length) throw new Error('出境資料抓不到');
+  if (fresh(s.t) > 45) throw new Error('出境資料太舊 ' + s.t);
+  const base = String(s.d || '').replace(/\//g, '-');
+  for (const a of s.f) rows.push(depRow(a[0], tw(base, a[4]) + (a[6] || 0) * DAY, a[5] ? tw(base, a[5]) + (a[7] || 0) * DAY : 0, a[2], a[8], a[9]));
+  return { rows, at: s.t };
+}
+function depRow(code, sch, e, gate, memo, cur) {
+  memo = String(memo || ''); cur = String(cur || '');
+  return { k: codeKey(code), s: sch, e, g: String(gate || '').trim(), done: /已飛|起飛/.test(cur) || /出發/.test(memo), cancel: /取消/.test(memo), t: e ? hm(e) : '' };
 }
 
 /* ── Apple 推播（APNs，金鑰式 JWT，ES256，50 分鐘換一次）─────────── */
