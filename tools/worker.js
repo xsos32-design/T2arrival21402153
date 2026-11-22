@@ -23,15 +23,31 @@ const pad = n => (n < 10 ? '0' : '') + n;
 function tpeNow() { return new Date(Date.now() + 8 * 3600000); }
 function isoOf(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
 
+/* 11/22：通行碼一天只認證一次。TDX 認證端點有次數上限（超過回 429），
+   以前每台 Worker 重開就重新認證、失敗了每 90 秒又再試，越擋越久。
+   現在：記憶體 → Cloudflare 快取（同機房共用，存到過期前 10 分鐘）→ 真的去認證；
+   認證失敗就 30 分鐘內不再試（這段時間走匿名）。 */
+const TOKEN_KEY = new Request('https://tdx.cache/token'), TOKEN_FAIL = new Request('https://tdx.cache/token-fail');
 async function token(env) {
   if (!env.TDX_ID || !env.TDX_SECRET) return '';
   if (TOKEN && TOKEN.exp > Date.now() + 60000) return TOKEN.v;
+  const cache = caches.default;
+  try {
+    const hit = await cache.match(TOKEN_KEY);
+    if (hit) { const t = await hit.json(); if (t && t.exp > Date.now() + 60000) { TOKEN = t; return t.v; } }
+    if (await cache.match(TOKEN_FAIL)) return '';
+  } catch (e) {}
   const r = await fetch(TDX_TOKEN, { method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
     body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.TDX_ID, client_secret: env.TDX_SECRET }) });
-  if (!r.ok) return '';
+  if (!r.ok) {
+    try { await cache.put(TOKEN_FAIL, new Response(String(r.status), { headers: { 'Cache-Control': 'public, max-age=1800' } })); } catch (e) {}
+    return '';
+  }
   const j = await r.json();
-  TOKEN = { v: 'Bearer ' + j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000 };
+  const life = (j.expires_in || 3600) * 1000;
+  TOKEN = { v: 'Bearer ' + j.access_token, exp: Date.now() + life };
+  try { await cache.put(TOKEN_KEY, new Response(JSON.stringify(TOKEN), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=' + Math.max(60, Math.floor(life / 1000) - 600) } })); } catch (e) {}
   return TOKEN.v;
 }
 
@@ -227,13 +243,10 @@ export default {
       await t('開放資料', () => odp(today, {}));
       out['金鑰'] = (env.TDX_ID && env.TDX_SECRET) ? '有設定' : '沒設定';
       if (env.TDX_ID && env.TDX_SECRET) {            /* 只回報認證成不成功、狀態碼，不回傳任何金鑰內容 */
-        try {
-          const r = await fetch(TDX_TOKEN, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': UA },
-            body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.TDX_ID, client_secret: env.TDX_SECRET }) });
-          const txt = await r.text(); let err = ''; try { err = JSON.parse(txt).error || ''; } catch (e) {}
-          out['認證'] = r.ok ? '成功' : ('失敗 ' + r.status + (err ? ' ' + err : ''));
-          if (r.ok) {
-            const tok = 'Bearer ' + JSON.parse(txt).access_token;
+        try {   /* 11/22：改用存起來的通行碼，不再每次檢查都去認證（認證有次數上限） */
+          const tok = await token(env);
+          out['認證'] = tok ? '成功（' + Math.round((TOKEN.exp - Date.now()) / 3600000) + ' 小時後到期）' : '暫停中（剛被擋或失敗，30 分鐘內走匿名）';
+          if (tok) {
             const q = await fetch(TDX_ARR + '?%24top=1&%24format=JSON', { headers: { Accept: 'application/json', 'User-Agent': UA, Authorization: tok } });
             out['金鑰查詢'] = q.status + (q.ok ? ' 可用' : ' ' + (await q.text()).slice(0, 80));
           }
