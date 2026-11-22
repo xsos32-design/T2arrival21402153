@@ -63,19 +63,18 @@ async function meta() {
 async function tdx(env, today, tomorrow) {
   const filter = `date(FlightDate) ge ${today} and date(FlightDate) le ${tomorrow} and IsCargo eq false`;
   const url = TDX_ARR + '?%24select=' + SEL + '&%24filter=' + encodeURIComponent(filter) + '&%24format=JSON';
-  const tries = [];
-  const auth = await token(env).catch(() => '');
-  if (auth) tries.push(auth);
-  tries.push('');                                   /* 金鑰不行就匿名再試一次 */
+  /* 11/22：改成先匿名（不吃點數），匿名不行才用金鑰。
+     基礎會員每月只有 3 點，10 月金鑰優先用了 3.8 點就被鎖；匿名每天也有次數上限，所以金鑰留著當備援 */
   let last = '';
-  for (const a of tries) {
+  for (const a of ['', 'KEY']) {
+    if (a === 'KEY') { const k = await token(env).catch(() => ''); if (!k) break; var useA = k; } else var useA = '';
     const h = { Accept: 'application/json', 'User-Agent': UA };
-    if (a) h.Authorization = a;
+    if (useA) h.Authorization = useA;
     const ac = new AbortController(); const tm = setTimeout(() => ac.abort(), 12000);
     try {
       const r = await fetch(url, { headers: h, signal: ac.signal });
       clearTimeout(tm);
-      if (r.ok) return { list: await r.json(), mode: a ? 'key' : 'anon' };
+      if (r.ok) return { list: await r.json(), mode: useA ? 'key' : 'anon' };
       last = 'TDX ' + r.status;
     } catch (e) { clearTimeout(tm); last = String(e && e.message || e); }
   }
