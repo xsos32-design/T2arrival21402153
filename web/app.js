@@ -445,6 +445,7 @@
       c: ((row.querySelector('.c-city .cn') || {}).textContent || '').trim(),
       done: row.classList.contains('done') };
   }
+  function anDay() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
   function atOf(m) { var at = new Date(); at.setHours(+m[1], +m[2], 0, 0); if (at.getTime() < Date.now() - 6 * 3600e3) at.setDate(at.getDate() + 1); return at.getTime(); }
   var WORD = DEP ? '起飛' : '抵達';
   function anToast(title, body) {
@@ -501,14 +502,17 @@
       if (r.dep !== DEP) continue;
       var x = rows[(DEP ? 'D' : 'A') + r.f];
       if (x && x.done && !r.sent) {   // 已經標「抵達／已起飛」→ 馬上通知，取消預計那則
-        anCancel(r.id); anFire(r.id + 1, r.f + ' 已' + WORD, anBody(x, x.t ? '實際 ' + x.t : ''));
+        anCancel(r.id);
+        /* 11/22：伺服器已經登記（r.srv）就由伺服器推播，App 這邊不再補一則，免得打開 App 又跳一次 */
+        if (!r.srv) anFire(r.id + 1, r.f + ' 已' + WORD, anBody(x, x.t ? '實際 ' + x.t : ''));
         r.sent = 1; ch = true;
-      } else if (x && !x.done && x.m && x.t !== r.t) {   // 預計時間改了 → 重排
+      } else if (x && !x.done && !r.sent && x.m && x.t !== r.t) {   // 預計時間改了 → 重排
         r.t = x.t; r.at = atOf(x.m); r.g = x.g || r.g; anPlan(r); srvWatch(r); ch = true;
       } else if (!r.sent && !NATIVE && now >= r.at + 5 * 60e3 && !r.soft) {   // 網頁：過了預計時間還沒標抵達，先提醒一次
         anFire(r.id, r.f + ' 預計已' + WORD, anBody(r, '預計 ' + r.t)); r.soft = 1; ch = true;
       }
-      if (now > r.at + 3 * 3600e3) { delete l[k]; ch = true; }
+      /* 11/22：不留到隔天——過了預計時間 3 小時，或日期換了且已通知／已過時間，就自動取消 */
+      if (now > r.at + 3 * 3600e3 || (r.day && r.day !== anDay() && (r.sent || now > r.at))) { srvUnwatch(r); delete l[k]; ch = true; }
     }
     if (ch) anSave(l);
     paintAnBtns();
@@ -537,7 +541,7 @@
       e.stopPropagation(); var l = anList();
       if (l[key]) { anCancel(l[key].id); srvUnwatch(l[key]); delete l[key]; anSave(l); paintAnBtns(); return; }
       if (x.done) { b.textContent = '這班已經' + WORD + '了'; return; }
-      var r = { id: anId(key + Date.now()), f: x.f, t: x.t, at: atOf(x.m), g: x.g, c: x.c, dep: DEP };
+      var r = { id: anId(key + Date.now()), f: x.f, t: x.t, at: atOf(x.m), g: x.g, c: x.c, dep: DEP, day: anDay() };
       function ok() { l[key] = r; anSave(l); anPlan(r); srvWatch(r); paintAnBtns(); }
       if (NATIVE && LN) {
         LN.requestPermissions().then(function (p) { if (p && p.display && p.display !== 'granted') throw new Error('denied'); ok(); })
