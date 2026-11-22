@@ -87,7 +87,7 @@ async function watch(b, env) {
   if (n >= MAX_PER_DEVICE) return j({ ok: false, why: 'too many' }, 429);
   const k = (d ? 'D' : 'A') + codeKey(f) + '@' + twISO(at);
   await env.DB.prepare(`INSERT INTO w (tok,k,f,d,at,g,c,sent,sb,made) VALUES (?,?,?,?,?,?,?,0,?,?)
-      ON CONFLICT(tok,k) DO UPDATE SET at=excluded.at, g=excluded.g, c=excluded.c, sent=0, sb=excluded.sb`)
+      ON CONFLICT(tok,k) DO UPDATE SET at=excluded.at, g=excluded.g, c=excluded.c, sb=excluded.sb`)   /* 11/22：已送過的不再重送（只更新時間） */
     .bind(b.token, k, f, d, at, String(b.g || '').slice(0, 8), String(b.c || '').slice(0, 20), b.sandbox ? 1 : 0, Date.now()).run();
   return j({ ok: true, k });
 }
