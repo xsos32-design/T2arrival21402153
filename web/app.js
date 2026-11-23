@@ -562,6 +562,35 @@
   });
   setTimeout(anCheck, 4000);
 
+  /* ───────── 11/23：App 裡點「更新日誌」打不開（App 沒帶 changelog.html）→ 改在 App 內直接顯示 ───────── */
+  function openLog() {
+    var old = D.getElementById('applog'); if (old) old.remove();
+    var el = D.createElement('div'); el.id = 'applog'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', '更新日誌');
+    el.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#0a0614;color:#e6edf5;overflow:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 40px);font:16px/1.75 system-ui,"PingFang TC",sans-serif';
+    el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b style="font-size:22px">更新日誌</b>'
+      + '<button type="button" id="applogx" style="font:inherit;font-weight:900;padding:6px 14px;border:0;background:#00efd4;color:#02241f">關閉</button></div>'
+      + '<p style="color:#8b96a6;font-size:14px;margin:4px 0 0">網頁版、iPhone App、Apple Watch 同步更新。</p><div id="applogb"><p style="color:#8b96a6">載入中…</p></div>';
+    B.appendChild(el);
+    el.querySelector('#applogx').onclick = function () { el.remove(); };
+    function paint() {
+      var N = (W.__TPE_NEWS || []).slice().reverse(), h = '';
+      N.forEach(function (s) {
+        h += '<h2 style="font-size:18px;margin:26px 0 6px;color:#00efd4">' + s.t + '<small style="color:#8b96a6;font-weight:600;margin-left:8px">' + s.d + '</small></h2>';
+        s.it.forEach(function (x) { h += '<div style="border-left:2px solid #00efd4;padding:6px 12px;margin:10px 0;background:rgba(0,240,255,.05)"><b style="display:block">' + x[2] + '</b><p style="margin:4px 0;color:#d3e2ef">' + x[3] + '</p><div style="font-size:14px;color:#a9b8c6">' + (x[4] || '') + '</div></div>'; });
+      });
+      var b = el.querySelector('#applogb'); if (b) b.innerHTML = h || '<p style="color:#8b96a6">目前沒有更新紀錄。</p>';
+    }
+    if (W.__TPE_NEWS) return paint();
+    var sc = D.createElement('script'); sc.src = 'https://tpeboard.com/web-news.js?v=' + Math.floor(Date.now() / 3600e3);
+    sc.onload = paint; sc.onerror = function () { var b = el.querySelector('#applogb'); if (b) b.innerHTML = '<p style="color:#8b96a6">連不上網路，稍後再試。</p>'; };
+    D.head.appendChild(sc);
+  }
+  D.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href*="changelog.html"]');
+    if (!a || !NATIVE) return;   // 網頁版照原本開 changelog.html
+    e.preventDefault(); e.stopPropagation(); openLog();
+  }, true);
+
   /* ───────── 瀏覽器測試用：模擬訂閱開關（App 裡不會出現）───────── */
   function devToggle() {
     if (NATIVE || WEB) return;
