@@ -836,6 +836,7 @@
       })()],
       [row && row.querySelector('.c-gate'), '登機門', '顏色跟著分類走，一眼分出是哪一組的門。'],
       [row && row.querySelector('.tag'), '分類標籤', '你在引導設的組名。名稱、顏色、登機門都能在「設定 › 分類設定」改。'],
+      [row && (row.querySelector('.tapmore') || row), (DEP ? '起飛' : '抵達') + '時通知我', '點「詳細」，按「' + (DEP ? '起飛' : '抵達') + '時通知我」，班機一' + (DEP ? '起飛' : '抵達') + '就跳通知' + (NATIVE ? '，App 關著也收得到' : '（網頁版要開著看板）') + '；只通知一次，隔天自動取消（訂閱完整版）。'],
       [D.querySelector('#dock button'), '設定', '時段、日期、分類、A～D 區、隱藏已' + (DEP ? '起飛' : '抵達') + '、回報文字、外觀樣式，都在這裡。'],
       [D.getElementById('rwbar'), '看廣告免費用', '看一則廣告就能用完整版 ' + CONFIG.rewardHours + ' 小時，每天 ' + CONFIG.rewardPerDay + ' 次，每天 0 點重新計算（手錶版不含）。'],
       [D.getElementById('probtn'), pro ? '完整版' : '訂閱', pro ? '這裡看你的訂閱或試用剩多久。' : '看完整版有哪些功能：全時段、每班人數、雷達、群組回報一鍵複製' + (WEB ? '' : '、Apple Watch，而且沒有廣告') + '。年繳最划算。'],
