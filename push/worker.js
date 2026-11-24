@@ -14,6 +14,7 @@
  *   APNS_TOPIC    tw.xsos32.t2board
  * 祕密（自己貼，不要給別人看）：
  *   APNS_KEY      AuthKey_3YF2PJJGY2.p8 的整段內容（含 BEGIN/END 那兩行）
+ *   VAPID_KEY     網頁推播 VAPID 私鑰（PKCS8 PEM）；VAPID_PUBLIC（變數）＝對應公鑰
  * 排程：* * * * *（每分鐘）
  */
 
@@ -34,6 +35,7 @@ async function ready(env) {
       g TEXT, c TEXT, sent INTEGER NOT NULL DEFAULT 0, sb INTEGER NOT NULL DEFAULT 0, made INTEGER NOT NULL,
       PRIMARY KEY (tok, k))`),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS w_at ON w (sent, at)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS wsub (tok TEXT PRIMARY KEY, ep TEXT NOT NULL, p TEXT NOT NULL, a TEXT NOT NULL, made INTEGER NOT NULL)'),
   ]);
   READY = true;
 }
@@ -58,6 +60,9 @@ export default {
       await ready(env);
       if (p === '/watch' && req.method === 'POST') return watch(await req.json(), env);
       if (p === '/unwatch' && req.method === 'POST') return unwatch(await req.json(), env);
+      if (p === '/wwatch' && req.method === 'POST') return wwatch(await req.json(), env);      // 網頁推播（瀏覽器）
+      if (p === '/wunwatch' && req.method === 'POST') return wunwatch(await req.json(), env);
+      if (p === '/vapid') return j({ key: env.VAPID_PUBLIC || '' });
       if (p === '/stat') {
         const r = await env.DB.prepare('SELECT COUNT(*) n, SUM(sent=0) wait, COUNT(DISTINCT tok) dev FROM w').first();
         return j({ ...r, key: env.APNS_KEY ? '有設定' : '沒設定', id: env.APNS_KEY_ID || '', board: !!env.BOARD });
@@ -77,7 +82,7 @@ export default {
 };
 
 /* ── App 呼叫 ───────────────────────────────── */
-const okTok = t => /^[0-9a-f]{64,200}$/i.test(String(t || ''));
+const okTok = t => /^[0-9a-f]{64,200}$/i.test(String(t || '')) || /^web:[0-9a-f]{48}$/.test(String(t || ''));
 async function watch(b, env) {
   if (!okTok(b.token)) return j({ ok: false, why: 'token' }, 400);
   const f = String(b.f || '').trim().slice(0, 12), d = b.dep ? 1 : 0;
@@ -97,6 +102,25 @@ async function unwatch(b, env) {
   if (b.all) await env.DB.prepare('DELETE FROM w WHERE tok=?').bind(b.token).run();
   else await env.DB.prepare('DELETE FROM w WHERE tok=? AND k LIKE ?').bind(b.token, (d ? 'D' : 'A') + codeKey(f) + '@%').run();
   return j({ ok: true });
+}
+
+/* ── 網頁推播：瀏覽器的訂閱（endpoint＋金鑰）換成一個 web: 代碼，班機照樣存在 w 表 ── */
+async function webTok(ep) {
+  const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(ep))));
+  return 'web:' + [...h].map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 48);
+}
+async function wwatch(b, env) {
+  const sub = b.sub || {}, ep = String(sub.endpoint || ''), k = sub.keys || {};
+  if (!/^https:\/\//.test(ep) || !k.p256dh || !k.auth) return j({ ok: false, why: 'sub' }, 400);
+  const tok = await webTok(ep);
+  await env.DB.prepare('INSERT INTO wsub (tok,ep,p,a,made) VALUES (?,?,?,?,?) ON CONFLICT(tok) DO UPDATE SET p=excluded.p, a=excluded.a')
+    .bind(tok, ep, String(k.p256dh), String(k.auth), Date.now()).run();
+  return watch({ ...b, token: tok }, env);
+}
+async function wunwatch(b, env) {
+  const ep = String((b.sub && b.sub.endpoint) || b.endpoint || '');
+  if (!ep) return j({ ok: false }, 400);
+  return unwatch({ ...b, token: await webTok(ep) }, env);
 }
 
 /* ── 每分鐘 ─────────────────────────────────── */
@@ -119,10 +143,11 @@ async function tick(env) {
     if (x.cancel) { title = `${r.f} 已取消`; body = (where ? where + '・' : '') + '請以航空公司公告為準'; }
     else if (x.done) { title = `${r.f} 已${r.d ? '起飛' : '抵達'}`; body = (where ? where + '・' : '') + (x.t ? '實際 ' + x.t : '') + '（以現場為準）'; }
     else continue;
-    if (!jwt) continue;
-    const res = await push(env, jwt, r.tok, r.sb, { aps: { alert: { title, body }, sound: 'default', 'thread-id': 'flight' }, k: r.k });
+    let res;
+    if (r.tok.startsWith('web:')) res = await webPush(env, r.tok, { title, body, tag: r.k });
+    else { if (!jwt) continue; res = await push(env, jwt, r.tok, r.sb, { aps: { alert: { title, body }, sound: 'default', 'thread-id': 'flight' }, k: r.k }); }
     if (res === 'ok') { sent++; await env.DB.prepare('UPDATE w SET sent=1 WHERE tok=? AND k=?').bind(r.tok, r.k).run(); }
-    else if (res === 'gone') { gone++; await env.DB.prepare('DELETE FROM w WHERE tok=?').bind(r.tok).run(); }
+    else if (res === 'gone') { gone++; await env.DB.batch([env.DB.prepare('DELETE FROM w WHERE tok=?').bind(r.tok), env.DB.prepare('DELETE FROM wsub WHERE tok=?').bind(r.tok)]); }
   }
   return { wait: list.length, sent, gone, arr: arr && (arr.err || arr.rows.length + '班@' + arr.at), dep: dep && (dep.err || dep.rows.length + '班@' + dep.at) };
 }
@@ -231,5 +256,56 @@ async function push(env, jwt, tok, sandbox, payload) {
   if (r.status === 410 || why === 'Unregistered') return 'gone';
   if (r.status === 403 && /Token/.test(why)) JWT = null;
   console.log('apns', r.status, why);
+  return 'fail';
+}
+
+/* ── 網頁推播（Web Push：RFC 8291 aes128gcm 加密＋RFC 8292 VAPID）──────────
+   祕密 VAPID_KEY：VAPID 私鑰（PKCS8 PEM）；變數 VAPID_PUBLIC：公鑰（base64url，給網頁訂閱用）
+   回傳 ok / gone（瀏覽器已取消訂閱）/ fail */
+const ub = s => Uint8Array.from(atob(String(s).replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((String(s).length + 3) % 4)), c => c.charCodeAt(0));
+const cat = (...a) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let i = 0; for (const x of a) { o.set(x, i); i += x.length; } return o; };
+const te = s => new TextEncoder().encode(s);
+let VKEY = null;
+async function vapidKey(env) {
+  if (VKEY) return VKEY;
+  const pem = String(env.VAPID_KEY || '').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  VKEY = await crypto.subtle.importKey('pkcs8', Uint8Array.from(atob(pem), c => c.charCodeAt(0)), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  return VKEY;
+}
+async function hkdf(salt, ikm, info, len) {
+  const k = await crypto.subtle.importKey('raw', ikm, 'HKDF', false, ['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, k, len * 8));
+}
+async function encryptWP(p256dh, auth, plain) {
+  const ua = ub(p256dh), au = ub(auth);
+  const eph = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const as = new Uint8Array(await crypto.subtle.exportKey('raw', eph.publicKey));
+  const uaKey = await crypto.subtle.importKey('raw', ua, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+  const secret = new Uint8Array(await crypto.subtle.deriveBits({ name: 'ECDH', public: uaKey }, eph.privateKey, 256));
+  const ikm = await hkdf(au, secret, cat(te('WebPush: info\0'), ua, as), 32);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salt, ikm, te('Content-Encoding: aes128gcm\0'), 16);
+  const nonce = await hkdf(salt, ikm, te('Content-Encoding: nonce\0'), 12);
+  const key = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce }, key, cat(te(plain), new Uint8Array([2]))));
+  const rs = new Uint8Array([0, 0, 16, 0]);   // 4096
+  return cat(salt, rs, new Uint8Array([as.length]), as, ct);
+}
+async function webPush(env, tok, msg) {
+  if (!env.VAPID_KEY || !env.VAPID_PUBLIC) return 'fail';
+  const sub = await env.DB.prepare('SELECT ep,p,a FROM wsub WHERE tok=?').bind(tok).first();
+  if (!sub) return 'gone';
+  const aud = new URL(sub.ep).origin;
+  const head = b64uStr(JSON.stringify({ typ: 'JWT', alg: 'ES256' }));
+  const claims = b64uStr(JSON.stringify({ aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: env.VAPID_SUB || 'https://tpeboard.com' }));
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, await vapidKey(env), te(head + '.' + claims));
+  const jwt = head + '.' + claims + '.' + b64u(sig);
+  const body = await encryptWP(sub.p, sub.a, JSON.stringify(msg));
+  const r = await fetch(sub.ep, { method: 'POST', body,
+    headers: { 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream', TTL: '3600', Urgency: 'high',
+      Authorization: 'vapid t=' + jwt + ', k=' + env.VAPID_PUBLIC } });
+  if (r.status >= 200 && r.status < 300) return 'ok';
+  if (r.status === 404 || r.status === 410) return 'gone';
+  console.log('webpush', r.status, (await r.text()).slice(0, 200));
   return 'fail';
 }
