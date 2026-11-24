@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      url: ${{ steps.deploy2.outputs.page_url || steps.deploy1.outputs.page_url }}
     steps:
       # GitHub 內建排程在這個專案不會觸發，所以由這支（外部每 5 分鐘叫一次）
       # 每半小時叫醒一次「移民署人數」（在小韋電腦上跑）。失敗也不影響看板。
@@ -83,7 +83,19 @@ jobs:
           path: dist
         uses: actions/upload-pages-artifact@v5
 
+      # 11/24：GitHub 有時剛上傳完就去找，會說「找不到 github-pages」而失敗（不是程式壞）。
+      # 第一次失敗就等 30 秒、再試一次；第二次也失敗才算真的失敗。
       - name: 部署到 GitHub Pages
         if: steps.build.outputs.skip != 'true'
-        id: deploy
+        id: deploy1
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: 等一下再部署（第一次沒找到檔案時）
+        if: steps.build.outputs.skip != 'true' && steps.deploy1.outcome == 'failure'
+        run: sleep 30
+
+      - name: 部署到 GitHub Pages（再試一次）
+        if: steps.build.outputs.skip != 'true' && steps.deploy1.outcome == 'failure'
+        id: deploy2
         uses: actions/deploy-pages@v5
