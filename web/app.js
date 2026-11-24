@@ -304,7 +304,8 @@
       + '<button type="button" class="pw-plan pw-best" id="pwY"><em class="pw-badge">最划算・省 NT$90</em><span>365 天<small>平均每月不到 NT$83・比買 12 次 30 天省 NT$90</small></span><b>NT$990</b></button>'
       + '<button type="button" class="pw-plan" id="pwM"><span>30 天<small>單次付款・不自動續扣</small></span><b>NT$90</b></button>'
       + '<div class="pw-code"><label for="pwC">已經買過？輸入啟用碼</label><div><input id="pwC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" value="' + esc(c ? c.replace(/(.{4})(?=.)/g, '$1-') : '') + '">'
-      + '<button type="button" class="pw-link" id="pwCgo">啟用</button></div></div>';
+      + '<button type="button" class="pw-link" id="pwCgo">啟用</button></div>'
+      + '<a class="pw-forgot" href="' + CONFIG.payApi + '/lookup" style="display:inline-block;margin-top:6px;font-size:13px;color:#00efd4">忘記啟用碼？用訂單編號找回 ›</a></div>';
   }
   function webBind() {
     function go(plan) { var c = webCode(); location.href = CONFIG.payApi + '/buy?plan=' + plan + (c ? '&code=' + encodeURIComponent(c) : ''); }
