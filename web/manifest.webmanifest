@@ -1,0 +1,13 @@
+{
+  "name": "桃機出入境看板",
+  "short_name": "桃機看板",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0614",
+  "theme_color": "#0a0614",
+  "icons": [
+    { "src": "img/icon-arr-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-arr-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

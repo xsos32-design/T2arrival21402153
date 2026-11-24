@@ -475,8 +475,31 @@
       setTimeout(function () { if (!done) { done = 1; res(old()); } }, 8000);
     });
   }
+  /* 11/24：網頁推播——瀏覽器允許通知後訂閱，看板關著也收得到（iPhone 要先「加入主畫面」） */
+  var VAPID = null;   // 公鑰向 tpe-push 拿（/vapid）
+  function u8(b) { b = b.replace(/-/g, '+').replace(/_/g, '/'); b += '==='.slice((b.length + 3) % 4); var r = atob(b), o = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) o[i] = r.charCodeAt(i); return o; }
+  function webSub(make) {
+    if (NATIVE || !('serviceWorker' in navigator) || !W.PushManager || !W.Notification || Notification.permission !== 'granted') return Promise.resolve(null);
+    return navigator.serviceWorker.register('sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (s) {
+        if (s || !make) return s;
+        return (VAPID ? Promise.resolve(VAPID) : fetch(PUSH + '/vapid').then(function (x) { return x.json(); }).then(function (o) { VAPID = o.key; return VAPID; }))
+          .then(function (k) { return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(k) }); });
+      });
+    })['catch'](function () { return null; });
+  }
   function srvWatch(r) {
-    if (!NATIVE) return;
+    if (!NATIVE) {
+      webSub(true).then(function (sub) {
+        if (!sub) return;
+        return fetch(PUSH + '/wwatch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sub: sub.toJSON(), f: r.f, dep: !!r.dep, at: r.at, g: r.g, c: r.c }) })
+          .then(function (x) { return x.json(); }).then(function (o) {
+            if (!(o && o.ok)) return; var l = anList(), kk = (r.dep ? 'D' : 'A') + r.f; if (l[kk]) { l[kk].srv = 1; anSave(l); }
+          });
+      })['catch'](function () {});
+      return;
+    }
     pushTok().then(function (k) {
       if (!k) return;
       return fetch(PUSH + '/watch', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -487,7 +510,13 @@
     })['catch'](function () {});
   }
   function srvUnwatch(r) {
-    var t = ls('apnsTok'); if (!NATIVE || !t) return;
+    if (!NATIVE) {
+      webSub(false).then(function (sub) {
+        if (sub) fetch(PUSH + '/wunwatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sub: sub.toJSON(), f: r.f, dep: !!r.dep }) })['catch'](function () {});
+      });
+      return;
+    }
+    var t = ls('apnsTok'); if (!t) return;
     fetch(PUSH + '/unwatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: t, f: r.f, dep: !!r.dep }) })['catch'](function () {});
   }
   /* App 沒開時的備案：在預計時間排一則「預計抵達」 */
@@ -549,7 +578,7 @@
       } else {
         ok();
         try {
-          if (W.Notification && Notification.permission === 'default') Notification.requestPermission().then(function () { paintAnBtns(); });
+          if (W.Notification && Notification.permission === 'default') Notification.requestPermission().then(function (p) { paintAnBtns(); if (p === 'granted') srvWatch(r); });
           else if (!W.Notification || Notification.permission === 'denied') anToast('已設定（只會在看板上提示）', '這個瀏覽器沒開通知權限；iPhone 請先把網頁「加入主畫面」再允許通知。');
         } catch (_) {}
       }
@@ -865,7 +894,7 @@
       })()],
       [row && row.querySelector('.c-gate'), '登機門', '顏色跟著分類走，一眼分出是哪一組的門。'],
       [row && row.querySelector('.tag'), '分類標籤', '你在引導設的組名。名稱、顏色、登機門都能在「設定 › 分類設定」改。'],
-      [row && (row.querySelector('.tapmore') || row), (DEP ? '起飛' : '抵達') + '時通知我', '點「詳細」，按「' + (DEP ? '起飛' : '抵達') + '時通知我」，班機一' + (DEP ? '起飛' : '抵達') + '就跳通知' + (NATIVE ? '，App 關著也收得到' : '（網頁版要開著看板）') + '；只通知一次，隔天自動取消（訂閱完整版）。'],
+      [row && (row.querySelector('.tapmore') || row), (DEP ? '起飛' : '抵達') + '時通知我', '點「詳細」，按「' + (DEP ? '起飛' : '抵達') + '時通知我」，班機一' + (DEP ? '起飛' : '抵達') + '就跳通知' + (NATIVE ? '，App 關著也收得到' : '；瀏覽器允許通知後，看板關著也收得到（iPhone 要先「加入主畫面」）') + '；只通知一次，隔天自動取消（訂閱完整版）。'],
       [D.querySelector('#dock button'), '設定', '時段、日期、分類、A～D 區、隱藏已' + (DEP ? '起飛' : '抵達') + '、回報文字、外觀樣式，都在這裡。'],
       [D.getElementById('rwbar'), '看廣告免費用', '看一則廣告就能用完整版 ' + CONFIG.rewardHours + ' 小時，每天 ' + CONFIG.rewardPerDay + ' 次，每天 0 點重新計算（手錶版不含）。'],
       [D.getElementById('probtn'), pro ? '完整版' : '訂閱', pro ? '這裡看你的訂閱或試用剩多久。' : '看完整版有哪些功能：全時段、每班人數、雷達、群組回報一鍵複製' + (WEB ? '' : '、Apple Watch，而且沒有廣告') + '。年繳最划算。'],
