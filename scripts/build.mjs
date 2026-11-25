@@ -991,7 +991,7 @@ function renderPage(flights, preset, shopKey, hide, err, full) {
         : `<div class="msg">這個區間沒有符合的班機${hide ? '<br><small>（已隱藏抵達超過 30 分的班機）</small>' : ''}</div>`);
 
   return `<!DOCTYPE html>
-<html lang="zh-Hant"><head>
+<html lang="zh-Hant"><head><script>/* 11/25：12/10 00:00（台灣時間）起整個網站搬到 tpeboard.com，舊網址一打開就轉過去。出境頁→出境、更新日誌→更新日誌，其他→首頁。網址加 ?stay=1 可以留在舊網址（測試用） */(function(){try{if(Date.now()<Date.parse('2026-12-10T00:00:00+08:00')||/[?&]stay=1/.test(location.search))return;var p=(location.pathname.split('/').pop()||'').toLowerCase();var m=/^(dep|d-)/.test(p)?'depall.html':(/^changelog/.test(p)?'changelog.html':'');location.replace('https://tpeboard.com/'+m);}catch(e){}})();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="icon-192.png">
