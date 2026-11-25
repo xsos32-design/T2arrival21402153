@@ -48,12 +48,24 @@
     return until > Date.now();
   }
   /* 網頁版：啟用碼（付款完成頁會用 #code=… 帶回來） */
-  function webCode(v) { if (v !== undefined) ls('webCode', v ? String(v).toUpperCase().replace(/[^A-Z0-9]/g, '') : null); return ls('webCode') || ''; }
+  /* 11/25：啟用碼除了 localStorage，也存一份 cookie（約 400 天，每次確認有效就續期）。
+     localStorage 被清掉、或從 Safari「加入主畫面」時，可以從 cookie 自動找回，不用重打 */
+  if (location.protocol === 'http:' && /(^|\.)tpeboard\.com$/.test(location.hostname)) { location.replace('https://' + location.host + location.pathname + location.search + location.hash); }
+  function rememberCode(c) {
+    try { D.cookie = 'wc=' + (c || '') + '; Max-Age=' + (c ? 34560000 : 0) + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+  }
+  function cookieCode() { var m = /(?:^|;\s*)wc=([A-Z0-9]{6,24})/.exec(D.cookie || ''); return m ? m[1] : ''; }
+  function webCode(v) {
+    if (v !== undefined) { var c = v ? String(v).toUpperCase().replace(/[^A-Z0-9]/g, '') : null; ls('webCode', c); rememberCode(c); }
+    var x = ls('webCode') || '';
+    if (!x && WEB) { x = cookieCode(); if (x) ls('webCode', x); }
+    return x;
+  }
   (function () { var m = /[#&]code=([A-Za-z0-9-]+)/.exec(location.hash || ''); if (m) { webCode(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } })();
   function webCheck() {
     var c = webCode(); if (!c) { ls('proUntil', null); return Promise.resolve(false); }
     return fetch(CONFIG.payApi + '/check?code=' + encodeURIComponent(c), { cache: 'no-store' }).then(function (r) { return r.json(); })
-      .then(function (j) { ls('proUntil', j && j.ok ? String(j.until) : null); return !!(j && j.ok); })
+      .then(function (j) { ls('proUntil', j && j.ok ? String(j.until) : null); if (j && j.ok) rememberCode(c); return !!(j && j.ok); })
       ['catch'](function () { return cachedPro(); });
   }
   function checkPro() {
