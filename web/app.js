@@ -54,8 +54,18 @@
   function rememberCode(c) {
     try { D.cookie = 'wc=' + (c || '') + '; Max-Age=' + (c ? 34560000 : 0) + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
     // 11/26：再請 tpeboard.com 伺服器設一次同名 cookie（伺服器設的不受 Safari 7 天清除限制，可以留約 400 天）
-    if (/(^|\.)tpeboard\.com$/.test(location.hostname)) { try { fetch('/remember?c=' + encodeURIComponent(c || ''), { cache: 'no-store', credentials: 'same-origin' }); } catch (e) {} }
+    if (/(^|\.)tpeboard\.com$/.test(location.hostname)) { try { fetch('/remember?c=' + encodeURIComponent(c || '') + '&d=' + devId(), { cache: 'no-store', credentials: 'same-origin' }); } catch (e) {} }
   }
+  /* 11/26：每台裝置一組隨機編號（不含個資），伺服器用來限制一組啟用碼最多幾台同時用 */
+  function devId() {
+    var x = ls('webDev');
+    if (!x) { var m = /(?:^|;\s*)wd=([A-Za-z0-9]{8,32})/.exec(D.cookie || ''); x = m ? m[1] : ''; }
+    if (!x) { var a = new Uint8Array(12); try { crypto.getRandomValues(a); } catch (e) { for (var i = 0; i < 12; i++) a[i] = Math.random() * 256; } x = Array.prototype.map.call(a, function (b) { return 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]; }).join(''); }
+    ls('webDev', x);
+    try { D.cookie = 'wd=' + x + '; Max-Age=34560000; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+    return x;
+  }
+  var webFull = null;   // 這組碼的裝置數已滿：{ max, takeLeft }
   function cookieCode() { var m = /(?:^|;\s*)wc=([A-Z0-9]{6,24})/.exec(D.cookie || ''); return m ? m[1] : ''; }
   function webCode(v) {
     if (v !== undefined) { var c = v ? String(v).toUpperCase().replace(/[^A-Z0-9]/g, '') : null; ls('webCode', c); rememberCode(c); }
@@ -64,10 +74,10 @@
     return x;
   }
   (function () { var m = /[#&]code=([A-Za-z0-9-]+)/.exec(location.hash || ''); if (m) { webCode(m[1]); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} } })();
-  function webCheck() {
-    var c = webCode(); if (!c) { ls('proUntil', null); return Promise.resolve(false); }
-    return fetch(CONFIG.payApi + '/check?code=' + encodeURIComponent(c), { cache: 'no-store' }).then(function (r) { return r.json(); })
-      .then(function (j) { ls('proUntil', j && j.ok ? String(j.until) : null); if (j && j.ok) rememberCode(c); return !!(j && j.ok); })
+  function webCheck(take) {
+    var c = webCode(); if (!c) { ls('proUntil', null); webFull = null; return Promise.resolve(false); }
+    return fetch(CONFIG.payApi + '/check?code=' + encodeURIComponent(c) + '&d=' + devId() + (take ? '&take=1' : ''), { cache: 'no-store' }).then(function (r) { return r.json(); })
+      .then(function (j) { webFull = j && j.full ? j : null; ls('proUntil', j && j.ok ? String(j.until) : null); if (j && j.ok) rememberCode(c); return !!(j && j.ok); })
       ['catch'](function () { return cachedPro(); });
   }
   function checkPro() {
@@ -314,7 +324,10 @@
   function webPlans() {
     var c = webCode(), until = +ls('proUntil') || 0;
     var day = until ? new Date(until).toLocaleDateString('zh-TW') : '';
-    return (pro && day ? '<div class="pw-free">完整版可以用到 <b>' + day + '</b>，啟用碼 ' + esc(c.replace(/(.{4})(?=.)/g, '$1-')) + '。下面買的天數會接在後面延長。</div>' : '')
+    return (webFull ? '<div class="pw-free" id="pwFull" style="border:1px solid #ffc23d">這組啟用碼已經在 <b>' + webFull.max + ' 台裝置</b>使用中（每組最多 ' + webFull.max + ' 台）。'
+        + (webFull.takeLeft > 0 ? '<br><button type="button" class="pw-link" id="pwTake" style="margin-top:6px">改在這台用</button><br><small>最久沒用的那一台會被登出。每 30 天可以換 ' + webFull.takeLeft + ' 次。</small>'
+          : '<br>這 30 天換裝置的次數已經用完。換新手機請來信 xsos32@gmail.com，附上啟用碼。') + '</div>' : '')
+      + (pro && day ? '<div class="pw-free">完整版可以用到 <b>' + day + '</b>，啟用碼 ' + esc(c.replace(/(.{4})(?=.)/g, '$1-')) + '。下面買的天數會接在後面延長。</div>' : '')
       + '<button type="button" class="pw-plan pw-best" id="pwY"><em class="pw-badge">最划算・省 NT$90</em><span>365 天<small>平均每月不到 NT$83・比買 12 次 30 天省 NT$90</small></span><b>NT$990</b></button>'
       + '<button type="button" class="pw-plan" id="pwM"><span>30 天<small>單次付款・不自動續扣</small></span><b>NT$90</b></button>'
       + '<div class="pw-code"><label for="pwC">已經買過？輸入啟用碼</label><div><input id="pwC" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" value="' + esc(c ? c.replace(/(.{4})(?=.)/g, '$1-') : '') + '">'
@@ -325,11 +338,20 @@
     function go(plan) { var c = webCode(); location.href = CONFIG.payApi + '/buy?plan=' + plan + (c ? '&code=' + encodeURIComponent(c) : ''); }
     D.getElementById('pwM').onclick = function () { msg('前往綠界付款頁…'); go('m'); };
     D.getElementById('pwY').onclick = function () { msg('前往綠界付款頁…'); go('y'); };
+    var tk = D.getElementById('pwTake');
+    if (tk) tk.onclick = function () {
+      msg('切換中…');
+      webCheck(true).then(function (ok) {
+        if (ok) { applyTier(true); msg('已改在這台使用完整版'); setTimeout(function () { var p = D.getElementById('paywall'); if (p) p.remove(); }, 1000); }
+        else msg(webFull ? '這 30 天換裝置的次數已經用完' : '這組啟用碼無效或已經到期');
+      });
+    };
     D.getElementById('pwCgo').onclick = function () {
       var v = D.getElementById('pwC').value; if (!v.trim()) { msg('請輸入啟用碼'); return; }
       var old = webCode(); webCode(v); msg('確認中…');
       webCheck().then(function (ok) {
         if (ok) { applyTier(true); msg('已開通完整版'); setTimeout(function () { var p = D.getElementById('paywall'); if (p) p.remove(); }, 1000); }
+        else if (webFull) { var p = D.getElementById('paywall'); if (p) p.remove(); openPaywall(); msg('這組啟用碼的裝置數已滿'); }
         else { webCode(old || null); msg('這組啟用碼無效或已經到期'); }
       });
     };
@@ -994,7 +1016,7 @@
       tries++;
       if ((D.querySelector('#out .r') || tries > 40) && W.runNow6) {
         clearInterval(iv);
-        checkPro().then(function (ok) { applyTier(ok); devToggle(); });
+        checkPro().then(function (ok) { applyTier(ok); devToggle(); if (!ok && webFull) openPaywall(); });
       }
     }, 250);
     setTimeout(startAds, 800);
