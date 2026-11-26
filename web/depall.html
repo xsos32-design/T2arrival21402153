@@ -5924,5 +5924,144 @@ html.tbp body:not(#_):not(#__) #infobox #nalert .cg .t{font-family:ui-monospace,
 <link rel="stylesheet" href="theme-fit.css">
 <script src="app.js?v=1125a"></script>
 <script src="web-news.js?v=1125a"></script>
+<!-- 11/25：搬家公告＋手錶版提醒（tools/move.js）。舊網址（GitHub）和 tpeboard.com 都放；App 裡（capacitor）不會跑
+     只放在舊網址（GitHub）：上方一條「12/10 起搬到 tpeboard.com」＋每天第一次打開跳一次公告視窗
+     手錶（螢幕 ≤340px）：只有上方一行，不跳視窗。tpeboard.com 不放這個。
+     12/10 00:00 起由 <head> 裡的轉址程式直接帶到 tpeboard.com（見 MOVE_HEAD）。
+     11/26：不管哪個網頁都提醒「Apple Watch 手錶版要在 App Store 下載 App、在 App 裡訂閱」：
+       上方粉紅一條（手錶頁跟搬家那行輪流顯示）＋公告視窗裡的粉紅框。
+       tpeboard.com 不提搬家，只有粉紅條＋每天第一次打開跳一次手錶提醒。
+     記在手機裡：localStorage move1（舊網址）、watch1（tpeboard.com），存今天日期，同一天不再跳 -->
+<style>
+#fxmvbar{position:relative;z-index:30;display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 12px;
+  font-size:13.5px;font-weight:900;letter-spacing:.04em;color:#0b0716;background:linear-gradient(90deg,#ffc53d,#ff8a3d);text-decoration:none;
+  box-shadow:0 0 14px -4px rgba(255,197,61,.8)}
+#fxmvbar u{text-decoration:none;padding:1px 7px;background:#0b0716;color:#ffc53d;font-size:12.5px}
+#fxmv{position:fixed;inset:0;z-index:2147483631;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,2,10,.74);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:mvfade .3s ease-out}
+@keyframes mvfade{0%{opacity:0}}
+#fxmv.out{animation:mvfade .25s ease-in reverse forwards}
+#fxmv .mv{width:min(400px,100%);max-height:min(86vh,760px);display:flex;flex-direction:column;color:#e3eef8;
+  background:linear-gradient(165deg,#1a0f33 0%,#0c0a1d 55%,#120a26 100%);border:1.5px solid #ffc53d;
+  box-shadow:0 0 34px -6px rgba(255,197,61,.6),inset 0 0 50px -24px #ffc53d;
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));animation:mvin .5s cubic-bezier(.2,1.3,.35,1) both}
+@keyframes mvin{0%{opacity:0;transform:translateY(40px) scale(.94)}100%{opacity:1;transform:none}}
+#fxmv .mv-h{padding:18px 20px 12px;border-bottom:1px solid rgba(255,197,61,.3)}
+#fxmv .mv-h small{display:block;font-size:11.5px;letter-spacing:.35em;color:#ffc53d;font-weight:900;margin-bottom:4px}
+#fxmv .mv-h b{display:block;font-size:23px;font-weight:900;letter-spacing:.06em;color:#fff;text-shadow:0 0 12px rgba(255,197,61,.7)}
+#fxmv .mv-b{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 20px 6px;overscroll-behavior:contain;font-size:15px;line-height:1.7;font-weight:700}
+#fxmv .mv-b p{margin:0 0 12px}
+#fxmv .mv-new{display:block;margin:4px 0 14px;padding:12px;text-align:center;text-decoration:none;color:#0b0716;background:#ffc53d;font-size:20px;font-weight:900;letter-spacing:.04em;
+  box-shadow:0 0 18px -4px rgba(255,197,61,.9)}
+#fxmv .mv-new small{display:block;font-size:12.5px;letter-spacing:.06em;opacity:.8}
+#fxmv .mv-sub{color:#ffd77a}
+#fxmv hr{border:0;border-top:1px dashed rgba(255,197,61,.35);margin:6px 0 12px}
+#fxmv .mv-t{font-size:16.5px;font-weight:900;color:#fff;margin-bottom:6px}
+#fxmv ul{margin:0 0 12px;padding:0;list-style:none}
+#fxmv li{position:relative;padding:3px 0 3px 18px;color:#d3e2ef}
+#fxmv li::before{content:"";position:absolute;left:2px;top:.8em;width:8px;height:8px;background:#00f0ff;box-shadow:0 0 8px #00f0ff}
+#fxmv .mv-ln{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+#fxmv .mv-ln a{display:block;padding:10px 6px;text-align:center;text-decoration:none;font-weight:900;font-size:15px;color:#00f0ff;border:1px solid rgba(0,240,255,.6);background:rgba(0,240,255,.07)}
+#fxmv .mv-ln a small{display:block;font-size:11.5px;color:#9fb3c6;font-weight:700}
+#fxmv .mv-f{padding:10px 20px 16px;display:flex}
+#fxmv .mv-ok{all:unset;cursor:pointer;flex:1;text-align:center;padding:13px 0;font-weight:900;font-size:16px;color:#0b0716;background:#00efd4;letter-spacing:.1em}
+#fxwbar{position:relative;z-index:30;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 12px;
+  font-size:13px;font-weight:900;letter-spacing:.03em;color:#fff;background:linear-gradient(90deg,#c2185b,#ff2a6d);text-decoration:none;box-shadow:0 0 14px -4px rgba(255,42,109,.8)}
+#fxwbar u{text-decoration:none;padding:1px 7px;background:#0b0716;color:#ff8fb3;font-size:12px;white-space:nowrap}
+#fxmv .mv-ios{margin:2px 0 14px;padding:12px;border:2px solid #ff2a6d;background:rgba(255,42,109,.12);box-shadow:0 0 18px -6px #ff2a6d,inset 0 0 22px -12px #ff2a6d;
+  animation:mvpulse 1.6s ease-in-out infinite}
+@keyframes mvpulse{50%{box-shadow:0 0 26px -2px #ff2a6d,inset 0 0 22px -10px #ff2a6d}}
+#fxmv .mv-ios b{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:900;color:#ff8fb3;margin-bottom:6px;letter-spacing:.04em}
+#fxmv .mv-ios b i{font-style:normal;flex:none;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#ff2a6d;color:#0b0716;font-size:15px;font-weight:900}
+#fxmv .mv-ios p{margin:0 0 10px;color:#ffe3ec;font-size:14.5px;line-height:1.65}
+#fxmv .mv-ios p em{font-style:normal;color:#fff;background:rgba(255,42,109,.35);padding:0 3px}
+#fxmv .mv-ios p strong{color:#fff}
+#fxmv .mv-ios a{display:block;padding:12px;text-align:center;text-decoration:none;font-size:17px;font-weight:900;color:#0b0716;background:#ff2a6d;letter-spacing:.06em;box-shadow:0 0 16px -3px #ff2a6d}
+#fxmv .mv-ios a small{display:block;font-size:12px;font-weight:800;opacity:.85;letter-spacing:.02em}
+@media (prefers-reduced-motion:reduce){ #fxmv .mv-ios{animation:none} }
+@media (max-width:340px){ #fxwbar{font-size:11px;padding:4px 6px;gap:5px} #fxwbar u{font-size:10.5px;padding:0 5px} }
+@media (max-width:340px){ #fxmvbar{font-size:11px;padding:4px 6px;gap:5px} #fxmvbar u{font-size:10.5px;padding:0 5px} }
+</style>
+<script>
+(function(){
+  var D=document, W=window;
+  if(W.__fxmove) return; W.__fxmove=1;
+  var NEW='https://tpeboard.com', APP='https://apps.apple.com/tw/app/id6835178181';
+  var Q=location.search, H=location.hostname;
+  var OLD=/github\.io$/.test(H) || /[?&]mv=old/.test(Q);                 /* 舊網址（GitHub）：搬家＋手錶提醒 */
+  var NEWS=!OLD && (/(^|\.)tpeboard\.com$/.test(H) || /[?&]mv=new/.test(Q)); /* tpeboard.com：只有手錶提醒 */
+  if(!OLD && !NEWS) return;                                               /* App 裡（capacitor://）或其他地方都不跑 */
+  var WATCH=Math.min(screen.width||999, innerWidth||999)<=340;
+  var today=new Date(); var ymd=today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  var K=OLD?'move1':'watch1';
+  function get(){ try{ return localStorage.getItem(K)||''; }catch(e){ return ''; } }
+  function set(v){ try{ localStorage.setItem(K,v); }catch(e){} }
+
+  /* 上方提醒條：舊網址＝黃色搬家＋粉紅手錶；tpeboard＝粉紅手錶。手錶頁只放一條，兩句輪流換 */
+  function bar(){
+    if(D.getElementById('fxwbar')||D.getElementById('fxmvbar')) return;
+    var first=D.body.firstChild;
+    if(WATCH){
+      var a=D.createElement('a'); a.id=OLD?'fxmvbar':'fxwbar'; a.href=OLD?NEW:APP;
+      var t=[['fxmvbar',NEW,'12/10 起搬家 <u>tpeboard.com</u>'],['fxwbar',APP,'手錶版 <u>App Store 訂閱</u>']];
+      if(!OLD) t=[t[1]];
+      var i=0; function sh(){ var x=t[i%t.length]; a.id=x[0]; a.href=x[1]; a.innerHTML=x[2]; i++; }
+      sh(); if(t.length>1) setInterval(sh,4000);
+      D.body.insertBefore(a,first); return;
+    }
+    if(OLD){ var m=D.createElement('a'); m.id='fxmvbar'; m.href=NEW; m.innerHTML='12/10 起網站搬到新網址 <u>tpeboard.com ›</u>'; D.body.insertBefore(m,first); }
+    var w=D.createElement('a'); w.id='fxwbar'; w.href=APP; w.innerHTML='Apple Watch 手錶版要在 App 裡訂閱 <u>App Store 下載 ›</u>';
+    D.body.insertBefore(w,OLD?D.getElementById('fxmvbar').nextSibling:first);
+  }
+
+  function watchBox(){
+    return '<div class="mv-ios"><b><i>!</i>Apple Watch 手錶版請注意</b>'
+      +'<p><em>網頁版的訂閱不含 Apple Watch 手錶功能。</em><br>想用手錶抬手看班機、落地通知，請用 iPhone 到 <strong>App Store 下載 App，在 App 裡訂閱</strong>。</p>'
+      +'<a href="'+APP+'">到 App Store 下載<small>下載後在 App 裡訂閱，手錶功能才會開通</small></a></div>';
+  }
+  /* 看板自己的視窗（更新資訊、訂閱頁、引導、設定）開著就先等，不要疊在一起 */
+  function busy(){
+    var ids=['fxnews','paywall','applog','setupg','tourg','meetcfg','slotcfg'];
+    for(var i=0;i<ids.length;i++){ var e=D.getElementById(ids[i]); if(e&&e.offsetParent!==null&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).visibility!=='hidden') return true; }
+    return !!D.querySelector('.mfsheet');
+  }
+  function pop(){
+    if(WATCH||D.getElementById('fxmv')) return;
+    if(busy()){ setTimeout(pop,800); return; }
+    var h='', title, sm;
+    if(OLD){
+      title='看板要搬家了'; sm='NOTICE';
+      h+='<p>感謝大家一路以來的支持！<br>這個網站 <b>12/10 起搬到新網址</b>，記得改存新網址、重新加到主畫面：</p>'
+        +'<a class="mv-new" href="'+NEW+'">tpeboard.com<small>點這裡打開新網址</small></a>'
+        +watchBox()
+        +'<p class="mv-sub">網站要持續營運，需要大家幫忙，歡迎訂閱或贊助支持。</p><hr>'
+        +'<div class="mv-t">「下一班誰先到」看板</div>'
+        +'<ul><li>照實際落地時間重新排序，不用一直刷官網、不用自己對時間</li>'
+        +'<li>下一班幾點到、哪個門、大概幾個人，3 秒看懂</li>'
+        +'<li>班機一落地就跳通知，手錶抬手就看</li></ul>'
+        +'<div class="mv-ln"><a href="'+NEW+'">網頁版<small>tpeboard.com</small></a><a href="'+APP+'">iPhone App<small>App Store</small></a></div>';
+    } else {
+      title='手錶版請到 App Store'; sm='APPLE WATCH';
+      h+=watchBox();
+    }
+    var o=D.createElement('div'); o.id='fxmv'; o.setAttribute('role','dialog'); o.setAttribute('aria-label',title);
+    o.innerHTML='<div class="mv"><div class="mv-h"><small>'+sm+'</small><b>'+title+'</b></div>'
+      +'<div class="mv-b">'+h+'</div><div class="mv-f"><button type="button" class="mv-ok">知道了</button></div></div>';
+    function close(){ set(ymd); o.classList.add('out'); setTimeout(function(){ o.remove(); },260); }
+    o.querySelector('.mv-ok').onclick=close;
+    o.addEventListener('click',function(e){ if(e.target===o) close(); });
+    [].forEach.call(o.querySelectorAll('a'),function(a){ a.addEventListener('click',function(){ set(ymd); }); });
+    D.body.appendChild(o);
+  }
+
+  function go(){
+    bar();
+    var seen=get(), force=/[?&]mv=1/.test(Q);                     /* 預覽：網址加 ?mv=1 一定跳 */
+    if(force || seen!==ymd) setTimeout(pop,2200);                  /* 等招牌、卡片進場跑完 */
+  }
+  if(D.readyState==='complete') go(); else addEventListener('load',go);
+})();
+</script>
+
 </body>
 </html>
