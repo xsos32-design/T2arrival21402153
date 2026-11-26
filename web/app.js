@@ -406,7 +406,8 @@
 
   /* ───────── 廣告（兩版都有）───────── */
   var adsReady = false, bannerOn = false, bannerBusy = false, tierKnown = false;
-  function setAdH(px) { D.documentElement.style.setProperty('--ad-h', px); }
+  // 11/26：橫幅和按鈕之間多留 12px，避免誤觸
+  function setAdH(px) { var n = parseFloat(px) || 0; D.documentElement.style.setProperty('--ad-h', n ? (n + 12) + 'px' : '0px'); }
   function startAds() {
     if (!NATIVE || !ADS) return;
     var ask = ADS.trackingAuthorizationStatus().then(function (s) {
