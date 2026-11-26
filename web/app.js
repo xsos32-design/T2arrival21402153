@@ -53,6 +53,8 @@
   if (location.protocol === 'http:' && /(^|\.)tpeboard\.com$/.test(location.hostname)) { location.replace('https://' + location.host + location.pathname + location.search + location.hash); }
   function rememberCode(c) {
     try { D.cookie = 'wc=' + (c || '') + '; Max-Age=' + (c ? 34560000 : 0) + '; Path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+    // 11/26：再請 tpeboard.com 伺服器設一次同名 cookie（伺服器設的不受 Safari 7 天清除限制，可以留約 400 天）
+    if (/(^|\.)tpeboard\.com$/.test(location.hostname)) { try { fetch('/remember?c=' + encodeURIComponent(c || ''), { cache: 'no-store', credentials: 'same-origin' }); } catch (e) {} }
   }
   function cookieCode() { var m = /(?:^|;\s*)wc=([A-Z0-9]{6,24})/.exec(D.cookie || ''); return m ? m[1] : ''; }
   function webCode(v) {
