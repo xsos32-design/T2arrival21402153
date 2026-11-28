@@ -583,7 +583,7 @@ b.t{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFC53D;le
    手機把 HTML 存起來重複用，改版後常常還看到舊畫面。
    這裡開頁時讀一個 40 bytes 的 ver.json，對不上就換帶版本號的網址重載一次。
    一次工作階段只做一次，不會反覆重整。 */
-var PAGE_V='2026-11-26a';
+var PAGE_V='2026-11-28a';
 (function(){
   /* 網址已經帶版本號＝剛重載過，不再檢查（有些瀏覽器會擋 sessionStorage，
      所以用網址當第二道保險，確保絕對不會無限重整） */
@@ -1177,8 +1177,10 @@ function render(){
   }
   if(pend.length){
     pend.sort(function(a,b){ return (a.d-b.d)||a.t.localeCompare(b.t); });
-    html+='<div class="msg" style="text-align:left;line-height:1.7">'+IC('clock')+' <b style="color:#cbd5e1">尚未公布登機門：'+pend.length+' 班</b>（門一派好就會自動變成上面的大字卡）<br>'
-      +pend.map(function(p){ return p.txt; }).join('、')+'</div>';
+    /* 11/28：原本整段用「、」串成一長句，班機一多（例如半夜 13 班沒派門），Apple Watch 會把整頁當成文章、自動切成「閱讀器」純文字畫面。
+       改成一班一小行、拿掉括號說明，不再有長句子。 */
+    html+='<div class="msg pendw" style="text-align:left;line-height:1.5">'+IC('clock')+' <b style="color:#cbd5e1">未派門 '+pend.length+' 班</b>'
+      +pend.map(function(p){ return '<div style="font-size:.92em;color:#aebdcc">'+p.txt+'</div>'; }).join('')+'</div>';
   }
   if(!cats.c0&&!cats.c1&&!cats.c2&&!cats.c3)
     html='<div class="msg">分類全部關掉了<br>點上面的分類鍵選要看的</div>';
